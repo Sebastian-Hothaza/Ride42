@@ -21,7 +21,7 @@ const UserSchema = new mongoose.Schema({
 
 	group: { type: String, required: true, enum: ["green", "yellow", "red"] },
 	credits: { type: Number, required: true},
-				
+	type: { type: String, required: true, enum: ["regular", "staff", "admin"] },
 	password: { type: String, required: true, minLength: 8, maxLength: 50 },
 });
 
