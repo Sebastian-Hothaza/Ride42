@@ -14,6 +14,14 @@ exports.trackday_delete = (req,res,next) => {
     res.send('NOT YET IMPLEMENTED: trackday_delete for _id: '+req.params.trackdayID)
 }
 
+exports.register = (req,res,next) => {
+    res.send('NOT YET IMPLEMENTED: register for user_id: '+req.params.userID+' at trackday: '+req.params.trackdayID)
+}
+
+exports.unregister = (req,res,next) => {
+    res.send('NOT YET IMPLEMENTED: unregister for user_id: '+req.params.userID+' at trackday: '+req.params.trackdayID)
+}
+
 exports.checkin = (req,res,next) => {
     res.send('NOT YET IMPLEMENTED: checkin for user_id: '+req.params.userID+' at trackday: '+req.params.trackdayID)
 }
