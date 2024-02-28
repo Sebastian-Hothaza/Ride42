@@ -30,6 +30,11 @@ exports.trackday_get = (req,res,next) => {
     res.send('NOT YET IMPLEMENTED: trackday_get for _id: '+req.params.trackdayID)
 }
 
+exports.trackday_getALL = (req,res,next) => {
+    //Admin only
+    res.send('NOT YET IMPLEMENTED: trackday_getALL')
+}
+
 exports.trackday_post = (req,res,next) => {
     //Admin only
     res.send('NOT YET IMPLEMENTED: trackday_post for _id: '+req.params.trackdayID)

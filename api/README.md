@@ -41,6 +41,10 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 **Get details of an existing trackday in the `Trackday` collection:** Submit a `GET` request to `/trackdays/:trackdayID`. Server will respond with JSON of the trackday.
 
+**Get all users:** Submit a `GET` request to `/users`. Server will respond with JSON of all the users.
+
+**Get all trackdays:** Submit a `GET` request to `/trackdays`. Server will respond with JSON of all the trackdays.
+
 ### Update
 **Update an existing user in the `Users` collection:** Submit a `PUT` request to `/users/:userID`. Server will respond with `_id` of newly updated user.
 

@@ -21,6 +21,11 @@ exports.user_get = (req,res,next) => {
     res.send('NOT YET IMPLEMENTED: user_get for _id: '+req.params.userID)
 }
 
+exports.user_getALL = (req,res,next) => {
+    // Admin onlt
+    res.send('NOT YET IMPLEMENTED: user_getALL')
+}
+
 exports.user_post = (req,res,next) => {
     // PUBLIC
     res.send('NOT YET IMPLEMENTED: user_post for _id: '+req.params.userID)
