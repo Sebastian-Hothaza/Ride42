@@ -5,14 +5,14 @@ const UserSchema = new mongoose.Schema({
 			lastName:  { type: String, required: true, minLength: 2, maxLength: 50 }},
 
 	contact: {  email:   {type: String, required: true, minLength: 4, maxLength: 50},
-				phone:   {type: String, required: true, minLength: 10, maxLength: 15},
+				phone:   {type: String, required: true, minLength: 10, maxLength: 10},
 				address: { type: String, required: true, minLength: 2, maxLength: 50 },
 				city:    { type: String, required: true, minLength: 2, maxLength: 50 },
 				province:{ type: String, required: true, minLength: 2, maxLength: 50 }},
 
 	emergencyContact: { name:		 { firstName: { type: String, required: true, minLength: 2, maxLength: 50 },
 									   lastName:  { type: String, required: true, minLength: 2, maxLength: 50 }},
-						phone:		 {type: Number, required: true, minLength: 10, maxLength: 15},
+						phone:		 {type: Number, required: true, minLength: 10, maxLength: 10},
 						relationship:{type: String, required: true, minLength: 2, maxLength: 50},},
 
 	garage: [ { year: { type: String, required: true, minLength: 4, maxLength: 4  },
