@@ -19,7 +19,7 @@ router.get('/verify/:userID', userController.verify)
 
 router.get('/users/:userID', userController.user_get)
 router.get('/users/', userController.user_getALL)
-router.post('/users/:userID', userController.user_post)
+router.post('/users', userController.user_post)
 router.put('/users/:userID', userController.user_put)
 router.delete('/users/:userID', userController.user_delete)
 
@@ -32,7 +32,7 @@ router.get('/trackdays/:trackdayID/checkin/:userID', trackdayController.checkin)
 
 router.get('/trackdays/:trackdayID', trackdayController.trackday_get)
 router.get('/trackdays', trackdayController.trackday_getALL)
-router.post('/trackdays/:trackdayID', trackdayController.trackday_post) 
+router.post('/trackdays ', trackdayController.trackday_post) 
 router.put('/trackdays/:trackdayID', trackdayController.trackday_put)
 router.delete('/trackdays/:trackdayID', trackdayController.trackday_delete)
 
