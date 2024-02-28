@@ -15,15 +15,21 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 ### Specialized Requests
 
-**Log in a user:** Submit a `POST` request to `login/:userID`. Server will respond with `_id` of newly logged in user as well as attaching a JWT httpOnly cookie.
+**Log in a user (PUBLIC):** Submit a `POST` request to `login/:userID`. Server will respond with `_id` of newly logged in user as well as attaching a JWT httpOnly cookie.
 
-**Add a user to a trackday:** Submit a `POST` request to `/trackdays/:trackdayID/register/:userID`. Server will respond with `_id` of newly registered user.
+**Get trackdays a user is registered for (PUBLIC):**  Submit a `GET` request to `/users/:userID/trackdays`. Server will respond with JSON `{"trackdays" : "[dates]"}`.
 
-**Remove a user from a trackday:** Submit a `DELETE` request to `/trackdays/:trackdayID/register/:userID`. Server will respond with `_id` of newly unregistered in user.
+**Verify a user is checked in (PUBLIC):** Submit a `GET` request to `/verify/:userID`. Server will respond with `{"verified" : "true"}` or `{"verified" : "false"}` assuming user is registered for that trackday.
+
+**Add a user to a trackday:** Submit a `POST` request to `/trackdays/:trackdayID/:userID`. Server will respond with `_id` of newly registered user.
+
+**Remove a user from a trackday:** Submit a `DELETE` request to `/trackdays/:trackdayID/:userID`. Server will respond with `_id` of newly unregistered user.
+
+**Reschedule a user:** Submit a `POST` request to `/trackdays/reschedule/:userID`. Server will respond with `_id` of newly rescheduled user.
 
 **Check in a user:** Submit a `PUT` request to `/trackdays/:trackdayID/checkin/:userID`. Server will respond with `_id` of newly checked in user.
 
-**Verify a user is checked in (PUBLIC):** Submit a `GET` request to `/verify/:userID`. Server will respond with `{"verified" : "true"}` or `{"verified" : "false"}` assuming user is registered for that trackday.
+
 
 ### Create
 **Create a new user in the `Users` collection (PUBLIC):** Submit a `POST` request to `/users`. Server will respond with `_id` of newly created user as well as attaching a JWT httpOnly cookie.
