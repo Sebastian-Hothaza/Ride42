@@ -21,11 +21,11 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 **Verify a user is checked in (PUBLIC):** Submit a `GET` request to `/verify/:userID`. Server will respond with `{"verified" : "true"}` or `{"verified" : "false"}` assuming user is registered for that trackday.
 
-**Add a user to a trackday:** Submit a `POST` request to `/trackdays/:trackdayID/:userID`. Server will respond with `_id` of newly registered user.
+**Add a user to a trackday:** Submit a `POST` request to `/register/:trackdayID/:userID`. Server will respond with `_id` of newly registered user.
 
-**Remove a user from a trackday:** Submit a `DELETE` request to `/trackdays/:trackdayID/:userID`. Server will respond with `_id` of newly unregistered user.
+**Remove a user from a trackday:** Submit a `DELETE` request to `/register/:trackdayID/:userID`. Server will respond with `_id` of newly unregistered user.
 
-**Reschedule a user:** Submit a `POST` request to `/trackdays/reschedule/:userID`. Server will respond with `_id` of newly rescheduled user.
+**Reschedule a user:** Submit a `PUT` request to `/register/:trackdayID/:userID`. Server will respond with `_id` of newly rescheduled user.
 
 **Check in a user:** Submit a `PUT` request to `/trackdays/:trackdayID/checkin/:userID`. Server will respond with `_id` of newly checked in user.
 
