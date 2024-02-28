@@ -10,8 +10,20 @@ This API provides core functionality to the Ride42 Trackday Management System.
 
 ## Usage
 
-*Note: Usage below indications server actions on a successful request. On a successful request, the server will respond with appropriate status code and JSON in format as outlined below. 
+*Note: Usage below indicates server actions on a successful request; server will respond with appropriate status code and JSON in format as outlined below. 
 On a bad request, the server will respond with appropriate code and a JSON in the format of `{"msg" : "error_message"}`. All transactions require credentials unless marked as PUBLIC*
+
+### Specialized Requests
+
+**Log in a user:** Submit a `POST` request to `login/:userID`. Server will respond with `_id` of newly logged in user as well as attaching a JWT httpOnly cookie.
+
+**Add a user to a trackday:** Submit a `POST` request to `/trackdays/:trackdayID/register/:userID`. Server will respond with `_id` of newly registered user.
+
+**Remove a user from a trackday:** Submit a `DELETE` request to `/trackdays/:trackdayID/register/:userID`. Server will respond with `_id` of newly unregistered in user.
+
+**Check in a user:** Submit a `PUT` request to `/trackdays/:trackdayID/checkin/:userID`. Server will respond with `_id` of newly checked in user.
+
+**Verify a user is checked in (PUBLIC):** Submit a `GET` request to `/verify/:userID`. Server will respond with `{"verified" : "true"}` or `{"verified" : "false"}` assuming user is registered for that trackday.
 
 ### Create
 **Create a new user in the `Users` collection (PUBLIC):** Submit a `POST` request to `/users`. Server will respond with `_id` of newly created user as well as attaching a JWT httpOnly cookie.
@@ -23,16 +35,11 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 **Get details of an existing trackday in the `Trackday` collection:** Submit a `GET` request to `/trackdays/:trackdayID`. Server will respond with JSON of the trackday.
 
-**Log in a user:** Submit a `GET` request to `login/:userID`. Server will respond with `_id` of newly logged in user as well as attaching a JWT httpOnly cookie.
-
-**Verify a user is checked in (PUBLIC):** Submit a `GET` request to `/verify/:userID`. Server will respond with `{"verified" : "true"}` or `{"verified" : "false"}` assuming user is registered for that trackday.
-
 ### Update
 **Update an existing user in the `Users` collection:** Submit a `PUT` request to `/users/:userID`. Server will respond with `_id` of newly updated user.
 
 **Update an existing Trackday in the `Users` collection:** Submit a `PUT` request to `/trackdays/:trackdayID`. Server will respond with `_id` of newly updated trackday.
 
-**Check in a user:** Submit a `PUT` request to `/trackdays/:trackdayID/checkin/:userID`. Server will respond with `_id` of newly checked in user.
 
 ### Delete
 **Delete an existing user in the `Users` collection:** Submit a `DELETE` request to `/users/:userID`. Server will respond with `_id` of deleted user.
