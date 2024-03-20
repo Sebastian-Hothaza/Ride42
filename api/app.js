@@ -8,6 +8,9 @@ if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: false }));
 
+const cookieParser = require('cookie-parser')
+app.use(cookieParser());
+
 // ROUTER
 const indexRouter = require('./routes/index');
 app.use('/', indexRouter);
