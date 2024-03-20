@@ -13,12 +13,12 @@ router.get('/', function(req, res, next) {
 });
 
 // Users
-router.post('/login/:userID', userController.login)
+router.post('/login', userController.login)
 router.get('/users/:userID/trackdays', userController.getTrackdays)
 router.get('/verify/:userID', userController.verify)
 
 router.get('/users/:userID', userController.user_get)
-router.get('/users/', userController.user_getALL)
+router.get('/users', userController.user_getALL)
 router.post('/users', userController.user_post)
 router.put('/users/:userID', userController.user_put)
 router.delete('/users/:userID', userController.user_delete)
