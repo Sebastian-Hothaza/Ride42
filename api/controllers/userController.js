@@ -3,6 +3,7 @@ const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
+const ObjectId = require('mongoose').Types.ObjectId;
 
 /*
     JWT Expiration and management 
@@ -19,6 +20,14 @@ function validateForm(req,res,next){
     next();
 }
 
+// Called by middleware functions
+// Verify that the req.params.userID is a valid objectID and that it exists in our DB
+async function validateUserID(req, res, next){
+    if (!ObjectId.isValid(req.params.userID)) return res.status(404).send({msg: 'userID is not a valid ObjectID'});
+    const userExists = await User.exists({_id: req.params.userID});
+    if (!userExists) return res.status(404).send({msg: 'User does not exist'});
+    next();
+}
 
 exports.login = [
     // PUBLIC
@@ -35,7 +44,7 @@ exports.login = [
             const passwordMatch = await bcrypt.compare(req.body.password, user.password)
             if (passwordMatch){
                 // TODO: Double check environment variable name BCRYPT_CODE --- should perhaps call it JWT_CODE
-                jwt.sign({id: user._id}, process.env.JWT_CODE, {expiresIn: process.env.JWT_TOKEN_EXPIRATION}, (err, token) => {
+                jwt.sign({id: user._id, type: user.type}, process.env.JWT_CODE, {expiresIn: process.env.JWT_TOKEN_EXPIRATION}, (err, token) => {
                     res.cookie([`JWT_TOKEN=${token}; secure; httponly; samesite=None;`])
                     res.json({name: user.name.firstName})
                 }) 
@@ -61,10 +70,24 @@ exports.verify = (req,res,next) => {
 //////////////////////////////////////
 //              CRUD
 //////////////////////////////////////
-exports.user_get = (req,res,next) => {
-    // Logged in user
-    res.send('NOT YET IMPLEMENTED: user_get for _id: '+req.params.userID)
-}
+exports.user_get = [
+    validateUserID,
+    (req,res,next) => {
+        // Unbundle JWT and check if admin OR matching userID
+        jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+            if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
+            // JWT is valid. Verify user is allowed to access this resource and return the information
+            if (authData.type === 'admin' || authData.id === req.params.userID){
+                let user = await User.findById(req.params.userID)
+                user.password = undefined;
+                console.log(user);
+                return res.status(200).json(user);
+            }
+            return res.sendStatus(401)
+        }))
+    }
+]
+
 
 exports.user_getALL = (req,res,next) => {
     // Admin only
@@ -137,7 +160,7 @@ exports.user_put = [
     body("password", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().isLength({ min: 8, max: 50}).matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
 
     validateForm,
-    res.send('NOT YET IMPLEMENTED: user_put for _id: '+req.params.userID)
+    (req,res,next) => {res.send('NOT YET IMPLEMENTED: user_put for _id: '+req.params.userID)}
 ]
 
 exports.user_delete = (req,res,next) => {
