@@ -37,7 +37,7 @@ router.get('/trackdays/:trackdayID/checkin/:userID', trackdayController.checkin)
 
 router.get('/trackdays/:trackdayID', trackdayController.trackday_get)
 router.get('/trackdays', trackdayController.trackday_getALL)
-router.post('/trackdays ', trackdayController.trackday_post) 
+router.post('/trackdays', trackdayController.trackday_post) 
 router.put('/trackdays/:trackdayID', trackdayController.trackday_put)
 router.delete('/trackdays/:trackdayID', trackdayController.trackday_delete)
 
