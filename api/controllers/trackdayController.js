@@ -1,11 +1,14 @@
 const Trackday = require('../models/Trackday');
+const User = require('../models/User');
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const jwt = require('jsonwebtoken')
 const ObjectId = require('mongoose').Types.ObjectId;
 
-// TODO: Can we move out validateForm and validateTrackdayID out to index for easier/more concise use? (Since userController also uses it)
 
+// TODO: Can we move out validateForm and validateTrackdayID out to index for easier/more concise use? (Since userController also uses it)
+// TODO: Add method to mark user as paid
+// TODO: Add method to add walkons
 
 // Called by middleware functions
 // Validates the form contents and builds errors array. In case of errors, returns 400 with errors array
@@ -25,12 +28,47 @@ async function validateTrackdayID(req, res, next){
     next();
 }
 
-
-exports.register = (req,res,next) => {
-    // Logged in user
-    // SENDS EMAIL NOTIFICATION
-    res.send('NOT YET IMPLEMENTED: register for user_id: '+req.params.userID+' at trackday: '+req.params.trackdayID)
+// Called by middleware functions
+// Verify that the req.params.userID is a valid objectID and that it exists in our DB
+async function validateUserID(req, res, next){
+    if (!ObjectId.isValid(req.params.userID)) return res.status(404).send({msg: 'userID is not a valid ObjectID'});
+    const userExists = await User.exists({_id: req.params.userID});
+    if (!userExists) return res.status(404).send({msg: 'User does not exist'});
+    next();
 }
+
+
+// Registers a user for a trackday. Requires JWT with matching userID OR admin.
+// TODO: Send email notif
+// TODO: 7-day cutoff restriction
+// TODO: Payment handling logic
+exports.register = [
+    body("paymentMethod",  "PaymentMethod must be one of: [etransfer, credit, creditCard, gate]").trim().isIn(["etransfer", "credit", "creditCard", "gate"]).escape(),
+
+    validateUserID,
+    validateTrackdayID,
+    validateForm,
+    (req,res,next) => {
+        // Unbundle JWT and check if admin OR matching userID
+        jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+            if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
+            // JWT is valid. Verify user is allowed to register for a trackday
+            if (authData.memberType === 'admin' || authData.id === req.params.userID){
+                // Add user to trackday
+                const trackday = await Trackday.findById(req.params.trackdayID).exec();
+                trackday.members.push({
+                    userID: req.params.userID,
+                    paymentMethod: req.body.paymentMethod,
+                    paid: false,
+                    checkedIn: false
+                })
+                await trackday.save();
+                return res.sendStatus(200);
+            }
+            return res.sendStatus(401)
+        }))
+    }
+]
 
 exports.unregister = (req,res,next) => {
     // Logged in user
