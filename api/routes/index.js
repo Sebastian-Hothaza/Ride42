@@ -16,6 +16,11 @@ router.get('/', function(req, res, next) {
 router.post('/login', userController.login)
 router.get('/users/:userID/trackdays', userController.getTrackdays)
 router.get('/verify/:userID', userController.verify)
+router.get('/updatedPassword/:userID', userController.updatePassword)
+router.post('/garage/:userID', userController.garage_post)
+router.delete('/garage/:userID', userController.garage_delete)
+
+
 
 router.get('/users/:userID', userController.user_get)
 router.get('/users', userController.user_getALL)

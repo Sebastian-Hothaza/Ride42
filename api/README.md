@@ -17,6 +17,8 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 **Log in a user (PUBLIC):** Submit a `POST` request to `login/:userID`. Server will respond with `_id` of newly logged in user as well as attaching a JWT httpOnly cookie.
 
+**Change password of an existing user in the `Users` collection:** Submit a `PUT` request to `/updatePassword/:userID`. Server will respond with `_id` of newly updated user.
+
 **Get trackdays a user is registered for (PUBLIC):**  Submit a `GET` request to `/users/:userID/trackdays`. Server will respond with JSON `{"trackdays" : "[dates]"}`.
 
 **Verify a user is checked in (PUBLIC):** Submit a `GET` request to `/verify/:userID`. Server will respond with `{"verified" : "true"}` or `{"verified" : "false"}` assuming user is registered for that trackday.
@@ -29,6 +31,9 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 **Check in a user:** Submit a `PUT` request to `/trackdays/:trackdayID/checkin/:userID`. Server will respond with `_id` of newly checked in user.
 
+**Add a motorcycle to a users garage:** Submit a `POST` request to `/garage/:userID`. Server will respond with `_id` of newly updated user.
+
+**Remove a motorcycle from a users garage::** Submit a `DELETE` request to `/garage/:userID`. Server will respond with `_id` of newly updated user.
 
 
 ### Create
@@ -46,7 +51,7 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 **Get all trackdays:** Submit a `GET` request to `/trackdays`. Server will respond with JSON of all the trackdays.
 
 ### Update
-**Update an existing user in the `Users` collection:** Submit a `PUT` request to `/users/:userID`. Server will respond with `_id` of newly updated user.
+**Update an existing user in the `Users` collection:** Submit a `PUT` request to `/users/:userID`. Server will respond with `_id` of newly updated user. Excludes password and garage.
 
 **Update an existing Trackday in the `Users` collection:** Submit a `PUT` request to `/trackdays/:trackdayID`. Server will respond with `_id` of newly updated trackday.
 
