@@ -122,10 +122,11 @@ exports.trackday_put = [
     body("status",  "Status must be one of: [regOpen, regClosed, finished, cancelled]").trim().isIn(["regOpen", "regClosed", "finished", "cancelled"]).escape(),
 
     validateForm,
+    validateTrackdayID,
     (req,res,next) => {
           // Unbundle JWT and check if admin 
         jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
-            if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
+            if (err) return res.status(401).send({msg: 'JWT Validation Fail'});
             // JWT is valid. Verify user is admin and edit the trackday
             const oldTrackday = await Trackday.findById(req.params.trackdayID).select('members walkons').exec();
             if (authData.memberType === 'admin'){
@@ -148,7 +149,20 @@ exports.trackday_put = [
     
 ]
 
-exports.trackday_delete = (req,res,next) => {
-    //Admin only
-    res.send('NOT YET IMPLEMENTED: trackday_delete for _id: '+req.params.trackdayID)
-}
+// Deletes a trackday. Requires JWT with admin.
+exports.trackday_delete = [
+    validateTrackdayID,
+
+    (req,res,next) => {
+          // Unbundle JWT and check if admin 
+        jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+            if (err) return res.status(401).send({msg: 'JWT Validation Fail'});
+            // JWT is valid. Verify user is admin and delete the trackday
+            if (authData.memberType === 'admin'){
+                await Trackday.findByIdAndDelete(req.params.trackdayID);
+                return res.sendStatus(200);
+            }
+            return res.sendStatus(401)
+        }))
+    }
+]
