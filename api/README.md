@@ -31,9 +31,9 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 **Check in a user:** Submit a `PUT` request to `/trackdays/:trackdayID/checkin/:userID`. Server will respond with `_id` of newly checked in user.
 
-**Add a motorcycle to a users garage:** Submit a `POST` request to `/garage/:userID`. Server will respond with `_id` of newly updated user.
+**Add a motorcycle to a users garage:** Submit a `POST` request to `/garage/:userID`. Server will respond with `_id` of newly added motorcycle.
 
-**Remove a motorcycle from a users garage::** Submit a `DELETE` request to `/garage/:userID`. Server will respond with `_id` of newly updated user.
+**Remove a motorcycle from a users garage::** Submit a `DELETE` request to `/garage/:userID/:bikeID`. Server will respond with `_id` of newly removed motorcycle.
 
 
 ### Create

@@ -10,7 +10,6 @@ const ObjectId = require('mongoose').Types.ObjectId;
     JWT: What should it actually contain?
     JWT: after editing fields which make up the JWT, the JWT should be re-set! 
     what is asynchandler actually doing
-    TODO: Garage CRUD functionality
 */
 
 // Called by middleware functions
@@ -57,6 +56,7 @@ exports.login = [
     }),
 ]
 
+// Updates a users password. Requires JWT with matching userID OR admin
 exports.updatePassword = [
     body("password", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().isLength({ min: 8, max: 50}).matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
     validateForm,
@@ -83,23 +83,76 @@ exports.updatePassword = [
     }
 ]
 
-exports.getTrackdays = (req,res,next) => {
-    // PUBLIC
-    res.send('NOT YET IMPLEMENTED: getTrackdays for _id: '+req.params.userID)
-}
+// Returns a list of dates corresponding to dates the user is registered for. PUBLIC
+exports.getTrackdays = [
+    validateUserID,
+    (req,res,next) => {
+        // Look at all trackday entries. If the userID is a member in the members.UserID, then append it to the resulting array.
+        res.send('NOT YET IMPLEMENTED: getTrackdays for _id: '+req.params.userID)
+    }
+]
 
-exports.verify = (req,res,next) => {
-    // PUBLIC
-    res.send('NOT YET IMPLEMENTED: verify for _id: '+req.params.userID)
-}
+// Returns true if the user is checked in for a given date. PUBLIC.
+// TODO: Should this not use query but insread have the date as a param?
+exports.verify = [
+    validateUserID,
+    (req,res,next) => {
+        res.send('NOT YET IMPLEMENTED: verify for _id: '+req.params.userID+' for date '+req.query.date)
+    }
+]
 
-exports.garage_post = (req, res, next) => {
-    res.send('NOT YET IMPLEMENTED: garage_post for _id: '+req.params.userID)
-}
+// Adds a bike to the users garage. Requires JWT with matching userID OR admin. Returns ID of newly created bike.
+exports.garage_post = [
+    body("year",  "Year must contain 4 digits").trim().isNumeric().isLength({ min: 4, max: 4}).escape(),
+    body("make",  "Make must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+    body("model", "Model must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
 
-exports.garage_delete = (req, res, next) => {
-    res.send('NOT YET IMPLEMENTED: garage_delete for _id: '+req.params.userID)
-}
+    validateUserID,
+    validateForm,
+
+    (req,res,next) => {
+        // Unbundle JWT and check if admin OR matching userID
+        jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+            if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
+            // JWT is valid. Verify user is allowed to add bikes
+            if (authData.memberType === 'admin' || authData.id === req.params.userID){
+                const user = await User.findById(req.params.userID).exec();
+                const bike = {year: req.body.year, make: req.body.make, model: req.body.model};
+                user.garage.push(bike);
+                await user.save();
+                return res.status(200).json({_id: user.garage[user.garage.length-1].id});
+            }
+            return res.sendStatus(401)
+        }))
+    }
+]
+
+// Removes a bike from a users garage. Requires JWT with matching userID OR admin. Returns ID of newly created bike.
+exports.garage_delete = [
+    validateUserID,
+
+    (req,res,next) => {
+        // Unbundle JWT and check if admin OR matching userID
+        jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+            if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
+            // JWT is valid. Verify user is allowed to add bikes
+            if (authData.memberType === 'admin' || authData.id === req.params.userID){
+                if (!ObjectId.isValid(req.params.bikeID)) return res.status(404).send({msg: 'bikeID is not a valid ObjectID'});
+                const user = await User.findById(req.params.userID).select('garage').exec();
+        
+                // Check that the bike we want to remove from the array actually exists
+                const bikeExists = user.garage.some((bike) => bike._id.equals(req.params.bikeID))
+                if (!bikeExists) return res.status(404).send({msg: 'Bike does not exist'});
+        
+                // Filter the array to remove the bike to be deleted and update the garage array
+                user.garage = user.garage.filter((bike) => !bike._id.equals(req.params.bikeID));
+                await user.save();
+                return res.sendStatus(200);
+            }
+            return res.sendStatus(401)
+        }))
+    },
+]
 
 //////////////////////////////////////
 //              CRUD
