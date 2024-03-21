@@ -88,6 +88,7 @@ exports.trackday_post = [
 
     body("date",  "Date must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
 
+
     validateForm,
     (req,res,next) => {
           // Unbundle JWT and check if admin 
@@ -113,10 +114,39 @@ exports.trackday_post = [
     
 ]
 
-exports.trackday_put = (req,res,next) => {
-    //Admin only
-    res.send('NOT YET IMPLEMENTED: trackday_put for _id: '+req.params.trackdayID)
-}
+// Updates a trackday. Requires JWT with admin.
+exports.trackday_put = [
+
+    body("date",  "Date must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+    body("guests",  "Guests must be numeric").trim().isNumeric().escape(),
+    body("status",  "Status must be one of: [regOpen, regClosed, finished, cancelled]").trim().isIn(["regOpen", "regClosed", "finished", "cancelled"]).escape(),
+
+    validateForm,
+    (req,res,next) => {
+          // Unbundle JWT and check if admin 
+        jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+            if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
+            // JWT is valid. Verify user is admin and edit the trackday
+            const oldTrackday = await Trackday.findById(req.params.trackdayID).select('members walkons').exec();
+            if (authData.memberType === 'admin'){
+                // Create trackday
+                const trackday = new Trackday({
+                    date: req.body.date,
+                    members: oldTrackday.members,
+                    walkons: oldTrackday.walkons,
+                    guests: req.body.guests,
+                    status: req.body.status,
+                    _id: req.params.trackdayID
+                })
+                await Trackday.findByIdAndUpdate(req.params.trackdayID, trackday, {});
+                return res.status(201).json({_id: trackday.id});
+            }
+            return res.sendStatus(401)
+        }))
+    }
+
+    
+]
 
 exports.trackday_delete = (req,res,next) => {
     //Admin only
