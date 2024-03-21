@@ -9,6 +9,7 @@ const ObjectId = require('mongoose').Types.ObjectId;
     JWT Expiration and management 
     JWT: What should it actually contain?
     what is asynchandler actually doing
+    TODO: Garage CRUD functionality
 */
 
 // Called by middleware functions
@@ -44,7 +45,7 @@ exports.login = [
             const passwordMatch = await bcrypt.compare(req.body.password, user.password)
             if (passwordMatch){
                 // TODO: Double check environment variable name BCRYPT_CODE --- should perhaps call it JWT_CODE
-                jwt.sign({id: user._id, type: user.type}, process.env.JWT_CODE, {expiresIn: process.env.JWT_TOKEN_EXPIRATION}, (err, token) => {
+                jwt.sign({id: user._id, memberType: user.memberType}, process.env.JWT_CODE, {expiresIn: process.env.JWT_TOKEN_EXPIRATION}, (err, token) => {
                     res.cookie([`JWT_TOKEN=${token}; secure; httponly; samesite=None;`])
                     res.json({name: user.name.firstName})
                 }) 
@@ -57,6 +58,11 @@ exports.login = [
     }),
 ]
 
+exports.updatePassword = (req,res,next) => {
+    // Logged in user or admin
+    res.send('NOT YET IMPLEMENTED: updatePassword for _id: '+req.params.userID)
+}
+
 exports.getTrackdays = (req,res,next) => {
     // PUBLIC
     res.send('NOT YET IMPLEMENTED: getTrackdays for _id: '+req.params.userID)
@@ -67,10 +73,18 @@ exports.verify = (req,res,next) => {
     res.send('NOT YET IMPLEMENTED: verify for _id: '+req.params.userID)
 }
 
+exports.garage_post = (req, res, next) => {
+    res.send('NOT YET IMPLEMENTED: garage_post for _id: '+req.params.userID)
+}
+
+exports.garage_delete = (req, res, next) => {
+    res.send('NOT YET IMPLEMENTED: garage_delete for _id: '+req.params.userID)
+}
+
 //////////////////////////////////////
 //              CRUD
 //////////////////////////////////////
-// Get a single user; requires JWT with matching userID OR admin
+// Get a single user. Requires JWT with matching userID OR admin
 exports.user_get = [
     validateUserID,
     (req,res,next) => {
@@ -78,7 +92,7 @@ exports.user_get = [
         jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
             if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
             // JWT is valid. Verify user is allowed to access this resource and return the information
-            if (authData.type === 'admin' || authData.id === req.params.userID){
+            if (authData.memberType === 'admin' || authData.id === req.params.userID){
                 let user = await User.findById(req.params.userID).select('-password')
                 return res.status(200).json(user);
             }
@@ -93,7 +107,7 @@ exports.user_getALL = (req,res,next) => {
     jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
         if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
         // JWT is valid. Verify user is allowed to access this resource and return the information
-        if (authData.type === 'admin'){
+        if (authData.memberType === 'admin'){
             let users = await User.find().select('-password')
             return res.status(200).json(users);
         }
@@ -134,7 +148,7 @@ exports.user_post = [
                 emergencyContact: { name: {firstName: req.body.EmergencyName_firstName, lastName: req.body.EmergencyName_lastName}, phone: req.body.EmergencyPhone, relationship: req.body.EmergencyRelationship},
                 group: req.body.group,
                 credits: 0,
-                type: 'regular',
+                memberType: 'regular',
                 password: hashedPassword
             })
             await user.save();
@@ -144,12 +158,8 @@ exports.user_post = [
     // NOTE: We do not provide any JWT functionality here. It is up to the front end to make a POST request to /login if desired.
 ]
 
+// Update user info EXCLUDING password and garage. Requires JWT with matching userID OR admin
 exports.user_put = [
-    // Logged in user
-
-    // TODO: Verify jwt 
-
-
     body("name_firstName", "First Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
     body("name_lastName", "Last Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
 
@@ -165,10 +175,33 @@ exports.user_put = [
     body("EmergencyRelationship", "Emergency Contact relationship definition must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
 
     body("group", "Group must be either green, yellow or red").trim().isIn(['green', 'yellow', 'red']).escape(),
-    body("password", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().isLength({ min: 8, max: 50}).matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
+
 
     validateForm,
-    (req,res,next) => {res.send('NOT YET IMPLEMENTED: user_put for _id: '+req.params.userID)}
+    validateUserID,
+    (req,res,next) => {
+        // Unbundle JWT and check if admin OR matching userID
+        jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+            if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
+            // JWT is valid. Verify user is allowed to access this resource and update the object
+            if (authData.memberType === 'admin' || authData.id === req.params.userID){
+                const oldUser = await User.findById(req.params.userID).select('credits memberType password').exec();
+                const user = new User({
+                    name: {firstName: req.body.name_firstName, lastName: req.body.name_lastName},
+                    contact: {email: req.body.email, phone:req.body.phone, address: req.body.address, city: req.body.city, province: req.body.province},
+                    emergencyContact: { name: {firstName: req.body.EmergencyName_firstName, lastName: req.body.EmergencyName_lastName}, phone: req.body.EmergencyPhone, relationship: req.body.EmergencyRelationship},
+                    group: req.body.group,
+                    credits: (authData.memberType === 'admin' && req.body.credits)? req.body.credits : oldUser.credits,
+                    memberType: (authData.memberType === 'admin' && req.body.memberType)? req.body.memberType : oldUser.memberType,
+                    password: oldUser.password,
+                    _id: req.params.userID,
+                })
+                await User.findByIdAndUpdate(req.params.userID, user, {});
+                return res.status(201).json({_id: user.id});
+            }
+            return res.sendStatus(401)
+        }))
+    }
 ]
 
 exports.user_delete = (req,res,next) => {
