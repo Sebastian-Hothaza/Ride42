@@ -17,7 +17,7 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 **Log in a user (PUBLIC):** Submit a `POST` request to `login/:userID`. Server will respond with `_id` of newly logged in user as well as attaching a JWT httpOnly cookie.
 
-**Change password of an existing user in the `Users` collection:** Submit a `PUT` request to `/updatePassword/:userID`. Server will respond with `_id` of newly updated user.
+**Change password of an existing user in the `Users` collection:** Submit a `PUT` request to `/password/:userID`. Server will respond with `_id` of newly updated user.
 
 **Get trackdays a user is registered for (PUBLIC):**  Submit a `GET` request to `/users/:userID/trackdays`. Server will respond with JSON `{"trackdays" : "[dates]"}`.
 

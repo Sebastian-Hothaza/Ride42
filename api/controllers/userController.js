@@ -8,6 +8,7 @@ const ObjectId = require('mongoose').Types.ObjectId;
 /*
     JWT Expiration and management 
     JWT: What should it actually contain?
+    JWT: after editing fields which make up the JWT, the JWT should be re-set! 
     what is asynchandler actually doing
     TODO: Garage CRUD functionality
 */
@@ -30,21 +31,19 @@ async function validateUserID(req, res, next){
     next();
 }
 
+// Logs in a user. PUBLIC. Returns httpOnly cookie containing JWT token.
 exports.login = [
-    // PUBLIC
     body("email", "Email must be in format of samplename@sampledomain.com").trim().isEmail().escape(), 
     body("password", "Password must not be empty").trim().notEmpty().escape(), 
     validateForm,
 
-
- // Form data is valid. Check that user exists in DB and that password matches
+    // Form data is valid. Check that user exists in DB and that password matches
     asyncHandler(async (req, res, next) => {
         const user = await User.findOne({'contact.email': req.body.email}).exec();
         if (user){
             // Verify Password
             const passwordMatch = await bcrypt.compare(req.body.password, user.password)
             if (passwordMatch){
-                // TODO: Double check environment variable name BCRYPT_CODE --- should perhaps call it JWT_CODE
                 jwt.sign({id: user._id, memberType: user.memberType}, process.env.JWT_CODE, {expiresIn: process.env.JWT_TOKEN_EXPIRATION}, (err, token) => {
                     res.cookie([`JWT_TOKEN=${token}; secure; httponly; samesite=None;`])
                     res.json({name: user.name.firstName})
@@ -58,10 +57,31 @@ exports.login = [
     }),
 ]
 
-exports.updatePassword = (req,res,next) => {
-    // Logged in user or admin
-    res.send('NOT YET IMPLEMENTED: updatePassword for _id: '+req.params.userID)
-}
+exports.updatePassword = [
+    body("password", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().isLength({ min: 8, max: 50}).matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
+    validateForm,
+    validateUserID,
+
+    (req,res,next) => {
+        // Unbundle JWT and check if admin OR matching userID
+        jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+            if (err) return res.status(401).send({msg: 'JWT Validation Fail'});
+            // JWT is valid. Verify user is allowed to update password
+            if (authData.memberType === 'admin' || authData.id === req.params.userID){
+                console.log("authorized for password update")
+                bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
+                    if (err) console.log("bcrypot error")
+                    let user = await User.findById(req.params.userID).exec();
+                    user.password = hashedPassword;
+                    await user.save();
+                    return res.sendStatus(200);
+                })
+            } else { // User is not authorized to change password
+                return res.sendStatus(401)
+            }
+        }))
+    }
+]
 
 exports.getTrackdays = (req,res,next) => {
     // PUBLIC
@@ -115,9 +135,9 @@ exports.user_getALL = (req,res,next) => {
     }))
 }
 
-
+// Creates a user. PUBLIC.
+// NOTE: We do not provide any JWT functionality here. It is up to the front end to make a POST request to /login if desired.
 exports.user_post = [
-    // PUBLIC
     body("name_firstName", "First Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
     body("name_lastName", "Last Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
 
@@ -155,7 +175,6 @@ exports.user_post = [
             return res.status(201).json({_id: user.id});
         })
     }),
-    // NOTE: We do not provide any JWT functionality here. It is up to the front end to make a POST request to /login if desired.
 ]
 
 // Update user info EXCLUDING password and garage. Requires JWT with matching userID OR admin
@@ -204,6 +223,7 @@ exports.user_put = [
     }
 ]
 
+// Deletes a user. Requires JWT with admin.
 exports.user_delete = (req,res,next) => {
     // Unbundle JWT and check if admin 
     jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
