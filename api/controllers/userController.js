@@ -70,6 +70,7 @@ exports.verify = (req,res,next) => {
 //////////////////////////////////////
 //              CRUD
 //////////////////////////////////////
+// Get a single user; requires JWT with matching userID OR admin
 exports.user_get = [
     validateUserID,
     (req,res,next) => {
@@ -78,9 +79,7 @@ exports.user_get = [
             if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
             // JWT is valid. Verify user is allowed to access this resource and return the information
             if (authData.type === 'admin' || authData.id === req.params.userID){
-                let user = await User.findById(req.params.userID)
-                user.password = undefined;
-                console.log(user);
+                let user = await User.findById(req.params.userID).select('-password')
                 return res.status(200).json(user);
             }
             return res.sendStatus(401)
@@ -88,11 +87,20 @@ exports.user_get = [
     }
 ]
 
-
+// Gets all users. Requires JWT with admin
 exports.user_getALL = (req,res,next) => {
-    // Admin only
-    res.send('NOT YET IMPLEMENTED: user_getALL')
+    // Unbundle JWT and check if admin 
+    jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+        if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
+        // JWT is valid. Verify user is allowed to access this resource and return the information
+        if (authData.type === 'admin'){
+            let users = await User.find().select('-password')
+            return res.status(200).json(users);
+        }
+        return res.sendStatus(401)
+    }))
 }
+
 
 exports.user_post = [
     // PUBLIC
