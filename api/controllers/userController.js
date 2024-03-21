@@ -205,6 +205,14 @@ exports.user_put = [
 ]
 
 exports.user_delete = (req,res,next) => {
-    // Admin only
-    res.send('NOT YET IMPLEMENTED: user_delete for _id: '+req.params.userID)
+    // Unbundle JWT and check if admin 
+    jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+        if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
+        // JWT is valid. Verify user is allowed to access this resource and delete the user
+        if (authData.memberType === 'admin'){
+            await User.findByIdAndDelete(req.params.userID);
+            return res.sendStatus(200);
+        }
+        return res.sendStatus(401)
+    }))
 }
