@@ -27,11 +27,21 @@ function validateForm(req,res,next){
 
 // Called by middleware functions
 // Verify that the req.params.trackdayID is a valid objectID and that it exists in our DB
+// TODO: Clean this up
 async function validateTrackdayID(req, res, next){
-    if (!ObjectId.isValid(req.params.trackdayID)) return res.status(404).send({msg: 'trackdayID is not a valid ObjectID'});
-    const trackdayExists = await Trackday.exists({_id: req.params.trackdayID});
-    if (!trackdayExists) return res.status(404).send({msg: 'Trackday does not exist'});
-    next();
+    // Special case for validating trackdayID's for reschedule
+    if (req.params.trackdayID_OLD && req.params.trackdayID_NEW){
+        if (!(ObjectId.isValid(req.params.trackdayID_OLD) && ObjectId.isValid(req.params.trackdayID_NEW))) return res.status(404).send({msg: 'trackdayID is not a valid ObjectID'});
+        const trackdayOLDExists = await Trackday.exists({_id: req.params.trackdayID_OLD});
+        const trackdayNEWExists = await Trackday.exists({_id: req.params.trackdayID_NEW});
+        if (!(trackdayOLDExists && trackdayNEWExists)) return res.status(404).send({msg: 'Trackday does not exist'});
+        next();
+    }else{
+        if (!ObjectId.isValid(req.params.trackdayID)) return res.status(404).send({msg: 'trackdayID is not a valid ObjectID'});
+        const trackdayExists = await Trackday.exists({_id: req.params.trackdayID});
+        if (!trackdayExists) return res.status(404).send({msg: 'Trackday does not exist'});
+        next();
+    }
 }
 
 // Called by middleware functions
@@ -48,6 +58,7 @@ async function validateUserID(req, res, next){
 // TODO: Send email notif
 // TODO: 7-day cutoff restriction
 // TODO: Payment handling logic
+// TODO: Check registration capacity (25 per group?)
 exports.register = [
     body("paymentMethod",  "PaymentMethod must be one of: [etransfer, credit, creditCard, gate]").trim().isIn(["etransfer", "credit", "creditCard", "gate"]).escape(),
 
@@ -91,7 +102,7 @@ exports.unregister = [
 
                 const trackday = await Trackday.findById(req.params.trackdayID).exec();
 
-                // Check that the member we want to remove from the members array actually exists
+                // Check that the member we want to remove from the trackday/members array actually exists
                 const memberExists = trackday.members.some((member) => member.userID.equals(req.params.userID))
                 if (!memberExists) return res.status(404).send({msg: 'Member is not registered for that trackday'});
 
@@ -104,11 +115,45 @@ exports.unregister = [
     }
 ]
 
-exports.reschedule = (req,res,next) => {
-    // Logged in user
-    // SENDS EMAIL NOTIFICATION
-    res.send('NOT YET IMPLEMENTED: rechedule for user_id: '+req.params.userID)
-}
+// Reschedules a user. Requires JWT with matching userID OR admin.
+// TODO: Check 7 day restriction + email + capacity
+exports.reschedule = [
+    validateUserID,
+    validateTrackdayID,
+   
+    (req,res,next) => {
+        // Unbundle JWT and check if admin OR matching userID
+        jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+            if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
+            // JWT is valid. Verify user is allowed to register for a trackday
+            if (authData.memberType === 'admin' || (authData.id === req.params.userID && 1)){
+                const trackdayOLD = await Trackday.findById(req.params.trackdayID_OLD).exec();
+                const trackdayNEW = await Trackday.findById(req.params.trackdayID_NEW).exec();
+                
+                // Check that the member we want to reschedule is registered in old trackday
+                const memberEntry = trackdayOLD.members.find((member) => member.userID.equals(req.params.userID));
+                if (!memberEntry) return res.status(404).send({msg: 'Member is not registered for that trackday'});
+
+
+                // Add user to new trackday
+                trackdayNEW.members.push({
+                    userID: memberEntry.userID,
+                    paymentMethod: memberEntry.paymentMethod,
+                    paid: memberEntry.paid,
+                    checkedIn: memberEntry.checkedIn
+                })
+                await trackdayNEW.save();
+
+                // Remove the user from the OLD trackday
+                trackdayOLD.members = trackdayOLD.members.filter((member)=> !member.userID.equals(req.params.userID)) 
+                await trackdayOLD.save();
+
+                return res.sendStatus(200);
+            }
+            return res.sendStatus(401)
+        }))
+    }
+]
 
 exports.checkin = (req,res,next) => {
     // Staff only

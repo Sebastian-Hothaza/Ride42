@@ -27,7 +27,7 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 **Remove a user from a trackday:** Submit a `DELETE` request to `/register/:trackdayID/:userID`. Server will respond with `_id` of newly unregistered user.
 
-**Reschedule a user:** Submit a `PUT` request to `/register/:trackdayID/:userID`. Server will respond with `_id` of newly rescheduled user.
+**Reschedule a user:** Submit a `PUT` request to `/register/:trackdayID_OLD/:userID/:trackdayID_NEW`. Server will respond with `_id` of newly rescheduled user.
 
 **Check in a user:** Submit a `PUT` request to `/trackdays/:trackdayID/checkin/:userID`. Server will respond with `_id` of newly checked in user.
 
