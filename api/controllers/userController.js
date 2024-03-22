@@ -6,11 +6,6 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const ObjectId = require('mongoose').Types.ObjectId;
 
-exports.testing = (req,res, next) => {
-    console.log(req.cookies.JWT_TOKEN)
-    return res.sendStatus(200)
-}
-
 /*
     JWT Expiration and management 
     JWT: What should it actually contain?
@@ -323,3 +318,44 @@ exports.user_delete = (req,res,next) => {
         return res.sendStatus(401)
     }))
 }
+
+// Testing use only
+exports.admin = [
+    body("name_firstName", "First Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+    body("name_lastName", "Last Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+
+    body("email", "Email must be in format of samplename@sampledomain.com").trim().isEmail().escape(), 
+    body("phone", "Phone must contain 10 digits").trim().isLength({ min: 10, max: 10}).escape(), 
+    body("address", "Address must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+    body("city", "City must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+    body("province", "Province must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+
+    body("EmergencyName_firstName", "Emergency Contact First Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+    body("EmergencyName_lastName", "Emergency Contact Last Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+    body("EmergencyPhone", "Emergency Phone must contain 10 digits").trim().isLength({ min: 10, max: 10}).escape(),
+    body("EmergencyRelationship", "Emergency Contact relationship definition must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+
+    body("group", "Group must be either green, yellow or red").trim().isIn(['green', 'yellow', 'red']).escape(),
+    body("password", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().isLength({ min: 8, max: 50}).matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
+
+    validateForm,
+
+  
+    
+    asyncHandler(async(req, res, next)=>{
+        bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
+            // Create the user and insert into the DB
+            const user = new User({
+                name: {firstName: req.body.name_firstName, lastName: req.body.name_lastName},
+                contact: {email: req.body.email, phone:req.body.phone, address: req.body.address, city: req.body.city, province: req.body.province},
+                emergencyContact: { name: {firstName: req.body.EmergencyName_firstName, lastName: req.body.EmergencyName_lastName}, phone: req.body.EmergencyPhone, relationship: req.body.EmergencyRelationship},
+                group: req.body.group,
+                credits: 0,
+                memberType: 'admin',
+                password: hashedPassword
+            })
+            await user.save();
+            return res.status(201).json({_id: user.id});
+        })
+    }),
+]
