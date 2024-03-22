@@ -107,10 +107,13 @@ exports.updatePassword = [
 // Returns a list of dates corresponding to dates the user is registered for. PUBLIC
 exports.getTrackdays = [
     validateUserID,
-    (req,res,next) => {
-        // Look at all trackday entries. If the userID is a member in the members.UserID, then append it to the resulting array.
-        res.send('NOT YET IMPLEMENTED: getTrackdays for _id: '+req.params.userID)
-    }
+    asyncHandler(async (req,res,next) => {
+        let result = []
+        const allTrackdays = await Trackday.find({members: {$elemMatch: { userID: {$eq: req.params.userID}}}} ).exec(); // Trackdays that user is a part of
+        // For each trackday, append the date to the resulting array
+        allTrackdays.forEach((trackday)=>result.push(trackday.date))        
+        res.status(200).json({'trackdays' : result })
+    })
 ]
 
 // Returns true if the user is checked in for a given trackday. PUBLIC.
