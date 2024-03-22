@@ -33,7 +33,7 @@ router.delete('/users/:userID', userController.user_delete)
 router.post('/register/:trackdayID/:userID', trackdayController.register) 
 router.delete('/register/:trackdayID/:userID', trackdayController.unregister)
 router.put('/register/:trackdayID_OLD/:userID/:trackdayID_NEW', trackdayController.reschedule) 
-router.get('/trackdays/:trackdayID/checkin/:userID', trackdayController.checkin)
+router.post('/checkin/:userID/:trackdayID', trackdayController.checkin)
 
 router.get('/trackdays/:trackdayID', trackdayController.trackday_get)
 router.get('/trackdays', trackdayController.trackday_getALL)

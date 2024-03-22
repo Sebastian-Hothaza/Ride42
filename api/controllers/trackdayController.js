@@ -155,11 +155,31 @@ exports.reschedule = [
     }
 ]
 
-exports.checkin = (req,res,next) => {
-    // Staff only
-    // SENDS EMAIL NOTIFICATION 12 hours later thanking user and requesting a review
-    res.send('NOT YET IMPLEMENTED: checkin for user_id: '+req.params.userID+' at trackday: '+req.params.trackdayID)
-}
+// Marks a user as checked in. Requires JWT with staff or admin.
+// TODO: SENDS EMAIL NOTIFICATION 12 hours later thanking user and requesting a review
+exports.checkin = [
+    validateUserID,
+   
+    (req,res,next) => {
+        // Unbundle JWT and check if admin OR matching userID
+        jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+            if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
+            // JWT is valid. Verify user is allowed to register for a trackday
+            if (authData.memberType === 'admin' || authData.memberType === 'staff'){
+                const trackday = await Trackday.findById(req.params.trackdayID).exec();
+
+                // Check that the member we want to check in for trackday actually exists
+                const memberEntry = trackday.members.find((member) => member.userID.equals(req.params.userID));
+                if (!memberEntry) return res.status(404).send({msg: 'Member is not registered for that trackday'});
+
+                memberEntry.checkedIn = true;
+                await trackday.save();
+                return res.sendStatus(200);
+            }
+            return res.sendStatus(401)
+        }))
+    }
+]
 
 //////////////////////////////////////
 //              CRUD
