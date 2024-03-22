@@ -4,6 +4,7 @@ const userController = require('../controllers/userController')
 const trackdayController = require('../controllers/trackdayController')
 
 /* GET home page. */
+// TODO: Delete this route
 router.get('/', function(req, res, next) {
   if (process.env.NODE_ENV == 'development'){
     res.send("dev");
@@ -40,5 +41,8 @@ router.get('/trackdays', trackdayController.trackday_getALL)
 router.post('/trackdays', trackdayController.trackday_post) 
 router.put('/trackdays/:trackdayID', trackdayController.trackday_put)
 router.delete('/trackdays/:trackdayID', trackdayController.trackday_delete)
+
+// TEMP
+router.get('/testing', userController.testing)
 
 module.exports = router;
