@@ -3,6 +3,7 @@ const morgan = require('morgan');
 require("./mongoConfig")
 
 const app = express();
+require('dotenv').config();
 
 if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
 app.use(express.json()); 
