@@ -22,12 +22,14 @@ router.post('/garage/:userID', userController.garage_post)
 router.delete('/garage/:userID/:bikeID', userController.garage_delete)
 
 
-
 router.get('/users/:userID', userController.user_get)
 router.get('/users', userController.user_getALL)
 router.post('/users', userController.user_post)
 router.put('/users/:userID', userController.user_put)
 router.delete('/users/:userID', userController.user_delete)
+
+// Testing use only
+if (process.env.NODE_ENV === 'test') router.post('/admin', userController.admin)
 
 // Trackdays
 
@@ -42,7 +44,6 @@ router.post('/trackdays', trackdayController.trackday_post)
 router.put('/trackdays/:trackdayID', trackdayController.trackday_put)
 router.delete('/trackdays/:trackdayID', trackdayController.trackday_delete)
 
-// TEMP
-router.get('/testing', userController.testing)
+
 
 module.exports = router;
