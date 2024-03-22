@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Trackday = require('../models/Trackday');
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const bcrypt = require('bcryptjs')
@@ -10,6 +11,7 @@ const ObjectId = require('mongoose').Types.ObjectId;
     JWT: What should it actually contain?
     JWT: after editing fields which make up the JWT, the JWT should be re-set! 
     what is asynchandler actually doing
+    time restriction for changing groups
 */
 
 // Called by middleware functions
@@ -28,6 +30,25 @@ async function validateUserID(req, res, next){
     const userExists = await User.exists({_id: req.params.userID});
     if (!userExists) return res.status(404).send({msg: 'User does not exist'});
     next();
+}
+
+// Called by middleware functions
+// Verify that the req.params.trackdayID is a valid objectID and that it exists in our DB
+// TODO: Clean this up
+async function validateTrackdayID(req, res, next){
+    // Special case for validating trackdayID's for reschedule
+    if (req.params.trackdayID_OLD && req.params.trackdayID_NEW){
+        if (!(ObjectId.isValid(req.params.trackdayID_OLD) && ObjectId.isValid(req.params.trackdayID_NEW))) return res.status(404).send({msg: 'trackdayID is not a valid ObjectID'});
+        const trackdayOLDExists = await Trackday.exists({_id: req.params.trackdayID_OLD});
+        const trackdayNEWExists = await Trackday.exists({_id: req.params.trackdayID_NEW});
+        if (!(trackdayOLDExists && trackdayNEWExists)) return res.status(404).send({msg: 'Trackday does not exist'});
+        next();
+    }else{
+        if (!ObjectId.isValid(req.params.trackdayID)) return res.status(404).send({msg: 'trackdayID is not a valid ObjectID'});
+        const trackdayExists = await Trackday.exists({_id: req.params.trackdayID});
+        if (!trackdayExists) return res.status(404).send({msg: 'Trackday does not exist'});
+        next();
+    }
 }
 
 // Logs in a user. PUBLIC. Returns httpOnly cookie containing JWT token.
@@ -92,13 +113,18 @@ exports.getTrackdays = [
     }
 ]
 
-// Returns true if the user is checked in for a given date. PUBLIC.
-// TODO: Should this not use query but insread have the date as a param?
+// Returns true if the user is checked in for a given trackday. PUBLIC.
 exports.verify = [
     validateUserID,
-    (req,res,next) => {
-        res.send('NOT YET IMPLEMENTED: verify for _id: '+req.params.userID+' for date '+req.query.date)
-    }
+    validateTrackdayID,
+
+    asyncHandler(async (req,res,next) => {
+        const trackday = await Trackday.findById(req.params.trackdayID).exec();
+
+        // Check that the member we want to verify for a trackday actually exists in the trackday
+        const memberEntry = trackday.members.find((member) => member.userID.equals(req.params.userID));
+        memberEntry && memberEntry.checkedIn? res.status(200).json({'verified' : 'true'}) : res.status(200).json({'verified' : 'false'})
+    })
 ]
 
 // Adds a bike to the users garage. Requires JWT with matching userID OR admin. Returns ID of newly created bike.
@@ -181,7 +207,7 @@ exports.user_getALL = (req,res,next) => {
         if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
         // JWT is valid. Verify user is allowed to access this resource and return the information
         if (authData.memberType === 'admin'){
-            let users = await User.find().select('-password')
+            let users = await User.find().select('-password').exec();
             return res.status(200).json(users);
         }
         return res.sendStatus(401)

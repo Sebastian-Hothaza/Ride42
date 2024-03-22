@@ -15,7 +15,7 @@ router.get('/', function(req, res, next) {
 // Users
 router.post('/login', userController.login)
 router.get('/users/:userID/trackdays', userController.getTrackdays)
-router.get('/verify/:userID', userController.verify)
+router.get('/verify/:userID/:trackdayID', userController.verify)
 router.put('/password/:userID', userController.updatePassword)
 router.post('/garage/:userID', userController.garage_post)
 router.delete('/garage/:userID/:bikeID', userController.garage_delete)

@@ -21,7 +21,7 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 **Get trackdays a user is registered for (PUBLIC):**  Submit a `GET` request to `/users/:userID/trackdays`. Server will respond with JSON `{"trackdays" : "[dates]"}`.
 
-**Verify a user is checked in (PUBLIC):** Submit a `GET` request to `/verify/:userID`. Server will respond with `{"verified" : "true"}` or `{"verified" : "false"}` assuming user is registered for that trackday.
+**Verify a user is checked in (PUBLIC):** Submit a `GET` request to `/verify/:userID/:trackdayID`. Server will respond with `{"verified" : "true"}` or `{"verified" : "false"}` assuming user is registered for that trackday.
 
 **Add a user to a trackday:** Submit a `POST` request to `/register/:trackdayID/:userID`. Server will respond with `_id` of newly registered user.
 
