@@ -6,6 +6,11 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const ObjectId = require('mongoose').Types.ObjectId;
 
+exports.testing = (req,res, next) => {
+    console.log(req.cookies.JWT_TOKEN)
+    return res.sendStatus(200)
+}
+
 /*
     JWT Expiration and management 
     JWT: What should it actually contain?
