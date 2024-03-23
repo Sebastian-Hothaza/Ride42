@@ -95,17 +95,26 @@ describe('Testing user create', () => {
   });
 
   test("add user to DB", async () => {
-    const response = await request(app)
+    await request(app)
       .post("/users")
       .type("form")
       .send(JoeAdams)
       .expect(201)
-    await request(app)
-      .get('/users/'+response.body.id)
-      .expect(401) 
   });
 
-  test.todo("create user with same email")
+  test("create user with same email", async () => {
+    await request(app)
+      .post("/users")
+      .type("form")
+      .send(JoeAdams)
+      .expect(201)
+
+    await request(app)
+    .post("/users")
+    .type("form")
+    .send(JoeAdams)
+    .expect(409)
+  });
 })
 
 describe('Testing user read', () => {
@@ -135,19 +144,6 @@ describe('Testing user read', () => {
       .expect(404, { msg: 'User does not exist' }) 
   });
 
-  test("get specific user  - no JWT", async() => {
-    // Create user
-    const user = await request(app)
-      .post("/users")
-      .type("form")
-      .send(JoeAdams)
-      .expect(201)
-      
-    await request(app)
-      .get('/users/'+user.body.id)
-      .expect(401) 
-  });
-
   test("get specific user - as user", async() => { 
     // Create user
     const user = await request(app)
@@ -166,9 +162,21 @@ describe('Testing user read', () => {
     // Get user
     const msg = await request(app)
       .get('/users/'+user.body.id)
-      .set('Cookie', '')
       .set('Cookie', loginRes.headers['set-cookie'])
       .expect(200)
+  });
+
+  test("get specific user  - no JWT", async() => {
+    // Create user
+    const user = await request(app)
+      .post("/users")
+      .type("form")
+      .send(JoeAdams)
+      .expect(201)
+      
+    await request(app)
+      .get('/users/'+user.body.id)
+      .expect(401) 
   });
 
   test("get specific user - as user - bad password", async() => {
@@ -188,6 +196,35 @@ describe('Testing user read', () => {
       
     await request(app)
       .get('/users/'+user.body.id)
+      .expect(401) 
+  });
+
+  test("get specific user - as unauthorized user", async() => {
+    // Create user1
+    const user1 = await request(app)
+      .post("/users")
+      .type("form")
+      .send(JoeAdams)
+      .expect(201)
+
+    // Create user2
+    const user2 = await request(app)
+    .post("/users")
+    .type("form")
+    .send(BobSmith)
+    .expect(201)
+
+    // Log in as user1
+    const loginRes = await request(app)
+    .post("/login")
+    .type("form")
+    .send({email: JoeAdams.email, password: JoeAdams.password})
+    .expect(200)
+
+    // Get info on user2
+    await request(app)
+      .get('/users/'+user2.body.id)
+      .set('Cookie', loginRes.headers['set-cookie'])
       .expect(401) 
   });
   
