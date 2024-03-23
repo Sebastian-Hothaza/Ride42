@@ -27,6 +27,11 @@ afterAll(async () => {
   return;
 });
 
+afterEach(async () => {
+  await MongoDB_testDB.refreshMongoServer();
+  return;
+})
+
 const JoeAdams={ 
   name_firstName: "Joe",
   name_lastName: "Adams",
@@ -41,6 +46,22 @@ const JoeAdams={
   EmergencyRelationship: "Wife",
   group: "yellow",
   password: "Abcd1234"
+};
+
+const BobSmith={ 
+  name_firstName: "Bob",
+  name_lastName: "Smith",
+  email: "BobSmith@gmail.com",
+  phone: "5194618362",
+  address: "24 Apple Cres.",
+  city: "ajax",
+  province: "Ontario",
+  EmergencyName_firstName: "Jeff",
+  EmergencyName_lastName: "Martin",
+  EmergencyPhone: "5195712834",
+  EmergencyRelationship: "Friend",
+  group: "green",
+  password: "BobSmith123"
 };
 
 const adminInfo={ 
@@ -80,9 +101,11 @@ describe('Testing user create', () => {
       .send(JoeAdams)
       .expect(201)
     await request(app)
-      .get('/users/'+response.body._id)
+      .get('/users/'+response.body.id)
       .expect(401) 
   });
+
+  test.todo("create user with same email")
 })
 
 describe('Testing user read', () => {
@@ -93,22 +116,89 @@ describe('Testing user read', () => {
   });
 
   test("get invalid userID user", async() => {
-    const response = await request(app)
+    // Create user
+    const user = await request(app)
+      .post("/users")
+      .type("form")
+      .send(JoeAdams)
+      .expect(201)
+
+    // Log in 
+    const loginRes = await request(app)
+    .post("/login")
+    .type("form")
+    .send({email: JoeAdams.email, password: JoeAdams.password})
+    .expect(200)
+      
+    await request(app)
+      .get('/users/'+'1'+user.body.id.slice(1,user.body.id.length-1)+'1')
+      .expect(404, { msg: 'User does not exist' }) 
+  });
+
+  test("get specific user  - no JWT", async() => {
+    // Create user
+    const user = await request(app)
       .post("/users")
       .type("form")
       .send(JoeAdams)
       .expect(201)
       
     await request(app)
-      .get('/users/'+response.body._id)
+      .get('/users/'+user.body.id)
       .expect(401) 
   });
 
-  test.todo("get specific user - as user")
-  test.todo("get specific user - as admin")
+  test("get specific user - as user", async() => { 
+    // Create user
+    const user = await request(app)
+      .post("/users")
+      .type("form")
+      .send(JoeAdams)
+      .expect(201)
 
+    // Log in 
+    const loginRes = await request(app)
+    .post("/login")
+    .type("form")
+    .send({email: JoeAdams.email, password: JoeAdams.password})
+    .expect(200)
+    
+    // Get user
+    const msg = await request(app)
+      .get('/users/'+user.body.id)
+      .set('Cookie', '')
+      .set('Cookie', loginRes.headers['set-cookie'])
+      .expect(200)
+  });
 
-  test("get all users", async() => {
+  test("get specific user - as user - bad password", async() => {
+    // Create user
+    const user = await request(app)
+      .post("/users")
+      .type("form")
+      .send(JoeAdams)
+      .expect(201)
+
+    // Log in 
+    const loginRes = await request(app)
+    .post("/login")
+    .type("form")
+    .send({email: JoeAdams.email, password: JoeAdams.password+'x'})
+    .expect(401)
+      
+    await request(app)
+      .get('/users/'+user.body.id)
+      .expect(401) 
+  });
+  
+  test("get specific user - as admin", async() => {
+    // Create user
+    const user = await request(app)
+    .post("/users")
+    .type("form")
+    .send(JoeAdams)
+    .expect(201)
+
     // Create the admin
     await request(app)
       .post("/admin")
@@ -124,8 +214,29 @@ describe('Testing user read', () => {
     .expect(200)
       
     await request(app)
-      .get('/users/')
+      .get('/users/'+user.body.id)
       .set('Cookie', response.headers['set-cookie'])
+      .expect(200)
+  });
+
+  test("get all users", async() => {
+    // Create the admin
+    await request(app)
+      .post("/admin")
+      .type("form")
+      .send(adminInfo)
+      .expect(201)
+    
+    // Log in the admin
+    const loginRes = await request(app)
+    .post("/login")
+    .type("form")
+    .send({email: adminInfo.email, password: adminInfo.password})
+    .expect(200)
+      
+    await request(app)
+      .get('/users/')
+      .set('Cookie', loginRes.headers['set-cookie'])
       .expect(200)
   });
 
@@ -155,8 +266,6 @@ describe('Testing user read', () => {
       .get('/users/')
       .expect(401)
   });
-  
-
 })
 
 describe('Testing user update', () => {
