@@ -23,4 +23,8 @@ async function takedownMongoServer() {
   await mongoose.disconnect();
 }
 
-module.exports = { initializeMongoServer, takedownMongoServer };
+async function refreshMongoServer() {
+  mongoose.connection.db.dropDatabase();
+}
+
+module.exports = { initializeMongoServer, takedownMongoServer, refreshMongoServer };
