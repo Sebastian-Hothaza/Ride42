@@ -12,6 +12,7 @@ const ObjectId = require('mongoose').Types.ObjectId;
     JWT: after editing fields which make up the JWT, the JWT should be re-set! 
     what is asynchandler actually doing
     time restriction for changing groups
+    Dissallow new user creation with same email
 */
 
 // Called by middleware functions
@@ -192,7 +193,7 @@ exports.user_get = [
     (req,res,next) => {
         // Unbundle JWT and check if admin OR matching userID
         jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
-            if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
+            if (err) return res.status(401).send({msg: 'JWT Validation Fail'});
             // JWT is valid. Verify user is allowed to access this resource and return the information
             if (authData.memberType === 'admin' || authData.id === req.params.userID){
                 let user = await User.findById(req.params.userID).select('-password')
@@ -242,6 +243,10 @@ exports.user_post = [
   
     
     asyncHandler(async(req, res, next)=>{
+        // Check if a user already exists with same email
+        const duplicateUser = await User.find({'contact.email': {$eq: req.body.email}})
+        if (duplicateUser.length) return res.status(409).send({msg: 'User with this email already exists'});
+        
         bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
             // Create the user and insert into the DB
             const user = new User({
@@ -254,7 +259,7 @@ exports.user_post = [
                 password: hashedPassword
             })
             await user.save();
-            return res.status(201).json({_id: user.id});
+            return res.status(201).json({id: user.id});
         })
     }),
 ]
@@ -306,20 +311,23 @@ exports.user_put = [
 ]
 
 // Deletes a user. Requires JWT with admin.
-exports.user_delete = (req,res,next) => {
-    // Unbundle JWT and check if admin 
-    jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
-        if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
-        // JWT is valid. Verify user is allowed to access this resource and delete the user
-        if (authData.memberType === 'admin'){
-            await User.findByIdAndDelete(req.params.userID);
-            return res.sendStatus(200);
-        }
-        return res.sendStatus(401)
-    }))
-}
+exports.user_delete = [
+    validateUserID,
+    (req,res,next) => {
+        // Unbundle JWT and check if admin 
+        jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+            if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
+            // JWT is valid. Verify user is allowed to access this resource and delete the user
+            if (authData.memberType === 'admin'){
+                await User.findByIdAndDelete(req.params.userID);
+                return res.sendStatus(200);
+            }
+            return res.sendStatus(401)
+        }))
+    }
+]
 
-// Testing use only
+// Testing use only, route available only in test NODE_env
 exports.admin = [
     body("name_firstName", "First Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
     body("name_lastName", "Last Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
