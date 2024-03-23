@@ -32,10 +32,14 @@ afterEach(async () => {
   return;
 })
 
-const JoeAdams={ 
+//////////////////////////////////////
+//          TESTS HELPERS
+//////////////////////////////////////
+
+const user1={ 
   name_firstName: "Joe",
   name_lastName: "Adams",
-  email: "JoeAdams@gmail.com",
+  email: "user1@gmail.com",
   phone: "2261451298",
   address: "123 Apple Ave.",
   city: "toronto",
@@ -48,10 +52,10 @@ const JoeAdams={
   password: "Abcd1234"
 };
 
-const BobSmith={ 
+const user2={ 
   name_firstName: "Bob",
   name_lastName: "Smith",
-  email: "BobSmith@gmail.com",
+  email: "user2@gmail.com",
   phone: "5194618362",
   address: "24 Apple Cres.",
   city: "ajax",
@@ -61,10 +65,10 @@ const BobSmith={
   EmergencyPhone: "5195712834",
   EmergencyRelationship: "Friend",
   group: "green",
-  password: "BobSmith123"
+  password: "user2123"
 };
 
-const adminInfo={ 
+const userAdmin={ 
   name_firstName: "Sebastian",
   name_lastName: "Hothaza",
   email: "sebastianhothaza@gmail.com",
@@ -80,9 +84,40 @@ const adminInfo={
   password: "Sebi1234"
 };
 
+async function addUser1(expectedResponseCode){
+  const res = await request(app).post("/users").type("form").send(user1).expect(expectedResponseCode);
+  return res;
+}
+
+async function loginUser1(expectedResponseCode){
+  const res = await request(app).post("/login").type("form").send({email: user1.email, password: user1.password}).expect(expectedResponseCode);
+  return res;
+}
+
+async function addUser2(expectedResponseCode){
+  const res = await request(app).post("/users").type("form").send(user2).expect(expectedResponseCode);
+  return res;
+}
+
+async function loginUser2(expectedResponseCode){
+  const res = await request(app).post("/login").type("form").send({email: user2.email, password: user2.password}).expect(expectedResponseCode)
+  return res;
+}
+
+async function addAdmin(expectedResponseCode){
+  const res = await request(app).post("/admin").type("form").send(userAdmin).expect(expectedResponseCode);
+  return res;
+}
+
+async function loginAdmin(expectedResponseCode){
+  const res = await request(app).post("/login").type("form").send({email: userAdmin.email, password: userAdmin.password}).expect(expectedResponseCode)
+  return res;
+}
+
 //////////////////////////////////////
 //              TESTS
 //////////////////////////////////////
+
 
 
 describe('Testing user create', () => {
@@ -95,25 +130,18 @@ describe('Testing user create', () => {
   });
 
   test("add user to DB", async () => {
-    await request(app)
-      .post("/users")
-      .type("form")
-      .send(JoeAdams)
-      .expect(201)
+    await addUser1(201);
+  });
+
+  test("add multiple user to DB", async () => {
+    await addUser1(201);
+    await addUser2(201);
+    await addAdmin(201);
   });
 
   test("create user with same email", async () => {
-    await request(app)
-      .post("/users")
-      .type("form")
-      .send(JoeAdams)
-      .expect(201)
-
-    await request(app)
-    .post("/users")
-    .type("form")
-    .send(JoeAdams)
-    .expect(409)
+    await addUser1(201)
+    await addUser1(409)
   });
 })
 
@@ -125,19 +153,8 @@ describe('Testing user read', () => {
   });
 
   test("get invalid userID user", async() => {
-    // Create user
-    const user = await request(app)
-      .post("/users")
-      .type("form")
-      .send(JoeAdams)
-      .expect(201)
-
-    // Log in 
-    const loginRes = await request(app)
-    .post("/login")
-    .type("form")
-    .send({email: JoeAdams.email, password: JoeAdams.password})
-    .expect(200)
+    const user = await addUser1(201);
+    await loginUser1(200);
       
     await request(app)
       .get('/users/'+'1'+user.body.id.slice(1,user.body.id.length-1)+'1')
@@ -145,34 +162,18 @@ describe('Testing user read', () => {
   });
 
   test("get specific user - as user", async() => { 
-    // Create user
-    const user = await request(app)
-      .post("/users")
-      .type("form")
-      .send(JoeAdams)
-      .expect(201)
-
-    // Log in 
-    const loginRes = await request(app)
-    .post("/login")
-    .type("form")
-    .send({email: JoeAdams.email, password: JoeAdams.password})
-    .expect(200)
+    const user = await addUser1(201)
+    const loginRes = await loginUser1(200)
     
     // Get user
-    const msg = await request(app)
+    await request(app)
       .get('/users/'+user.body.id)
       .set('Cookie', loginRes.headers['set-cookie'])
       .expect(200)
   });
 
-  test("get specific user  - no JWT", async() => {
-    // Create user
-    const user = await request(app)
-      .post("/users")
-      .type("form")
-      .send(JoeAdams)
-      .expect(201)
+  test("get specific user - no JWT", async() => {
+    const user = await addUser1(201)
       
     await request(app)
       .get('/users/'+user.body.id)
@@ -180,18 +181,13 @@ describe('Testing user read', () => {
   });
 
   test("get specific user - as user - bad password", async() => {
-    // Create user
-    const user = await request(app)
-      .post("/users")
-      .type("form")
-      .send(JoeAdams)
-      .expect(201)
+    const user = await addUser1(201)
 
     // Log in 
-    const loginRes = await request(app)
+    await request(app)
     .post("/login")
     .type("form")
-    .send({email: JoeAdams.email, password: JoeAdams.password+'x'})
+    .send({email: user1.email, password: user1.password+'x'})
     .expect(401)
       
     await request(app)
@@ -200,76 +196,31 @@ describe('Testing user read', () => {
   });
 
   test("get specific user - as unauthorized user", async() => {
-    // Create user1
-    const user1 = await request(app)
-      .post("/users")
-      .type("form")
-      .send(JoeAdams)
-      .expect(201)
-
-    // Create user2
-    const user2 = await request(app)
-    .post("/users")
-    .type("form")
-    .send(BobSmith)
-    .expect(201)
-
-    // Log in as user1
-    const loginRes = await request(app)
-    .post("/login")
-    .type("form")
-    .send({email: JoeAdams.email, password: JoeAdams.password})
-    .expect(200)
+    const res1 = await addUser1(201);
+    const res2 = await addUser2(201);
+    const loginRes = await loginUser1(200)
 
     // Get info on user2
     await request(app)
-      .get('/users/'+user2.body.id)
+      .get('/users/'+res2.body.id)
       .set('Cookie', loginRes.headers['set-cookie'])
       .expect(401) 
   });
   
   test("get specific user - as admin", async() => {
-    // Create user
-    const user = await request(app)
-    .post("/users")
-    .type("form")
-    .send(JoeAdams)
-    .expect(201)
-
-    // Create the admin
-    await request(app)
-      .post("/admin")
-      .type("form")
-      .send(adminInfo)
-      .expect(201)
-    
-    // Log in the admin
-    const response = await request(app)
-    .post("/login")
-    .type("form")
-    .send({email: adminInfo.email, password: adminInfo.password})
-    .expect(200)
+    const user =  await addUser1(201)
+    const admin = await addAdmin(201)
+    const loginRes = await loginAdmin(200)
       
     await request(app)
       .get('/users/'+user.body.id)
-      .set('Cookie', response.headers['set-cookie'])
+      .set('Cookie', loginRes.headers['set-cookie'])
       .expect(200)
   });
 
   test("get all users", async() => {
-    // Create the admin
-    await request(app)
-      .post("/admin")
-      .type("form")
-      .send(adminInfo)
-      .expect(201)
-    
-    // Log in the admin
-    const loginRes = await request(app)
-    .post("/login")
-    .type("form")
-    .send({email: adminInfo.email, password: adminInfo.password})
-    .expect(200)
+    await addAdmin(201)
+    const loginRes = await loginAdmin(200);
       
     await request(app)
       .get('/users/')
@@ -278,23 +229,12 @@ describe('Testing user read', () => {
   });
 
   test("get all users - not authorized user", async() => {
-    // Create the user
-    await request(app)
-      .post("/users")
-      .type("form")
-      .send(JoeAdams)
-      .expect(201)
-    
-    // Log in the user
-    const response = await request(app)
-    .post("/login")
-    .type("form")
-    .send({email: JoeAdams.email, password: JoeAdams.password})
-    .expect(200)
+    await addUser1(201);
+    const loginRes = await loginUser1(200)
       
     await request(app)
       .get('/users/')
-      .set('Cookie', response.headers['set-cookie'])
+      .set('Cookie', loginRes.headers['set-cookie'])
       .expect(401)
   });
 
@@ -306,7 +246,47 @@ describe('Testing user read', () => {
 })
 
 describe('Testing user update', () => {
-  test.todo("x")
+
+  test("Update invalid objectID user", done => {
+    request(app)
+      .put("/users/invalid")
+      .expect(404, { msg: 'userID is not a valid ObjectID' }, done)
+  });
+
+  test("Update invalid userID user", async() => {
+    // Create user
+    const user = await request(app)
+      .post("/users")
+      .type("form")
+      .send(user1)
+      .expect(201)
+
+    // Log in 
+    const loginRes = await request(app)
+    .post("/login")
+    .type("form")
+    .send({email: user1.email, password: user1.password})
+    .expect(200)
+      
+    await request(app)
+      .put('/users/'+'1'+user.body.id.slice(1,user.body.id.length-1)+'1')
+      .expect(404, { msg: 'User does not exist' }) 
+  });
+
+  test.todo("Update specific user - as user")
+
+  test.todo("Update specific user - missing parameters")
+
+  test.todo("Update specific user - no JWT")
+
+  test.todo("Update specific user - as user - bad password")
+
+  test.todo("Update specific user - as unauthorized user")
+
+  test.todo("Update specific user - as admin")
+
+  test.todo("Update specific user - as user")
+
 })
 
 describe('Testing user delete', () => {
@@ -321,14 +301,14 @@ describe('Testing user login and password update', () => {
     await request(app)
       .post("/users")
       .type("form")
-      .send(JoeAdams)
+      .send(user1)
       .expect(201)
 
     // Log in the user
     await request(app)
     .post("/login")
     .type("form")
-    .send({email: JoeAdams.email, password: JoeAdams.password})
+    .send({email: user1.email, password: user1.password})
     .expect(200)
   });
   
