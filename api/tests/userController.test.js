@@ -250,30 +250,64 @@ describe('Testing user update', () => {
   test("Update invalid objectID user", done => {
     request(app)
       .put("/users/invalid")
+      .type("form").send(user1) // We are "over-sending" form params here; but its fine for sake of this test
       .expect(404, { msg: 'userID is not a valid ObjectID' }, done)
   });
 
   test("Update invalid userID user", async() => {
-    // Create user
-    const user = await request(app)
-      .post("/users")
-      .type("form")
-      .send(user1)
-      .expect(201)
-
-    // Log in 
-    const loginRes = await request(app)
-    .post("/login")
-    .type("form")
-    .send({email: user1.email, password: user1.password})
-    .expect(200)
+    const user = await addUser1(201)
+    const loginRes = await loginUser1(200)
       
     await request(app)
       .put('/users/'+'1'+user.body.id.slice(1,user.body.id.length-1)+'1')
+      .type("form").send(user1) // We are "over-sending" form params here; but its fine for sake of this test
       .expect(404, { msg: 'User does not exist' }) 
   });
 
-  test.todo("Update specific user - as user")
+  test("Update specific user - as user", async () => {
+    const res = await addUser1(201);
+    const loginRes = await loginUser1(200);
+
+    const user1_UPDATED={ 
+      email: "user1X@gmail.com",
+      phone: "2261451299",
+      address: "123 AppleX AveX.",
+      city: "torontoX",
+      province: "OntarioX",
+
+      EmergencyName_firstName: "SilviaX",
+      EmergencyName_lastName: "AdamsX",
+      EmergencyPhone: "5195724399",
+      EmergencyRelationship: "WifeX",
+
+      group: "red"
+    };
+
+    await request(app)
+      .put('/users/'+res.body.id)
+      .set('Cookie', loginRes.headers['set-cookie'])
+      .type("form").send(user1_UPDATED)
+      .expect(201)
+
+    const updatedUser = await request(app)
+    .get('/users/'+res.body.id)
+    .set('Cookie', loginRes.headers['set-cookie'])
+    .expect(200)
+
+    expect((updatedUser.body.contact.email)).toEqual(user1_UPDATED.email);
+    expect((updatedUser.body.contact.phone)).toEqual(user1_UPDATED.phone);
+    expect((updatedUser.body.contact.address)).toEqual(user1_UPDATED.address);
+    expect((updatedUser.body.contact.city)).toEqual(user1_UPDATED.city);
+    expect((updatedUser.body.contact.province)).toEqual(user1_UPDATED.province);
+
+    expect((updatedUser.body.emergencyContact.name.firstName)).toEqual(user1_UPDATED.EmergencyName_firstName);
+    expect((updatedUser.body.emergencyContact.name.lastName)).toEqual(user1_UPDATED.EmergencyName_lastName);
+    expect((updatedUser.body.emergencyContact.phone)).toEqual(parseInt(user1_UPDATED.EmergencyPhone));
+    expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1_UPDATED.EmergencyRelationship);
+
+    expect((updatedUser.body.group)).toEqual(user1_UPDATED.group);
+
+  });
 
   test.todo("Update specific user - missing parameters")
 
@@ -283,15 +317,25 @@ describe('Testing user update', () => {
 
   test.todo("Update specific user - as unauthorized user")
 
+  // Also tests modifiying user name, credits & member type
   test.todo("Update specific user - as admin")
 
-  test.todo("Update specific user - as user")
+  test.todo("Update specific user group - as user")
+
+  test.todo("Update specific user group - as user - after 7 days")
+  
+  test.todo("Update specific user group - as user")
 
 })
 
 describe('Testing user delete', () => {
   test.todo("x")
 })
+
+
+
+
+
 
 
 
