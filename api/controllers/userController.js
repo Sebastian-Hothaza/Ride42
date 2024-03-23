@@ -265,10 +265,17 @@ exports.user_post = [
 ]
 
 // Update user info EXCLUDING password and garage. Requires JWT with matching userID OR admin
-exports.user_put = [
-    body("name_firstName", "First Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
-    body("name_lastName", "Last Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+/*
+    Time restriction on when can change group
+    name fields can only be updated if request comes from admin
+    garage is handled with separate function
+    group can be updated if request comes from admin OR if 7 day notice provided. Else fail the entire request if group != oldGrouo
+    credit can only be updated if request comes from admin
+    memberType can only be updated if request comes from admin
+    password can not be touched regardless
+*/
 
+exports.user_put = [
     body("email", "Email must be in format of samplename@sampledomain.com").trim().isEmail().escape(), 
     body("phone", "Phone must contain 10 digits").trim().isLength({ min: 10, max: 10}).escape(), 
     body("address", "Address must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
@@ -282,7 +289,6 @@ exports.user_put = [
 
     body("group", "Group must be either green, yellow or red").trim().isIn(['green', 'yellow', 'red']).escape(),
 
-
     validateForm,
     validateUserID,
     (req,res,next) => {
@@ -293,9 +299,10 @@ exports.user_put = [
             if (authData.memberType === 'admin' || authData.id === req.params.userID){
                 const oldUser = await User.findById(req.params.userID).select('credits memberType password').exec();
                 const user = new User({
-                    name: {firstName: req.body.name_firstName, lastName: req.body.name_lastName},
+                    name: {firstName: oldUser.name_firstName, lastName: oldUser.name_lastName},
                     contact: {email: req.body.email, phone:req.body.phone, address: req.body.address, city: req.body.city, province: req.body.province},
                     emergencyContact: { name: {firstName: req.body.EmergencyName_firstName, lastName: req.body.EmergencyName_lastName}, phone: req.body.EmergencyPhone, relationship: req.body.EmergencyRelationship},
+                    garage: oldUser.garage,
                     group: req.body.group,
                     credits: (authData.memberType === 'admin' && req.body.credits)? req.body.credits : oldUser.credits,
                     memberType: (authData.memberType === 'admin' && req.body.memberType)? req.body.memberType : oldUser.memberType,
