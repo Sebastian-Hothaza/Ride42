@@ -91,7 +91,6 @@ exports.updatePassword = [
             if (err) return res.status(401).send({msg: 'JWT Validation Fail'});
             // JWT is valid. Verify user is allowed to update password
             if (authData.memberType === 'admin' || authData.id === req.params.userID){
-                console.log("authorized for password update")
                 bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
                     if (err) console.log("bcrypot error")
                     let user = await User.findById(req.params.userID).exec();
@@ -141,7 +140,14 @@ exports.garage_post = [
     validateUserID,
     validateForm,
 
-    (req,res,next) => {
+    asyncHandler(async(req,res,next) => {
+        // Check if a bike already exists with the same details in the users garage
+        const duplicateBike = await User.find({$and: [  {garage: {$elemMatch: { year: {$eq: req.body.year}}}},
+                                                        {garage: {$elemMatch: { make: {$eq: req.body.make}}}},
+                                                        {garage: {$elemMatch: { model: {$eq: req.body.model}}}} ]})
+        if (duplicateBike.length) return res.status(409).send({msg: 'Bike with these details already exists'});
+
+
         // Unbundle JWT and check if admin OR matching userID
         jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
             if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
@@ -151,11 +157,11 @@ exports.garage_post = [
                 const bike = {year: req.body.year, make: req.body.make, model: req.body.model};
                 user.garage.push(bike);
                 await user.save();
-                return res.status(200).json({_id: user.garage[user.garage.length-1].id});
+                return res.status(201).json({_id: user.garage[user.garage.length-1].id});
             }
             return res.sendStatus(401)
         }))
-    }
+    })
 ]
 
 // Removes a bike from a users garage. Requires JWT with matching userID OR admin. Returns ID of newly deleted bike.
