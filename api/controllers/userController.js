@@ -12,7 +12,8 @@ const ObjectId = require('mongoose').Types.ObjectId;
     JWT: after editing fields which make up the JWT, the JWT should be re-set! 
     what is asynchandler actually doing
     time restriction for changing groups
-    Dissallow new user creation with same email
+    Change date to actual date obj instead of string (?) - needed for 7 day restriction + other handy features maybe
+    Review what API should actually return; maybe just code in most cases?
 */
 
 // Called by middleware functions
@@ -157,7 +158,7 @@ exports.garage_post = [
     }
 ]
 
-// Removes a bike from a users garage. Requires JWT with matching userID OR admin. Returns ID of newly created bike.
+// Removes a bike from a users garage. Requires JWT with matching userID OR admin. Returns ID of newly deleted bike.
 exports.garage_delete = [
     validateUserID,
 
@@ -171,6 +172,7 @@ exports.garage_delete = [
                 const user = await User.findById(req.params.userID).select('garage').exec();
         
                 // Check that the bike we want to remove from the array actually exists
+                // TODO: Check that the bikeID is a valid objectID
                 const bikeExists = user.garage.some((bike) => bike._id.equals(req.params.bikeID))
                 if (!bikeExists) return res.status(404).send({msg: 'Bike does not exist'});
         
@@ -266,15 +268,11 @@ exports.user_post = [
 
 // Update user info EXCLUDING password and garage. Requires JWT with matching userID OR admin
 /*
-    Time restriction on when can change group
-    name fields can only be updated if request comes from admin
-    garage is handled with separate function
-    group can be updated if request comes from admin OR if 7 day notice provided. Else fail the entire request if group != oldGrouo
-    credit can only be updated if request comes from admin
-    memberType can only be updated if request comes from admin
-    password can not be touched regardless
+    /// PERMISSIONS ///
+    USER: contact, emergencyContact, group(7 day requirement; else fail entire request)
+    ADMIN: name, credits, member type
+    NOTES: garage and password is managed thru separate funtion
 */
-
 exports.user_put = [
     body("email", "Email must be in format of samplename@sampledomain.com").trim().isEmail().escape(), 
     body("phone", "Phone must contain 10 digits").trim().isLength({ min: 10, max: 10}).escape(), 
@@ -294,12 +292,17 @@ exports.user_put = [
     (req,res,next) => {
         // Unbundle JWT and check if admin OR matching userID
         jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
-            if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
+            if (err) return res.status(401).send({msg: 'JWT Validation Fail'});
             // JWT is valid. Verify user is allowed to access this resource and update the object
+            if (authData.memberType !== 'admin' &&
+                (req.body.name_firstName || req.body.name_lastName ||
+                 req.body.credits || req.body.memberType)) return res.sendStatus(401) // If user attempts to tamper with unauthorized fields, return 401
             if (authData.memberType === 'admin' || authData.id === req.params.userID){
                 const oldUser = await User.findById(req.params.userID).select('credits memberType password').exec();
                 const user = new User({
-                    name: {firstName: oldUser.name_firstName, lastName: oldUser.name_lastName},
+                    name: (authData.memberType === 'admin' && req.body.credits) ?
+                        {firstName: req.body.name_firstName, lastName: req.body.name_lastName}
+                      : {firstName: oldUser.name_firstName, lastName: oldUser.name_lastName},
                     contact: {email: req.body.email, phone:req.body.phone, address: req.body.address, city: req.body.city, province: req.body.province},
                     emergencyContact: { name: {firstName: req.body.EmergencyName_firstName, lastName: req.body.EmergencyName_lastName}, phone: req.body.EmergencyPhone, relationship: req.body.EmergencyRelationship},
                     garage: oldUser.garage,
