@@ -13,6 +13,8 @@ This API provides core functionality to the Ride42 Trackday Management System.
 *Note: Usage below indicates server actions on a successful request; server will respond with appropriate status code and JSON in format as outlined below. 
 On a bad request, the server will respond with appropriate code and a JSON in the format of `{"msg" : "error_message"}`. All transactions require credentials unless marked as PUBLIC*
 
+*Note: Dates on back end are stored exclusively in UTC.*
+
 ### Specialized Requests
 
 **Log in a user (PUBLIC):** Submit a `POST` request to `login/:userID`. Server will respond with `_id` of newly logged in user as well as attaching a JWT httpOnly cookie.
