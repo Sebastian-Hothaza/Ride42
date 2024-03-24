@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const { DateTime } = require("luxon");
 
 /*
 members is an array tracking users who attend the trackday, whether they were pre-registered or showed up on day-of
@@ -20,10 +19,6 @@ const TrackdaySchema = new mongoose.Schema({
 				group: { type: String, required: true, enum: ["green", "yellow", "red"] }}],
 	guests: { type: Number, required: true },
 	status: { type: String, required: true, enum: ["regOpen", "regClosed", "finished", "cancelled"] }
-});
-
-TrackdaySchema.virtual("date_formatted").get(function () {
-    return DateTime.fromJSDate(this.date).toLocaleString(DateTime.DATE_FULL);
 });
 
 // Export model
