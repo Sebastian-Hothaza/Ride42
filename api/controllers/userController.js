@@ -137,8 +137,9 @@ exports.garage_post = [
     body("make",  "Make must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
     body("model", "Model must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
 
-    validateUserID,
+    
     validateForm,
+    validateUserID,
 
     asyncHandler(async(req,res,next) => {
         // Check if a bike already exists with the same details in the users garage
@@ -150,14 +151,14 @@ exports.garage_post = [
 
         // Unbundle JWT and check if admin OR matching userID
         jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
-            if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
+            if (err) return res.status(401).send({msg: 'JWT Validation Fail'});
             // JWT is valid. Verify user is allowed to add bikes
             if (authData.memberType === 'admin' || authData.id === req.params.userID){
                 const user = await User.findById(req.params.userID).exec();
                 const bike = {year: req.body.year, make: req.body.make, model: req.body.model};
                 user.garage.push(bike);
                 await user.save();
-                return res.status(201).json({_id: user.garage[user.garage.length-1].id});
+                return res.status(201).json({id: user.garage[user.garage.length-1].id});
             }
             return res.sendStatus(401)
         }))
@@ -165,6 +166,7 @@ exports.garage_post = [
 ]
 
 // Removes a bike from a users garage. Requires JWT with matching userID OR admin. Returns ID of newly deleted bike.
+// NOTE: Front end will have to figure out the id of the bike it wants to delete via a lookup (extra step). This is ok.
 exports.garage_delete = [
     validateUserID,
 
@@ -279,6 +281,7 @@ exports.user_post = [
     ADMIN: name, credits, member type
     NOTES: garage and password is managed thru separate funtion
 */
+// TODO: Prevent changing groups if a user has a trackday that is <7 days away.
 exports.user_put = [
     body("email", "Email must be in format of samplename@sampledomain.com").trim().isEmail().escape(), 
     body("phone", "Phone must contain 10 digits").trim().isLength({ min: 10, max: 10}).escape(), 
@@ -300,15 +303,16 @@ exports.user_put = [
         jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
             if (err) return res.status(401).send({msg: 'JWT Validation Fail'});
             // JWT is valid. Verify user is allowed to access this resource and update the object
+            // If user attempts to tamper with unauthorized fields, return 401
             if (authData.memberType !== 'admin' &&
                 (req.body.name_firstName || req.body.name_lastName ||
-                 req.body.credits || req.body.memberType)) return res.sendStatus(401) // If user attempts to tamper with unauthorized fields, return 401
+                 req.body.credits || req.body.memberType)) return res.sendStatus(401) 
+            // If user attempt to change group and has a trackday booked < lockout period(7 default) away
             if (authData.memberType === 'admin' || authData.id === req.params.userID){
                 const oldUser = await User.findById(req.params.userID).select('credits memberType password').exec();
                 const user = new User({
-                    name: (authData.memberType === 'admin' && req.body.credits) ?
-                        {firstName: req.body.name_firstName, lastName: req.body.name_lastName}
-                      : {firstName: oldUser.name_firstName, lastName: oldUser.name_lastName},
+                    name: {firstName: (authData.memberType === 'admin' && req.body.name_firstName)? req.body.name_firstName: oldUser.name_firstName,
+                           lastName: (authData.memberType === 'admin' && req.body.name_lastName)? req.body.name_lastName: oldUser.name_lastName},
                     contact: {email: req.body.email, phone:req.body.phone, address: req.body.address, city: req.body.city, province: req.body.province},
                     emergencyContact: { name: {firstName: req.body.EmergencyName_firstName, lastName: req.body.EmergencyName_lastName}, phone: req.body.EmergencyPhone, relationship: req.body.EmergencyRelationship},
                     garage: oldUser.garage,
