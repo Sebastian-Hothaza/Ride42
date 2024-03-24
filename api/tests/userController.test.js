@@ -13,6 +13,7 @@ app.use(cookieParser());
 
 // ROUTER
 const index = require("../routes/index");
+const { body } = require("express-validator");
 app.use("/", index);
 
 
@@ -626,23 +627,195 @@ describe('Testing password update', () => {
 })
 
 describe('Testing user getTrackdays', () => {
-	test.todo("get trackdays for invalid objectID user")
+	test("get trackdays for invalid objectID user", async() => {
+		await request(app)
+			.get("/users/invalid/trackdays")
+			.expect(404, { msg: 'userID is not a valid ObjectID' })
+	});
 
-	test.todo("get trackdays for invalid userID user")
+	test("get trackdays for invalid userID user", async() => {
+		const user = await addUser(user1, 201);
+			
+		await request(app)
+			.get("/users/"+'1'+user.body.id.slice(1,user.body.id.length-1)+'1'+"/trackdays")
+			.expect(404, { msg: 'User does not exist' }) 
+	});
 
-	test.todo("get trackdays for user")
+	test("get trackdays for user - no trackdays", async() => {
+		const user = await addUser(user1, 201);
+		const admin = await addUser(userAdmin, 201)
+		const loginRes = await loginUser(userAdmin, 200);
+		// Create the trackday
+		const trackday = await request(app)
+							.post('/trackdays')
+							.type("form").send({date: 'June 5 2024'})
+							.set('Cookie', loginRes.headers['set-cookie'])
+							.expect(201)
+
+		await request(app)
+			.get("/users/"+user.body.id+'/trackdays')
+			.expect(200, { trackdays: [] })
+	});
+
+	test("get trackdays for user", async() => {
+		const user = await addUser(user1, 201);
+		const admin = await addUser(userAdmin, 201)
+		const loginRes = await loginUser(userAdmin, 200);
+		// Create the trackday
+		const trackday = await request(app)
+							.post('/trackdays')
+							.type("form").send({date: 'June 5 2024'})
+							.set('Cookie', loginRes.headers['set-cookie'])
+							.expect(201)
+		// Register user for trackday
+		await request(app)
+			.post('/register/'+user.body.id+'/'+trackday.body.id)
+			.type("form").send({paymentMethod: 'credit'})
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200)
+
+		await request(app)
+			.get("/users/"+user.body.id+'/trackdays')
+			.expect(200, { trackdays: ['June 5 2024'] })
+	});
+
+	test("get trackdays for user - multiple trackdays", async() => {
+		const user = await addUser(user1, 201);
+		const admin = await addUser(userAdmin, 201)
+		const loginResAdmin = await loginUser(userAdmin, 200);
+		const loginResUser = await loginUser(user1, 200);
+		// Create the trackday 1
+		const trackday1 = await request(app)
+							.post('/trackdays')
+							.type("form").send({date: 'June 5 2024'})
+							.set('Cookie', loginResAdmin.headers['set-cookie'])
+							.expect(201)
+		// Create the trackday 2
+		const trackday2 = await request(app)
+							.post('/trackdays')
+							.type("form").send({date: 'July 2 2024'})
+							.set('Cookie', loginResAdmin.headers['set-cookie'])
+							.expect(201)
+		// Register user for trackday1
+		await request(app)
+			.post('/register/'+user.body.id+'/'+trackday1.body.id)
+			.type("form").send({paymentMethod: 'credit'})
+			.set('Cookie', loginResUser.headers['set-cookie'])
+			.expect(200)
+
+		// Register user for trackday2
+		await request(app)
+			.post('/register/'+user.body.id+'/'+trackday2.body.id)
+			.type("form").send({paymentMethod: 'credit'})
+			.set('Cookie', loginResUser.headers['set-cookie'])
+			.expect(200)
+
+		await request(app)
+			.get("/users/"+user.body.id+'/trackdays')
+			.expect(200, { trackdays: ['June 5 2024', 'July 2 2024'] })
+	});
 })
 
 describe('Testing verify', () => {
-	test.todo("verify for invalid objectID user")
+	test("verify for invalid objectID user", async() => {
+		await request(app)
+			.get("/verify/invalid/sometrackdayID")
+			.expect(404, { msg: 'userID is not a valid ObjectID' })
+	});
 
-	test.todo("verify for invalid userID user")
+	test("verify for invalid userID user", async() => {
+		const user = await addUser(user1, 201);
+			
+		await request(app)
+			.get('/verify/'+'1'+user.body.id.slice(1,user.body.id.length-1)+'1'+'/sometrackdayID')
+			.expect(404, { msg: 'User does not exist' }) 
+	});
 
-	test.todo("verify for user - not registered for trackday")
+	test("verify for invalid objectID trackday", async() => {
+		const user = await addUser(user1, 201);
+		await request(app)
+			.get("/verify/"+user.body.id+"/invalid")
+			.expect(404, { msg: 'trackdayID is not a valid ObjectID' })
+	});
 
-	test.todo("verify for user - not checkedin for trackday")
+	test("verify for invalid trackdayID trackday", async() => {
+		const user = await addUser(user1, 201);
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(userAdmin, 200);
+		const trackday = await request(app)
+							.post('/trackdays')
+							.type("form").send({date: 'June 5 2024'})
+							.set('Cookie', loginRes.headers['set-cookie'])
+							.expect(201)
+		await request(app)
+			.get("/verify/"+user.body.id+'/'+'1'+trackday.body.id.slice(1,trackday.body.id.length-1)+'1')
+			.expect(404, { msg: 'Trackday does not exist' })
+	});
 
-	test.todo("verify for user")
+	test("verify for user - not registered for trackday", async() => {
+		const user = await addUser(user1, 201);
+		const admin = await addUser(userAdmin, 201)
+		const loginRes = await loginUser(userAdmin, 200);
+		// Create the trackday
+		const trackday = await request(app)
+							.post('/trackdays')
+							.type("form").send({date: 'June 5 2024'})
+							.set('Cookie', loginRes.headers['set-cookie'])
+							.expect(201)
+		await request(app)
+			.get("/verify/"+user.body.id+'/'+trackday.body.id)
+			.expect(200, { verified: 'false' })
+	});
+
+	test("verify for user - not checkedin for trackday", async() => {
+		const user = await addUser(user1, 201);
+		const admin = await addUser(userAdmin, 201)
+		const loginRes = await loginUser(userAdmin, 200);
+		// Create the trackday
+		const trackday = await request(app)
+							.post('/trackdays')
+							.type("form").send({date: 'June 5 2024'})
+							.set('Cookie', loginRes.headers['set-cookie'])
+							.expect(201)
+		// Register user for trackday
+		await request(app)
+			.post('/register/'+user.body.id+'/'+trackday.body.id)
+			.type("form").send({paymentMethod: 'credit'})
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200)
+
+		await request(app)
+			.get("/verify/"+user.body.id+'/'+trackday.body.id)
+			.expect(200, { verified: 'false' })
+	});
+
+	test("verify for user", async() => {
+		const user = await addUser(user1, 201);
+		const admin = await addUser(userAdmin, 201)
+		const loginRes = await loginUser(userAdmin, 200);
+		// Create the trackday
+		const trackday = await request(app)
+							.post('/trackdays')
+							.type("form").send({date: 'June 5 2024'})
+							.set('Cookie', loginRes.headers['set-cookie'])
+							.expect(201)
+		// Register user for trackday
+		await request(app)
+			.post('/register/'+user.body.id+'/'+trackday.body.id)
+			.type("form").send({paymentMethod: 'credit'})
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200)
+
+		// Check-in user for trackday
+		await request(app)
+			.post('/checkin/'+user.body.id+'/'+trackday.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200)
+
+		await request(app)
+			.get("/verify/"+user.body.id+'/'+trackday.body.id)
+			.expect(200, { verified: 'true' })
+	});
 })
 
 describe('Testing adding bikes to a user garage', () => {
@@ -776,7 +949,7 @@ describe('Testing adding bikes to a user garage', () => {
 describe('Delete bikes from a user garage', () => {
 	test("remove bike from garage - invalid objectID user", async() => {
 		await request(app)
-			.delete("/garage/invalid/invalid")
+			.delete("/garage/invalid/someBikeID")
 			.expect(404, { msg: 'userID is not a valid ObjectID' })
 	});
 
