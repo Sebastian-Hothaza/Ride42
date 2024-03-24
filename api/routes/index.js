@@ -3,16 +3,6 @@ const router = express.Router();
 const userController = require('../controllers/userController')
 const trackdayController = require('../controllers/trackdayController')
 
-/* GET home page. */
-// TODO: Delete this route
-router.get('/', function(req, res, next) {
-  if (process.env.NODE_ENV == 'development'){
-    res.send("dev");
-  }else{
-    res.send("prod");
-  }
-});
-
 // Users
 router.post('/login', userController.login)
 router.get('/users/:userID/trackdays', userController.getTrackdays)
@@ -33,9 +23,9 @@ if (process.env.NODE_ENV === 'test') router.post('/admin', userController.admin)
 
 // Trackdays
 
-router.post('/register/:trackdayID/:userID', trackdayController.register) 
-router.delete('/register/:trackdayID/:userID', trackdayController.unregister)
-router.put('/register/:trackdayID_OLD/:userID/:trackdayID_NEW', trackdayController.reschedule) 
+router.post('/register/:userID/:trackdayID', trackdayController.register) 
+router.delete('/register/:userID/:trackdayID', trackdayController.unregister)
+router.put('/register/:userID/:trackdayID_OLD/:trackdayID_NEW', trackdayController.reschedule) 
 router.post('/checkin/:userID/:trackdayID', trackdayController.checkin)
 
 router.get('/trackdays/:trackdayID', trackdayController.trackday_get)
