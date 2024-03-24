@@ -131,33 +131,15 @@ const user1_missingFields={
 	password: "Abcd1234"
 };
 
-async function addUser1(expectedResponseCode){
-	const res = await request(app).post("/users").type("form").send(user1).expect(expectedResponseCode);
+async function addUser(userInfo, expectedResponseCode){
+	const res = (userInfo.name_firstName==='Sebastian')?
+		 await request(app).post("/admin").type("form").send(userInfo).expect(expectedResponseCode)
+		:await request(app).post("/users").type("form").send(userInfo).expect(expectedResponseCode)
 	return res;
 }
 
-async function loginUser1(expectedResponseCode){
-	const res = await request(app).post("/login").type("form").send({email: user1.email, password: user1.password}).expect(expectedResponseCode);
-	return res;
-}
-
-async function addUser2(expectedResponseCode){
-	const res = await request(app).post("/users").type("form").send(user2).expect(expectedResponseCode);
-	return res;
-}
-
-async function loginUser2(expectedResponseCode){
-	const res = await request(app).post("/login").type("form").send({email: user2.email, password: user2.password}).expect(expectedResponseCode)
-	return res;
-}
-
-async function addAdmin(expectedResponseCode){
-	const res = await request(app).post("/admin").type("form").send(userAdmin).expect(expectedResponseCode);
-	return res;
-}
-
-async function loginAdmin(expectedResponseCode){
-	const res = await request(app).post("/login").type("form").send({email: userAdmin.email, password: userAdmin.password}).expect(expectedResponseCode)
+async function loginUser(user, expectedResponseCode){
+	const res = await request(app).post("/login").type("form").send({email: user.email, password: user.password}).expect(expectedResponseCode);
 	return res;
 }
 
@@ -185,18 +167,18 @@ describe('Testing user create', () => {
 	})
 
 	test("add multiple user to DB", async () => {
-		await addUser1(201);
-		await addUser2(201);
-		await addAdmin(201);
+		await addUser(user1, 201);
+		await addUser(user2, 201);
+		await addUser(userAdmin, 201);
 	});
 
 	test("create user with same email", async () => {
-		await addUser1(201)
-		await addUser1(409)
+		await addUser(user1, 201)
+		await addUser(user1, 409)
 	});
 
 	test("add user to DB", async () => {
-		await addUser1(201);
+		await addUser(user1, 201);
 	});
 })
 
@@ -208,8 +190,8 @@ describe('Testing user read', () => {
 	});
 
 	test("get invalid userID user", async() => {
-		const user = await addUser1(201);
-		await loginUser1(200);
+		const user = await addUser(user1, 201);
+		await loginUser(user1, 200);
 			
 		await request(app)
 			.get('/users/'+'1'+user.body.id.slice(1,user.body.id.length-1)+'1')
@@ -217,7 +199,7 @@ describe('Testing user read', () => {
 	});
 
 	test("get specific user - no JWT", async() => {
-		const user = await addUser1(201)
+		const user = await addUser(user1, 201)
 			
 		await request(app)
 			.get('/users/'+user.body.id)
@@ -225,9 +207,9 @@ describe('Testing user read', () => {
 	});
 
 	test("get specific user - unauthorized", async() => {
-		const res1 = await addUser1(201);
-		const res2 = await addUser2(201);
-		const loginRes = await loginUser1(200)
+		const res1 = await addUser(user1, 201);
+		const res2 = await addUser(user2, 201);
+		const loginRes = await loginUser(user1, 200)
 
 		// Get info on user2
 		await request(app)
@@ -237,9 +219,9 @@ describe('Testing user read', () => {
 	});
 
 	test("get specific user - as admin", async() => {
-		const user =  await addUser1(201)
-		const admin = await addAdmin(201)
-		const loginRes = await loginAdmin(200)
+		const user =  await addUser(user1, 201)
+		const admin = await addUser(userAdmin, 201)
+		const loginRes = await loginUser(userAdmin, 200)
 			
 		await request(app)
 			.get('/users/'+user.body.id)
@@ -248,8 +230,8 @@ describe('Testing user read', () => {
 	});
 
 	test("get specific user - as user", async() => { 
-		const user = await addUser2(201)
-		const loginRes = await loginUser2(200)
+		const user = await addUser(user2, 201)
+		const loginRes = await loginUser(user2, 200)
 		
 		// Get user
 		await request(app)
@@ -261,8 +243,8 @@ describe('Testing user read', () => {
 	
 
 	test("get all users", async() => {
-		await addAdmin(201)
-		const loginRes = await loginAdmin(200);
+		await addUser(userAdmin, 201)
+		const loginRes = await loginUser(userAdmin, 200);
 			
 		await request(app)
 			.get('/users/')
@@ -277,8 +259,8 @@ describe('Testing user read', () => {
 	});
 
 	test("get all users - unauthorized", async() => {
-		await addUser1(201);
-		const loginRes = await loginUser1(200)
+		await addUser(user1, 201);
+		const loginRes = await loginUser(user1, 200)
 			
 		await request(app)
 			.get('/users/')
@@ -297,8 +279,8 @@ describe('Testing user update', () => {
 	});
 
 	test("Update invalid userID user", async() => {
-		const user = await addUser1(201)
-		const loginRes = await loginUser1(200)
+		const user = await addUser(user1, 201)
+		const loginRes = await loginUser(user1, 200)
 			
 		await request(app)
 			.put('/users/'+'1'+user.body.id.slice(1,user.body.id.length-1)+'1')
@@ -307,8 +289,8 @@ describe('Testing user update', () => {
 	});
 
 	test("Update specific user - missing fields", async() => {
-		const user = await addUser1(201);
-		await loginUser1(200)
+		const user = await addUser(user1, 201);
+		await loginUser(user1, 200)
 		await request(app)
 			.put('/users/'+user.body.id)
 			.type('form').send(user1_missingFields)
@@ -316,8 +298,8 @@ describe('Testing user update', () => {
 	})
 
 	test("Update specific user - malformed fields", async() => {
-		const user = await addUser1(201);
-		await loginUser1(200)
+		const user = await addUser(user1, 201);
+		await loginUser(user1, 200)
 		await request(app)
 			.put('/users/'+user.body.id)
 			.type('form').send(user1_malformed)
@@ -325,7 +307,7 @@ describe('Testing user update', () => {
 	})
 
 	test("Update specific user - no JWT", async() => {
-		const user = await addUser1(201);
+		const user = await addUser(user1, 201);
 		await request(app)
 			.put('/users/'+user.body.id)
 			.type('form').send(user1_update)
@@ -333,20 +315,20 @@ describe('Testing user update', () => {
 	})
 
 	test("Update specific user - unauthorized", async() => {
-		const user1 = await addUser1(201);
-		const user2 = await addUser2(201);
-		const loginRes = await loginUser2(200)
+		const res1 = await addUser(user1, 201);
+		const res2 = await addUser(user2, 201);
+		const loginRes = await loginUser(user2, 200)
 		await request(app)
-			.put('/users/'+user1.body.id)
+			.put('/users/'+res1.body.id)
 			.type('form').send(user1_update)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(401)
 	})
 
 	test("Update specific user - as admin", async() => {
-		const user = await addUser1(201);
-		await addAdmin(201);
-		const loginRes = await loginAdmin(200)
+		const user = await addUser(user1, 201);
+		await addUser(userAdmin, 201);
+		const loginRes = await loginUser(userAdmin, 200)
 		await request(app)
 			.put('/users/'+user.body.id)
 			.type('form').send(user1_update)
@@ -355,8 +337,8 @@ describe('Testing user update', () => {
 	})
 
 	test("Update specific user - change unauthorized fields", async() => {
-		const user = await addUser1(201);
-		const loginRes = await loginUser1(200)
+		const user = await addUser(user1, 201);
+		const loginRes = await loginUser(user1, 200)
 
 		const user1_unauthorizedFields={ 
 			name_firstName: "JoeX",
@@ -387,9 +369,9 @@ describe('Testing user update', () => {
 	})
 
 	test("Update specific user - as admin - changing name, credits & user type", async() => {
-		const user = await addUser1(201);
-		await addAdmin(201);
-		const loginRes = await loginAdmin(200)
+		const user = await addUser(user1, 201);
+		await addUser(userAdmin, 201);
+		const loginRes = await loginUser(userAdmin, 200)
 
 		const user1_unauthorizedFields={ 
 			name_firstName: "JoeX",
@@ -449,8 +431,8 @@ describe('Testing user update', () => {
 	test.todo("Update specific user group - as admin - after 7 days")
 
 	test("Update user", async () => {
-		const res = await addUser1(201);
-		const loginRes = await loginUser1(200);
+		const res = await addUser(user1, 201);
+		const loginRes = await loginUser(user1, 200);
 
 		
 
@@ -490,7 +472,7 @@ describe('Testing user delete', () => {
 	});
 
 	test("Delete invalid userID user", async() => {
-		const user = await addUser1(201)
+		const user = await addUser(user1, 201)
 			
 		await request(app)
 			.delete('/users/'+'1'+user.body.id.slice(1,user.body.id.length-1)+'1')
@@ -498,15 +480,15 @@ describe('Testing user delete', () => {
 	});
 
 	test("Update specific user - no JWT", async() => {
-		const user = await addUser1(201)
+		const user = await addUser(user1, 201)
 		await request(app)
 			.delete('/users/'+user.body.id)
 			.expect(401) 
 	});
 
 	test("Delete user - unauthorized", async() => {
-		const user = await addUser1(201)
-		const loginRes = await loginUser1(200)
+		const user = await addUser(user1, 201)
+		const loginRes = await loginUser(user1, 200)
 		await request(app)
 			.delete('/users/'+user.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
@@ -514,9 +496,9 @@ describe('Testing user delete', () => {
 	});
 
 	test("Delete user", async() => {
-		const user = await addUser1(201)
-		const admin = await addAdmin(201)
-		const loginRes = await loginAdmin(200)
+		const user = await addUser(user1, 201)
+		const admin = await addUser(userAdmin, 201)
+		const loginRes = await loginUser(userAdmin, 200)
 
 		await request(app)
 			.delete('/users/'+user.body.id)
@@ -537,7 +519,7 @@ describe('Testing user delete', () => {
 
 describe('Testing user login', () => {
 	test("log in a user - missing fields", async() => {
-		await addUser1(201)
+		await addUser(user1, 201)
 		await request(app)
 			.post("/login")
 			.type("form")
@@ -546,7 +528,7 @@ describe('Testing user login', () => {
 	});
 
 	test("log in a user - malformed fields", async() => {
-		await addUser1(201)
+		await addUser(user1, 201)
 		await request(app)
 			.post("/login")
 			.type("form")
@@ -555,7 +537,7 @@ describe('Testing user login', () => {
 	});
 
 	test("log in a user - bad password", async() => {
-		await addUser1(201)
+		await addUser(user1, 201)
 		await request(app)
 			.post("/login")
 			.type("form")
@@ -564,8 +546,8 @@ describe('Testing user login', () => {
 	});
 
 	test("log in a user", async() => {
-		await addUser1(201)
-		await loginUser1(200)
+		await addUser(user1, 201)
+		await loginUser(user1, 200)
 	});
 })
 
@@ -578,7 +560,7 @@ describe('Testing password update', () => {
 	});
 
 	test("update password - invalid userID user", async() => {
-		const user = await addUser1(201)
+		const user = await addUser(user1, 201)
 			
 		await request(app)
 			.put('/password/'+'1'+user.body.id.slice(1,user.body.id.length-1)+'1')
@@ -587,7 +569,7 @@ describe('Testing password update', () => {
 	});
 
 	test("update password - missing fields", async() => {
-		const user = await addUser1(201)
+		const user = await addUser(user1, 201)
 		await request(app)
 			.put("/password/"+user.body.id)
 			.type("form")
@@ -596,7 +578,7 @@ describe('Testing password update', () => {
 	});
 
 	test("update password - malformed fields", async() => {
-		const user = await addUser1(201)
+		const user = await addUser(user1, 201)
 		await request(app)
 			.put("/password/"+user.body.id)
 			.type("form")
@@ -607,9 +589,9 @@ describe('Testing password update', () => {
 	
 
 	test("update password for a user - unauthorized", async() => {
-		const res1 = await addUser1(201);
-		const res2 = await addUser2(201);
-		const loginRes = await loginUser1(200);
+		const res1 = await addUser(user1, 201);
+		const res2 = await addUser(user2, 201);
+		const loginRes = await loginUser(user1, 200);
 
 		await request(app)
 			.put("/password/"+res2.body.id)
@@ -620,9 +602,9 @@ describe('Testing password update', () => {
 	});
 
 	test("update password for a user - admin", async() => {
-		const res = await addUser1(201);
-		const admin = await addAdmin(201);
-		const loginRes = await loginAdmin(200);
+		const res = await addUser(user1, 201);
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(userAdmin, 200);
 
 		await request(app)
 			.put("/password/"+res.body.id)
@@ -633,8 +615,8 @@ describe('Testing password update', () => {
 	});
 
 	test("update password for a user", async() => {
-		const res = await addUser1(201);
-		const loginRes = await loginUser1(200);
+		const res = await addUser(user1, 201);
+		const loginRes = await loginUser(user1, 200);
 
 		await request(app)
 			.put("/password/"+res.body.id)
