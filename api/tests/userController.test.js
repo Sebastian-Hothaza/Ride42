@@ -515,8 +515,6 @@ describe('Testing user delete', () => {
 
 
 
-
-
 describe('Testing user login', () => {
 	test("log in a user - missing fields", async() => {
 		await addUser(user1, 201)
@@ -640,27 +638,136 @@ describe('Testing verify', () => {
 
 	test.todo("verify for invalid userID user")
 
+	test.todo("verify for user - not registered for trackday")
+
+	test.todo("verify for user - not checkedin for trackday")
+
 	test.todo("verify for user")
 })
 
 describe('Testing adding bikes to a user garage', () => {
-	test.todo("add bike to garage - invalid objectID user")
+	test("add bike to garage - invalid objectID user", async() => {
+		await request(app)
+			.post("/garage/invalid")
+			.expect(404, { msg: 'userID is not a valid ObjectID' })
+	});
 
-	test.todo("add bike to garage - invalid userID user")
+	test("add bike to garage - invalid userID user", async() => {
+		const user = await addUser(user1, 201);
+		await loginUser(user1, 200);
+			
+		await request(app)
+			.post('/garage/'+'1'+user.body.id.slice(1,user.body.id.length-1)+'1')
+			.expect(404, { msg: 'User does not exist' }) 
+	});
 
-	test.todo("add bike to garage - missing fields")
+	test("add bike to garage - missing fields", async() => {
+		const user = await addUser(user1, 201);
+		const loginRes = await loginUser(user1, 200)
+		await request(app)
+			.post("/garage/"+user.body.id)
+			.type("form")
+			.send({field: 'param'})
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(400);
+	});
 
-	test.todo("add bike to garage - malformed fields")
+	test("add bike to garage - malformed fields", async() => {
+		const user = await addUser(user1, 201);
+		
+		await request(app)
+		.post("/garage/"+user.body.id)
+			.type("form")
+			.send({year: '20091', make: 'Yamaha', model: "R6"})
+			.expect(400);
+	});
 
-	test.todo("add bike to garage - no JWT")
+	test("add bike to garage - no JWT", async() => {
+		const user = await addUser(user1, 201);
+		await request(app)
+			.post("/garage/"+user.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.expect(401);
+	});
 
-	test.todo("add bike to garage - unauthorized")
+	test("add bike to garage - unauthorized", async() => {
+		const res1 = await addUser(user1, 201);
+		const res2 = await addUser(user2, 201);
+		const loginRes = await loginUser(user2, 200)
+		await request(app)
+			.post("/garage/"+res1.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(401);
+	});
 
-	test.todo("add bike to garage - as admin")
+	test("add bike to garage - as admin", async() => {
+		const user = await addUser(user1, 201);
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(userAdmin, 200)
+		await request(app)
+			.post("/garage/"+user.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201);
+	});
 
-	test.todo("add duplicate bike to garage")
+	test("add duplicate bike to garage", async() => {
+		const user = await addUser(user1, 201);
+		const loginRes = await loginUser(user1, 200)
+		await request(app)
+			.post("/garage/"+user.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201);
 
-	test.todo("add bike to garage")
+		await request(app)
+			.post("/garage/"+user.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(409);
+	});
+
+	test("add multiple bike to garage", async() => {
+		const user = await addUser(user1, 201);
+		const loginRes = await loginUser(user1, 200)
+		await request(app)
+			.post("/garage/"+user.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201);
+
+		await request(app)
+			.post("/garage/"+user.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R3"})
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201);
+
+		await request(app)
+			.post("/garage/"+user.body.id)
+			.type("form")
+			.send({year: '2010', make: 'Honda', model: "CBR600RR"})
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201);
+	});
+
+	test("add bike to garage", async() => {
+		const user = await addUser(user1, 201);
+		const loginRes = await loginUser(user1, 200)
+		await request(app)
+			.post("/garage/"+user.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201);
+	});
 })
 
 describe('Delete bikes from a user garage', () => {
