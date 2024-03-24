@@ -570,21 +570,79 @@ describe('Testing user login', () => {
 })
 
 describe('Testing password update', () => {
-	test.todo("update password - invalid objectID user")
+	test("update password - invalid objectID user", async() => {
+		await request(app)
+			.put("/password/invalid")
+			.type("form").send({password: 'ValidPassword1'})
+			.expect(404, { msg: 'userID is not a valid ObjectID' })
+	});
 
-	test.todo("update password - invalid userID user")
+	test("update password - invalid userID user", async() => {
+		const user = await addUser1(201)
+			
+		await request(app)
+			.put('/password/'+'1'+user.body.id.slice(1,user.body.id.length-1)+'1')
+			.type("form").send({password: 'ValidPassword1'})
+			.expect(404, { msg: 'User does not exist' }) 
+	});
 
-	test.todo("update password - missing fields")
+	test("update password - missing fields", async() => {
+		const user = await addUser1(201)
+		await request(app)
+			.put("/password/"+user.body.id)
+			.type("form")
+			.send({field: 'param'})
+			.expect(400);
+	});
 
-	test.todo("update password - malformed fields")
+	test("update password - malformed fields", async() => {
+		const user = await addUser1(201)
+		await request(app)
+			.put("/password/"+user.body.id)
+			.type("form")
+			.send({ password: 'noNumbers'})
+			.expect(400);
+	});
 	
 	
 
-	test.todo("update password for a user - unauthorized")
+	test("update password for a user - unauthorized", async() => {
+		const res1 = await addUser1(201);
+		const res2 = await addUser2(201);
+		const loginRes = await loginUser1(200);
 
-	test.todo("update password for a user - admin")
+		await request(app)
+			.put("/password/"+res2.body.id)
+			.type("form")
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.send({ password: 'ValidPassword1'})
+			.expect(401);
+	});
 
-	test.todo("update password for a user")
+	test("update password for a user - admin", async() => {
+		const res = await addUser1(201);
+		const admin = await addAdmin(201);
+		const loginRes = await loginAdmin(200);
+
+		await request(app)
+			.put("/password/"+res.body.id)
+			.type("form")
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.send({ password: 'ValidPassword1'})
+			.expect(200);
+	});
+
+	test("update password for a user", async() => {
+		const res = await addUser1(201);
+		const loginRes = await loginUser1(200);
+
+		await request(app)
+			.put("/password/"+res.body.id)
+			.type("form")
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.send({ password: 'ValidPassword1'})
+			.expect(200);
+	});
 })
 
 describe('Testing user getTrackdays', () => {
