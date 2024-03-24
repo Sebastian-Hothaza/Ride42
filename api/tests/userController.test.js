@@ -84,6 +84,53 @@ const userAdmin={
 	password: "Sebi1234"
 };
 
+const user1_update={ 
+	email: "user1X@gmail.com",
+	phone: "2261451299",
+	address: "123 AppleX AveX.",
+	city: "torontoX",
+	province: "OntarioX",
+
+	EmergencyName_firstName: "SilviaX",
+	EmergencyName_lastName: "AdamsX",
+	EmergencyPhone: "5195724399",
+	EmergencyRelationship: "WifeX",
+
+	group: "red"
+};
+
+const user1_malformed={ 
+	name_firstName: "Joe",
+	name_lastName: "Adams",
+	email: "user1gmail.com", //missing '@'
+	phone: "2261451298",
+	address: "123 Apple Ave.",
+	city: "toronto",
+	province: "Ontario",
+	EmergencyName_firstName: "Silvia",
+	EmergencyName_lastName: "Adams",
+	EmergencyPhone: "5195724356",
+	EmergencyRelationship: "Wife",
+	group: "yellow",
+	password: "Abcd1234"
+};
+
+const user1_missingFields={ 
+	name_firstName: "Joe",
+	name_lastName: "Adams",
+
+	phone: "2261451298",
+	address: "123 Apple Ave.",
+
+	province: "Ontario",
+	EmergencyName_firstName: "Silvia",
+	EmergencyName_lastName: "Adams",
+	EmergencyPhone: "5195724356",
+	EmergencyRelationship: "Wife",
+
+	password: "Abcd1234"
+};
+
 async function addUser1(expectedResponseCode){
 	const res = await request(app).post("/users").type("form").send(user1).expect(expectedResponseCode);
 	return res;
@@ -121,15 +168,21 @@ async function loginAdmin(expectedResponseCode){
 
 
 describe('Testing user create', () => {
-	test("add user to DB - missing fields", done => {
-		request(app)
+	test("add user to DB - missing fields", async() => {
+		await request(app)
 			.post("/users")
 			.type("form")
-			.send({item: "test"})
-			.expect(400, done)
+			.send(user1_missingFields)
+			.expect(400)
 	});
 
-	test.todo("add user to DB - malformed fields")
+	test("add user to DB - malformed fields", async() => {
+		
+		await request(app)
+			.post('/users')
+			.type('form').send(user1_malformed)
+			.expect(400)
+	})
 
 	test("add multiple user to DB", async () => {
 		await addUser1(201);
@@ -195,8 +248,8 @@ describe('Testing user read', () => {
 	});
 
 	test("get specific user - as user", async() => { 
-		const user = await addUser1(201)
-		const loginRes = await loginUser1(200)
+		const user = await addUser2(201)
+		const loginRes = await loginUser2(200)
 		
 		// Get user
 		await request(app)
@@ -236,11 +289,11 @@ describe('Testing user read', () => {
 
 describe('Testing user update', () => {
 
-	test("Update invalid objectID user", done => {
-		request(app)
+	test("Update invalid objectID user", async() => {
+		await request(app)
 			.put("/users/invalid")
 			.type("form").send(user1) // We are "over-sending" form params here; but its fine for sake of this test
-			.expect(404, { msg: 'userID is not a valid ObjectID' }, done)
+			.expect(404, { msg: 'userID is not a valid ObjectID' })
 	});
 
 	test("Update invalid userID user", async() => {
@@ -253,19 +306,143 @@ describe('Testing user update', () => {
 			.expect(404, { msg: 'User does not exist' }) 
 	});
 
-	test.todo("Update specific user - missing fields")
+	test("Update specific user - missing fields", async() => {
+		const user = await addUser1(201);
+		await loginUser1(200)
+		await request(app)
+			.put('/users/'+user.body.id)
+			.type('form').send(user1_missingFields)
+			.expect(400)
+	})
 
-	test.todo("Update specific user - malformed fields")
+	test("Update specific user - malformed fields", async() => {
+		const user = await addUser1(201);
+		await loginUser1(200)
+		await request(app)
+			.put('/users/'+user.body.id)
+			.type('form').send(user1_malformed)
+			.expect(400)
+	})
 
-	test.todo("Update specific user - no JWT")
+	test("Update specific user - no JWT", async() => {
+		const user = await addUser1(201);
+		await request(app)
+			.put('/users/'+user.body.id)
+			.type('form').send(user1_update)
+			.expect(401)
+	})
 
-	test.todo("Update specific user - unauthorized")
+	test("Update specific user - unauthorized", async() => {
+		const user1 = await addUser1(201);
+		const user2 = await addUser2(201);
+		const loginRes = await loginUser2(200)
+		await request(app)
+			.put('/users/'+user1.body.id)
+			.type('form').send(user1_update)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(401)
+	})
 
-	test.todo("Update specific user - as admin")
+	test("Update specific user - as admin", async() => {
+		const user = await addUser1(201);
+		await addAdmin(201);
+		const loginRes = await loginAdmin(200)
+		await request(app)
+			.put('/users/'+user.body.id)
+			.type('form').send(user1_update)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+	})
 
-	test.todo("Update specific user - change unauthorized fields")
+	test("Update specific user - change unauthorized fields", async() => {
+		const user = await addUser1(201);
+		const loginRes = await loginUser1(200)
 
-	test.todo("Update specific user - as admin - changing name, credits & user type")
+		const user1_unauthorizedFields={ 
+			name_firstName: "JoeX",
+			name_lastName: "AdamsX",
+			email: "user1X@gmail.com",
+			phone: "2261451299",
+			address: "123 AppleX AveX.",
+			city: "torontoX",
+			province: "OntarioX",
+		
+			EmergencyName_firstName: "SilviaX",
+			EmergencyName_lastName: "AdamsX",
+			EmergencyPhone: "5195724399",
+			EmergencyRelationship: "WifeX",
+		
+			group: "red",
+
+			credits: 5,
+			memberType: 'staff'
+
+		};
+
+		await request(app)
+			.put('/users/'+user.body.id)
+			.type('form').send(user1_unauthorizedFields)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(401)
+	})
+
+	test("Update specific user - as admin - changing name, credits & user type", async() => {
+		const user = await addUser1(201);
+		await addAdmin(201);
+		const loginRes = await loginAdmin(200)
+
+		const user1_unauthorizedFields={ 
+			name_firstName: "JoeX",
+			name_lastName: "AdamsX",
+			email: "user1X@gmail.com",
+			phone: "2261451299",
+			address: "123 AppleX AveX.",
+			city: "torontoX",
+			province: "OntarioX",
+		
+			EmergencyName_firstName: "SilviaX",
+			EmergencyName_lastName: "AdamsX",
+			EmergencyPhone: "5195724399",
+			EmergencyRelationship: "WifeX",
+		
+			group: "red",
+
+			credits: 5,
+			memberType: 'staff'
+
+		};
+
+		
+		await request(app)
+			.put('/users/'+user.body.id)
+			.type('form').send(user1_unauthorizedFields)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+
+		const updatedUser = await request(app)
+			.get('/users/'+user.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200)
+
+		expect((updatedUser.body.name.firstName)).toEqual(user1_unauthorizedFields.name_firstName);
+		expect((updatedUser.body.name.lastName)).toEqual(user1_unauthorizedFields.name_lastName);
+
+		expect((updatedUser.body.contact.email)).toEqual(user1_unauthorizedFields.email);
+		expect((updatedUser.body.contact.phone)).toEqual(user1_unauthorizedFields.phone);
+		expect((updatedUser.body.contact.address)).toEqual(user1_unauthorizedFields.address);
+		expect((updatedUser.body.contact.city)).toEqual(user1_unauthorizedFields.city);
+		expect((updatedUser.body.contact.province)).toEqual(user1_unauthorizedFields.province);
+
+		expect((updatedUser.body.emergencyContact.name.firstName)).toEqual(user1_unauthorizedFields.EmergencyName_firstName);
+		expect((updatedUser.body.emergencyContact.name.lastName)).toEqual(user1_unauthorizedFields.EmergencyName_lastName);
+		expect((updatedUser.body.emergencyContact.phone)).toEqual(parseInt(user1_unauthorizedFields.EmergencyPhone));
+		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1_unauthorizedFields.EmergencyRelationship);
+
+		expect((updatedUser.body.group)).toEqual(user1_unauthorizedFields.group);
+
+		expect((updatedUser.body.credits)).toEqual(user1_unauthorizedFields.credits);
+		expect((updatedUser.body.memberType)).toEqual(user1_unauthorizedFields.memberType);
+	})
 
 	test.todo("Update specific user group - as user - after 7 days")
 	
@@ -275,25 +452,12 @@ describe('Testing user update', () => {
 		const res = await addUser1(201);
 		const loginRes = await loginUser1(200);
 
-		const user1_UPDATED={ 
-			email: "user1X@gmail.com",
-			phone: "2261451299",
-			address: "123 AppleX AveX.",
-			city: "torontoX",
-			province: "OntarioX",
-
-			EmergencyName_firstName: "SilviaX",
-			EmergencyName_lastName: "AdamsX",
-			EmergencyPhone: "5195724399",
-			EmergencyRelationship: "WifeX",
-
-			group: "red"
-		};
+		
 
 		await request(app)
 			.put('/users/'+res.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.type("form").send(user1_UPDATED)
+			.type("form").send(user1_update)
 			.expect(201)
 
 		const updatedUser = await request(app)
@@ -301,33 +465,69 @@ describe('Testing user update', () => {
 		.set('Cookie', loginRes.headers['set-cookie'])
 		.expect(200)
 
-		expect((updatedUser.body.contact.email)).toEqual(user1_UPDATED.email);
-		expect((updatedUser.body.contact.phone)).toEqual(user1_UPDATED.phone);
-		expect((updatedUser.body.contact.address)).toEqual(user1_UPDATED.address);
-		expect((updatedUser.body.contact.city)).toEqual(user1_UPDATED.city);
-		expect((updatedUser.body.contact.province)).toEqual(user1_UPDATED.province);
+		expect((updatedUser.body.contact.email)).toEqual(user1_update.email);
+		expect((updatedUser.body.contact.phone)).toEqual(user1_update.phone);
+		expect((updatedUser.body.contact.address)).toEqual(user1_update.address);
+		expect((updatedUser.body.contact.city)).toEqual(user1_update.city);
+		expect((updatedUser.body.contact.province)).toEqual(user1_update.province);
 
-		expect((updatedUser.body.emergencyContact.name.firstName)).toEqual(user1_UPDATED.EmergencyName_firstName);
-		expect((updatedUser.body.emergencyContact.name.lastName)).toEqual(user1_UPDATED.EmergencyName_lastName);
-		expect((updatedUser.body.emergencyContact.phone)).toEqual(parseInt(user1_UPDATED.EmergencyPhone));
-		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1_UPDATED.EmergencyRelationship);
+		expect((updatedUser.body.emergencyContact.name.firstName)).toEqual(user1_update.EmergencyName_firstName);
+		expect((updatedUser.body.emergencyContact.name.lastName)).toEqual(user1_update.EmergencyName_lastName);
+		expect((updatedUser.body.emergencyContact.phone)).toEqual(parseInt(user1_update.EmergencyPhone));
+		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1_update.EmergencyRelationship);
 
-		expect((updatedUser.body.group)).toEqual(user1_UPDATED.group);
+		expect((updatedUser.body.group)).toEqual(user1_update.group);
 
 	});
 
 })
 
 describe('Testing user delete', () => {
-	test.todo("Delete invalid objectID user")
+	test("Delete invalid objectID user", async() => {
+		await request(app)
+			.delete("/users/invalid")
+			.expect(404, { msg: 'userID is not a valid ObjectID' })
+	});
 
-	test.todo("Delete invalid userID user")
+	test("Delete invalid userID user", async() => {
+		const user = await addUser1(201)
+			
+		await request(app)
+			.delete('/users/'+'1'+user.body.id.slice(1,user.body.id.length-1)+'1')
+			.expect(404, { msg: 'User does not exist' }) 
+	});
 
-	test.todo("Update specific user - no JWT")
+	test("Update specific user - no JWT", async() => {
+		const user = await addUser1(201)
+		await request(app)
+			.delete('/users/'+user.body.id)
+			.expect(401) 
+	});
 
-	test.todo("Delete user - unauthorized")
+	test("Delete user - unauthorized", async() => {
+		const user = await addUser1(201)
+		const loginRes = await loginUser1(200)
+		await request(app)
+			.delete('/users/'+user.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(401) 
+	});
 
-	test.todo("Delete user")
+	test("Delete user", async() => {
+		const user = await addUser1(201)
+		const admin = await addAdmin(201)
+		const loginRes = await loginAdmin(200)
+
+		await request(app)
+			.delete('/users/'+user.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200) 
+
+		await request(app)
+			.get('/users/'+user.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(404) 
+	});
 })
 
 
@@ -336,11 +536,32 @@ describe('Testing user delete', () => {
 
 
 describe('Testing user login', () => {
-	test.todo("log in a user - missing fields")
+	test("log in a user - missing fields", async() => {
+		await addUser1(201)
+		await request(app)
+			.post("/login")
+			.type("form")
+			.send({field: 'param'})
+			.expect(400);
+	});
 
-	test.todo("log in a user - malformed fields")
+	test("log in a user - malformed fields", async() => {
+		await addUser1(201)
+		await request(app)
+			.post("/login")
+			.type("form")
+			.send({email: 'user1gmail.com', password: user1.password})
+			.expect(400);
+	});
 
-	test.todo("log in a user - bad password")
+	test("log in a user - bad password", async() => {
+		await addUser1(201)
+		await request(app)
+			.post("/login")
+			.type("form")
+			.send({email: user1.email, password: user1.password+'a'})
+			.expect(401);
+	});
 
 	test("log in a user", async() => {
 		await addUser1(201)
