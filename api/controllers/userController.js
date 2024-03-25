@@ -72,6 +72,39 @@ async function hasTrackdayWithinLockout(user){
     return false;
 }
 
+// Verifies access token and attaches payload to request body.
+// Sets cookie if access token is expired but refresh token is valid
+// Returns appropriate code if both tokens are invalid
+async function verifyJWT(req, res, next){
+    // Try to verify JWT_ACCESS
+    let payload // Represents the object in the JWT_ACCESS
+    try{
+        payload = jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE);
+    }catch(err){ 
+        // JWT_ACCESS verification failed. Try to verify the JWT_REFRESH
+        try{
+            // Check the refresh token is not expired
+            const JWTRefreshPayload = jwt.verify(req.cookies.JWT_REFRESH_TOKEN, process.env.JWT_REFRESH_CODE);
+
+            // Pull the candidate user and check the refresh token is in DB. 
+            const user = await User.findById(JWTRefreshPayload.id).exec();
+            if (user.refreshToken !== req.cookies.JWT_REFRESH_TOKEN) return res.sendStatus(403)
+
+            // JWT_REFRESH is valid! Create new JWT_ACCESS. 
+            const accessToken = jwt.sign({id: user._id, memberType: user.memberType}, 
+                                            process.env.JWT_ACCESS_CODE, {expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION}) 
+            res.cookie([`JWT_ACCESS_TOKEN=${accessToken}; secure; httponly; samesite=None;`])
+            payload = jwt.verify(accessToken, process.env.JWT_ACCESS_CODE);
+        }catch(err2){
+            // JWT_REFRESH verification failed.
+            return res.sendStatus(401)
+        }
+    }
+    // Attach payload to request body
+    req.user = payload;
+    next();
+}
+
 // Logs in a user. PUBLIC. Returns httpOnly cookie containing JWT token.
 exports.login = [
     body("email", "Email must be in format of samplename@sampledomain.com").trim().isEmail().escape(), 
@@ -109,25 +142,22 @@ exports.updatePassword = [
     body("password", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().isLength({ min: 8, max: 50}).matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
     validateForm,
     validateUserID,
+    verifyJWT,
 
-    (req,res,next) => {
-        // Unbundle JWT and check if admin OR matching userID
-        jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE, asyncHandler(async (err, authData) => {
-            if (err) return res.status(401).send({msg: 'JWT Validation Fail'});
-            // JWT is valid. Verify user is allowed to update password
-            if (authData.memberType === 'admin' || authData.id === req.params.userID){
-                bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
-                    if (err) console.log("bcrypot error")
-                    let user = await User.findById(req.params.userID).exec();
-                    user.password = hashedPassword;
-                    await user.save();
-                    return res.sendStatus(200);
-                })
-            } else { // User is not authorized to change password
-                return res.sendStatus(401)
-            }
-        }))
-    }
+    asyncHandler(async (req,res,next) => {
+        // JWT is valid. Verify user is allowed to update password
+        if (req.user.memberType === 'admin' || req.user.id === req.params.userID){
+            bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
+                if (err) console.log("bcrypot error")
+                let user = await User.findById(req.params.userID).exec();
+                user.password = hashedPassword;
+                await user.save();
+                return res.sendStatus(200);
+            })
+        } else { // User is not authorized to change password
+            return res.sendStatus(401)
+        }
+    })
 ]
 
 // Returns a list of dates corresponding to dates the user is registered for. PUBLIC
@@ -165,6 +195,7 @@ exports.garage_post = [
     
     validateForm,
     validateUserID,
+    verifyJWT,
 
     asyncHandler(async(req,res,next) => {
         // Check if a bike already exists with the same details in the users garage
@@ -173,20 +204,15 @@ exports.garage_post = [
                                                         {garage: {$elemMatch: { model: {$eq: req.body.model}}}} ]})
         if (duplicateBike.length) return res.status(409).send({msg: 'Bike with these details already exists'});
 
-
-        // Unbundle JWT and check if admin OR matching userID
-        jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE, asyncHandler(async (err, authData) => {
-            if (err) return res.status(401).send({msg: 'JWT Validation Fail'});
-            // JWT is valid. Verify user is allowed to add bikes
-            if (authData.memberType === 'admin' || authData.id === req.params.userID){
-                const user = await User.findById(req.params.userID).exec();
-                const bike = {year: req.body.year, make: req.body.make, model: req.body.model};
-                user.garage.push(bike);
-                await user.save();
-                return res.status(201).json({id: user.garage[user.garage.length-1].id});
-            }
-            return res.sendStatus(401)
-        }))
+        // JWT is valid. Verify user is allowed to add bikes
+        if (req.user.memberType === 'admin' || req.user.id === req.params.userID){
+            const user = await User.findById(req.params.userID).exec();
+            const bike = {year: req.body.year, make: req.body.make, model: req.body.model};
+            user.garage.push(bike);
+            await user.save();
+            return res.status(201).json({id: user.garage[user.garage.length-1].id});
+        }
+        return res.sendStatus(401)
     })
 ]
 
@@ -194,29 +220,26 @@ exports.garage_post = [
 // NOTE: Front end will have to figure out the id of the bike it wants to delete via a lookup (extra step). This is ok.
 exports.garage_delete = [
     validateUserID,
+    verifyJWT,
 
-    (req,res,next) => {
-        // Unbundle JWT and check if admin OR matching userID
-        jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE, asyncHandler(async (err, authData) => {
-            if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
-            // JWT is valid. Verify user is allowed to add bikes
-            if (authData.memberType === 'admin' || authData.id === req.params.userID){
-                if (!ObjectId.isValid(req.params.bikeID)) return res.status(404).send({msg: 'bikeID is not a valid ObjectID'});
-                const user = await User.findById(req.params.userID).select('garage').exec();
-        
-                // Check that the bike we want to remove from the array actually exists
-               
-                const bikeExists = user.garage.some((bike) => bike._id.equals(req.params.bikeID))
-                if (!bikeExists) return res.status(404).send({msg: 'Bike does not exist'});
-        
-                // Filter the array to remove the bike to be deleted and update the garage array
-                user.garage = user.garage.filter((bike) => !bike._id.equals(req.params.bikeID));
-                await user.save();
-                return res.sendStatus(200);
-            }
-            return res.sendStatus(401)
-        }))
-    },
+    asyncHandler(async (req,res,next) => {
+        // JWT is valid. Verify user is allowed to add bikes
+        if (req.user.memberType === 'admin' || req.user.id === req.params.userID){
+            if (!ObjectId.isValid(req.params.bikeID)) return res.status(404).send({msg: 'bikeID is not a valid ObjectID'});
+            const user = await User.findById(req.params.userID).select('garage').exec();
+    
+            // Check that the bike we want to remove from the array actually exists
+            
+            const bikeExists = user.garage.some((bike) => bike._id.equals(req.params.bikeID))
+            if (!bikeExists) return res.status(404).send({msg: 'Bike does not exist'});
+    
+            // Filter the array to remove the bike to be deleted and update the garage array
+            user.garage = user.garage.filter((bike) => !bike._id.equals(req.params.bikeID));
+            await user.save();
+            return res.sendStatus(200);
+        }
+        return res.sendStatus(401)
+    }),
 ]
 
 //////////////////////////////////////
@@ -225,52 +248,19 @@ exports.garage_delete = [
 // Get a single user. Requires JWT with matching userID OR admin
 exports.user_get = [
     validateUserID,
-    (req,res,next) => {
-        // Unbundle JWT and check if admin OR matching userID
-        jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE, asyncHandler(async (err, authData) => {
-            if (err) return res.status(401).send({msg: 'JWT Validation Fail'});
-            // JWT is valid. Verify user is allowed to access this resource and return the information
-            if (authData.memberType === 'admin' || authData.id === req.params.userID){
-                let user = await User.findById(req.params.userID).select('-password')
-                return res.status(200).json(user);
-            }
-            return res.sendStatus(401)
-        }))
-    }
+    verifyJWT,
+
+    asyncHandler(async(req,res,next) => {
+        // JWT is valid. Verify user is allowed to access this resource and return the information
+        if (req.user.memberType === 'admin' || req.user.id === req.params.userID){
+            let user = await User.findById(req.params.userID).select('-password')
+            return res.status(200).json(user);
+        }
+        return res.sendStatus(401)
+    })
 ]
 
-// Verifies access token and attaches payload to request body.
-// Sets cookie if access token is expired but refresh token is valid
-// Returns appropriate code if both tokens are invalid
-async function verifyJWT(req, res, next){
-    // Try to verify JWT_ACCESS
-    let payload // Represents the object in the JWT_ACCESS
-    try{
-        payload = jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE);
-    }catch(err){ 
-        // JWT_ACCESS verification failed. Try to verify the JWT_REFRESH
-        try{
-            // Check the refresh token is not expired
-            const JWTRefreshPayload = jwt.verify(req.cookies.JWT_REFRESH_TOKEN, process.env.JWT_REFRESH_CODE);
 
-            // Pull the candidate user and check the refresh token is in DB. 
-            const user = await User.findById(JWTRefreshPayload.id).exec();
-            if (user.refreshToken !== req.cookies.JWT_REFRESH_TOKEN) return res.sendStatus(403)
-
-            // JWT_REFRESH is valid! Create new JWT_ACCESS. 
-            const accessToken = jwt.sign({id: user._id, memberType: user.memberType}, 
-                                            process.env.JWT_ACCESS_CODE, {expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION}) 
-            res.cookie([`JWT_ACCESS_TOKEN=${accessToken}; secure; httponly; samesite=None;`])
-            payload = jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE);
-        }catch(err){
-            // JWT_REFRESH verification failed.
-            return res.sendStatus(401)
-        }
-    }
-    // Attach payload to request body
-    req.user = payload;
-    next();
-}
 
 // Gets all users. Requires JWT with admin
 exports.user_getALL = [
@@ -355,62 +345,58 @@ exports.user_put = [
 
     validateForm,
     validateUserID,
-    (req,res,next) => {
-        // Unbundle JWT and check if admin OR matching userID
-        jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE, asyncHandler(async (err, authData) => {
-            if (err) return res.status(401).send({msg: 'JWT Validation Fail'});
-            // JWT is valid. Verify user is allowed to access this resource and update the object
-            // If user attempts to tamper with unauthorized fields, return 401
-            if (authData.memberType !== 'admin' &&
-                (req.body.name_firstName || req.body.name_lastName ||
-                 req.body.credits || req.body.memberType)) return res.sendStatus(401) 
+    verifyJWT,
 
-            // Check if a user already exists with same email
-            const duplicateUser = await User.find({'contact.email': {$eq: req.body.email}})
-            if (duplicateUser.length) return res.status(409).send({msg: 'User with this email already exists'});
-                 
-            if (authData.id === req.params.userID || authData.memberType === 'admin'){ // User is editing themselves or admin is editing them
-                const oldUser = await User.findById(req.params.userID).exec();
+    asyncHandler(async (req,res,next) => {
+        // JWT is valid. Verify user is allowed to access this resource and update the object
+        // If user attempts to tamper with unauthorized fields, return 401
+        if (req.user.memberType !== 'admin' &&
+            (req.body.name_firstName || req.body.name_lastName ||
+                req.body.credits || req.body.memberType)) return res.sendStatus(401) 
 
-                // If user attempt to change group and has a trackday booked < lockout period(7 default) away, fail update entirely
-                if (req.body.group !== oldUser.group && authData.memberType !== 'admin' && await hasTrackdayWithinLockout(req.params.userID)){
-                    return res.status(401).send({msg: 'Cannot change group when registered for trackday <'+process.env.DAYS_LOCKOUT+' days away.'})
-                }
-                const user = new User({
-                    name: {firstName: (authData.memberType === 'admin' && req.body.name_firstName)? req.body.name_firstName: oldUser.name_firstName,
-                           lastName: (authData.memberType === 'admin' && req.body.name_lastName)? req.body.name_lastName: oldUser.name_lastName},
-                    contact: {email: req.body.email, phone:req.body.phone, address: req.body.address, city: req.body.city, province: req.body.province},
-                    emergencyContact: { name: {firstName: req.body.EmergencyName_firstName, lastName: req.body.EmergencyName_lastName}, phone: req.body.EmergencyPhone, relationship: req.body.EmergencyRelationship},
-                    garage: oldUser.garage,
-                    group: req.body.group,
-                    credits: (authData.memberType === 'admin' && req.body.credits)? req.body.credits : oldUser.credits,
-                    memberType: (authData.memberType === 'admin' && req.body.memberType)? req.body.memberType : oldUser.memberType,
-                    password: oldUser.password,
-                    _id: req.params.userID,
-                })
-                await User.findByIdAndUpdate(req.params.userID, user, {});
-                return res.status(201).json({_id: user.id});
+        // Check if a user already exists with same email
+        const duplicateUser = await User.find({'contact.email': {$eq: req.body.email}})
+        if (duplicateUser.length) return res.status(409).send({msg: 'User with this email already exists'});
+                
+        if (req.user.id === req.params.userID || req.user.memberType === 'admin'){ // User is editing themselves or admin is editing them
+            const oldUser = await User.findById(req.params.userID).exec();
+
+            // If user attempt to change group and has a trackday booked < lockout period(7 default) away, fail update entirely
+            if (req.body.group !== oldUser.group && req.user.memberType !== 'admin' && await hasTrackdayWithinLockout(req.params.userID)){
+                return res.status(401).send({msg: 'Cannot change group when registered for trackday <'+process.env.DAYS_LOCKOUT+' days away.'})
             }
-            return res.sendStatus(401)
-        }))
-    }
+            const user = new User({
+                name: {firstName: (req.user.memberType === 'admin' && req.body.name_firstName)? req.body.name_firstName: oldUser.name_firstName,
+                        lastName: (req.user.memberType === 'admin' && req.body.name_lastName)? req.body.name_lastName: oldUser.name_lastName},
+                contact: {email: req.body.email, phone:req.body.phone, address: req.body.address, city: req.body.city, province: req.body.province},
+                emergencyContact: { name: {firstName: req.body.EmergencyName_firstName, lastName: req.body.EmergencyName_lastName}, phone: req.body.EmergencyPhone, relationship: req.body.EmergencyRelationship},
+                garage: oldUser.garage,
+                group: req.body.group,
+                credits: (req.user.memberType === 'admin' && req.body.credits)? req.body.credits : oldUser.credits,
+                memberType: (req.user.memberType === 'admin' && req.body.memberType)? req.body.memberType : oldUser.memberType,
+                password: oldUser.password,
+                _id: req.params.userID,
+            })
+            await User.findByIdAndUpdate(req.params.userID, user, {});
+            return res.status(201).json({_id: user.id});
+        }
+        return res.sendStatus(401)
+    })
 ]
 
 // Deletes a user. Requires JWT with admin.
 exports.user_delete = [
     validateUserID,
-    (req,res,next) => {
-        // Unbundle JWT and check if admin 
-        jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE, asyncHandler(async (err, authData) => {
-            if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
-            // JWT is valid. Verify user is allowed to access this resource and delete the user
-            if (authData.memberType === 'admin'){
-                await User.findByIdAndDelete(req.params.userID);
-                return res.sendStatus(200);
-            }
-            return res.sendStatus(401)
-        }))
-    }
+    verifyJWT,
+
+    asyncHandler(async(req,res,next) => {
+        // JWT is valid. Verify user is allowed to access this resource and delete the user
+        if (req.user.memberType === 'admin'){
+            await User.findByIdAndDelete(req.params.userID);
+            return res.sendStatus(200);
+        }
+        return res.sendStatus(401)
+    })
 ]
 
 // Testing use only, route available only in test NODE_env
