@@ -71,7 +71,7 @@ exports.register = [
     validateForm,
     (req,res,next) => {
         // Unbundle JWT and check if admin OR matching userID
-        jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+        jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE, asyncHandler(async (err, authData) => {
             if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
             // JWT is valid. Verify user is allowed to register for a trackday
             if (authData.memberType === 'admin' || (authData.id === req.params.userID && 1)){
@@ -99,7 +99,7 @@ exports.unregister = [
    
     (req,res,next) => {
         // Unbundle JWT and check if admin OR matching userID
-        jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+        jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE, asyncHandler(async (err, authData) => {
             if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
             // JWT is valid. Verify user is allowed to register for a trackday
             if (authData.memberType === 'admin' || (authData.id === req.params.userID && 1)){
@@ -127,7 +127,7 @@ exports.reschedule = [
    
     (req,res,next) => {
         // Unbundle JWT and check if admin OR matching userID
-        jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+        jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE, asyncHandler(async (err, authData) => {
             if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
             // JWT is valid. Verify user is allowed to register for a trackday
             if (authData.memberType === 'admin' || (authData.id === req.params.userID && 1)){
@@ -166,7 +166,7 @@ exports.checkin = [
    
     (req,res,next) => {
         // Unbundle JWT and check if admin OR matching userID
-        jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+        jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE, asyncHandler(async (err, authData) => {
             if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
             // JWT is valid. Verify user is allowed to register for a trackday
             if (authData.memberType === 'admin' || authData.memberType === 'staff'){
@@ -193,7 +193,7 @@ exports.checkin = [
 exports.trackday_get = [
     validateTrackdayID,
     (req,res,next) => {
-        jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+        jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE, asyncHandler(async (err, authData) => {
             if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
             // JWT is valid. Verify user is admin and return the trackday
             if (authData.memberType === 'admin'){
@@ -207,7 +207,7 @@ exports.trackday_get = [
 
 // Returns all trackdays. Requires JWT with admin.
 exports.trackday_getALL = (req,res,next) => {
-    jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+    jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE, asyncHandler(async (err, authData) => {
         if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
         // JWT is valid. Verify user is admin and return all trackdays
         if (authData.memberType === 'admin'){
@@ -228,7 +228,7 @@ exports.trackday_post = [
     validateForm,
     (req,res,next) => {
           // Unbundle JWT and check if admin 
-        jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+        jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE, asyncHandler(async (err, authData) => {
             if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
             // JWT is valid. Verify user is admin and create the trackday
             if (authData.memberType === 'admin'){
@@ -262,7 +262,7 @@ exports.trackday_put = [
     validateTrackdayID,
     (req,res,next) => {
           // Unbundle JWT and check if admin 
-        jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+        jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE, asyncHandler(async (err, authData) => {
             if (err) return res.status(401).send({msg: 'JWT Validation Fail'});
             // JWT is valid. Verify user is admin and edit the trackday
             const oldTrackday = await Trackday.findById(req.params.trackdayID).select('members walkons').exec();
@@ -292,7 +292,7 @@ exports.trackday_delete = [
 
     (req,res,next) => {
           // Unbundle JWT and check if admin 
-        jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+        jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE, asyncHandler(async (err, authData) => {
             if (err) return res.status(401).send({msg: 'JWT Validation Fail'});
             // JWT is valid. Verify user is admin and delete the trackday
             if (authData.memberType === 'admin'){
