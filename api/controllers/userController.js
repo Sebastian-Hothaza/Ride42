@@ -14,6 +14,8 @@ const ObjectId = require('mongoose').Types.ObjectId;
     time restriction for changing groups
     Change date to actual date obj instead of string (?) - needed for 7 day restriction + other handy features maybe
     Review what API should actually return; maybe just code in most cases?
+    check id vs _id
+    dont allow user to edit email to another email that already exists! - Check other update params!
 */
 
 // Called by middleware functions
@@ -51,6 +53,20 @@ async function validateTrackdayID(req, res, next){
         if (!trackdayExists) return res.status(404).send({msg: 'Trackday does not exist'});
         next();
     }
+}
+
+// Returns true if user is registered for a trackday within the lockout period (7 days default)
+// TODO: ignore dates past
+async function hasTrackdayWithinLockout(user){
+    const allTrackdays = await Trackday.find({members: {$elemMatch: { userID: {$eq: user}}}} ).exec(); // Trackdays that user is a part of
+    const timeLockout = process.env.DAYS_LOCKOUT*(1000*60*60*24); // If we are under this, then we are in the lockout period
+    
+    // Check each trackday user is registered for to see if any of them are within lockout period
+    for (let i=0; i<allTrackdays.length; i++){
+        const timeDifference = allTrackdays[i].date.getTime() - Date.now()
+        if (timeDifference > 0 && timeDifference < timeLockout) return true;
+    }
+    return false;
 }
 
 // Logs in a user. PUBLIC. Returns httpOnly cookie containing JWT token.
@@ -281,7 +297,6 @@ exports.user_post = [
     ADMIN: name, credits, member type
     NOTES: garage and password is managed thru separate funtion
 */
-// TODO: Prevent changing groups if a user has a trackday that is <7 days away.
 exports.user_put = [
     body("email", "Email must be in format of samplename@sampledomain.com").trim().isEmail().escape(), 
     body("phone", "Phone must contain 10 digits").trim().isLength({ min: 10, max: 10}).escape(), 
@@ -307,9 +322,18 @@ exports.user_put = [
             if (authData.memberType !== 'admin' &&
                 (req.body.name_firstName || req.body.name_lastName ||
                  req.body.credits || req.body.memberType)) return res.sendStatus(401) 
-            // If user attempt to change group and has a trackday booked < lockout period(7 default) away
-            if (authData.memberType === 'admin' || authData.id === req.params.userID){
-                const oldUser = await User.findById(req.params.userID).select('credits memberType password').exec();
+
+            // Check if a user already exists with same email
+            const duplicateUser = await User.find({'contact.email': {$eq: req.body.email}})
+            if (duplicateUser.length) return res.status(409).send({msg: 'User with this email already exists'});
+                 
+            if (authData.id === req.params.userID || authData.memberType === 'admin'){ // User is editing themselves or admin is editing them
+                const oldUser = await User.findById(req.params.userID).exec();
+
+                // If user attempt to change group and has a trackday booked < lockout period(7 default) away, fail update entirely
+                if (req.body.group !== oldUser.group && authData.memberType !== 'admin' && await hasTrackdayWithinLockout(req.params.userID)){
+                    return res.status(401).send({msg: 'Cannot change group when registered for trackday <'+process.env.DAYS_LOCKOUT+' days away.'})
+                }
                 const user = new User({
                     name: {firstName: (authData.memberType === 'admin' && req.body.name_firstName)? req.body.name_firstName: oldUser.name_firstName,
                            lastName: (authData.memberType === 'admin' && req.body.name_lastName)? req.body.name_lastName: oldUser.name_lastName},
