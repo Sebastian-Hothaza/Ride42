@@ -9,7 +9,7 @@ router.get('/users/:userID/trackdays', userController.getTrackdays)
 router.get('/verify/:userID/:trackdayID', userController.verify)
 router.put('/password/:userID', userController.updatePassword)
 router.post('/garage/:userID', userController.garage_post)
-router.delete('/garage/:userID/:bikeID', userController.garage_delete)
+router.delete('/garage/:userID', userController.garage_delete)
 
 
 router.get('/users/:userID', userController.user_get)
