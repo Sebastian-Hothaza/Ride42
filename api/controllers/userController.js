@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken')
 const ObjectId = require('mongoose').Types.ObjectId;
 
 /*
+    --------------------------------------------- TODO ---------------------------------------------
     JWT Expiration and management 
     JWT: What should it actually contain?
     JWT: after editing fields which make up the JWT, the JWT should be re-set! 
@@ -16,14 +17,18 @@ const ObjectId = require('mongoose').Types.ObjectId;
     Review what API should actually return; maybe just code in most cases?
     check id vs _id
     dont allow user to edit email to another email that already exists! - Check other update params!
+    validateForm: Make return only the message (?) How should this present errors? Update README, this may be the best decision
+    validateTrackdayID: clean up
+    GarageDelete: Check that the bikeID is a valid objectID
+    use 403 instead of 401 where applicable
+    --------------------------------------------- TODO ---------------------------------------------
 */
 
 // Called by middleware functions
 // Validates the form contents and builds errors array. In case of errors, returns 400 with errors array
-// TODO: Make return only the message (?)
 function validateForm(req,res,next){
     const errors = validationResult(req); // Extract the validation errors from a request.
-    if (!errors.isEmpty())  return res.status(400).json(errors.mapped()); //TODO: How should this present errors? Update README, this may be the best decision
+    if (!errors.isEmpty())  return res.status(400).json(errors.mapped());
     next();
 }
 
@@ -38,7 +43,6 @@ async function validateUserID(req, res, next){
 
 // Called by middleware functions
 // Verify that the req.params.trackdayID is a valid objectID and that it exists in our DB
-// TODO: Clean this up
 async function validateTrackdayID(req, res, next){
     // Special case for validating trackdayID's for reschedule
     if (req.params.trackdayID_OLD && req.params.trackdayID_NEW){
@@ -56,7 +60,6 @@ async function validateTrackdayID(req, res, next){
 }
 
 // Returns true if user is registered for a trackday within the lockout period (7 days default)
-// TODO: ignore dates past
 async function hasTrackdayWithinLockout(user){
     const allTrackdays = await Trackday.find({members: {$elemMatch: { userID: {$eq: user}}}} ).exec(); // Trackdays that user is a part of
     const timeLockout = process.env.DAYS_LOCKOUT*(1000*60*60*24); // If we are under this, then we are in the lockout period
@@ -196,7 +199,7 @@ exports.garage_delete = [
                 const user = await User.findById(req.params.userID).select('garage').exec();
         
                 // Check that the bike we want to remove from the array actually exists
-                // TODO: Check that the bikeID is a valid objectID
+               
                 const bikeExists = user.garage.some((bike) => bike._id.equals(req.params.bikeID))
                 if (!bikeExists) return res.status(404).send({msg: 'Bike does not exist'});
         

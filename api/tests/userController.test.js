@@ -20,8 +20,8 @@ app.use("/", index);
 
 
 beforeAll(async () => { 
-		await MongoDB_testDB.initializeMongoServer();
-		return;
+	await MongoDB_testDB.initializeMongoServer();
+	return;
 });
 
 afterAll(async () => {
