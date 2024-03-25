@@ -8,27 +8,19 @@ const ObjectId = require('mongoose').Types.ObjectId;
 
 /*
     --------------------------------------------- TODO ---------------------------------------------
-    JWT convert all verify methods to use refresh token on access token failure
-    JWT: What should it actually contain?
-    JWT: after editing fields which make up the JWT, the JWT should be re-set! 
-    what is asynchandler actually doing
-    time restriction for changing groups
-    Change date to actual date obj instead of string (?) - needed for 7 day restriction + other handy features maybe
-    Review what API should actually return; maybe just code in most cases?
-    check id vs _id
-    dont allow user to edit email to another email that already exists! - Check other update params!
-    validateForm: Make return only the message (?) How should this present errors? Update README, this may be the best decision
     validateTrackdayID: clean up
-    GarageDelete: Check that the bikeID is a valid objectID
-    use 403 instead of 401 where applicable
+    code cleanup - move some fn to separate utils file?
     --------------------------------------------- TODO ---------------------------------------------
 */
 
-// Called by middleware functions
-// Validates the form contents and builds errors array. In case of errors, returns 400 with errors array
+// Validates the form contents and builds errors array. In case of errors, returns 400 with error message array
 function validateForm(req,res,next){
     const errors = validationResult(req); // Extract the validation errors from a request.
-    if (!errors.isEmpty())  return res.status(400).json(errors.mapped());
+    if (!errors.isEmpty()) {
+        let errorMessages = [];
+        errors.errors.forEach((elem)=> errorMessages.push(elem.msg))
+        return res.status(400).json({msg: errorMessages});
+    }
     next();
 }
 
@@ -91,7 +83,7 @@ async function verifyJWT(req, res, next){
             if (user.refreshToken !== req.cookies.JWT_REFRESH_TOKEN) return res.sendStatus(403)
 
             // JWT_REFRESH is valid! Create new JWT_ACCESS. 
-            const accessToken = jwt.sign({id: user._id, memberType: user.memberType}, 
+            const accessToken = jwt.sign({id: user._id, memberType: user.memberType, name: user.name.firstName}, 
                                             process.env.JWT_ACCESS_CODE, {expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION}) 
             res.cookie([`JWT_ACCESS_TOKEN=${accessToken}; secure; httponly; samesite=None;`])
             payload = jwt.verify(accessToken, process.env.JWT_ACCESS_CODE);
@@ -119,7 +111,7 @@ exports.login = [
             const passwordMatch = await bcrypt.compare(req.body.password, user.password)
             if (passwordMatch){
                 // Generate tokens and attach as cookies
-                const accessToken = jwt.sign({id: user._id, memberType: user.memberType}, process.env.JWT_ACCESS_CODE, {expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION}) 
+                const accessToken = jwt.sign({id: user._id, memberType: user.memberType, name: user.name.firstName}, process.env.JWT_ACCESS_CODE, {expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION}) 
                 const refreshToken = jwt.sign({id: user._id}, process.env.JWT_REFRESH_CODE, {expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRATION}) 
                 res.cookie([`JWT_ACCESS_TOKEN=${accessToken}; secure; httponly; samesite=None;`])
                 res.cookie([`JWT_REFRESH_TOKEN=${refreshToken}; secure; httponly; samesite=None;`])
@@ -127,9 +119,9 @@ exports.login = [
                 // Store user specific refresh token in DB
                 user.refreshToken = refreshToken;
                 await user.save();
-                res.json({name: user.name.firstName})
+                res.sendStatus(200)
             }else{
-                return res.status(401).json({msg: 'Incorrect Password'});
+                return res.status(400).json({msg: 'Incorrect Password'});
             }  
         }else{
             return res.status(400).json({msg: 'User not in DB'});
@@ -148,15 +140,15 @@ exports.updatePassword = [
         // JWT is valid. Verify user is allowed to update password
         if (req.user.memberType === 'admin' || req.user.id === req.params.userID){
             bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
-                if (err) console.log("bcrypot error")
+                if (err) console.log("bcrypt error")
                 let user = await User.findById(req.params.userID).exec();
                 user.password = hashedPassword;
                 await user.save();
-                return res.sendStatus(200);
+                res.sendStatus(200);
             })
-        } else { // User is not authorized to change password
-            return res.sendStatus(401)
+            return;
         }
+        return res.sendStatus(403)
     })
 ]
 
@@ -186,13 +178,12 @@ exports.verify = [
     })
 ]
 
-// Adds a bike to the users garage. Requires JWT with matching userID OR admin. Returns ID of newly created bike.
+// Adds a bike to the users garage. Requires JWT with matching userID OR admin. 
 exports.garage_post = [
     body("year",  "Year must contain 4 digits").trim().isNumeric().isLength({ min: 4, max: 4}).escape(),
     body("make",  "Make must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
     body("model", "Model must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
 
-    
     validateForm,
     validateUserID,
     verifyJWT,
@@ -210,37 +201,37 @@ exports.garage_post = [
             const bike = {year: req.body.year, make: req.body.make, model: req.body.model};
             user.garage.push(bike);
             await user.save();
-            return res.status(201).json({id: user.garage[user.garage.length-1].id});
+            return res.sendStatus(201);
         }
-        return res.sendStatus(401)
+        return res.sendStatus(403)
     })
 ]
 
-// Removes a bike from a users garage. Requires JWT with matching userID OR admin. Returns ID of newly deleted bike.
-// NOTE: Front end will have to figure out the id of the bike it wants to delete via a lookup (extra step). This is ok.
+// Removes a bike from a users garage. Requires JWT with matching userID OR admin. 
 exports.garage_delete = [
+    body("year",  "Year must contain 4 digits").trim().isNumeric().isLength({ min: 4, max: 4}).escape(),
+    body("make",  "Make must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+    body("model", "Model must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+
+    validateForm,
     validateUserID,
     verifyJWT,
 
     asyncHandler(async (req,res,next) => {
         // JWT is valid. Verify user is allowed to add bikes
         if (req.user.memberType === 'admin' || req.user.id === req.params.userID){
-            if (!ObjectId.isValid(req.params.bikeID)) return res.status(404).send({msg: 'bikeID is not a valid ObjectID'});
             const user = await User.findById(req.params.userID).select('garage').exec();
-    
-            // Check that the bike we want to remove from the array actually exists
-            
-            const bikeExists = user.garage.some((bike) => bike._id.equals(req.params.bikeID))
-            if (!bikeExists) return res.status(404).send({msg: 'Bike does not exist'});
-    
-            // Filter the array to remove the bike to be deleted and update the garage array
-            user.garage = user.garage.filter((bike) => !bike._id.equals(req.params.bikeID));
-            await user.save();
-            return res.sendStatus(200);
+            const numBikesOriginally = user.garage.length;
+            user.garage = user.garage.filter((bike)=>(bike.year !== req.body.year &&
+                                                      bike.make !== req.body.make &&
+                                                      bike.model !== req.body.model))
+            await user.save()
+            return (numBikesOriginally>user.garage.length)? res.sendStatus(200) : res.sendStatus(404)
         }
-        return res.sendStatus(401)
+        return res.sendStatus(403)
     }),
 ]
+
 
 //////////////////////////////////////
 //              CRUD
@@ -253,14 +244,12 @@ exports.user_get = [
     asyncHandler(async(req,res,next) => {
         // JWT is valid. Verify user is allowed to access this resource and return the information
         if (req.user.memberType === 'admin' || req.user.id === req.params.userID){
-            let user = await User.findById(req.params.userID).select('-password')
+            let user = await User.findById(req.params.userID).select('-password -refreshToken')
             return res.status(200).json(user);
         }
-        return res.sendStatus(401)
+        return res.sendStatus(403)
     })
 ]
-
-
 
 // Gets all users. Requires JWT with admin
 exports.user_getALL = [
@@ -269,10 +258,10 @@ exports.user_getALL = [
     asyncHandler(async(req,res)=>{
         // JWT is valid. Verify user is allowed to access this resource and return the information
         if (req.user.memberType === 'admin'){
-            let users = await User.find().select('-password').exec();
+            let users = await User.find().select('-password -refreshToken').exec();
             return res.status(200).json(users);
         }
-        return res.sendStatus(401);
+        return res.sendStatus(403);
     }),
 ]
 
@@ -349,10 +338,10 @@ exports.user_put = [
 
     asyncHandler(async (req,res,next) => {
         // JWT is valid. Verify user is allowed to access this resource and update the object
-        // If user attempts to tamper with unauthorized fields, return 401
+        // If user attempts to tamper with unauthorized fields, return 403
         if (req.user.memberType !== 'admin' &&
             (req.body.name_firstName || req.body.name_lastName ||
-                req.body.credits || req.body.memberType)) return res.sendStatus(401) 
+                req.body.credits || req.body.memberType)) return res.sendStatus(403) 
 
         // Check if a user already exists with same email
         const duplicateUser = await User.find({'contact.email': {$eq: req.body.email}})
@@ -378,9 +367,9 @@ exports.user_put = [
                 _id: req.params.userID,
             })
             await User.findByIdAndUpdate(req.params.userID, user, {});
-            return res.status(201).json({_id: user.id});
+            return res.status(201).json({id: user.id});
         }
-        return res.sendStatus(401)
+        return res.sendStatus(403)
     })
 ]
 
@@ -395,11 +384,11 @@ exports.user_delete = [
             await User.findByIdAndDelete(req.params.userID);
             return res.sendStatus(200);
         }
-        return res.sendStatus(401)
+        return res.sendStatus(403)
     })
 ]
 
-// Testing use only, route available only in test NODE_env
+// Testing use only, route available only in test NODE_env. Creates admin user.
 exports.admin = [
     body("name_firstName", "First Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
     body("name_lastName", "Last Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
@@ -435,7 +424,7 @@ exports.admin = [
                 password: hashedPassword
             })
             await user.save();
-            return res.status(201).json({_id: user.id});
+            return res.status(201).json({id: user.id});
         })
     }),
 ]
