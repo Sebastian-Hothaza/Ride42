@@ -14,6 +14,7 @@ app.use(cookieParser());
 // ROUTER
 const index = require("../routes/index");
 const { body } = require("express-validator");
+const { set } = require("mongoose");
 app.use("/", index);
 
 
@@ -141,6 +142,11 @@ async function addUser(userInfo, expectedResponseCode){
 
 async function loginUser(user, expectedResponseCode){
 	const res = await request(app).post("/login").type("form").send({email: user.email, password: user.password}).expect(expectedResponseCode);
+	return res;
+}
+
+async function addTrackday(date,adminCookie){
+	const res = await request(app).post("/trackdays").set('Cookie', adminCookie).type("form").send({'date': date}).expect(201)
 	return res;
 }
 
@@ -427,9 +433,230 @@ describe('Testing user update', () => {
 		expect((updatedUser.body.memberType)).toEqual(user1_unauthorizedFields.memberType);
 	})
 
-	test.todo("Update specific user group - as user - after 7 days")
+	test("Update specific - non-unique email", async () => {
+		const res1 = await addUser(user1, 201);
+		const res2 = await addUser(user2, 201);
+		const loginRes = await loginUser(user1, 200);
+
+		const user1_duplicateEmail={ 
+			email: user2.email,
+			phone: "2261451298",
+			address: "123 Apple Ave.",
+			city: "toronto",
+			province: "Ontario",
+
+			EmergencyName_firstName: "Silvia",
+			EmergencyName_lastName: "Adams",
+			EmergencyPhone: "5195724356",
+			EmergencyRelationship: "Wife",
+
+			group: "red"
+		};
+
+		await request(app)
+			.put('/users/'+res1.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.type("form").send(user1_duplicateEmail)
+			.expect(409)
+	});
 	
-	test.todo("Update specific user group - as admin - after 7 days")
+
+
+	test("Update specific user group - as user - within 7 day lockout", async () => {
+		const user = await addUser(user1, 201);
+		const loginResUser = await loginUser(user1, 200);
+
+		await addUser(userAdmin, 201);
+		const loginResAdmin = await loginUser(userAdmin, 200);
+		
+		const now = new Date();
+		const trackday = await addTrackday(now.setDate(now.getDate() + 3), loginResAdmin.headers['set-cookie']) 
+
+		// Register user for trackday
+		await request(app)
+			.post('/register/'+user.body.id+'/'+trackday.body.id)
+			.type('form').send({paymentMethod: 'credit'})
+			.set('Cookie', loginResUser.headers['set-cookie'])
+			.expect(200)
+
+		// Update user
+		await request(app)
+			.put('/users/'+user.body.id)
+			.set('Cookie', loginResUser.headers['set-cookie'])
+			.type("form").send(user1_update)
+			.expect(401)
+
+		
+
+		const updatedUser = await request(app)
+			.get('/users/'+user.body.id)
+			.set('Cookie', loginResUser.headers['set-cookie'])
+			.expect(200)
+
+		expect((updatedUser.body.contact.email)).toEqual(user1.email);
+		expect((updatedUser.body.contact.phone)).toEqual(user1.phone);
+		expect((updatedUser.body.contact.address)).toEqual(user1.address);
+		expect((updatedUser.body.contact.city)).toEqual(user1.city);
+		expect((updatedUser.body.contact.province)).toEqual(user1.province);
+
+		expect((updatedUser.body.emergencyContact.name.firstName)).toEqual(user1.EmergencyName_firstName);
+		expect((updatedUser.body.emergencyContact.name.lastName)).toEqual(user1.EmergencyName_lastName);
+		expect((updatedUser.body.emergencyContact.phone)).toEqual(parseInt(user1.EmergencyPhone));
+		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1.EmergencyRelationship);
+
+		expect((updatedUser.body.group)).toEqual(user1.group);
+	});
+
+	test("Update specific user group - as user - old trackday past", async () => {
+		const user = await addUser(user1, 201);
+		const loginResUser = await loginUser(user1, 200);
+
+		await addUser(userAdmin, 201);
+		const loginResAdmin = await loginUser(userAdmin, 200);
+		
+		const now = new Date();
+		const trackday = await addTrackday(now.setDate(now.getDate() - 3), loginResAdmin.headers['set-cookie']) 
+
+		// Register user for trackday
+		await request(app)
+			.post('/register/'+user.body.id+'/'+trackday.body.id)
+			.type('form').send({paymentMethod: 'credit'})
+			.set('Cookie', loginResUser.headers['set-cookie'])
+			.expect(200)
+
+		// Update user
+		await request(app)
+			.put('/users/'+user.body.id)
+			.set('Cookie', loginResUser.headers['set-cookie'])
+			.type("form").send(user1_update)
+			.expect(201)
+
+		
+
+		const updatedUser = await request(app)
+			.get('/users/'+user.body.id)
+			.set('Cookie', loginResUser.headers['set-cookie'])
+			.expect(200)
+
+		expect((updatedUser.body.contact.email)).toEqual(user1_update.email);
+		expect((updatedUser.body.contact.phone)).toEqual(user1_update.phone);
+		expect((updatedUser.body.contact.address)).toEqual(user1_update.address);
+		expect((updatedUser.body.contact.city)).toEqual(user1_update.city);
+		expect((updatedUser.body.contact.province)).toEqual(user1_update.province);
+
+		expect((updatedUser.body.emergencyContact.name.firstName)).toEqual(user1_update.EmergencyName_firstName);
+		expect((updatedUser.body.emergencyContact.name.lastName)).toEqual(user1_update.EmergencyName_lastName);
+		expect((updatedUser.body.emergencyContact.phone)).toEqual(parseInt(user1_update.EmergencyPhone));
+		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1_update.EmergencyRelationship);
+
+		expect((updatedUser.body.group)).toEqual(user1_update.group);
+	});
+	
+	test("Update specific user group - as admin - within 7 day lockout", async () => {
+		const user = await addUser(user1, 201);
+		const loginResUser = await loginUser(user1, 200);
+
+		await addUser(userAdmin, 201);
+		const loginResAdmin = await loginUser(userAdmin, 200);
+		
+		const now = new Date();
+		const trackday = await addTrackday(now.setDate(now.getDate() + 3), loginResAdmin.headers['set-cookie']) 
+
+		// Register user for trackday
+		await request(app)
+			.post('/register/'+user.body.id+'/'+trackday.body.id)
+			.type('form').send({paymentMethod: 'credit'})
+			.set('Cookie', loginResUser.headers['set-cookie'])
+			.expect(200)
+
+		// Update user
+		await request(app)
+			.put('/users/'+user.body.id)
+			.set('Cookie', loginResAdmin.headers['set-cookie'])
+			.type("form").send(user1_update)
+			.expect(201)
+
+		
+
+		const updatedUser = await request(app)
+			.get('/users/'+user.body.id)
+			.set('Cookie', loginResUser.headers['set-cookie'])
+			.expect(200)
+
+		expect((updatedUser.body.contact.email)).toEqual(user1_update.email);
+		expect((updatedUser.body.contact.phone)).toEqual(user1_update.phone);
+		expect((updatedUser.body.contact.address)).toEqual(user1_update.address);
+		expect((updatedUser.body.contact.city)).toEqual(user1_update.city);
+		expect((updatedUser.body.contact.province)).toEqual(user1_update.province);
+
+		expect((updatedUser.body.emergencyContact.name.firstName)).toEqual(user1_update.EmergencyName_firstName);
+		expect((updatedUser.body.emergencyContact.name.lastName)).toEqual(user1_update.EmergencyName_lastName);
+		expect((updatedUser.body.emergencyContact.phone)).toEqual(parseInt(user1_update.EmergencyPhone));
+		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1_update.EmergencyRelationship);
+
+		expect((updatedUser.body.group)).toEqual(user1_update.group);
+	});
+
+	test("Update specific user - as user - within 7 day lockout without changing group", async () => {
+		const user = await addUser(user1, 201);
+		const loginResUser = await loginUser(user1, 200);
+
+		await addUser(userAdmin, 201);
+		const loginResAdmin = await loginUser(userAdmin, 200);
+		
+		const now = new Date();
+		const trackday = await addTrackday(now.setDate(now.getDate() + 3), loginResAdmin.headers['set-cookie']) 
+
+		const user1_update_noChangeGroup={ 
+			email: "user1X@gmail.com",
+			phone: "2261451299",
+			address: "123 AppleX AveX.",
+			city: "torontoX",
+			province: "OntarioX",
+		
+			EmergencyName_firstName: "SilviaX",
+			EmergencyName_lastName: "AdamsX",
+			EmergencyPhone: "5195724399",
+			EmergencyRelationship: "WifeX",
+		
+			group: "yellow"
+		};
+
+		// Register user for trackday
+		await request(app)
+			.post('/register/'+user.body.id+'/'+trackday.body.id)
+			.type('form').send({paymentMethod: 'credit'})
+			.set('Cookie', loginResUser.headers['set-cookie'])
+			.expect(200)
+
+		// Update user
+		await request(app)
+			.put('/users/'+user.body.id)
+			.set('Cookie', loginResUser.headers['set-cookie'])
+			.type("form").send(user1_update_noChangeGroup)
+			.expect(201)
+
+		
+
+		const updatedUser = await request(app)
+			.get('/users/'+user.body.id)
+			.set('Cookie', loginResUser.headers['set-cookie'])
+			.expect(200)
+
+		expect((updatedUser.body.contact.email)).toEqual(user1_update_noChangeGroup.email);
+		expect((updatedUser.body.contact.phone)).toEqual(user1_update_noChangeGroup.phone);
+		expect((updatedUser.body.contact.address)).toEqual(user1_update_noChangeGroup.address);
+		expect((updatedUser.body.contact.city)).toEqual(user1_update_noChangeGroup.city);
+		expect((updatedUser.body.contact.province)).toEqual(user1_update_noChangeGroup.province);
+
+		expect((updatedUser.body.emergencyContact.name.firstName)).toEqual(user1_update_noChangeGroup.EmergencyName_firstName);
+		expect((updatedUser.body.emergencyContact.name.lastName)).toEqual(user1_update_noChangeGroup.EmergencyName_lastName);
+		expect((updatedUser.body.emergencyContact.phone)).toEqual(parseInt(user1_update_noChangeGroup.EmergencyPhone));
+		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1_update_noChangeGroup.EmergencyRelationship);
+
+		expect((updatedUser.body.group)).toEqual(user1_update_noChangeGroup.group);
+	});
+
 
 	test("Update user", async () => {
 		const res = await addUser(user1, 201);
