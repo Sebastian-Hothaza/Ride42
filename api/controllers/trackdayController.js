@@ -15,6 +15,9 @@ API will feature support for mark paid & payWithCredit which will auto deduct cr
 // TODO: Can we move out validateForm and validateTrackdayID out to index for easier/more concise use? (Since userController also uses it)
 // TODO: Add method to mark user as paid
 // TODO: Add method to add walkons
+// TODO: Add method to edit userEntry for specific trackday (Ie. so we can unmark someone as checked in for instance)
+// TODO: Change date to actual date obj instead of string (?) - needed for 7 day restriction + other handy features maybe
+// TODO: How does front end fetch list of trackday ID's and dates so it can display them on site? - add method 
 
 // Called by middleware functions
 // Validates the form contents and builds errors array. In case of errors, returns 400 with errors array
@@ -59,6 +62,7 @@ async function validateUserID(req, res, next){
 // TODO: 7-day cutoff restriction
 // TODO: Payment handling logic
 // TODO: Check registration capacity (25 per group?)
+// TODO: Prevent duplicate registration
 exports.register = [
     body("paymentMethod",  "PaymentMethod must be one of: [etransfer, credit, creditCard, gate]").trim().isIn(["etransfer", "credit", "creditCard", "gate"]).escape(),
 
@@ -215,9 +219,10 @@ exports.trackday_getALL = (req,res,next) => {
 }
 
 // Creates a trackday. Requires JWT with admin.
+// TODO: Revise validator to ensure data is received in correct format
 exports.trackday_post = [
-
-    body("date",  "Date must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+    body("date",  "Date must be in YYYY-MM-DDThh:mmZ form where time is in UTC").escape(),
+    //IDEA: ^(19|20)\d\d-(0[1-9]|1[012])-([012]\d|3[01])T([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$ 
 
 
     validateForm,
@@ -236,7 +241,7 @@ exports.trackday_post = [
                     status: "regOpen"
                 })
                 await trackday.save();
-                return res.status(201).json({_id: trackday.id});
+                return res.status(201).json({id: trackday.id});
             }
             return res.sendStatus(401)
         }))
@@ -246,6 +251,7 @@ exports.trackday_post = [
 ]
 
 // Updates a trackday. Requires JWT with admin.
+// TODO: Update to use save()
 exports.trackday_put = [
 
     body("date",  "Date must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
