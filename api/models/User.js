@@ -23,6 +23,7 @@ const UserSchema = new mongoose.Schema({
 	credits: { type: Number, required: true},
 	memberType: { type: String, required: true, enum: ["regular", "staff", "admin"] },
 	password: { type: String, required: true },
+	refreshToken: { type: String }
 });
 
 // Export model
