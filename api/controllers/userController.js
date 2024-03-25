@@ -8,7 +8,7 @@ const ObjectId = require('mongoose').Types.ObjectId;
 
 /*
     --------------------------------------------- TODO ---------------------------------------------
-    JWT Expiration and management 
+    JWT convert all verify methods to use refresh token on access token failure
     JWT: What should it actually contain?
     JWT: after editing fields which make up the JWT, the JWT should be re-set! 
     what is asynchandler actually doing
@@ -85,10 +85,16 @@ exports.login = [
             // Verify Password
             const passwordMatch = await bcrypt.compare(req.body.password, user.password)
             if (passwordMatch){
-                jwt.sign({id: user._id, memberType: user.memberType}, process.env.JWT_CODE, {expiresIn: process.env.JWT_TOKEN_EXPIRATION}, (err, token) => {
-                    res.cookie([`JWT_TOKEN=${token}; secure; httponly; samesite=None;`])
-                    res.json({name: user.name.firstName})
-                }) 
+                // Generate tokens and attach as cookies
+                const accessToken = jwt.sign({id: user._id, memberType: user.memberType}, process.env.JWT_ACCESS_CODE, {expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION}) 
+                const refreshToken = jwt.sign({id: user._id}, process.env.JWT_REFRESH_CODE, {expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRATION}) 
+                res.cookie([`JWT_ACCESS_TOKEN=${accessToken}; secure; httponly; samesite=None;`])
+                res.cookie([`JWT_REFRESH_TOKEN=${refreshToken}; secure; httponly; samesite=None;`])
+
+                // Store user specific refresh token in DB
+                user.refreshToken = refreshToken;
+                await user.save();
+                res.json({name: user.name.firstName})
             }else{
                 return res.status(401).json({msg: 'Incorrect Password'});
             }  
@@ -106,7 +112,7 @@ exports.updatePassword = [
 
     (req,res,next) => {
         // Unbundle JWT and check if admin OR matching userID
-        jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+        jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE, asyncHandler(async (err, authData) => {
             if (err) return res.status(401).send({msg: 'JWT Validation Fail'});
             // JWT is valid. Verify user is allowed to update password
             if (authData.memberType === 'admin' || authData.id === req.params.userID){
@@ -169,7 +175,7 @@ exports.garage_post = [
 
 
         // Unbundle JWT and check if admin OR matching userID
-        jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+        jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE, asyncHandler(async (err, authData) => {
             if (err) return res.status(401).send({msg: 'JWT Validation Fail'});
             // JWT is valid. Verify user is allowed to add bikes
             if (authData.memberType === 'admin' || authData.id === req.params.userID){
@@ -191,7 +197,7 @@ exports.garage_delete = [
 
     (req,res,next) => {
         // Unbundle JWT and check if admin OR matching userID
-        jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+        jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE, asyncHandler(async (err, authData) => {
             if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
             // JWT is valid. Verify user is allowed to add bikes
             if (authData.memberType === 'admin' || authData.id === req.params.userID){
@@ -221,7 +227,7 @@ exports.user_get = [
     validateUserID,
     (req,res,next) => {
         // Unbundle JWT and check if admin OR matching userID
-        jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+        jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE, asyncHandler(async (err, authData) => {
             if (err) return res.status(401).send({msg: 'JWT Validation Fail'});
             // JWT is valid. Verify user is allowed to access this resource and return the information
             if (authData.memberType === 'admin' || authData.id === req.params.userID){
@@ -233,19 +239,52 @@ exports.user_get = [
     }
 ]
 
+// Verifies access token and attaches payload to request body.
+// Sets cookie if access token is expired but refresh token is valid
+// Returns appropriate code if both tokens are invalid
+async function verifyJWT(req, res, next){
+    // Try to verify JWT_ACCESS
+    let payload // Represents the object in the JWT_ACCESS
+    try{
+        payload = jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE);
+    }catch(err){ 
+        // JWT_ACCESS verification failed. Try to verify the JWT_REFRESH
+        try{
+            // Check the refresh token is not expired
+            const JWTRefreshPayload = jwt.verify(req.cookies.JWT_REFRESH_TOKEN, process.env.JWT_REFRESH_CODE);
+
+            // Pull the candidate user and check the refresh token is in DB. 
+            const user = await User.findById(JWTRefreshPayload.id).exec();
+            if (user.refreshToken !== req.cookies.JWT_REFRESH_TOKEN) return res.sendStatus(403)
+
+            // JWT_REFRESH is valid! Create new JWT_ACCESS. 
+            const accessToken = jwt.sign({id: user._id, memberType: user.memberType}, 
+                                            process.env.JWT_ACCESS_CODE, {expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION}) 
+            res.cookie([`JWT_ACCESS_TOKEN=${accessToken}; secure; httponly; samesite=None;`])
+            payload = jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE);
+        }catch(err){
+            // JWT_REFRESH verification failed.
+            return res.sendStatus(401)
+        }
+    }
+    // Attach payload to request body
+    req.user = payload;
+    next();
+}
+
 // Gets all users. Requires JWT with admin
-exports.user_getALL = (req,res,next) => {
-    // Unbundle JWT and check if admin 
-    jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
-        if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
+exports.user_getALL = [
+    verifyJWT,
+
+    asyncHandler(async(req,res)=>{
         // JWT is valid. Verify user is allowed to access this resource and return the information
-        if (authData.memberType === 'admin'){
+        if (req.user.memberType === 'admin'){
             let users = await User.find().select('-password').exec();
             return res.status(200).json(users);
         }
-        return res.sendStatus(401)
-    }))
-}
+        return res.sendStatus(401);
+    }),
+]
 
 // Creates a user. PUBLIC.
 // NOTE: We do not provide any JWT functionality here. It is up to the front end to make a POST request to /login if desired.
@@ -318,7 +357,7 @@ exports.user_put = [
     validateUserID,
     (req,res,next) => {
         // Unbundle JWT and check if admin OR matching userID
-        jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+        jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE, asyncHandler(async (err, authData) => {
             if (err) return res.status(401).send({msg: 'JWT Validation Fail'});
             // JWT is valid. Verify user is allowed to access this resource and update the object
             // If user attempts to tamper with unauthorized fields, return 401
@@ -362,7 +401,7 @@ exports.user_delete = [
     validateUserID,
     (req,res,next) => {
         // Unbundle JWT and check if admin 
-        jwt.verify(req.cookies.JWT_TOKEN, process.env.JWT_CODE, asyncHandler(async (err, authData) => {
+        jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE, asyncHandler(async (err, authData) => {
             if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
             // JWT is valid. Verify user is allowed to access this resource and delete the user
             if (authData.memberType === 'admin'){
