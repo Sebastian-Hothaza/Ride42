@@ -428,35 +428,7 @@ describe('Testing user update', () => {
 
 		expect((updatedUser.body.credits)).toEqual(user1_unauthorizedFields.credits);
 		expect((updatedUser.body.memberType)).toEqual(user1_unauthorizedFields.memberType);
-	})
-
-	test("Update specific - non-unique email", async () => {
-		const res1 = await addUser(user1, 201);
-		const res2 = await addUser(user2, 201);
-		const loginRes = await loginUser(user1, 200);
-
-		const user1_duplicateEmail={ 
-			email: user2.email,
-			phone: "2261451298",
-			address: "123 Apple Ave.",
-			city: "toronto",
-			province: "Ontario",
-
-			EmergencyName_firstName: "Silvia",
-			EmergencyName_lastName: "Adams",
-			EmergencyPhone: "5195724356",
-			EmergencyRelationship: "Wife",
-
-			group: "red"
-		};
-
-		await request(app)
-			.put('/users/'+res1.body.id)
-			.set('Cookie', loginRes.headers['set-cookie'])
-			.type("form").send(user1_duplicateEmail)
-			.expect(409)
-	});
-	
+	})	
 
 
 	test("Update specific user group - as user - within 7 day lockout", async () => {
@@ -653,6 +625,8 @@ describe('Testing user update', () => {
 
 		expect((updatedUser.body.group)).toEqual(user1_update_noChangeGroup.group);
 	});
+
+
 
 	test("Update user - email taken by other user", async () => {
 		const res1 = await addUser(user1, 201);
