@@ -5,6 +5,7 @@ const { body, validationResult } = require("express-validator");
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const ObjectId = require('mongoose').Types.ObjectId;
+const {myMiddlewarefn} = ('../routes/index')
 
 /*
     --------------------------------------------- TODO ---------------------------------------------
@@ -12,6 +13,12 @@ const ObjectId = require('mongoose').Types.ObjectId;
     code cleanup - move some fn to separate utils file?
     --------------------------------------------- TODO ---------------------------------------------
 */
+
+
+
+function myHelperfn(msg){
+    console.log('myHelperfn says', msg);
+}
 
 // Validates the form contents and builds errors array. In case of errors, returns 400 with error message array
 function validateForm(req,res,next){
@@ -102,9 +109,11 @@ exports.login = [
     body("email", "Email must be in format of samplename@sampledomain.com").trim().isEmail().escape(), 
     body("password", "Password must not be empty").trim().notEmpty().escape(), 
     validateForm,
+    myMiddlewarefn,
 
     // Form data is valid. Check that user exists in DB and that password matches
     asyncHandler(async (req, res, next) => {
+        myHelperfn('BOB');
         const user = await User.findOne({'contact.email': req.body.email}).exec();
         if (user){
             // Verify Password

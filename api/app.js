@@ -13,8 +13,8 @@ const cookieParser = require('cookie-parser')
 app.use(cookieParser());
 
 // ROUTER
-const indexRouter = require('./routes/index');
-app.use('/', indexRouter);
+const { router } = require('./routes/index');
+app.use('/', router);
 
 
 // catch 404 and forward to error handler
