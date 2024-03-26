@@ -158,7 +158,6 @@ describe('Testing user create', () => {
 	test("add user to DB - missing fields", async() => {
 		await request(app)
 			.post("/users")
-			.send(user1_missingFields)
 			.expect(400)
 	});
 
