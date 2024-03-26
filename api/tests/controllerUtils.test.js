@@ -78,6 +78,18 @@ async function addTrackday(date,adminCookie){
 	return res;
 }
 
+// Returns a date in YYYY-MM-DDThh:mmZ form as required for creating trackdays with offsetDays vs now
+function getFormattedDate(offsetDays){
+	let now = new Date();
+	let newDateMS = now.setDate(now.getDate() + offsetDays)
+	
+	let newDate = new Date(newDateMS);
+	newDate.setSeconds(0,0);
+	newDate = newDate.toISOString().replace(':00.000','');
+
+	return newDate;
+}
+
 //////////////////////////////////////
 //              TESTS
 //////////////////////////////////////
@@ -164,8 +176,7 @@ describe('Testing hasTrackdayWithinLockout', () => {
 		const admin = await addUser(userAdmin, 201);
 		const loginResAdmin = await loginUser(userAdmin, 200);
 
-		const now = new Date();
-		const trackday = await addTrackday(now.setDate(now.getDate() + 3), loginResAdmin.headers['set-cookie']) 
+		const trackday = await addTrackday(getFormattedDate(3), loginResAdmin.headers['set-cookie']) 
 
 		// Register user for trackday
 		await request(app)
@@ -185,8 +196,7 @@ describe('Testing hasTrackdayWithinLockout', () => {
 		const admin = await addUser(userAdmin, 201);
 		const loginResAdmin = await loginUser(userAdmin, 200);
 
-		const now = new Date();
-		const trackday = await addTrackday(now.setDate(now.getDate() + 8), loginResAdmin.headers['set-cookie']) 
+		const trackday = await addTrackday(getFormattedDate(8), loginResAdmin.headers['set-cookie']) 
 
 		// Register user for trackday
 		await request(app)
@@ -207,8 +217,7 @@ describe('Testing hasTrackdayWithinLockout', () => {
 		const admin = await addUser(userAdmin, 201);
 		const loginResAdmin = await loginUser(userAdmin, 200);
 
-		const now = new Date();
-		const trackday = await addTrackday(now.setDate(now.getDate() - 2), loginResAdmin.headers['set-cookie']) 
+		const trackday = await addTrackday(getFormattedDate(-2), loginResAdmin.headers['set-cookie']) 
 
 		// Register user for trackday
 		await request(app)
