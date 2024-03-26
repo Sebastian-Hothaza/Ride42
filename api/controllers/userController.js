@@ -258,15 +258,13 @@ exports.user_put = [
             (req.body.name_firstName || req.body.name_lastName ||
                 req.body.credits || req.body.memberType)) return res.sendStatus(403) 
 
-
-                
         if (req.user.id === req.params.userID || req.user.memberType === 'admin'){ // User is editing themselves or admin is editing them
 
-            // Check if a user already exists with same email
-            const duplicateUser = await User.find({'contact.email': {$eq: req.body.email}})
-            if (duplicateUser.length) return res.status(409).send({msg: 'User with this email already exists'});
-
             const oldUser = await User.findById(req.params.userID).exec();
+
+            // Check if a user already exists with same email
+            const duplicateUser = await User.findOne({'contact.email': {$eq: req.body.email}})
+            if (duplicateUser && oldUser.contact.email !== req.body.email) return res.status(409).send({msg: 'User with this email already exists'});
 
             // If user attempt to change group and has a trackday booked < lockout period(7 default) away, fail update entirely
             if (req.body.group !== oldUser.group && req.user.memberType !== 'admin' && await controllerUtils.hasTrackdayWithinLockout(req.params.userID)){
