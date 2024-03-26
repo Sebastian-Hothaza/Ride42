@@ -13,8 +13,6 @@ app.use(cookieParser());
 
 // ROUTER
 const index = require("../routes/index");
-const { body } = require("express-validator");
-const { set } = require("mongoose");
 app.use("/", index);
 
 
@@ -160,7 +158,6 @@ describe('Testing user create', () => {
 	test("add user to DB - missing fields", async() => {
 		await request(app)
 			.post("/users")
-			.type("form")
 			.send(user1_missingFields)
 			.expect(400)
 	});
