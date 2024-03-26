@@ -4,116 +4,22 @@ const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
-const ObjectId = require('mongoose').Types.ObjectId;
-const {myMiddlewarefn} = ('../routes/index')
+const controllerUtils = require('./controllerUtils')
 
 /*
     --------------------------------------------- TODO ---------------------------------------------
-    validateTrackdayID: clean up
-    code cleanup - move some fn to separate utils file?
+    code cleanup & review
     --------------------------------------------- TODO ---------------------------------------------
 */
-
-
-
-function myHelperfn(msg){
-    console.log('myHelperfn says', msg);
-}
-
-// Validates the form contents and builds errors array. In case of errors, returns 400 with error message array
-function validateForm(req,res,next){
-    const errors = validationResult(req); // Extract the validation errors from a request.
-    if (!errors.isEmpty()) {
-        let errorMessages = [];
-        errors.errors.forEach((elem)=> errorMessages.push(elem.msg))
-        return res.status(400).json({msg: errorMessages});
-    }
-    next();
-}
-
-// Called by middleware functions
-// Verify that the req.params.userID is a valid objectID and that it exists in our DB
-async function validateUserID(req, res, next){
-    if (!ObjectId.isValid(req.params.userID)) return res.status(404).send({msg: 'userID is not a valid ObjectID'});
-    const userExists = await User.exists({_id: req.params.userID});
-    if (!userExists) return res.status(404).send({msg: 'User does not exist'});
-    next();
-}
-
-// Called by middleware functions
-// Verify that the req.params.trackdayID is a valid objectID and that it exists in our DB
-async function validateTrackdayID(req, res, next){
-    // Special case for validating trackdayID's for reschedule
-    if (req.params.trackdayID_OLD && req.params.trackdayID_NEW){
-        if (!(ObjectId.isValid(req.params.trackdayID_OLD) && ObjectId.isValid(req.params.trackdayID_NEW))) return res.status(404).send({msg: 'trackdayID is not a valid ObjectID'});
-        const trackdayOLDExists = await Trackday.exists({_id: req.params.trackdayID_OLD});
-        const trackdayNEWExists = await Trackday.exists({_id: req.params.trackdayID_NEW});
-        if (!(trackdayOLDExists && trackdayNEWExists)) return res.status(404).send({msg: 'Trackday does not exist'});
-        next();
-    }else{
-        if (!ObjectId.isValid(req.params.trackdayID)) return res.status(404).send({msg: 'trackdayID is not a valid ObjectID'});
-        const trackdayExists = await Trackday.exists({_id: req.params.trackdayID});
-        if (!trackdayExists) return res.status(404).send({msg: 'Trackday does not exist'});
-        next();
-    }
-}
-
-// Returns true if user is registered for a trackday within the lockout period (7 days default)
-async function hasTrackdayWithinLockout(user){
-    const allTrackdays = await Trackday.find({members: {$elemMatch: { userID: {$eq: user}}}} ).exec(); // Trackdays that user is a part of
-    const timeLockout = process.env.DAYS_LOCKOUT*(1000*60*60*24); // If we are under this, then we are in the lockout period
-    
-    // Check each trackday user is registered for to see if any of them are within lockout period
-    for (let i=0; i<allTrackdays.length; i++){
-        const timeDifference = allTrackdays[i].date.getTime() - Date.now()
-        if (timeDifference > 0 && timeDifference < timeLockout) return true;
-    }
-    return false;
-}
-
-// Verifies access token and attaches payload to request body.
-// Sets cookie if access token is expired but refresh token is valid
-// Returns appropriate code if both tokens are invalid
-async function verifyJWT(req, res, next){
-    // Try to verify JWT_ACCESS
-    let payload // Represents the object in the JWT_ACCESS
-    try{
-        payload = jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE);
-    }catch(err){ 
-        // JWT_ACCESS verification failed. Try to verify the JWT_REFRESH
-        try{
-            // Check the refresh token is not expired
-            const JWTRefreshPayload = jwt.verify(req.cookies.JWT_REFRESH_TOKEN, process.env.JWT_REFRESH_CODE);
-
-            // Pull the candidate user and check the refresh token is in DB. 
-            const user = await User.findById(JWTRefreshPayload.id).exec();
-            if (user.refreshToken !== req.cookies.JWT_REFRESH_TOKEN) return res.sendStatus(403)
-
-            // JWT_REFRESH is valid! Create new JWT_ACCESS. 
-            const accessToken = jwt.sign({id: user._id, memberType: user.memberType, name: user.name.firstName}, 
-                                            process.env.JWT_ACCESS_CODE, {expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION}) 
-            res.cookie([`JWT_ACCESS_TOKEN=${accessToken}; secure; httponly; samesite=None;`])
-            payload = jwt.verify(accessToken, process.env.JWT_ACCESS_CODE);
-        }catch(err2){
-            // JWT_REFRESH verification failed.
-            return res.sendStatus(401)
-        }
-    }
-    // Attach payload to request body
-    req.user = payload;
-    next();
-}
 
 // Logs in a user. PUBLIC. Returns httpOnly cookie containing JWT token.
 exports.login = [
     body("email", "Email must be in format of samplename@sampledomain.com").trim().isEmail().escape(), 
     body("password", "Password must not be empty").trim().notEmpty().escape(), 
-    validateForm,
-    myMiddlewarefn,
+    controllerUtils.validateForm,
 
     // Form data is valid. Check that user exists in DB and that password matches
     asyncHandler(async (req, res, next) => {
-        myHelperfn('BOB');
         const user = await User.findOne({'contact.email': req.body.email}).exec();
         if (user){
             // Verify Password
@@ -141,9 +47,9 @@ exports.login = [
 // Updates a users password. Requires JWT with matching userID OR admin
 exports.updatePassword = [
     body("password", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().isLength({ min: 8, max: 50}).matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
-    validateForm,
-    validateUserID,
-    verifyJWT,
+    controllerUtils.validateForm,
+    controllerUtils.validateUserID,
+    controllerUtils.verifyJWT,
 
     asyncHandler(async (req,res,next) => {
         // JWT is valid. Verify user is allowed to update password
@@ -163,7 +69,7 @@ exports.updatePassword = [
 
 // Returns a list of dates corresponding to dates the user is registered for. PUBLIC
 exports.getTrackdays = [
-    validateUserID,
+    controllerUtils.validateUserID,
     asyncHandler(async (req,res,next) => {
         let result = []
         const allTrackdays = await Trackday.find({members: {$elemMatch: { userID: {$eq: req.params.userID}}}} ).exec(); // Trackdays that user is a part of
@@ -175,8 +81,8 @@ exports.getTrackdays = [
 
 // Returns true if the user is checked in for a given trackday. PUBLIC.
 exports.verify = [
-    validateUserID,
-    validateTrackdayID,
+    controllerUtils.validateUserID,
+    controllerUtils.validateTrackdayID,
 
     asyncHandler(async (req,res,next) => {
         const trackday = await Trackday.findById(req.params.trackdayID).exec();
@@ -193,9 +99,9 @@ exports.garage_post = [
     body("make",  "Make must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
     body("model", "Model must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
 
-    validateForm,
-    validateUserID,
-    verifyJWT,
+    controllerUtils.validateForm,
+    controllerUtils.validateUserID,
+    controllerUtils.verifyJWT,
 
     asyncHandler(async(req,res,next) => {
         // Check if a bike already exists with the same details in the users garage
@@ -222,9 +128,9 @@ exports.garage_delete = [
     body("make",  "Make must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
     body("model", "Model must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
 
-    validateForm,
-    validateUserID,
-    verifyJWT,
+    controllerUtils.validateForm,
+    controllerUtils.validateUserID,
+    controllerUtils.verifyJWT,
 
     asyncHandler(async (req,res,next) => {
         // JWT is valid. Verify user is allowed to add bikes
@@ -247,8 +153,8 @@ exports.garage_delete = [
 //////////////////////////////////////
 // Get a single user. Requires JWT with matching userID OR admin
 exports.user_get = [
-    validateUserID,
-    verifyJWT,
+    controllerUtils.validateUserID,
+    controllerUtils.verifyJWT,
 
     asyncHandler(async(req,res,next) => {
         // JWT is valid. Verify user is allowed to access this resource and return the information
@@ -262,7 +168,7 @@ exports.user_get = [
 
 // Gets all users. Requires JWT with admin
 exports.user_getALL = [
-    verifyJWT,
+    controllerUtils.verifyJWT,
 
     asyncHandler(async(req,res)=>{
         // JWT is valid. Verify user is allowed to access this resource and return the information
@@ -294,7 +200,7 @@ exports.user_post = [
     body("group", "Group must be either green, yellow or red").trim().isIn(['green', 'yellow', 'red']).escape(),
     body("password", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().isLength({ min: 8, max: 50}).matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
 
-    validateForm,
+    controllerUtils.validateForm,
 
   
     
@@ -341,9 +247,9 @@ exports.user_put = [
 
     body("group", "Group must be either green, yellow or red").trim().isIn(['green', 'yellow', 'red']).escape(),
 
-    validateForm,
-    validateUserID,
-    verifyJWT,
+    controllerUtils.validateForm,
+    controllerUtils.validateUserID,
+    controllerUtils.verifyJWT,
 
     asyncHandler(async (req,res,next) => {
         // JWT is valid. Verify user is allowed to access this resource and update the object
@@ -360,7 +266,7 @@ exports.user_put = [
             const oldUser = await User.findById(req.params.userID).exec();
 
             // If user attempt to change group and has a trackday booked < lockout period(7 default) away, fail update entirely
-            if (req.body.group !== oldUser.group && req.user.memberType !== 'admin' && await hasTrackdayWithinLockout(req.params.userID)){
+            if (req.body.group !== oldUser.group && req.user.memberType !== 'admin' && await controllerUtils.hasTrackdayWithinLockout(req.params.userID)){
                 return res.status(401).send({msg: 'Cannot change group when registered for trackday <'+process.env.DAYS_LOCKOUT+' days away.'})
             }
             const user = new User({
@@ -384,8 +290,8 @@ exports.user_put = [
 
 // Deletes a user. Requires JWT with admin.
 exports.user_delete = [
-    validateUserID,
-    verifyJWT,
+    controllerUtils.validateUserID,
+    controllerUtils.verifyJWT,
 
     asyncHandler(async(req,res,next) => {
         // JWT is valid. Verify user is allowed to access this resource and delete the user
@@ -416,7 +322,7 @@ exports.admin = [
     body("group", "Group must be either green, yellow or red").trim().isIn(['green', 'yellow', 'red']).escape(),
     body("password", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().isLength({ min: 8, max: 50}).matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
 
-    validateForm,
+    controllerUtils.validateForm,
 
   
     

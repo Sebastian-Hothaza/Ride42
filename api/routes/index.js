@@ -34,10 +34,4 @@ router.post('/trackdays', trackdayController.trackday_post)
 router.put('/trackdays/:trackdayID', trackdayController.trackday_put)
 router.delete('/trackdays/:trackdayID', trackdayController.trackday_delete)
 
-function myMiddlewarefn(req,res,next){
-    console.log(req.body.email);
-    next();
-}
-
-
-module.exports = {router, myMiddlewarefn};
+module.exports = router;

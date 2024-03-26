@@ -13,7 +13,7 @@ const cookieParser = require('cookie-parser')
 app.use(cookieParser());
 
 // ROUTER
-const { router } = require('./routes/index');
+const router = require('./routes/index');
 app.use('/', router);
 
 
