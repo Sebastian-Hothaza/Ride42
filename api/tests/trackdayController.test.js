@@ -26,13 +26,9 @@ afterAll(async () => {
 	return;
 });
 
-
-let now = new Date();
-now.setSeconds(0,0)
-const formattedNow = now.toISOString().replace(':00.000','') // Update now to be in YYYY-MM-DDThh:mmZ form as required for creating trackdays
 const formattedSampleDate = '2024-06-05T14:00Z'
-
 let adminCookie, userCookie;
+
 beforeEach(async () => {
 	// Preload each test with user and admin logged in and store their cookies
 	await addUser(userAdmin, 201);
@@ -135,7 +131,7 @@ describe('Testing trackday create', () => {
 	test("add trackday to DB - no JWT", async () => {
 		await request(app)
 			.post("/trackdays")
-			.type("form").send({'date': formattedNow})
+			.type("form").send({'date': formattedSampleDate})
 			.expect(401)
 	});
 
@@ -143,7 +139,7 @@ describe('Testing trackday create', () => {
 		await request(app)
 			.post("/trackdays")
 			.set('Cookie', userCookie)
-			.type("form").send({'date': formattedNow})
+			.type("form").send({'date': formattedSampleDate})
 			.expect(401)
 	});
 
@@ -177,7 +173,7 @@ describe('Testing trackday create', () => {
 		await request(app)
 			.post("/trackdays")
 			.set('Cookie', adminCookie)
-			.type("form").send({'date': formattedNow})
+			.type("form").send({'date': formattedSampleDate})
 			.expect(201)
 	});
 
@@ -199,7 +195,7 @@ describe('Testing trackday read', () => {
 	});
 
 	test("get invalid trackdayID trackday", async () => {
-		const trackday = await addTrackday(formattedNow)
+		const trackday = await addTrackday(formattedSampleDate)
 		await request(app)
 			.get('/trackdays/'+'1'+trackday.body.id.slice(1,trackday.body.id.length-1)+'1')
 			.set('Cookie', adminCookie)
@@ -207,13 +203,13 @@ describe('Testing trackday read', () => {
 	});
 
 	test("get specific trackday from DB - no JWT", async () => {
-		const trackday = await addTrackday(formattedNow)
+		const trackday = await addTrackday(formattedSampleDate)
 		await request(app)
 			.get('/trackdays/'+trackday.body.id)
 			.expect(401)
 	});
 	test("get specific trackday from DB - not authorized", async () => {
-		const trackday = await addTrackday(formattedNow)
+		const trackday = await addTrackday(formattedSampleDate)
 		await request(app)
 			.get('/trackdays/'+trackday.body.id)
 			.set('Cookie', userCookie)
@@ -225,7 +221,7 @@ describe('Testing trackday read', () => {
 			.expect(401)
 	});
 	test("get all trackdays from DB - not authorized", async () => {
-		const trackday = await addTrackday(formattedNow)
+		const trackday = await addTrackday(formattedSampleDate)
 		await request(app)
 			.get('/trackdays')
 			.set('Cookie', userCookie)
@@ -269,15 +265,15 @@ describe('Testing trackday update', () => {
 		await request(app)
 			.put('/trackdays/invalid')
 			.set('Cookie', adminCookie)
-			.type('form').send({date: formattedNow, guests: 0, status: 'regOpen'})
+			.type('form').send({date: formattedSampleDate, guests: 0, status: 'regOpen'})
 			.expect(404, {msg: 'trackdayID is not a valid ObjectID'})
 	});
 	test("update invalid trackdayID trackday", async () => {
-		const trackday = await addTrackday(formattedNow)
+		const trackday = await addTrackday(formattedSampleDate)
 		await request(app)
 			.put('/trackdays/'+'1'+trackday.body.id.slice(1,trackday.body.id.length-1)+'1')
 			.set('Cookie', adminCookie)
-			.type('form').send({date: formattedNow, guests: 0, status: 'regOpen'})
+			.type('form').send({date: formattedSampleDate, guests: 0, status: 'regOpen'})
 			.expect(404, {msg: 'Trackday does not exist'})
 	});
 
@@ -427,13 +423,70 @@ describe('Testing trackday update', () => {
 })
 
 describe('Testing trackday delete', () => {
-	test.todo("get invalid objectID trackday")
-	test.todo("get invalid trackdayID trackday")
+	test("get invalid objectID trackday", async () => {
+		await request(app)
+			.delete('/trackdays/invalid')
+			.set('Cookie', adminCookie)
+			.expect(404, {msg: 'trackdayID is not a valid ObjectID'})
+	});
 
-	test.todo("delete trackday from DB - no JWT")
-	test.todo("delete trackday from DB - not authorized")
+	test("get invalid trackdayID trackday", async () => {
+		const trackday = await addTrackday(formattedSampleDate)
+		await request(app)
+			.delete('/trackdays/'+'1'+trackday.body.id.slice(1,trackday.body.id.length-1)+'1')
+			.set('Cookie', adminCookie)
+			.expect(404, {msg: 'Trackday does not exist'})
+	});
 
-	test.todo("delete trackday from DB")
+	test("delete trackday from DB - no JWT", async () => {
+		const trackday = await addTrackday(formattedSampleDate)
+		await request(app)
+			.delete('/trackdays/'+trackday.body.id)
+			.expect(401)
+		await request(app)
+			.get('/trackdays/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.expect(200, {
+				_id: trackday.body.id,
+				date: formattedSampleDate.slice(0, formattedSampleDate.length-1) + ':00.000Z',
+				members: [],
+				walkons: [],
+				guests: 0,
+				status: 'regOpen',
+				__v: 0
+			})
+	});
+	test("delete trackday from DB - not authorized", async () => {
+		const trackday = await addTrackday(formattedSampleDate)
+		await request(app)
+			.delete('/trackdays/'+trackday.body.id)
+			.set('Cookie', userCookie)
+			.expect(401)
+		await request(app)
+			.get('/trackdays/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.expect(200, {
+				_id: trackday.body.id,
+				date: formattedSampleDate.slice(0, formattedSampleDate.length-1) + ':00.000Z',
+				members: [],
+				walkons: [],
+				guests: 0,
+				status: 'regOpen',
+				__v: 0
+			})
+	});
+
+	test("delete trackday from DB", async () => {
+		const trackday = await addTrackday(formattedSampleDate)
+		await request(app)
+			.delete('/trackdays/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.expect(200)
+		await request(app)
+			.get('/trackdays/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.expect(404)
+	});
 })
 
 
