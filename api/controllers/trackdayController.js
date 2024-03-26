@@ -4,6 +4,7 @@ const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const jwt = require('jsonwebtoken')
 const ObjectId = require('mongoose').Types.ObjectId;
+const controllerUtils = require('./controllerUtils')
 
 /*
 A note about payments
@@ -11,41 +12,6 @@ For now, all payments will be handled manually (credit card & e transfer.)
 API will feature support for mark paid & payWithCredit which will auto deduct credit where applicable
 */
 
-
-// TODO: Can we move out validateForm and validateTrackdayID out to index for easier/more concise use? (Since userController also uses it)
-// TODO: Add method to mark user as paid
-// TODO: Add method to add walkons
-// TODO: Add method to edit userEntry for specific trackday (Ie. so we can unmark someone as checked in for instance)
-// TODO: Change date to actual date obj instead of string (?) - needed for 7 day restriction + other handy features maybe
-// TODO: How does front end fetch list of trackday ID's and dates so it can display them on site? - add method 
-
-// Called by middleware functions
-// Validates the form contents and builds errors array. In case of errors, returns 400 with errors array
-// TODO: Make return only the message (?)
-function validateForm(req,res,next){
-    const errors = validationResult(req); // Extract the validation errors from a request.
-    if (!errors.isEmpty())  return res.status(400).json(errors.mapped()); //TODO: How should this present errors? Update README, this may be the best decision
-    next();
-}
-
-// Called by middleware functions
-// Verify that the req.params.trackdayID is a valid objectID and that it exists in our DB
-// TODO: Clean this up
-async function validateTrackdayID(req, res, next){
-    // Special case for validating trackdayID's for reschedule
-    if (req.params.trackdayID_OLD && req.params.trackdayID_NEW){
-        if (!(ObjectId.isValid(req.params.trackdayID_OLD) && ObjectId.isValid(req.params.trackdayID_NEW))) return res.status(404).send({msg: 'trackdayID is not a valid ObjectID'});
-        const trackdayOLDExists = await Trackday.exists({_id: req.params.trackdayID_OLD});
-        const trackdayNEWExists = await Trackday.exists({_id: req.params.trackdayID_NEW});
-        if (!(trackdayOLDExists && trackdayNEWExists)) return res.status(404).send({msg: 'Trackday does not exist'});
-        next();
-    }else{
-        if (!ObjectId.isValid(req.params.trackdayID)) return res.status(404).send({msg: 'trackdayID is not a valid ObjectID'});
-        const trackdayExists = await Trackday.exists({_id: req.params.trackdayID});
-        if (!trackdayExists) return res.status(404).send({msg: 'Trackday does not exist'});
-        next();
-    }
-}
 
 // Called by middleware functions
 // Verify that the req.params.userID is a valid objectID and that it exists in our DB
@@ -67,8 +33,8 @@ exports.register = [
     body("paymentMethod",  "PaymentMethod must be one of: [etransfer, credit, creditCard, gate]").trim().isIn(["etransfer", "credit", "creditCard", "gate"]).escape(),
 
     validateUserID,
-    validateTrackdayID,
-    validateForm,
+    controllerUtils.validateTrackdayID,
+    controllerUtils.validateForm,
     (req,res,next) => {
         // Unbundle JWT and check if admin OR matching userID
         jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE, asyncHandler(async (err, authData) => {
@@ -95,7 +61,7 @@ exports.register = [
 // TODO: Check 7 day restriction + email
 exports.unregister = [
     validateUserID,
-    validateTrackdayID,
+    controllerUtils.validateTrackdayID,
    
     (req,res,next) => {
         // Unbundle JWT and check if admin OR matching userID
@@ -123,7 +89,7 @@ exports.unregister = [
 // TODO: Check 7 day restriction + email + capacity
 exports.reschedule = [
     validateUserID,
-    validateTrackdayID,
+    controllerUtils.validateTrackdayID,
    
     (req,res,next) => {
         // Unbundle JWT and check if admin OR matching userID
@@ -191,7 +157,7 @@ exports.checkin = [
 
 // Returns specific trackday. Requires JWT with admin.
 exports.trackday_get = [
-    validateTrackdayID,
+    controllerUtils.validateTrackdayID,
     (req,res,next) => {
         jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE, asyncHandler(async (err, authData) => {
             if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
@@ -221,12 +187,11 @@ exports.trackday_getALL = (req,res,next) => {
 // Creates a trackday. Requires JWT with admin.
 // TODO: Revise validator to ensure data is received in correct format
 exports.trackday_post = [
-    body("date",  "Date must be in YYYY-MM-DDThh:mmZ form where time is in UTC").escape(),
-    //IDEA: ^(19|20)\d\d-(0[1-9]|1[012])-([012]\d|3[01])T([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$ 
-
-
-    validateForm,
+    body("date",  "Date must be in YYYY-MM-DDThh:mmZ form where time is in UTC").isISO8601().escape(),
+    
+    controllerUtils.validateForm,
     (req,res,next) => {
+
           // Unbundle JWT and check if admin 
         jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE, asyncHandler(async (err, authData) => {
             if (err) return res.status(401).send({msg: 'JWT Validation Fail'});;
@@ -258,8 +223,8 @@ exports.trackday_put = [
     body("guests",  "Guests must be numeric").trim().isNumeric().escape(),
     body("status",  "Status must be one of: [regOpen, regClosed, finished, cancelled]").trim().isIn(["regOpen", "regClosed", "finished", "cancelled"]).escape(),
 
-    validateForm,
-    validateTrackdayID,
+    controllerUtils.validateForm,
+    controllerUtils.validateTrackdayID,
     (req,res,next) => {
           // Unbundle JWT and check if admin 
         jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE, asyncHandler(async (err, authData) => {
@@ -288,7 +253,7 @@ exports.trackday_put = [
 
 // Deletes a trackday. Requires JWT with admin.
 exports.trackday_delete = [
-    validateTrackdayID,
+    controllerUtils.validateTrackdayID,
 
     (req,res,next) => {
           // Unbundle JWT and check if admin 
