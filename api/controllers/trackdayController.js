@@ -187,7 +187,7 @@ exports.trackday_getALL = (req,res,next) => {
 // Creates a trackday. Requires JWT with admin.
 // TODO: Revise validator to ensure data is received in correct format
 exports.trackday_post = [
-    body("date",  "Date must be in YYYY-MM-DDThh:mmZ form where time is in UTC").isISO8601().escape(),
+    body("date",  "Date must be in YYYY-MM-DDThh:mmZ form where time is in UTC").isISO8601().isLength({ min: 17, max: 17}).escape(),
     
     controllerUtils.validateForm,
     (req,res,next) => {
