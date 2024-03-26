@@ -45,40 +45,6 @@ afterEach(async () => {
 //////////////////////////////////////
 
 
-
-
-const user1={ 
-	name_firstName: "Joe",
-	name_lastName: "Adams",
-	email: "user1@gmail.com",
-	phone: "2261451298",
-	address: "123 Apple Ave.",
-	city: "toronto",
-	province: "Ontario",
-	EmergencyName_firstName: "Silvia",
-	EmergencyName_lastName: "Adams",
-	EmergencyPhone: "5195724356",
-	EmergencyRelationship: "Wife",
-	group: "yellow",
-	password: "Abcd1234"
-};
-
-const user2={ 
-	name_firstName: "Bob",
-	name_lastName: "Smith",
-	email: "user2@gmail.com",
-	phone: "5194618362",
-	address: "24 Apple Cres.",
-	city: "ajax",
-	province: "Ontario",
-	EmergencyName_firstName: "Jeff",
-	EmergencyName_lastName: "Martin",
-	EmergencyPhone: "5195712834",
-	EmergencyRelationship: "Friend",
-	group: "green",
-	password: "user2123"
-};
-
 const userAdmin={ 
 	name_firstName: "Sebastian",
 	name_lastName: "Hothaza",
@@ -93,53 +59,6 @@ const userAdmin={
 	EmergencyRelationship: "Mother",
 	group: "red",
 	password: "Sebi1234"
-};
-
-const user1_update={ 
-	email: "user1X@gmail.com",
-	phone: "2261451299",
-	address: "123 AppleX AveX.",
-	city: "torontoX",
-	province: "OntarioX",
-
-	EmergencyName_firstName: "SilviaX",
-	EmergencyName_lastName: "AdamsX",
-	EmergencyPhone: "5195724399",
-	EmergencyRelationship: "WifeX",
-
-	group: "red"
-};
-
-const user1_malformed={ 
-	name_firstName: "Joe",
-	name_lastName: "Adams",
-	email: "user1gmail.com", //missing '@'
-	phone: "2261451298",
-	address: "123 Apple Ave.",
-	city: "toronto",
-	province: "Ontario",
-	EmergencyName_firstName: "Silvia",
-	EmergencyName_lastName: "Adams",
-	EmergencyPhone: "5195724356",
-	EmergencyRelationship: "Wife",
-	group: "yellow",
-	password: "Abcd1234"
-};
-
-const user1_missingFields={ 
-	name_firstName: "Joe",
-	name_lastName: "Adams",
-
-	phone: "2261451298",
-	address: "123 Apple Ave.",
-
-	province: "Ontario",
-	EmergencyName_firstName: "Silvia",
-	EmergencyName_lastName: "Adams",
-	EmergencyPhone: "5195724356",
-	EmergencyRelationship: "Wife",
-
-	password: "Abcd1234"
 };
 
 async function addUser(userInfo, expectedResponseCode){
