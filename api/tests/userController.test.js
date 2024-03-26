@@ -17,6 +17,7 @@ app.use("/", index);
 
 
 
+
 beforeAll(async () => { 
 	await MongoDB_testDB.initializeMongoServer();
 	return;
@@ -146,6 +147,18 @@ async function loginUser(user, expectedResponseCode){
 async function addTrackday(date,adminCookie){
 	const res = await request(app).post("/trackdays").set('Cookie', adminCookie).type("form").send({'date': date}).expect(201)
 	return res;
+}
+
+// Returns a date in YYYY-MM-DDThh:mmZ form as required for creating trackdays with offsetDays vs now
+function getFormattedDate(offsetDays){
+	let now = new Date();
+	let newDateMS = now.setDate(now.getDate() + offsetDays)
+	
+	let newDate = new Date(newDateMS);
+	newDate.setSeconds(0,0);
+	newDate = newDate.toISOString().replace(':00.000','');
+
+	return newDate;
 }
 
 //////////////////////////////////////
@@ -438,7 +451,7 @@ describe('Testing user update', () => {
 		const loginResAdmin = await loginUser(userAdmin, 200);
 		
 		const now = new Date();
-		const trackday = await addTrackday(now.setDate(now.getDate() + 3), loginResAdmin.headers['set-cookie']) 
+		const trackday = await addTrackday(getFormattedDate(3), loginResAdmin.headers['set-cookie']) 
 
 		// Register user for trackday
 		await request(app)
@@ -483,7 +496,7 @@ describe('Testing user update', () => {
 		const loginResAdmin = await loginUser(userAdmin, 200);
 		
 		const now = new Date();
-		const trackday = await addTrackday(now.setDate(now.getDate() - 3), loginResAdmin.headers['set-cookie']) 
+		const trackday = await addTrackday(getFormattedDate(-3), loginResAdmin.headers['set-cookie'])
 
 		// Register user for trackday
 		await request(app)
@@ -528,7 +541,7 @@ describe('Testing user update', () => {
 		const loginResAdmin = await loginUser(userAdmin, 200);
 		
 		const now = new Date();
-		const trackday = await addTrackday(now.setDate(now.getDate() + 3), loginResAdmin.headers['set-cookie']) 
+		const trackday = await addTrackday(getFormattedDate(3), loginResAdmin.headers['set-cookie']) 
 
 		// Register user for trackday
 		await request(app)
@@ -573,7 +586,7 @@ describe('Testing user update', () => {
 		const loginResAdmin = await loginUser(userAdmin, 200);
 		
 		const now = new Date();
-		const trackday = await addTrackday(now.setDate(now.getDate() + 3), loginResAdmin.headers['set-cookie']) 
+		const trackday = await addTrackday(getFormattedDate(3), loginResAdmin.headers['set-cookie'])
 
 		const user1_update_noChangeGroup={ 
 			email: "user1X@gmail.com",
@@ -888,11 +901,7 @@ describe('Testing user getTrackdays', () => {
 		const admin = await addUser(userAdmin, 201)
 		const loginRes = await loginUser(userAdmin, 200);
 		// Create the trackday
-		const trackday = await request(app)
-							.post('/trackdays')
-							.type("form").send({date: 'June 5 2024'})
-							.set('Cookie', loginRes.headers['set-cookie'])
-							.expect(201)
+		const trackday = await addTrackday(getFormattedDate(3), loginRes.headers['set-cookie'])
 
 		await request(app)
 			.get("/users/"+user.body.id+'/trackdays')
@@ -985,11 +994,8 @@ describe('Testing verify', () => {
 		const user = await addUser(user1, 201);
 		const admin = await addUser(userAdmin, 201);
 		const loginRes = await loginUser(userAdmin, 200);
-		const trackday = await request(app)
-							.post('/trackdays')
-							.type("form").send({date: 'June 5 2024'})
-							.set('Cookie', loginRes.headers['set-cookie'])
-							.expect(201)
+		// Create the trackday
+		const trackday = await addTrackday(getFormattedDate(3), loginRes.headers['set-cookie'])
 		await request(app)
 			.get("/verify/"+user.body.id+'/'+'1'+trackday.body.id.slice(1,trackday.body.id.length-1)+'1')
 			.expect(404, { msg: 'Trackday does not exist' })
@@ -1000,11 +1006,7 @@ describe('Testing verify', () => {
 		const admin = await addUser(userAdmin, 201)
 		const loginRes = await loginUser(userAdmin, 200);
 		// Create the trackday
-		const trackday = await request(app)
-							.post('/trackdays')
-							.type("form").send({date: 'June 5 2024'})
-							.set('Cookie', loginRes.headers['set-cookie'])
-							.expect(201)
+		const trackday = await addTrackday(getFormattedDate(3), loginRes.headers['set-cookie'])
 		await request(app)
 			.get("/verify/"+user.body.id+'/'+trackday.body.id)
 			.expect(200, { verified: 'false' })
@@ -1015,11 +1017,7 @@ describe('Testing verify', () => {
 		const admin = await addUser(userAdmin, 201)
 		const loginRes = await loginUser(userAdmin, 200);
 		// Create the trackday
-		const trackday = await request(app)
-							.post('/trackdays')
-							.type("form").send({date: 'June 5 2024'})
-							.set('Cookie', loginRes.headers['set-cookie'])
-							.expect(201)
+		const trackday = await addTrackday(getFormattedDate(3), loginRes.headers['set-cookie'])
 		// Register user for trackday
 		await request(app)
 			.post('/register/'+user.body.id+'/'+trackday.body.id)
@@ -1037,11 +1035,8 @@ describe('Testing verify', () => {
 		const admin = await addUser(userAdmin, 201)
 		const loginRes = await loginUser(userAdmin, 200);
 		// Create the trackday
-		const trackday = await request(app)
-							.post('/trackdays')
-							.type("form").send({date: 'June 5 2024'})
-							.set('Cookie', loginRes.headers['set-cookie'])
-							.expect(201)
+		const trackday = await addTrackday(getFormattedDate(3), loginRes.headers['set-cookie'])
+		
 		// Register user for trackday
 		await request(app)
 			.post('/register/'+user.body.id+'/'+trackday.body.id)
