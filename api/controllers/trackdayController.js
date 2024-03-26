@@ -12,6 +12,12 @@ For now, all payments will be handled manually (credit card & e transfer.)
 API will feature support for mark paid & payWithCredit which will auto deduct credit where applicable
 */
 
+/*
+    --------------------------------------------- TODO ---------------------------------------------
+    code cleanup & review
+    --------------------------------------------- TODO ---------------------------------------------
+*/
+
 
 
 // Registers a user for a trackday. Requires JWT with matching userID OR admin.
@@ -175,57 +181,69 @@ exports.trackday_post = [
     controllerUtils.verifyJWT,
 
     asyncHandler(async (req,res,next) => {
-        // Check if a trackday already exists with same date and time details
-        const duplicateTrackday = await Trackday.find({date: {$eq: req.body.date}})
-        if (duplicateTrackday.length) return res.status(409).send({msg: 'Trackday with this date and time already exists'});
-
-            if (req.user.memberType === 'admin'){
-                // Create trackday
-                const trackday = new Trackday({
-                    date: req.body.date,
-                    members: [],
-                    walkons: [],
-                    guests: 0,
-                    status: "regOpen"
-                })
-                await trackday.save();
-                return res.status(201).json({id: trackday.id});
-            }
-            return res.sendStatus(401)
-        
+        if (req.user.memberType === 'admin'){
+            // Check if a trackday already exists with same date and time details
+            const duplicateTrackday = await Trackday.find({date: {$eq: req.body.date}})
+            if (duplicateTrackday.length) return res.status(409).send({msg: 'Trackday with this date and time already exists'});
+            // Create trackday
+            const trackday = new Trackday({
+                date: req.body.date,
+                members: [],
+                walkons: [],
+                guests: 0,
+                status: "regOpen"
+            })
+            await trackday.save();
+            return res.status(201).json({id: trackday.id});
+        }
+        return res.sendStatus(401)
+    
     })
 
     
 ]
 
+
+/*
+const duplicateUser = await User.findOne({'contact.email': {$eq: req.body.email}})
+if (duplicateUser && oldUser.contact.email !== req.body.email) return res.status(409).send({msg: 'User with this email already exists'});
+*/
+
 // Updates a trackday. Requires JWT with admin.
 // TODO: Update to use save()
 exports.trackday_put = [
 
-    body("date",  "Date must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+    body("date",  "Date must be in YYYY-MM-DDThh:mmZ form where time is in UTC").isISO8601().isLength({ min: 17, max: 17}).escape(),
     body("guests",  "Guests must be numeric").trim().isNumeric().escape(),
     body("status",  "Status must be one of: [regOpen, regClosed, finished, cancelled]").trim().isIn(["regOpen", "regClosed", "finished", "cancelled"]).escape(),
 
     controllerUtils.validateForm,
     controllerUtils.validateTrackdayID,
     controllerUtils.verifyJWT,
-    asyncHandler(async(req,res,next) => {
 
-            const oldTrackday = await Trackday.findById(req.params.trackdayID).select('members walkons').exec();
-            if (req.user.memberType === 'admin'){
-                // Create trackday
-                const trackday = new Trackday({
-                    date: req.body.date,
-                    members: oldTrackday.members,
-                    walkons: oldTrackday.walkons,
-                    guests: req.body.guests,
-                    status: req.body.status,
-                    _id: req.params.trackdayID
-                })
-                await Trackday.findByIdAndUpdate(req.params.trackdayID, trackday, {});
-                return res.status(201).json({_id: trackday.id});
-            }
-            return res.sendStatus(401)
+    asyncHandler(async(req,res,next) => {
+ 
+        if (req.user.memberType === 'admin'){
+            const oldTrackday = await Trackday.findById(req.params.trackdayID).select('date members walkons').exec();
+
+            // Check for duplicates
+            const duplicateTrackday = await Trackday.findOne({date: {$eq: req.body.date}})
+            const requestedUpdateDate = new Date(req.body.date).toISOString()
+            if (duplicateTrackday && requestedUpdateDate !== oldTrackday.date.toISOString()) return res.status(409).send({msg: 'Trackday with this date and time already exists'});
+
+            // Create trackday
+            const trackday = new Trackday({
+                date: req.body.date,
+                members: oldTrackday.members,
+                walkons: oldTrackday.walkons,
+                guests: req.body.guests,
+                status: req.body.status,
+                _id: req.params.trackdayID
+            })
+            await Trackday.findByIdAndUpdate(req.params.trackdayID, trackday, {});
+            return res.status(201).json({_id: trackday.id});
+        }
+        return res.sendStatus(401)
        
     })
 ]
