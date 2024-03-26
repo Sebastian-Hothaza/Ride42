@@ -16,7 +16,6 @@ const index = require("../routes/index");
 app.use("/", index);
 
 
-
 beforeAll(async () => { 
 	await MongoDB_testDB.initializeMongoServer();
 	return;
@@ -26,6 +25,23 @@ afterAll(async () => {
 	await MongoDB_testDB.takedownMongoServer();
 	return;
 });
+
+
+let now = new Date();
+now.setSeconds(0,0)
+now = now.toISOString().replace(':00.000','') // Update now to be in YYYY-MM-DDThh:mmZ form as required for creating trackdays
+
+let adminCookie, userCookie;
+beforeEach(async () => {
+	// Preload each test with user and admin logged in and store their cookies
+	await addUser(userAdmin, 201);
+	const loginResAdmin = await loginUser(userAdmin, 200);
+	adminCookie = loginResAdmin.headers['set-cookie']
+
+	await addUser(user1, 201);
+	const loginResUser = await loginUser(user1, 200);
+	userCookie = loginResUser.headers['set-cookie']
+})
 
 afterEach(async () => {
 	await MongoDB_testDB.refreshMongoServer();
@@ -52,22 +68,6 @@ const user1={
 	password: "Abcd1234"
 };
 
-const user2={ 
-	name_firstName: "Bob",
-	name_lastName: "Smith",
-	email: "user2@gmail.com",
-	phone: "5194618362",
-	address: "24 Apple Cres.",
-	city: "ajax",
-	province: "Ontario",
-	EmergencyName_firstName: "Jeff",
-	EmergencyName_lastName: "Martin",
-	EmergencyPhone: "5195712834",
-	EmergencyRelationship: "Friend",
-	group: "green",
-	password: "user2123"
-};
-
 const userAdmin={ 
 	name_firstName: "Sebastian",
 	name_lastName: "Hothaza",
@@ -84,53 +84,6 @@ const userAdmin={
 	password: "Sebi1234"
 };
 
-const user1_update={ 
-	email: "user1X@gmail.com",
-	phone: "2261451299",
-	address: "123 AppleX AveX.",
-	city: "torontoX",
-	province: "OntarioX",
-
-	EmergencyName_firstName: "SilviaX",
-	EmergencyName_lastName: "AdamsX",
-	EmergencyPhone: "5195724399",
-	EmergencyRelationship: "WifeX",
-
-	group: "red"
-};
-
-const user1_malformed={ 
-	name_firstName: "Joe",
-	name_lastName: "Adams",
-	email: "user1gmail.com", //missing '@'
-	phone: "2261451298",
-	address: "123 Apple Ave.",
-	city: "toronto",
-	province: "Ontario",
-	EmergencyName_firstName: "Silvia",
-	EmergencyName_lastName: "Adams",
-	EmergencyPhone: "5195724356",
-	EmergencyRelationship: "Wife",
-	group: "yellow",
-	password: "Abcd1234"
-};
-
-const user1_missingFields={ 
-	name_firstName: "Joe",
-	name_lastName: "Adams",
-
-	phone: "2261451298",
-	address: "123 Apple Ave.",
-
-	province: "Ontario",
-	EmergencyName_firstName: "Silvia",
-	EmergencyName_lastName: "Adams",
-	EmergencyPhone: "5195724356",
-	EmergencyRelationship: "Wife",
-
-	password: "Abcd1234"
-};
-
 async function addUser(userInfo, expectedResponseCode){
 	const res = (userInfo.name_firstName==='Sebastian')?
 		 await request(app).post("/admin").type("form").send(userInfo).expect(expectedResponseCode)
@@ -143,27 +96,92 @@ async function loginUser(user, expectedResponseCode){
 	return res;
 }
 
-async function addTrackday(date,adminCookie){
-	const res = await request(app).post("/trackdays").set('Cookie', adminCookie).type("form").send({'date': date}).expect(201)
-	return res;
-}
-
 //////////////////////////////////////
 //              TESTS
 //////////////////////////////////////
 
 
 describe('Testing trackday create', () => {
-	test.todo("add trackday to DB - missing fields")
-	test.todo("add trackday to DB - malformed fields")
 
-	test.todo("add trackday to DB - no JWT")
-	test.todo("add trackday to DB - not authorized")
+	test("add trackday to DB - missing fields", async () => {
+		await request(app)
+			.post("/trackdays")
+			.set('Cookie', adminCookie)
+			.expect(400)
+	});	
 
-	test.todo("add multiple trackdays to DB")
-	test.todo("add duplicate trackday to DB")
+	test("add trackday to DB - malformed fields - missing time", async () => {
+		await request(app)
+			.post("/trackdays")
+			.set('Cookie', adminCookie)
+			.type("form").send({'date': '2024-06-23'})
+			.expect(400)
+	});
 
-	test.todo("add trackday to DB")
+	test("add trackday to DB - malformed fields - invalid date", async () => {
+		await request(app)
+			.post("/trackdays")
+			.set('Cookie', adminCookie)
+			.type("form").send({'date': '2024-06-99T14:00Z'})
+			.expect(400)
+	});
+
+	test("add trackday to DB - no JWT", async () => {
+		await request(app)
+			.post("/trackdays")
+			.type("form").send({'date': now})
+			.expect(401)
+	});
+
+	test("add trackday to DB - not authorized", async () => {
+		await request(app)
+			.post("/trackdays")
+			.set('Cookie', userCookie)
+			.type("form").send({'date': now})
+			.expect(401)
+	});
+
+	test("add multiple trackdays to DB", async () => {
+		await request(app)
+			.post("/trackdays")
+			.set('Cookie', adminCookie)
+			.type("form").send({'date': '2024-06-05T14:00Z'})
+			.expect(201)
+		await request(app)
+			.post("/trackdays")
+			.set('Cookie', adminCookie)
+			.type("form").send({'date': '2024-07-07T14:00Z'})
+			.expect(201)
+	});
+
+	test("add duplicate trackday to DB", async () => {
+		await request(app)
+			.post("/trackdays")
+			.set('Cookie', adminCookie)
+			.type("form").send({'date': '2024-06-05T14:00Z'})
+			.expect(201)
+		await request(app)
+			.post("/trackdays")
+			.set('Cookie', adminCookie)
+			.type("form").send({'date': '2024-06-05T14:00Z'})
+			.expect(409, {msg: 'Trackday with this date and time already exists'})
+	});
+
+	test("add trackday to DB", async () => {
+		await request(app)
+			.post("/trackdays")
+			.set('Cookie', adminCookie)
+			.type("form").send({'date': now})
+			.expect(201)
+	});
+
+	test("add trackday to DB - direct string", async () => {
+		await request(app)
+			.post("/trackdays")
+			.set('Cookie', adminCookie)
+			.type("form").send({'date': '2024-06-05T14:00Z'})
+			.expect(201)
+	});
 })
 
 describe('Testing trackday read', () => {
