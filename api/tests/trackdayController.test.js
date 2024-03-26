@@ -154,17 +154,70 @@ async function addTrackday(date,adminCookie){
 
 
 describe('Testing trackday create', () => {
+	test.todo("add trackday to DB - missing fields")
+	test.todo("add trackday to DB - malformed fields")
 
+	test.todo("add trackday to DB - no JWT")
+	test.todo("add trackday to DB - not authorized")
+
+	test.todo("add multiple trackdays to DB")
+	test.todo("add duplicate trackday to DB")
+
+	test.todo("add trackday to DB")
 })
 
 describe('Testing trackday read', () => {
+	test.todo("get invalid objectID trackday")
+	test.todo("get invalid trackdayID trackday")
 
+	test.todo("get specific trackday from DB - no JWT")
+	test.todo("get specific trackday from DB - not authorized")
+	test.todo("get all trackdays from DB - no JWT")
+	test.todo("get all trackdays from DB - not authorized")
+
+	test.todo("get specific trackday from DB")
+	test.todo("get all trackdays from DB")
 })
 
 describe('Testing trackday update', () => {
+	test.todo("update invalid objectID trackday")
+	test.todo("update invalid trackdayID trackday")
 
+	test.todo("update trackday in DB - missing fields")
+	test.todo("update trackday in DB - malformed fields")
+
+	test.todo("update trackday in DB - no JWT")
+	test.todo("update trackday in DB - not authorized")
+
+	test.todo("update trackday in DB - non-unique date")
+
+	test.todo("update trackday in DB")
 })
 
 describe('Testing trackday delete', () => {
+	test.todo("get invalid objectID trackday")
+	test.todo("get invalid trackdayID trackday")
 
+	test.todo("delete trackday from DB - no JWT")
+	test.todo("delete trackday from DB - not authorized")
+
+	test.todo("delete trackday from DB")
 })
+
+
+
+//// TEMPLATE
+/*
+	test.todo("get invalid objectID trackday")
+	test.todo("get invalid trackdayID trackday")
+
+	test.todo("add trackday to DB - missing fields")
+	test.todo("add trackday to DB - malformed fields")
+
+	test.todo("add trackday to DB - no JWT")
+	test.todo("add trackday to DB - not authorized")
+
+	test.todo("OTHER")
+
+	test.todo("add trackday to DB")
+*/
