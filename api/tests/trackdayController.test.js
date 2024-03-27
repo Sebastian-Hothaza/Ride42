@@ -1174,48 +1174,85 @@ describe('Testing rescheduling', () => {
 describe('Testing checkin', () => {
 	test("invalid objectID trackday", async () => {
 		await request(app)
-			.post('/checkin/'+user1.body.id+'/invalid')
+			.post('/checkin/'+user1.body.id+'/invalid/someBikeID')
 			.set('Cookie', adminCookie)
 			.expect(404, {msg: 'trackdayID is not a valid ObjectID'})
 	});
 	test("invalid trackdayID trackday", async () => {
+		
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
-			.post('/checkin/'+user1.body.id+'/1'+trackday.body.id.slice(1,trackday.body.id.length-1)+'1')
+			.post('/checkin/'+user1.body.id+'/1'+trackday.body.id.slice(1,trackday.body.id.length-1)+'1'+'/someBikeID')
 			.set('Cookie', adminCookie)
 			.expect(404, {msg: 'Trackday does not exist'})
 	});
 	test("invalid objectID user", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
-			.post('/checkin/'+'invalid/'+trackday.body.id)
+			.post('/checkin/'+'invalid/'+trackday.body.id +'/someBikeID')
 			.set('Cookie', adminCookie)
 			.expect(404, {msg: 'userID is not a valid ObjectID'})
 	});
 	test("invalid userID user", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
-			.post('/checkin/'+'1'+user1.body.id.slice(1,user1.body.id.length-1)+'1'+'/'+trackday.body.id)
+			.post('/checkin/'+'1'+user1.body.id.slice(1,user1.body.id.length-1)+'1'+'/'+trackday.body.id +'/someBikeID')
 			.set('Cookie', adminCookie)
 			.expect(404, {msg: 'User does not exist'})
+	});
+
+	test("verify for invalid objectID bike", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		await request(app)
+			.post('/checkin/'+user1.body.id+'/'+trackday.body.id+'/invalid')
+			.set('Cookie', adminCookie)
+			.expect(404, {msg: 'bikeID is not a valid ObjectID'})
+	});
+	test("verify for invalid bikeID bike", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		// Add bike to garage
+		const bike = await request(app)
+			.post("/garage/"+user1.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', user1Cookie)
+			.expect(201);
+
+		await request(app)
+			.post('/checkin/'+user1.body.id+'/'+trackday.body.id+'/1'+bike.body.id.slice(1,bike.body.id.length-1)+'1')
+			.set('Cookie', adminCookie)
+			.expect(404, {msg: 'Bike does not exist'})
 	});
 
 	test("no JWT", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
-			.post('/checkin/'+user1.body.id+'/'+trackday.body.id)
+			.post('/checkin/'+user1.body.id+'/'+trackday.body.id+'/someBikeID')
 			.expect(401)
 	});
 	test("not authorized", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
+		// Add the bike to user garage
+		const bike = await request(app).post("/garage/"+user1.body.id).type("form").send({year: '2009', make: 'Yamaha', model: "R6"})
+										.set('Cookie', user1Cookie).expect(201);
 		await request(app)
-			.post('/checkin/'+user1.body.id+'/'+trackday.body.id)
+			.post('/checkin/'+user1.body.id+'/'+trackday.body.id+'/'+bike.body.id)
 			.set('Cookie', user1Cookie)
 			.expect(403)
 	});
 			
 	test("as staff", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
+
+		// Add bike to garage
+		const bike = await request(app)
+			.post("/garage/"+user1.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', user1Cookie)
+			.expect(201);
 
 		// Create staff member
 		const staff = await addUser(userStaff);
@@ -1235,7 +1272,7 @@ describe('Testing checkin', () => {
 
 		// Check in user
 		await request(app)
-			.post('/checkin/'+user1.body.id+'/'+trackday.body.id)
+			.post('/checkin/'+user1.body.id+'/'+trackday.body.id+'/'+bike.body.id)
 			.set('Cookie', staffLoginRes.headers['set-cookie'])
 			.expect(200)
 	})
@@ -1243,6 +1280,15 @@ describe('Testing checkin', () => {
 
 	test("already checked in", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
+
+		// Add bike to garage
+		const bike = await request(app)
+			.post("/garage/"+user1.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', user1Cookie)
+			.expect(201);
+
 		// Register for trackday
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
@@ -1251,21 +1297,29 @@ describe('Testing checkin', () => {
 			.expect(200)
 
 		await request(app)
-			.post('/checkin/'+user1.body.id+'/'+trackday.body.id)
+			.post('/checkin/'+user1.body.id+'/'+trackday.body.id+'/'+bike.body.id)
 			.set('Cookie', adminCookie)
 			.expect(200)
 
 		await request(app)
-			.post('/checkin/'+user1.body.id+'/'+trackday.body.id)
+			.post('/checkin/'+user1.body.id+'/'+trackday.body.id+'/'+bike.body.id)
 			.set('Cookie', adminCookie)
 			.expect(400, {msg : 'member already checked in'})
 	})
 
 	test("not registered for that day", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
+		
+		// Add bike to garage
+		const bike = await request(app)
+			.post("/garage/"+user1.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', user1Cookie)
+			.expect(201);
 
 		await request(app)
-			.post('/checkin/'+user1.body.id+'/'+trackday.body.id)
+			.post('/checkin/'+user1.body.id+'/'+trackday.body.id+'/'+bike.body.id)
 			.set('Cookie', adminCookie)
 			.expect(404, {msg: 'Member is not registered for that trackday'})
 	})
@@ -1278,8 +1332,18 @@ describe('Testing checkin', () => {
 			.set('Cookie', user1Cookie)
 			.type('form').send({paymentMethod: 'etransfer'})
 			.expect(200)
+
+
+		// Add bike to garage
+		const bike = await request(app)
+			.post("/garage/"+user1.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', user1Cookie)
+			.expect(201);
+
 		await request(app)
-			.post('/checkin/'+user1.body.id+'/'+trackday.body.id)
+			.post('/checkin/'+user1.body.id+'/'+trackday.body.id+'/'+bike.body.id)
 			.set('Cookie', adminCookie)
 			.expect(200)
 	})

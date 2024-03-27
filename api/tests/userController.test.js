@@ -1006,22 +1006,21 @@ describe('Testing user getTrackdays', () => {
 describe('Testing verify', () => {
 	test("verify for invalid objectID user", async() => {
 		await request(app)
-			.get("/verify/invalid/sometrackdayID")
+			.get("/verify/invalid/sometrackdayID/somebikeID")
 			.expect(404, { msg: 'userID is not a valid ObjectID' })
 	});
 
 	test("verify for invalid userID user", async() => {
 		const user = await addUser(user1, 201);
-			
 		await request(app)
-			.get('/verify/'+'1'+user.body.id.slice(1,user.body.id.length-1)+'1'+'/sometrackdayID')
+			.get('/verify/'+'1'+user.body.id.slice(1,user.body.id.length-1)+'1'+'/sometrackdayID/somebikeID')
 			.expect(404, { msg: 'User does not exist' }) 
 	});
 
 	test("verify for invalid objectID trackday", async() => {
 		const user = await addUser(user1, 201);
 		await request(app)
-			.get("/verify/"+user.body.id+"/invalid")
+			.get("/verify/"+user.body.id+"/invalid/somebikeID")
 			.expect(404, { msg: 'trackdayID is not a valid ObjectID' })
 	});
 
@@ -1032,8 +1031,41 @@ describe('Testing verify', () => {
 		// Create the trackday
 		const trackday = await addTrackday(getFormattedDate(3), loginRes.headers['set-cookie'])
 		await request(app)
-			.get("/verify/"+user.body.id+'/'+'1'+trackday.body.id.slice(1,trackday.body.id.length-1)+'1')
+			.get("/verify/"+user.body.id+'/'+'1'+trackday.body.id.slice(1,trackday.body.id.length-1)+'1'+'/somebikeID')
 			.expect(404, { msg: 'Trackday does not exist' })
+	});
+
+	test("verify for invalid objectID bike", async() => {
+		const user = await addUser(user1, 201);
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(userAdmin, 200);
+		// Create the trackday
+		const trackday = await addTrackday(getFormattedDate(3), loginRes.headers['set-cookie'])
+
+		await request(app)
+			.get("/verify/"+user.body.id+'/'+trackday.body.id+'/invalid')
+			.expect(404, { msg: 'bikeID is not a valid ObjectID' })
+	});
+
+	test("verify for invalid bikeID bike", async() => {
+		const user = await addUser(user1, 201);
+		const admin = await addUser(userAdmin, 201)
+		const loginRes = await loginUser(userAdmin, 200);
+		// Create the trackday
+		const trackday = await addTrackday(getFormattedDate(3), loginRes.headers['set-cookie'])
+
+		// Add bike to garage
+		const bike = await request(app)
+			.post("/garage/"+user.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201);
+
+		await request(app)
+			.get("/verify/"+user.body.id+'/'+trackday.body.id+'/'+'1'+bike.body.id.slice(1,bike.body.id.length-1)+'1')
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(404, { msg: 'Bike does not exist' });
 	});
 
 	test("verify for user - not registered for trackday", async() => {
@@ -1042,8 +1074,17 @@ describe('Testing verify', () => {
 		const loginRes = await loginUser(userAdmin, 200);
 		// Create the trackday
 		const trackday = await addTrackday(getFormattedDate(3), loginRes.headers['set-cookie'])
+
+		// Add bike to garage
+		const bike = await request(app)
+			.post("/garage/"+user.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201);
+
 		await request(app)
-			.get("/verify/"+user.body.id+'/'+trackday.body.id)
+			.get("/verify/"+user.body.id+'/'+trackday.body.id+'/'+bike.body.id)
 			.expect(200, { verified: 'false' })
 	});
 
@@ -1059,9 +1100,17 @@ describe('Testing verify', () => {
 			.type("form").send({paymentMethod: 'credit'})
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
+		
+		// Add bike to garage
+		const bike = await request(app)
+			.post("/garage/"+user.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201);
 
 		await request(app)
-			.get("/verify/"+user.body.id+'/'+trackday.body.id)
+			.get("/verify/"+user.body.id+'/'+trackday.body.id+'/'+bike.body.id)
 			.expect(200, { verified: 'false' })
 	});
 
@@ -1071,6 +1120,14 @@ describe('Testing verify', () => {
 		const loginRes = await loginUser(userAdmin, 200);
 		// Create the trackday
 		const trackday = await addTrackday(getFormattedDate(3), loginRes.headers['set-cookie'])
+
+		// Add bike to garage
+		const bike = await request(app)
+			.post("/garage/"+user.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201);
 		
 		// Register user for trackday
 		await request(app)
@@ -1081,12 +1138,12 @@ describe('Testing verify', () => {
 
 		// Check-in user for trackday
 		await request(app)
-			.post('/checkin/'+user.body.id+'/'+trackday.body.id)
+			.post('/checkin/'+user.body.id+'/'+trackday.body.id+'/'+bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 
 		await request(app)
-			.get("/verify/"+user.body.id+'/'+trackday.body.id)
+			.get("/verify/"+user.body.id+'/'+trackday.body.id+'/'+bike.body.id)
 			.expect(200, { verified: 'true' })
 	});
 })
@@ -1231,9 +1288,7 @@ describe('Delete bikes from a user garage', () => {
 		const user = await addUser(user1, 201)
 		const loginRes = await loginUser(user1, 200)
 		await request(app)
-			.delete("/garage/invalid")
-			.type("form")
-			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.delete("/garage/invalid/someBikeID")
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: 'userID is not a valid ObjectID' })
 	});
@@ -1243,43 +1298,40 @@ describe('Delete bikes from a user garage', () => {
 		const loginRes = await loginUser(user1, 200)
 
 		await request(app)
-			.delete('/garage/'+'1'+user.body.id.slice(1,user.body.id.length-1)+'1')
-			.type("form")
-			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.delete('/garage/'+'1'+user.body.id.slice(1,user.body.id.length-1)+'1'+'/someBikeID')
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: 'User does not exist' }) 
 	});
 
-	test("remove bike from garage - missing fields", async() => {
+	test("remove bike from garage for invalid objectID bike", async() => {
 		const user = await addUser(user1, 201)
 		const loginRes = await loginUser(user1, 200)
 		await request(app)
-			.delete("/garage/"+user.body.id)
-			.type("form")
-			.send({field: 'param'})
+			.delete("/garage/"+user.body.id+'/invalid')
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(400);
+			.expect(404, { msg: 'bikeID is not a valid ObjectID' })
 	});
 
-	test("remove bike from garage - malformed fields", async() => {
-		const user = await addUser(user1, 201)
+	test("remove bike from garage for invalid bikeID bike", async() => {
+		let user = await addUser(user1, 201);
 		const loginRes = await loginUser(user1, 200)
 
+		// Add the bike to user garage
+		const bike = await request(app).post("/garage/"+user.body.id).type("form").send({year: '2009', make: 'Yamaha', model: "R6"})
+										.set('Cookie', loginRes.headers['set-cookie']).expect(201);
+
 		await request(app)
-			.delete("/garage/"+user.body.id)
-			.type("form")
-			.send({year: '20091', make: 'Yamaha', model: "R6"})
+			.delete("/garage/"+user.body.id+'/'+'1'+bike.body.id.slice(1,bike.body.id.length-1)+'1')
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(400);
+			.expect(404, { msg: 'Bike does not exist' });
 	});
+
 
 	test("remove bike from garage - no JWT", async() => {
 		const user = await addUser(user1, 201);
 
 		await request(app)
-			.delete('/garage/'+user.body.id)
-			.type("form")
-			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.delete('/garage/'+user.body.id+'/someBikeID')
 			.expect(401);
 	});
 
@@ -1287,10 +1339,11 @@ describe('Delete bikes from a user garage', () => {
 		const res1 = await addUser(user1, 201);
 		const res2 = await addUser(user2, 201);
 		const loginRes = await loginUser(user2, 200)
+		// Add the bike to user garage
+		const bike = await request(app).post("/garage/"+res2.body.id).type("form").send({year: '2009', make: 'Yamaha', model: "R6"})
+										.set('Cookie', loginRes.headers['set-cookie']).expect(201);
 		await request(app)
-			.delete('/garage/'+res1.body.id)
-			.type("form")
-			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.delete('/garage/'+res1.body.id+'/'+bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(403);
 	});
@@ -1303,38 +1356,25 @@ describe('Delete bikes from a user garage', () => {
 		const bike = await request(app).post("/garage/"+user.body.id).type("form").send({year: '2009', make: 'Yamaha', model: "R6"})
 										.set('Cookie', loginRes.headers['set-cookie']).expect(201);
 		await request(app)
-			.delete("/garage/"+user.body.id)
-			.type("form")
-			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.delete("/garage/"+user.body.id+'/'+bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200);
-	});
-
-	test("remove bike from garage - bike does not exist", async() => {
-		const user = await addUser(user1, 201);
-		const loginRes = await loginUser(user1, 200)
-		// Add some bike to user garage
-		const bike = await request(app).post("/garage/"+user.body.id).type("form").send({year: '2009', make: 'Yamaha', model: "R6"})
-										.set('Cookie', loginRes.headers['set-cookie']).expect(201);
-		await request(app)
-			.delete("/garage/"+user.body.id)
-			.type("form")
-			.send({year: '2010', make: 'Honda', model: "CBR600RR"})
-			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(404);
 	});
 
 	test("remove bike from garage", async() => {
-		const user = await addUser(user1, 201);
+		let user = await addUser(user1, 201);
 		const loginRes = await loginUser(user1, 200)
+
 		// Add the bike to user garage
 		const bike = await request(app).post("/garage/"+user.body.id).type("form").send({year: '2009', make: 'Yamaha', model: "R6"})
 										.set('Cookie', loginRes.headers['set-cookie']).expect(201);
+
 		await request(app)
-			.delete("/garage/"+user.body.id)
-			.type("form")
-			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.delete("/garage/"+user.body.id+'/'+bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200);
+
+		user = await request(app).get('/users/'+user.body.id).set('Cookie', loginRes.headers['set-cookie']).expect(200)
+		expect(user.body.garage.length).toBe(0)
 	});
 })
