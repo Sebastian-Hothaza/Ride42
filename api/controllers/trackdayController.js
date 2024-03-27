@@ -80,7 +80,7 @@ exports.register = [
     
 
     asyncHandler(async(req,res,next) => {
-        if (req.user.memberType === 'admin' || (req.user.id === req.params.userID && 1)){
+        if (req.user.memberType === 'admin' || (req.user.id === req.params.userID)){
             const trackday = await Trackday.findById(req.params.trackdayID).exec();
 
             // Check if user is already registered to trackday
@@ -89,7 +89,7 @@ exports.register = [
 
             // If user attempt to register for trackday < lockout period(7 default) away, deny registration
             if (req.body.paymentMethod !== 'credit' && req.user.memberType !== 'admin' && await controllerUtils.isInLockoutPeriod(req.params.trackdayID)){
-                return res.status(401).send({msg: 'Cannot change group when registered for trackday <'+process.env.DAYS_LOCKOUT+' days away.'})
+                return res.status(401).send({msg: 'Cannot register for trackday <'+process.env.DAYS_LOCKOUT+' days away.'})
             }
 
             // Check if trackday is full
@@ -127,10 +127,19 @@ exports.unregister = [
     
    
     asyncHandler(async(req,res,next) => {
-
-        if (req.user.memberType === 'admin' || (req.user.id === req.params.userID && 1)){
-
+        if (req.user.memberType === 'admin' || (req.user.id === req.params.userID)){
             const trackday = await Trackday.findById(req.params.trackdayID).exec();
+
+            // Check user is actually registered for that trackday
+            const memberEntry = trackday.members.find((member) => member.userID.equals(req.params.userID));
+            if (!memberEntry) return res.status(400).send({msg: 'Cannot unregister; member is not registered for that trackday'});
+
+
+            // If user attempt to unregister for trackday < lockout period(7 default) away, deny unregistration
+            if (memberEntry.paymentMethod !== 'credit' && req.user.memberType !== 'admin' && await controllerUtils.isInLockoutPeriod(req.params.trackdayID)){
+                return res.status(401).send({msg: 'Cannot unregister for trackday <'+process.env.DAYS_LOCKOUT+' days away.'})
+            }
+
 
             // Check that the member we want to remove from the trackday/members array actually exists
             const memberExists = trackday.members.some((member) => member.userID.equals(req.params.userID))
