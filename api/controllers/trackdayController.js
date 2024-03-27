@@ -2,8 +2,6 @@ const Trackday = require('../models/Trackday');
 const User = require('../models/User');
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
-const jwt = require('jsonwebtoken')
-const ObjectId = require('mongoose').Types.ObjectId;
 const controllerUtils = require('./controllerUtils')
 
 /*
@@ -15,18 +13,22 @@ API will feature support for mark paid & payWithCredit which will auto deduct cr
 /*
     --------------------------------------------- TODO ---------------------------------------------
     code cleanup & review
-    move jwt.verify to top on ALL functions?
     email notifs (check in should have 12hr delay prompting user review)
     figure out if .exec is needed
-    add guests field for trackday registration
+    add guests field for trackday registration - update tests as necesarry
     editing guests & status field in trackday update
+    Payment handling logic - include tests (think about how to handle payments)
+    Add getRegNumbers to readme
+    new API feature to list array of trackday ID's and date [{id: xxx, date: xxx}] so front end can know what to display
+    email notif 12 hours later thanking user and requesting a review (for checkin)
+    add requirement for user to have at least 1 bike in garage to be eligible to register (? Maybe at a later date)
     --------------------------------------------- TODO ---------------------------------------------
 */
 
 // Returns a summary of number of people at a specified trackday in format {green: x, yellow: y, red: z, guests: g}
 // JS does not support function overloading, hence the 'INTERNAL' marking
 async function getRegNumbers_INTERNAL(trackdayID){
-    
+    // TODO: Can we use mongoose populate property to make this more efficient instead of double query? Other opportunities for this too
     const trackday = await Trackday.findById(trackdayID).exec();
     let green=0, yellow=0, red=0
     const guests=trackday.guests;
@@ -69,7 +71,6 @@ async function getRegNumbers_INTERNAL(trackdayID){
 }
 
 // Registers a user for a trackday. Requires JWT with matching userID OR admin.
-// TODO: Payment handling logic - include tests (think about how to handle payments)
 exports.register = [
     body("paymentMethod",  "PaymentMethod must be one of: [etransfer, credit, creditCard, gate]").trim().isIn(["etransfer", "credit", "creditCard", "gate"]).escape(),
 
@@ -112,7 +113,7 @@ exports.register = [
                 userID: req.params.userID,
                 paymentMethod: req.body.paymentMethod,
                 paid: false,
-                checkedIn: false
+                checkedIn: []
             })
             await trackday.save();
             return res.sendStatus(200);
@@ -221,11 +222,11 @@ exports.reschedule = [
 ]
 
 // Marks a user as checked in. Requires JWT with staff or admin.
-// TODO: SENDS EMAIL NOTIFICATION 12 hours later thanking user and requesting a review
 exports.checkin = [
     controllerUtils.verifyJWT,
     controllerUtils.validateUserID,
     controllerUtils.validateTrackdayID,
+    controllerUtils.validateBikeID,
     
     asyncHandler(async(req,res,next) => {
         if (req.user.memberType === 'admin' || req.user.memberType === 'staff'){
@@ -236,9 +237,9 @@ exports.checkin = [
             if (!memberEntry) return res.status(404).send({msg: 'Member is not registered for that trackday'});
 
             // Check that member is not already checked in
-            if(memberEntry.checkedIn) res.status(400).json({msg : 'member already checked in'})
+            if(memberEntry.checkedIn.length) res.status(400).json({msg : 'member already checked in'})
 
-            memberEntry.checkedIn = true;
+            memberEntry.checkedIn.push(req.params.bikeID);
             await trackday.save();
             return res.sendStatus(200);
         }
@@ -247,7 +248,6 @@ exports.checkin = [
     })
 ]
 
-// TODO: Add this to the readme
 // Returns a summary of number of people at a specified trackday in format {green: x, yellow: y, red: z, guests: g} PUBLIC.
 // NOTE: This is not tested since we test getRegNumbers_INTERNAL directly
 exports.getRegNumbers = asyncHandler(async(req,res,next) => {
@@ -314,7 +314,7 @@ exports.trackday_post = [
 ]
 
 // Updates a trackday. Requires JWT with admin.
-// TODO: Update to use save()
+// TODO: Update to use save() ?
 exports.trackday_put = [
 
     body("date",  "Date must be in YYYY-MM-DDThh:mmZ form where time is in UTC").isISO8601().isLength({ min: 17, max: 17}).escape(),
