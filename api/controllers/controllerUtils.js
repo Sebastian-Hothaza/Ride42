@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Trackday = require('../models/Trackday');
+const Bike = require('../models/Bike');
 const { body, validationResult } = require("express-validator");
 const ObjectId = require('mongoose').Types.ObjectId;
 const jwt = require('jsonwebtoken')
@@ -46,6 +47,15 @@ async function validateTrackdayID(req, res, next){
         if (!trackdayExists) return res.status(404).send({msg: 'Trackday does not exist'});
         next();
     }
+}
+
+// Called by middleware functions
+// Verify that the req.params.bikeID is a valid objectID and that it exists in our DB
+async function validateBikeID(req, res, next){
+    if (!ObjectId.isValid(req.params.bikeID)) return res.status(404).send({msg: 'bikeID is not a valid ObjectID'});
+    const bikeExists = await Bike.exists({_id: req.params.bikeID});
+    if (!bikeExists) return res.status(404).send({msg: 'Bike does not exist'});
+    next();
 }
 
 // Returns true if a given trackdayID is within lockout period. Returns false for days in the past
@@ -101,4 +111,4 @@ async function verifyJWT(req, res, next){
     next();
 }
 
-module.exports = { validateForm, validateUserID, validateTrackdayID, isInLockoutPeriod, hasTrackdayWithinLockout, verifyJWT }
+module.exports = { validateForm, validateUserID, validateTrackdayID, validateBikeID, isInLockoutPeriod, hasTrackdayWithinLockout, verifyJWT }

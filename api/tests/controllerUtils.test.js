@@ -165,6 +165,26 @@ describe('Testing validateTrackdayID', () => {
 	});
 })
 
+describe('Testing validateBikeID', () => {
+	// Define the route and server side handling of request
+	app.get('/testValidateBikeID/:bikeID', [
+		controllerUtils.validateBikeID,
+		(req,res,next)=>res.sendStatus(200)
+	]);
+
+	test("validateBikeID of invalid objectID bike", async () => {
+		await request(app)
+			.get("/testValidateBikeID/invalid")
+			.expect(404, { msg: 'bikeID is not a valid ObjectID' })
+	});
+
+	test("validateBikeID of invalid bikeID bike", async() => {
+		await request(app)
+			.get("/testValidateBikeID/6604aa217c21ab6eb042bc6a") // Some random but known valid objectID
+			.expect(404, { msg: 'Bike does not exist' })
+	});
+})
+
 describe('Testing isInLockoutPeriod', () => {
 	// Define the route and server side handling of request
 	app.get('/isInLockoutPeriod/:trackdayID', async (req,res,next) => {
