@@ -111,6 +111,42 @@ const userAdmin={
 	password: "Sebi1234"
 };
 
+const userStaff={ 
+	name_firstName: "Diana",
+	name_lastName: "Hothaza",
+	email: "dianahothaza@gmail.com",
+	phone: "2269881414",
+	address: "55 Coventtry Dr",
+	city: "Kitchener",
+	province: "Ontario",
+	EmergencyName_firstName: "Ligia",
+	EmergencyName_lastName: "Hothaza",
+	EmergencyPhone: "2269883609",
+	EmergencyRelationship: "Mother",
+	group: "green",
+	password: "Sebi1234"
+};
+
+const userStaff_update={ 
+
+	email: "dianahothaza@gmail.com",
+	phone: "2269881414",
+	address: "55 Coventtry Dr",
+	city: "Kitchener",
+	province: "Ontario",
+
+	EmergencyName_firstName: "Ligia",
+	EmergencyName_lastName: "Hothaza",
+	EmergencyPhone: "2269883609",
+	EmergencyRelationship: "Mother",
+
+	group: "green",
+
+	memberType: "staff"
+
+
+};
+
 async function addUser(userInfo){
 	const res = (userInfo.name_firstName==='Sebastian')?
 		 await request(app).post("/admin").type("form").send(userInfo).expect(201)
@@ -1136,18 +1172,115 @@ describe('Testing rescheduling', () => {
 })
 
 describe('Testing checkin', () => {
-	test.todo("invalid objectID trackday")
-	test.todo("invalid trackdayID trackday")
-	test.todo("invalid objectID user")
-	test.todo("invalid userID user")
+	test("invalid objectID trackday", async () => {
+		await request(app)
+			.post('/checkin/'+user1.body.id+'/invalid')
+			.set('Cookie', adminCookie)
+			.expect(404, {msg: 'trackdayID is not a valid ObjectID'})
+	});
+	test("invalid trackdayID trackday", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+		await request(app)
+			.post('/checkin/'+user1.body.id+'/1'+trackday.body.id.slice(1,trackday.body.id.length-1)+'1')
+			.set('Cookie', adminCookie)
+			.expect(404, {msg: 'Trackday does not exist'})
+	});
+	test("invalid objectID user", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+		await request(app)
+			.post('/checkin/'+'invalid/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.expect(404, {msg: 'userID is not a valid ObjectID'})
+	});
+	test("invalid userID user", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+		await request(app)
+			.post('/checkin/'+'1'+user1.body.id.slice(1,user1.body.id.length-1)+'1'+'/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.expect(404, {msg: 'User does not exist'})
+	});
 
-	test.todo("no JWT")
-	test.todo("not authorized")
-	test.todo("as admin")
+	test("no JWT", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+		await request(app)
+			.post('/checkin/'+user1.body.id+'/'+trackday.body.id)
+			.expect(401)
+	});
+	test("not authorized", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+		await request(app)
+			.post('/checkin/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.expect(403)
+	});
+			
+	test("as staff", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		// Create staff member
+		const staff = await addUser(userStaff);
+		await request(app)
+			.put('/users/'+staff.body.id)
+			.type('form').send(userStaff_update)
+			.set('Cookie', adminCookie)
+			.expect(201)
+		const staffLoginRes = await loginUser(userStaff);
+
+		// Register for trackday
+		await request(app)
+			.post('/register/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.type('form').send({paymentMethod: 'etransfer'})
+			.expect(200)
+
+		// Check in user
+		await request(app)
+			.post('/checkin/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', staffLoginRes.headers['set-cookie'])
+			.expect(200)
+	})
 
 
-	test.todo("already checked in")
-	test.todo("not registered for that day")
+	test("already checked in", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+		// Register for trackday
+		await request(app)
+			.post('/register/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.type('form').send({paymentMethod: 'etransfer'})
+			.expect(200)
 
-	test.todo("valid checkin")
+		await request(app)
+			.post('/checkin/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.expect(200)
+
+		await request(app)
+			.post('/checkin/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.expect(400, {msg : 'member already checked in'})
+	})
+
+	test("not registered for that day", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		await request(app)
+			.post('/checkin/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.expect(404, {msg: 'Member is not registered for that trackday'})
+	})
+
+	test("valid checkin", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+		// Register for trackday
+		await request(app)
+			.post('/register/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.type('form').send({paymentMethod: 'etransfer'})
+			.expect(200)
+		await request(app)
+			.post('/checkin/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.expect(200)
+	})
 })
