@@ -140,7 +140,7 @@ describe('Testing trackday create', () => {
 			.post("/trackdays")
 			.set('Cookie', userCookie)
 			.type("form").send({'date': formattedSampleDate})
-			.expect(401)
+			.expect(403)
 	});
 
 	test("add multiple trackdays to DB", async () => {
@@ -213,7 +213,7 @@ describe('Testing trackday read', () => {
 		await request(app)
 			.get('/trackdays/'+trackday.body.id)
 			.set('Cookie', userCookie)
-			.expect(401)
+			.expect(403)
 	});
 	test("get all trackdays from DB - no JWT", async () => {
 		await request(app)
@@ -225,7 +225,7 @@ describe('Testing trackday read', () => {
 		await request(app)
 			.get('/trackdays')
 			.set('Cookie', userCookie)
-			.expect(401)
+			.expect(403)
 	});
 
 	test("get specific trackday from DB", async () => {
@@ -354,7 +354,7 @@ describe('Testing trackday update', () => {
 			.put('/trackdays/'+trackday.body.id)
 			.set('Cookie', userCookie)
 			.type('form').send({date: formattedSampleDate, guests: 5, status: 'regClosed'})
-			.expect(401)
+			.expect(403)
 		// Check the updates were NOT successful
 		await request(app)
 			.get('/trackdays/'+trackday.body.id)
@@ -461,7 +461,7 @@ describe('Testing trackday delete', () => {
 		await request(app)
 			.delete('/trackdays/'+trackday.body.id)
 			.set('Cookie', userCookie)
-			.expect(401)
+			.expect(403)
 		await request(app)
 			.get('/trackdays/'+trackday.body.id)
 			.set('Cookie', adminCookie)
@@ -491,18 +491,86 @@ describe('Testing trackday delete', () => {
 
 
 
-//// TEMPLATE
-/*
-	test.todo("get invalid objectID trackday")
-	test.todo("get invalid trackdayID trackday")
+describe('Testing registering', () => {
+	test.todo("invalid objectID trackday")
+	test.todo("invalid trackdayID trackday")
+	test.todo("invalid objectID user")
+	test.todo("invalid userID user")
 
-	test.todo("add trackday to DB - missing fields")
-	test.todo("add trackday to DB - malformed fields")
+	test.todo("missing fields")
+	test.todo(" malformed fields")
 
-	test.todo("add trackday to DB - no JWT")
-	test.todo("add trackday to DB - not authorized")
+	test.todo("no JWT")
+	test.todo("not authorized")
+	test.todo("as admin")
 
-	test.todo("OTHER")
+	test.todo("duplicate registration")
 
-	test.todo("add trackday to DB")
-*/
+	test.todo("as user - within 7 day lockout")
+	test.todo("as user - old trackday past")
+	test.todo("as admin - within 7 day lockout")
+
+	test.todo("as user - over capacity")
+	test.todo("as admin - over capacity")
+	
+	
+	test.todo("valid registration")
+
+})
+
+describe('Testing un-registering', () => {
+	test.todo("invalid objectID trackday")
+	test.todo("invalid trackdayID trackday")
+	test.todo("invalid objectID user")
+	test.todo("invalid userID user")
+
+	test.todo("no JWT")
+	test.todo("not authorized")
+
+	test.todo("non-existant")
+
+	test.todo("as user - within 7 day lockout")
+	test.todo("as user - old trackday past")
+	test.todo("as admin - within 7 day lockout")	
+	
+	test.todo("valid un-registration")
+})
+
+describe('Testing rescheduling', () => {
+	test.todo("invalid objectID trackday")
+	test.todo("invalid trackdayID trackday")
+	test.todo("invalid objectID user")
+	test.todo("invalid userID user")
+
+	test.todo("no JWT")
+	test.todo("not authorized")
+	test.todo("as admin")
+
+	test.todo("duplicate registration")
+
+	test.todo("as user - within 7 day lockout")
+	test.todo("as user - old trackday past")
+	test.todo("as admin - within 7 day lockout")	
+
+	test.todo("as user - reschedule to over capacity")
+	test.todo("as admin - reschedule to over capacity")
+
+	test.todo("valid reschedule")
+})
+
+describe('Testing checkin', () => {
+	test.todo("invalid objectID trackday")
+	test.todo("invalid trackdayID trackday")
+	test.todo("invalid objectID user")
+	test.todo("invalid userID user")
+
+	test.todo("no JWT")
+	test.todo("not authorized")
+	test.todo("as admin")
+
+
+	test.todo("already checked in")
+	test.todo("not registered for that day")
+
+	test.todo("valid checkin")
+})
