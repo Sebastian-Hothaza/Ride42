@@ -228,13 +228,15 @@ exports.checkin = [
     controllerUtils.validateTrackdayID,
     
     asyncHandler(async(req,res,next) => {
-
         if (req.user.memberType === 'admin' || req.user.memberType === 'staff'){
             const trackday = await Trackday.findById(req.params.trackdayID).exec();
 
             // Check that the member we want to check in for trackday actually exists
             const memberEntry = trackday.members.find((member) => member.userID.equals(req.params.userID));
             if (!memberEntry) return res.status(404).send({msg: 'Member is not registered for that trackday'});
+
+            // Check that member is not already checked in
+            if(memberEntry.checkedIn) res.status(400).json({msg : 'member already checked in'})
 
             memberEntry.checkedIn = true;
             await trackday.save();
