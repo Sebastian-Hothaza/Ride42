@@ -15,27 +15,25 @@ API will feature support for mark paid & payWithCredit which will auto deduct cr
 /*
     --------------------------------------------- TODO ---------------------------------------------
     code cleanup & review
+    move jwt.verify to top on ALL functions?
+    email notifs (check in should have 12hr delay prompting user review)
     --------------------------------------------- TODO ---------------------------------------------
 */
 
 
 
 // Registers a user for a trackday. Requires JWT with matching userID OR admin.
-// TODO: Send email notif
-// TODO: 7-day cutoff restriction
 // TODO: Payment handling logic
-// TODO: Check registration capacity (25 per group?)
-// TODO: Prevent duplicate registration
 exports.register = [
     body("paymentMethod",  "PaymentMethod must be one of: [etransfer, credit, creditCard, gate]").trim().isIn(["etransfer", "credit", "creditCard", "gate"]).escape(),
 
+    controllerUtils.verifyJWT,
+    controllerUtils.validateForm,
     controllerUtils.validateUserID,
     controllerUtils.validateTrackdayID,
-    controllerUtils.validateForm,
-    controllerUtils.verifyJWT,
+    
 
     asyncHandler(async(req,res,next) => {
-
         if (req.user.memberType === 'admin' || (req.user.id === req.params.userID && 1)){
             // Add user to trackday
             const trackday = await Trackday.findById(req.params.trackdayID).exec();
@@ -48,17 +46,17 @@ exports.register = [
             await trackday.save();
             return res.sendStatus(200);
         }
-        return res.sendStatus(401)
+        return res.sendStatus(403)
         
     })
 ]
 
 // Removes a user from a trackday. Requires JWT with matching userID OR admin.
-// TODO: Check 7 day restriction + email
 exports.unregister = [
+    controllerUtils.verifyJWT,
     controllerUtils.validateUserID,
     controllerUtils.validateTrackdayID,
-    controllerUtils.verifyJWT,
+    
    
     asyncHandler(async(req,res,next) => {
 
@@ -74,18 +72,17 @@ exports.unregister = [
             await trackday.save();
             return res.sendStatus(200);
         }
-        return res.sendStatus(401)
+        return res.sendStatus(403)
        
     })
 ]
 
 // Reschedules a user. Requires JWT with matching userID OR admin.
-// TODO: Check 7 day restriction + email + capacity
 exports.reschedule = [
+    controllerUtils.verifyJWT,
     controllerUtils.validateUserID,
     controllerUtils.validateTrackdayID,
-    controllerUtils.verifyJWT,
-   
+    
     asyncHandler(async(req,res,next) => {
 
         if (req.user.memberType === 'admin' || (req.user.id === req.params.userID && 1)){
@@ -112,7 +109,7 @@ exports.reschedule = [
 
             return res.sendStatus(200);
         }
-        return res.sendStatus(401)
+        return res.sendStatus(403)
         
     })
 ]
@@ -120,9 +117,10 @@ exports.reschedule = [
 // Marks a user as checked in. Requires JWT with staff or admin.
 // TODO: SENDS EMAIL NOTIFICATION 12 hours later thanking user and requesting a review
 exports.checkin = [
-    controllerUtils.validateUserID,
     controllerUtils.verifyJWT,
-   
+    controllerUtils.validateUserID,
+    controllerUtils.validateTrackdayID,
+    
     asyncHandler(async(req,res,next) => {
 
         if (req.user.memberType === 'admin' || req.user.memberType === 'staff'){
@@ -136,7 +134,7 @@ exports.checkin = [
             await trackday.save();
             return res.sendStatus(200);
         }
-        return res.sendStatus(401)
+        return res.sendStatus(403)
        
     })
 ]
@@ -147,16 +145,15 @@ exports.checkin = [
 
 // Returns specific trackday. Requires JWT with admin.
 exports.trackday_get = [
-    controllerUtils.validateTrackdayID,
     controllerUtils.verifyJWT,
+    controllerUtils.validateTrackdayID,
+    
     asyncHandler(async(req,res,next) => {
-
-            if (req.user.memberType === 'admin'){
-                const trackday = await Trackday.findById(req.params.trackdayID).exec();
-                return res.status(200).json(trackday);
-            }
-            return res.sendStatus(401)
-        
+        if (req.user.memberType === 'admin'){
+            const trackday = await Trackday.findById(req.params.trackdayID).exec();
+            return res.status(200).json(trackday);
+        }
+        return res.sendStatus(403)
     })
 ]
 
@@ -168,7 +165,7 @@ exports.trackday_getALL = [
             const trackdays = await Trackday.find().exec();
             return res.status(200).json(trackdays);
         }
-        return res.sendStatus(401)
+        return res.sendStatus(403)
     })
 ]
 
@@ -176,10 +173,9 @@ exports.trackday_getALL = [
 // TODO: Revise validator to ensure data is received in correct format
 exports.trackday_post = [
     body("date",  "Date must be in YYYY-MM-DDThh:mmZ form where time is in UTC").isISO8601().isLength({ min: 17, max: 17}).escape(),
-    
-    controllerUtils.validateForm,
     controllerUtils.verifyJWT,
-
+    controllerUtils.validateForm,
+    
     asyncHandler(async (req,res,next) => {
         if (req.user.memberType === 'admin'){
             // Check if a trackday already exists with same date and time details
@@ -196,18 +192,9 @@ exports.trackday_post = [
             await trackday.save();
             return res.status(201).json({id: trackday.id});
         }
-        return res.sendStatus(401)
-    
+        return res.sendStatus(403)
     })
-
-    
 ]
-
-
-/*
-const duplicateUser = await User.findOne({'contact.email': {$eq: req.body.email}})
-if (duplicateUser && oldUser.contact.email !== req.body.email) return res.status(409).send({msg: 'User with this email already exists'});
-*/
 
 // Updates a trackday. Requires JWT with admin.
 // TODO: Update to use save()
@@ -217,9 +204,9 @@ exports.trackday_put = [
     body("guests",  "Guests must be numeric").trim().isNumeric().escape(),
     body("status",  "Status must be one of: [regOpen, regClosed, finished, cancelled]").trim().isIn(["regOpen", "regClosed", "finished", "cancelled"]).escape(),
 
+    controllerUtils.verifyJWT,
     controllerUtils.validateForm,
     controllerUtils.validateTrackdayID,
-    controllerUtils.verifyJWT,
 
     asyncHandler(async(req,res,next) => {
  
@@ -243,15 +230,15 @@ exports.trackday_put = [
             await Trackday.findByIdAndUpdate(req.params.trackdayID, trackday, {});
             return res.status(201).json({_id: trackday.id});
         }
-        return res.sendStatus(401)
-       
+        return res.sendStatus(403)
     })
 ]
 
 // Deletes a trackday. Requires JWT with admin.
 exports.trackday_delete = [
-    controllerUtils.validateTrackdayID,
     controllerUtils.verifyJWT,
+    controllerUtils.validateTrackdayID,
+    
 
     asyncHandler(async(req,res,next) => {
 
@@ -259,7 +246,7 @@ exports.trackday_delete = [
             await Trackday.findByIdAndDelete(req.params.trackdayID);
             return res.sendStatus(200);
         }
-        return res.sendStatus(401)
+        return res.sendStatus(403)
        
     })
 ]
