@@ -658,7 +658,7 @@ describe('Testing registering', () => {
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({paymentMethod: 'etransfer'})
-			.expect(401)
+			.expect(401, {msg: 'Cannot register for trackday <'+process.env.DAYS_LOCKOUT+' days away.'})
 	});
 	test("as user - old trackday past", async () => {
 		const trackday = await addTrackday(getFormattedDate(-3))
@@ -725,21 +725,147 @@ describe('Testing registering', () => {
 })
 
 describe('Testing un-registering', () => {
-	test.todo("invalid objectID trackday")
-	test.todo("invalid trackdayID trackday")
-	test.todo("invalid objectID user")
-	test.todo("invalid userID user")
+	test("invalid objectID trackday", async () => {
+		await request(app)
+			.delete('/register/'+user1.body.id+'/invalid')
+			.set('Cookie', adminCookie)
+			.expect(404, {msg: 'trackdayID is not a valid ObjectID'})
+	});
+	test("invalid trackdayID trackday", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+		await request(app)
+			.delete('/register/'+user1.body.id+'/1'+trackday.body.id.slice(1,trackday.body.id.length-1)+'1')
+			.set('Cookie', adminCookie)
+			.expect(404, {msg: 'Trackday does not exist'})
+	});
+	test("invalid objectID user", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+		await request(app)
+			.delete('/register/'+'invalid/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.expect(404, {msg: 'userID is not a valid ObjectID'})
+	});
+	test("invalid userID user", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+		await request(app)
+			.delete('/register/'+'1'+user1.body.id.slice(1,user1.body.id.length-1)+'1'+'/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.expect(404, {msg: 'User does not exist'})
+	});
 
-	test.todo("no JWT")
-	test.todo("not authorized")
+	test("no JWT", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
 
-	test.todo("non-existant")
+		await request(app)
+			.delete('/register/'+user1.body.id+'/'+trackday.body.id)
+			.expect(401)
+	});
+	test("not authorized", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
 
-	test.todo("as user - within 7 day lockout")
-	test.todo("as user - old trackday past")
-	test.todo("as admin - within 7 day lockout")	
+		// Register for trackday
+		await request(app)
+			.post('/register/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', user1Cookie) // Have to add user as admin
+			.type('form').send({paymentMethod: 'etransfer'})
+			.expect(200)
+
+		await request(app)
+			.delete('/register/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', user2Cookie)
+			.expect(403)
+
+	});
+
+	test("non-existant registration", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		await request(app)
+			.delete('/register/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.expect(400, {msg: 'Cannot unregister; member is not registered for that trackday'})
+	});
+
+	test("as user - within 7 day lockout", async () => {
+		const trackday = await addTrackday(getFormattedDate(3))
+		// Register for trackday
+		await request(app)
+			.post('/register/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', adminCookie) // Have to add user as admin
+			.type('form').send({paymentMethod: 'etransfer'})
+			.expect(200)
+
+		
+		await request(app)
+			.delete('/register/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.expect(401, {msg: 'Cannot unregister for trackday <'+process.env.DAYS_LOCKOUT+' days away.'})
+	});
 	
-	test.todo("valid un-registration")
+	test("as user - old trackday past", async () => {
+		const trackday = await addTrackday(getFormattedDate(-5))
+
+		// Register for trackday
+		await request(app)
+			.post('/register/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.type('form').send({paymentMethod: 'etransfer'})
+			.expect(200)
+
+		
+		await request(app)
+			.delete('/register/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.expect(200)
+	});
+	test("as admin - within 7 day lockout", async () => {
+		const trackday = await addTrackday(getFormattedDate(3))
+
+		// Register for trackday
+		await request(app)
+			.post('/register/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.type('form').send({paymentMethod: 'etransfer'})
+			.expect(200)
+
+		
+		await request(app)
+			.delete('/register/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.expect(200)
+	});
+	test("with credit - within 7 day lockout", async () => {
+		const trackday = await addTrackday(getFormattedDate(3))
+
+		// Register for trackday
+		await request(app)
+			.post('/register/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.type('form').send({paymentMethod: 'credit'})
+			.expect(200)
+
+		
+		await request(app)
+			.delete('/register/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.expect(200)
+	});
+	
+	test("valid un-registration", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+		// Register for trackday
+		await request(app)
+			.post('/register/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.type('form').send({paymentMethod: 'etransfer'})
+			.expect(200)
+
+		
+		await request(app)
+			.delete('/register/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.expect(200)
+	});
 })
 
 describe('Testing rescheduling', () => {
