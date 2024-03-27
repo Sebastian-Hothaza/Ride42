@@ -92,6 +92,18 @@ exports.register = [
                 return res.status(401).send({msg: 'Cannot change group when registered for trackday <'+process.env.DAYS_LOCKOUT+' days away.'})
             }
 
+            // Check if trackday is full
+            if (req.user.memberType !== 'admin'){
+                const curRegistrationNums = await getRegNumbers_INTERNAL(req.params.trackdayID)
+                const user = await User.findById(req.params.userID)
+                if ( (user.group == 'green' && curRegistrationNums.green === parseInt(process.env.GROUP_CAPACITY)) ||
+                     (user.group == 'yellow' && curRegistrationNums.yellow === parseInt(process.env.GROUP_CAPACITY)) ||
+                     (user.group == 'red' && curRegistrationNums.red === parseInt(process.env.GROUP_CAPACITY)) ){
+                    return res.status(401).send({msg: 'trackday has reached capacity'})
+                } 
+            }
+
+
             // Add user to trackday
             trackday.members.push({
                 userID: req.params.userID,
