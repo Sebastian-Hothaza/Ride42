@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Trackday = require('../models/Trackday');
+const Bike = require('../models/Bike');
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const bcrypt = require('bcryptjs')
@@ -80,17 +81,20 @@ exports.getTrackdays = [
     })
 ]
 
-// Returns true if the user is checked in for a given trackday. PUBLIC.
+// Returns true if the user/bike is checked in for a given trackday. PUBLIC.
 exports.verify = [
     controllerUtils.validateUserID,
     controllerUtils.validateTrackdayID,
+    controllerUtils.validateBikeID,
 
     asyncHandler(async (req,res,next) => {
         const trackday = await Trackday.findById(req.params.trackdayID).exec();
 
         // Check that the member we want to verify for a trackday actually exists in the trackday
         const memberEntry = trackday.members.find((member) => member.userID.equals(req.params.userID));
-        memberEntry && memberEntry.checkedIn? res.status(200).json({'verified' : 'true'}) : res.status(200).json({'verified' : 'false'})
+        
+
+        memberEntry && memberEntry.checkedIn.includes(req.params.bikeID)? res.status(200).json({'verified' : 'true'}) : res.status(200).json({'verified' : 'false'})
     })
 ]
 
@@ -105,19 +109,25 @@ exports.garage_post = [
     controllerUtils.validateUserID,
     
     asyncHandler(async(req,res,next) => {
-        // Check if a bike already exists with the same details in the users garage
-        const duplicateBike = await User.find({$and: [  {garage: {$elemMatch: { year: {$eq: req.body.year}}}},
-                                                        {garage: {$elemMatch: { make: {$eq: req.body.make}}}},
-                                                        {garage: {$elemMatch: { model: {$eq: req.body.model}}}} ]})
-        if (duplicateBike.length) return res.status(409).send({msg: 'Bike with these details already exists'});
-
-        // JWT is valid. Verify user is allowed to add bikes
         if (req.user.memberType === 'admin' || req.user.id === req.params.userID){
             const user = await User.findById(req.params.userID).exec();
-            const bike = {year: req.body.year, make: req.body.make, model: req.body.model};
-            user.garage.push(bike);
+            let bike;
+
+            // Check if bike exists in the DB. If it does not, add it.
+            bike = await Bike.findOne({year: {$eq: req.body.year}, make: {$eq: req.body.make}, model: {$eq: req.body.model}})
+            if (!bike){
+                bike = new Bike({year: req.body.year, make: req.body.make, model: req.body.model});
+                await bike.save()
+            }
+            
+            // Check if user already has this bike in their garage
+            for (let i=0; i<user.garage.length; i++){
+                if (bike.id == user.garage[i].id) return res.status(409).send({msg: 'Bike with these details already exists'});
+            }
+           
+            user.garage.push(bike._id);
             await user.save();
-            return res.sendStatus(201);
+            return res.status(201).json({id: bike.id});;
         }
         return res.sendStatus(403)
     })
@@ -125,22 +135,16 @@ exports.garage_post = [
 
 // Removes a bike from a users garage. Requires JWT with matching userID OR admin. 
 exports.garage_delete = [
-    body("year",  "Year must contain 4 digits").trim().isNumeric().isLength({ min: 4, max: 4}).escape(),
-    body("make",  "Make must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
-    body("model", "Model must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
 
     controllerUtils.verifyJWT,
-    controllerUtils.validateForm,
     controllerUtils.validateUserID,
+    controllerUtils.validateBikeID,
 
     asyncHandler(async (req,res,next) => {
-        // JWT is valid. Verify user is allowed to delete bikes
         if (req.user.memberType === 'admin' || req.user.id === req.params.userID){
             const user = await User.findById(req.params.userID).select('garage').exec();
             const numBikesOriginally = user.garage.length;
-            user.garage = user.garage.filter((bike)=>(bike.year !== req.body.year &&
-                                                      bike.make !== req.body.make &&
-                                                      bike.model !== req.body.model))
+            user.garage = user.garage.filter((bikeID)=>(bikeID.id != req.params.bikeID))
             await user.save()
             return (numBikesOriginally>user.garage.length)? res.sendStatus(200) : res.sendStatus(404)
         }
