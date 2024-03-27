@@ -48,7 +48,7 @@ async function validateTrackdayID(req, res, next){
     }
 }
 
-// Returns true if a given trackdayID is within lockout period
+// Returns true if a given trackdayID is within lockout period. Returns false for days in the past
 async function isInLockoutPeriod(trackdayID){
     const trackday = await Trackday.findById(trackdayID);
     const timeLockout = process.env.DAYS_LOCKOUT*(1000*60*60*24); // If we are under this, then we are in the lockout period
