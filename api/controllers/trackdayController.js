@@ -92,6 +92,9 @@ exports.register = [
                 return res.status(401).send({msg: 'Cannot register for trackday <'+process.env.DAYS_LOCKOUT+' days away.'})
             }
 
+            // Check if trackday is in the past (if time difference is negative)
+            if (req.user.memberType !== 'admin' && trackday.date.getTime() - Date.now() < 0 ) return res.status(400).send({msg: 'Cannot register for trackday in the past'})
+
             // Check if trackday is full
             if (req.user.memberType !== 'admin'){
                 const curRegistrationNums = await getRegNumbers_INTERNAL(req.params.trackdayID)
@@ -145,6 +148,9 @@ exports.unregister = [
             const memberExists = trackday.members.some((member) => member.userID.equals(req.params.userID))
             if (!memberExists) return res.status(404).send({msg: 'Member is not registered for that trackday'});
 
+            // Check if trackday is in the past (if time difference is negative)
+            if (req.user.memberType !== 'admin' && trackday.date.getTime() - Date.now() < 0 ) return res.status(400).send({msg: 'Cannot un-register for trackday in the past'})
+
             trackday.members = trackday.members.filter((member)=> !member.userID.equals(req.params.userID)) 
             await trackday.save();
             return res.sendStatus(200);
@@ -165,18 +171,41 @@ exports.reschedule = [
         if (req.user.memberType === 'admin' || (req.user.id === req.params.userID && 1)){
             const trackdayOLD = await Trackday.findById(req.params.trackdayID_OLD).exec();
             const trackdayNEW = await Trackday.findById(req.params.trackdayID_NEW).exec();
+
             
             // Check that the member we want to reschedule is registered in old trackday
-            const memberEntry = trackdayOLD.members.find((member) => member.userID.equals(req.params.userID));
-            if (!memberEntry) return res.status(404).send({msg: 'Member is not registered for that trackday'});
+            const memberEntryOLD = trackdayOLD.members.find((member) => member.userID.equals(req.params.userID));
+            if (!memberEntryOLD) return res.status(404).send({msg: 'Member is not registered for that trackday'});
 
+            // Check if user is already registered for trackday they want to reschedule to
+            const memberEntryNEW = trackdayNEW.members.find((member) => member.userID.equals(req.params.userID));
+            if (memberEntryNEW) return res.status(409).send({msg: 'Member is already scheduled for trackday you want to reschedule to'})
+
+            // If user attempt to reschdule for trackday < lockout period(7 default) away, deny reschedule
+            if (memberEntryOLD.paymentMethod !== 'credit' && req.user.memberType !== 'admin' && await controllerUtils.isInLockoutPeriod(req.params.trackdayID_NEW)){
+                return res.status(401).send({msg: 'Cannot reschedule to a trackday <'+process.env.DAYS_LOCKOUT+' days away.'})
+            }
+
+            // Check if trackday is in the past (if time difference is negative)
+            if (req.user.memberType !== 'admin' && trackdayNEW.date.getTime() - Date.now() < 0 ) return res.status(400).send({msg: 'Cannot register for trackday in the past'})
+
+            // Check if trackday is full
+            if (req.user.memberType !== 'admin'){
+                const curRegistrationNums = await getRegNumbers_INTERNAL(req.params.trackdayID_NEW)
+                const user = await User.findById(req.params.userID)
+                if ( (user.group == 'green' && curRegistrationNums.green === parseInt(process.env.GROUP_CAPACITY)) ||
+                     (user.group == 'yellow' && curRegistrationNums.yellow === parseInt(process.env.GROUP_CAPACITY)) ||
+                     (user.group == 'red' && curRegistrationNums.red === parseInt(process.env.GROUP_CAPACITY)) ){
+                    return res.status(401).send({msg: 'trackday has reached capacity'})
+                } 
+            }
 
             // Add user to new trackday
             trackdayNEW.members.push({
-                userID: memberEntry.userID,
-                paymentMethod: memberEntry.paymentMethod,
-                paid: memberEntry.paid,
-                checkedIn: memberEntry.checkedIn
+                userID: memberEntryOLD.userID,
+                paymentMethod: memberEntryOLD.paymentMethod,
+                paid: memberEntryOLD.paid,
+                checkedIn: memberEntryOLD.checkedIn
             })
             await trackdayNEW.save();
 
