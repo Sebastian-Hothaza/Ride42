@@ -6,6 +6,7 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const controllerUtils = require('./controllerUtils')
 
+
 /*
     --------------------------------------------- TODO ---------------------------------------------
     code cleanup & review
@@ -47,9 +48,9 @@ exports.login = [
 // Updates a users password. Requires JWT with matching userID OR admin
 exports.updatePassword = [
     body("password", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().isLength({ min: 8, max: 50}).matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
+    controllerUtils.verifyJWT,
     controllerUtils.validateForm,
     controllerUtils.validateUserID,
-    controllerUtils.verifyJWT,
 
     asyncHandler(async (req,res,next) => {
         // JWT is valid. Verify user is allowed to update password
@@ -99,10 +100,10 @@ exports.garage_post = [
     body("make",  "Make must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
     body("model", "Model must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
 
+    controllerUtils.verifyJWT,
     controllerUtils.validateForm,
     controllerUtils.validateUserID,
-    controllerUtils.verifyJWT,
-
+    
     asyncHandler(async(req,res,next) => {
         // Check if a bike already exists with the same details in the users garage
         const duplicateBike = await User.find({$and: [  {garage: {$elemMatch: { year: {$eq: req.body.year}}}},
@@ -128,9 +129,9 @@ exports.garage_delete = [
     body("make",  "Make must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
     body("model", "Model must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
 
+    controllerUtils.verifyJWT,
     controllerUtils.validateForm,
     controllerUtils.validateUserID,
-    controllerUtils.verifyJWT,
 
     asyncHandler(async (req,res,next) => {
         // JWT is valid. Verify user is allowed to add bikes
@@ -153,8 +154,8 @@ exports.garage_delete = [
 //////////////////////////////////////
 // Get a single user. Requires JWT with matching userID OR admin
 exports.user_get = [
-    controllerUtils.validateUserID,
     controllerUtils.verifyJWT,
+    controllerUtils.validateUserID,
 
     asyncHandler(async(req,res,next) => {
         // JWT is valid. Verify user is allowed to access this resource and return the information
@@ -247,10 +248,10 @@ exports.user_put = [
 
     body("group", "Group must be either green, yellow or red").trim().isIn(['green', 'yellow', 'red']).escape(),
 
+    controllerUtils.verifyJWT,
     controllerUtils.validateForm,
     controllerUtils.validateUserID,
-    controllerUtils.verifyJWT,
-
+    
     asyncHandler(async (req,res,next) => {
         // JWT is valid. Verify user is allowed to access this resource and update the object
         // If user attempts to tamper with unauthorized fields, return 403
@@ -291,8 +292,9 @@ exports.user_put = [
 
 // Deletes a user. Requires JWT with admin.
 exports.user_delete = [
-    controllerUtils.validateUserID,
     controllerUtils.verifyJWT,
+    controllerUtils.validateUserID,
+    
 
     asyncHandler(async(req,res,next) => {
         // JWT is valid. Verify user is allowed to access this resource and delete the user
