@@ -17,13 +17,59 @@ API will feature support for mark paid & payWithCredit which will auto deduct cr
     code cleanup & review
     move jwt.verify to top on ALL functions?
     email notifs (check in should have 12hr delay prompting user review)
+    figure out if .exec is needed
+    add guests field for trackday registration
+    editing guests & status field in trackday update
     --------------------------------------------- TODO ---------------------------------------------
 */
 
+// Returns a summary of number of people at a specified trackday in format {green: x, yellow: y, red: z, guests: g}
+// JS does not support function overloading, hence the 'INTERNAL' marking
+async function getRegNumbers_INTERNAL(trackdayID){
+    
+    const trackday = await Trackday.findById(trackdayID).exec();
+    let green=0, yellow=0, red=0
+    const guests=trackday.guests;
 
+
+    // Check the members array first
+    for (let i=0; i<trackday.members.length; i++){
+        const user = await User.findById(trackday.members[i].userID)
+        // Increment group summary
+        switch(user.group){
+            case 'green':
+                green++
+                break;
+            case 'yellow':
+                yellow++
+                break;
+            case 'red':
+                red++
+                break;
+        }
+    }
+
+    // Check the walkons
+    for (let i=0; i<trackday.walkons.length; i++){
+        // Increment group summary
+        switch(trackday.walkons[i].group){
+            case 'green':
+                green++
+                break;
+            case 'yellow':
+                yellow++
+                break;
+            case 'red':
+                red++
+                break;
+        }
+    }
+
+    return {green, yellow, red, guests}
+}
 
 // Registers a user for a trackday. Requires JWT with matching userID OR admin.
-// TODO: Payment handling logic
+// TODO: Payment handling logic - include tests (think about how to handle payments)
 exports.register = [
     body("paymentMethod",  "PaymentMethod must be one of: [etransfer, credit, creditCard, gate]").trim().isIn(["etransfer", "credit", "creditCard", "gate"]).escape(),
 
@@ -35,8 +81,18 @@ exports.register = [
 
     asyncHandler(async(req,res,next) => {
         if (req.user.memberType === 'admin' || (req.user.id === req.params.userID && 1)){
-            // Add user to trackday
             const trackday = await Trackday.findById(req.params.trackdayID).exec();
+
+            // Check if user is already registered to trackday
+            const memberEntry = trackday.members.find((member) => member.userID.equals(req.params.userID));
+            if (memberEntry) return res.sendStatus(409)
+
+            // If user attempt to register for trackday < lockout period(7 default) away, deny registration
+            if (req.body.paymentMethod !== 'credit' && req.user.memberType !== 'admin' && await controllerUtils.isInLockoutPeriod(req.params.trackdayID)){
+                return res.status(401).send({msg: 'Cannot change group when registered for trackday <'+process.env.DAYS_LOCKOUT+' days away.'})
+            }
+
+            // Add user to trackday
             trackday.members.push({
                 userID: req.params.userID,
                 paymentMethod: req.body.paymentMethod,
@@ -138,6 +194,15 @@ exports.checkin = [
        
     })
 ]
+
+// TODO: Add this to the readme
+// Returns a summary of number of people at a specified trackday in format {green: x, yellow: y, red: z, guests: g} PUBLIC.
+// NOTE: This is not tested since we test getRegNumbers_INTERNAL directly
+exports.getRegNumbers = asyncHandler(async(req,res,next) => {
+    return res.send(await getRegNumbers_INTERNAL(req.params.trackdayID))
+})
+
+
 
 //////////////////////////////////////
 //              CRUD

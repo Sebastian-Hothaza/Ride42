@@ -27,6 +27,8 @@ router.post('/register/:userID/:trackdayID', trackdayController.register)
 router.delete('/register/:userID/:trackdayID', trackdayController.unregister)
 router.put('/register/:userID/:trackdayID_OLD/:trackdayID_NEW', trackdayController.reschedule) 
 router.post('/checkin/:userID/:trackdayID', trackdayController.checkin)
+router.get('/registrationNums/:trackdayID', trackdayController.getRegNumbers)
+
 
 router.get('/trackdays/:trackdayID', trackdayController.trackday_get)
 router.get('/trackdays', trackdayController.trackday_getALL)
