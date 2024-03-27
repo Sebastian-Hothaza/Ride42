@@ -134,7 +134,7 @@ exports.garage_delete = [
     controllerUtils.validateUserID,
 
     asyncHandler(async (req,res,next) => {
-        // JWT is valid. Verify user is allowed to add bikes
+        // JWT is valid. Verify user is allowed to delete bikes
         if (req.user.memberType === 'admin' || req.user.id === req.params.userID){
             const user = await User.findById(req.params.userID).select('garage').exec();
             const numBikesOriginally = user.garage.length;
