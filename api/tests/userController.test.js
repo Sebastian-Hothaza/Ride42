@@ -521,7 +521,7 @@ describe('Testing user update', () => {
 		await request(app)
 			.post('/register/'+user.body.id+'/'+trackday.body.id)
 			.type('form').send({paymentMethod: 'credit'})
-			.set('Cookie', loginResUser.headers['set-cookie'])
+			.set('Cookie', loginResAdmin.headers['set-cookie'])
 			.expect(200)
 
 		// Update user
