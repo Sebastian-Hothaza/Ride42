@@ -165,6 +165,49 @@ describe('Testing validateTrackdayID', () => {
 	});
 })
 
+describe('Testing isInLockoutPeriod', () => {
+	// Define the route and server side handling of request
+	app.get('/isInLockoutPeriod/:trackdayID', async (req,res,next) => {
+		const result = await controllerUtils.isInLockoutPeriod(req.params.trackdayID)
+		return (result)? res.send('true'):res.send('false') // TODO: just send the result directly
+	});
+	
+	test("trackday within 7 days", async() => {
+		const admin = await addUser(userAdmin, 201);
+		const loginResAdmin = await loginUser(userAdmin, 200);
+
+		const trackday = await addTrackday(getFormattedDate(3), loginResAdmin.headers['set-cookie']) 
+
+		// Check trackday
+		await request(app)
+			.get('/isInLockoutPeriod/'+trackday.body.id)
+			.expect(200, 'true')
+	});
+
+	test("trackday outside 7 days", async() => {
+		const admin = await addUser(userAdmin, 201);
+		const loginResAdmin = await loginUser(userAdmin, 200);
+
+		const trackday = await addTrackday(getFormattedDate(10), loginResAdmin.headers['set-cookie']) 
+		// Check trackday
+		await request(app)
+			.get('/isInLockoutPeriod/'+trackday.body.id)
+			.expect(200, 'false')
+	});
+
+	test("trackday in the past", async() => {
+		const admin = await addUser(userAdmin, 201);
+		const loginResAdmin = await loginUser(userAdmin, 200);
+
+		const trackday = await addTrackday(getFormattedDate(-3), loginResAdmin.headers['set-cookie']) 
+
+		// Check trackday
+		await request(app)
+			.get('/isInLockoutPeriod/'+trackday.body.id)
+			.expect(200, 'false')
+	});
+})
+
 describe('Testing hasTrackdayWithinLockout', () => {
 	// Define the route and server side handling of request
 	app.get('/hasTrackdayWithinLockout/:userID', async (req,res,next) => {

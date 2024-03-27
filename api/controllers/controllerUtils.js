@@ -48,15 +48,22 @@ async function validateTrackdayID(req, res, next){
     }
 }
 
+// Returns true if a given trackdayID is within lockout period
+async function isInLockoutPeriod(trackdayID){
+    const trackday = await Trackday.findById(trackdayID);
+    const timeLockout = process.env.DAYS_LOCKOUT*(1000*60*60*24); // If we are under this, then we are in the lockout period
+    const timeDifference = trackday.date.getTime() - Date.now()
+    if (timeDifference > 0 && timeDifference < timeLockout) return true;
+    return false;
+}
+
 // Returns true if user is registered for a trackday within the lockout period (7 days default)
 async function hasTrackdayWithinLockout(user){
     const allTrackdays = await Trackday.find({members: {$elemMatch: { userID: {$eq: user}}}} ).exec(); // Trackdays that user is a part of
-    const timeLockout = process.env.DAYS_LOCKOUT*(1000*60*60*24); // If we are under this, then we are in the lockout period
     
     // Check each trackday user is registered for to see if any of them are within lockout period
     for (let i=0; i<allTrackdays.length; i++){
-        const timeDifference = allTrackdays[i].date.getTime() - Date.now()
-        if (timeDifference > 0 && timeDifference < timeLockout) return true;
+        if (await isInLockoutPeriod(allTrackdays[i].id)) return true;
     }
     return false;
 }
@@ -94,4 +101,4 @@ async function verifyJWT(req, res, next){
     next();
 }
 
-module.exports = { validateForm, validateUserID, validateTrackdayID, hasTrackdayWithinLockout, verifyJWT }
+module.exports = { validateForm, validateUserID, validateTrackdayID, isInLockoutPeriod, hasTrackdayWithinLockout, verifyJWT }
