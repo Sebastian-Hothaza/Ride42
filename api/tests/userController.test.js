@@ -165,6 +165,7 @@ function getFormattedDate(offsetDays){
 //              TESTS
 //////////////////////////////////////
 
+// Testing user read > get invalid objectID user CAUSING LEAK
 
 
 describe('Testing user create', () => {
@@ -199,18 +200,26 @@ describe('Testing user create', () => {
 })
 
 describe('Testing user read', () => {
-	test("get invalid objectID user", done => {
-		request(app)
-			.get("/users/invalid")
-			.expect(404, { msg: 'userID is not a valid ObjectID' }, done)
+
+	test("get invalid objectID user", async () => {
+		const user = await addUser(user1, 201)
+		const loginRes = await loginUser(user1, 200)
+			
+		await request(app)
+			.get('/users/invalid')
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(404, { msg: 'userID is not a valid ObjectID' }) 
 	});
 
+
+
 	test("get invalid userID user", async() => {
-		const user = await addUser(user1, 201);
-		await loginUser(user1, 200);
+		const user = await addUser(user2, 201)
+		const loginRes = await loginUser(user2, 200)
 			
 		await request(app)
 			.get('/users/'+'1'+user.body.id.slice(1,user.body.id.length-1)+'1')
+			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: 'User does not exist' }) 
 	});
 
@@ -283,14 +292,19 @@ describe('Testing user read', () => {
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(403)
 	});
+	
 })
 
 describe('Testing user update', () => {
 
 	test("Update invalid objectID user", async() => {
+		const user = await addUser(user1, 201)
+		const loginRes = await loginUser(user1, 200)
+		
 		await request(app)
 			.put("/users/invalid")
 			.type("form").send(user1) // We are "over-sending" form params here; but its fine for sake of this test
+			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: 'userID is not a valid ObjectID' })
 	});
 
@@ -301,24 +315,29 @@ describe('Testing user update', () => {
 		await request(app)
 			.put('/users/'+'1'+user.body.id.slice(1,user.body.id.length-1)+'1')
 			.type("form").send(user1) // We are "over-sending" form params here; but its fine for sake of this test
+			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: 'User does not exist' }) 
 	});
 
 	test("Update specific user - missing fields", async() => {
-		const user = await addUser(user1, 201);
+		const user = await addUser(user1, 201)
+		const loginRes = await loginUser(user1, 200)
+
 		await loginUser(user1, 200)
 		await request(app)
 			.put('/users/'+user.body.id)
 			.type('form').send(user1_missingFields)
+			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(400)
 	})
 
 	test("Update specific user - malformed fields", async() => {
-		const user = await addUser(user1, 201);
-		await loginUser(user1, 200)
+		const user = await addUser(user1, 201)
+		const loginRes = await loginUser(user1, 200)
 		await request(app)
 			.put('/users/'+user.body.id)
 			.type('form').send(user1_malformed)
+			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(400)
 	})
 
@@ -722,16 +741,21 @@ describe('Testing user update', () => {
 
 describe('Testing user delete', () => {
 	test("Delete invalid objectID user", async() => {
+		const user = await addUser(user1, 201)
+		const loginRes = await loginUser(user1, 200)
 		await request(app)
 			.delete("/users/invalid")
+			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: 'userID is not a valid ObjectID' })
 	});
 
 	test("Delete invalid userID user", async() => {
 		const user = await addUser(user1, 201)
+		const loginRes = await loginUser(user1, 200)
 			
 		await request(app)
 			.delete('/users/'+'1'+user.body.id.slice(1,user.body.id.length-1)+'1')
+			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: 'User does not exist' }) 
 	});
 
@@ -767,6 +791,8 @@ describe('Testing user delete', () => {
 			.expect(404) 
 	});
 })
+
+
 
 
 
@@ -807,36 +833,45 @@ describe('Testing user login', () => {
 
 describe('Testing password update', () => {
 	test("update password - invalid objectID user", async() => {
+		const user = await addUser(user1, 201)
+		const loginRes = await loginUser(user1, 200)
 		await request(app)
 			.put("/password/invalid")
 			.type("form").send({password: 'ValidPassword1'})
+			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: 'userID is not a valid ObjectID' })
 	});
 
 	test("update password - invalid userID user", async() => {
 		const user = await addUser(user1, 201)
+		const loginRes = await loginUser(user1, 200)
 			
 		await request(app)
 			.put('/password/'+'1'+user.body.id.slice(1,user.body.id.length-1)+'1')
 			.type("form").send({password: 'ValidPassword1'})
+			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: 'User does not exist' }) 
 	});
 
 	test("update password - missing fields", async() => {
 		const user = await addUser(user1, 201)
+		const loginRes = await loginUser(user1, 200)
 		await request(app)
 			.put("/password/"+user.body.id)
 			.type("form")
 			.send({field: 'param'})
+			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(400);
 	});
 
 	test("update password - malformed fields", async() => {
 		const user = await addUser(user1, 201)
+		const loginRes = await loginUser(user1, 200)
 		await request(app)
 			.put("/password/"+user.body.id)
 			.type("form")
 			.send({ password: 'noNumbers'})
+			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(400);
 	});
 	
@@ -1058,20 +1093,25 @@ describe('Testing verify', () => {
 
 describe('Testing adding bikes to a user garage', () => {
 	test("add bike to garage - invalid objectID user", async() => {
+		const user = await addUser(user1, 201)
+		const loginRes = await loginUser(user1, 200)
 		await request(app)
 			.post("/garage/invalid")
 			.type("form")
 			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: 'userID is not a valid ObjectID' })
 	});
 
 	test("add bike to garage - invalid userID user", async() => {
-		const user = await addUser(user1, 201);
+		const user = await addUser(user1, 201)
+		const loginRes = await loginUser(user1, 200)
 			
 		await request(app)
 			.post('/garage/'+'1'+user.body.id.slice(1,user.body.id.length-1)+'1')
 			.type("form")
 			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: 'User does not exist' }) 
 	});
 
@@ -1087,12 +1127,14 @@ describe('Testing adding bikes to a user garage', () => {
 	});
 
 	test("add bike to garage - malformed fields", async() => {
-		const user = await addUser(user1, 201);
+		const user = await addUser(user1, 201)
+		const loginRes = await loginUser(user1, 200)
 		
 		await request(app)
 		.post("/garage/"+user.body.id)
 			.type("form")
 			.send({year: '20091', make: 'Yamaha', model: "R6"})
+			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(400);
 	});
 
@@ -1186,25 +1228,30 @@ describe('Testing adding bikes to a user garage', () => {
 
 describe('Delete bikes from a user garage', () => {
 	test("remove bike from garage - invalid objectID user", async() => {
+		const user = await addUser(user1, 201)
+		const loginRes = await loginUser(user1, 200)
 		await request(app)
 			.delete("/garage/invalid")
 			.type("form")
 			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: 'userID is not a valid ObjectID' })
 	});
 
 	test("remove bike from garage - invalid userID user", async() => {
-		const user = await addUser(user1, 201);
+		const user = await addUser(user1, 201)
+		const loginRes = await loginUser(user1, 200)
 
 		await request(app)
 			.delete('/garage/'+'1'+user.body.id.slice(1,user.body.id.length-1)+'1')
 			.type("form")
 			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: 'User does not exist' }) 
 	});
 
 	test("remove bike from garage - missing fields", async() => {
-		const user = await addUser(user1, 201);
+		const user = await addUser(user1, 201)
 		const loginRes = await loginUser(user1, 200)
 		await request(app)
 			.delete("/garage/"+user.body.id)
@@ -1215,12 +1262,14 @@ describe('Delete bikes from a user garage', () => {
 	});
 
 	test("remove bike from garage - malformed fields", async() => {
-		const user = await addUser(user1, 201);
-		
+		const user = await addUser(user1, 201)
+		const loginRes = await loginUser(user1, 200)
+
 		await request(app)
 			.delete("/garage/"+user.body.id)
 			.type("form")
 			.send({year: '20091', make: 'Yamaha', model: "R6"})
+			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(400);
 	});
 
