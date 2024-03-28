@@ -1,5 +1,7 @@
 const nodemailer = require("nodemailer");
 
+// Usage example: if (process.env.NODE_ENV === 'production') await sendEmail("JohnDoe@gmail.com", "Hello from NodeMailer", mailTemplates.helloWorld)
+
 // Configure email sender info
 const transporter = nodemailer.createTransport({
   host: process.env.ADMIN_EMAIL_HOST,
@@ -10,7 +12,7 @@ const transporter = nodemailer.createTransport({
 	pass: process.env.ADMIN_EMAIL_PASSWORD,
   },
 });
-
+// Attempt to send the email
 async function main(recipient,subject,htmlBody){
     try{
         await transporter.sendMail({
