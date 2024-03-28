@@ -13,7 +13,7 @@ API will feature support for mark paid & payWithCredit which will auto deduct cr
 /*
     --------------------------------------------- TODO ---------------------------------------------
     email notifs (check in should have 12hr delay prompting user review)
-    for registration & update, we should only allow if status is regOpen - add tests to assure working
+   
  
     add guests field for trackday registration - update tests as necesarry
     editing guests & status field in trackday update
@@ -80,6 +80,7 @@ function getRegNumbers_INTERNAL(trackday){
 // Registers a user for a trackday. Requires JWT with matching userID OR admin.
 exports.register = [
     body("paymentMethod",  "PaymentMethod must be one of: [etransfer, credit, creditCard, gate]").trim().isIn(["etransfer", "credit", "creditCard", "gate"]).escape(),
+    body("guests",  "Guests must be numeric").trim().isNumeric().escape(),
 
     controllerUtils.verifyJWT,
     controllerUtils.validateForm,
