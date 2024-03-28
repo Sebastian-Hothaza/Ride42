@@ -472,6 +472,14 @@ describe('Testing user update', () => {
 		const now = new Date();
 		const trackday = await addTrackday(getFormattedDate(3), loginResAdmin.headers['set-cookie']) 
 
+		// Add bike to garage
+			await request(app)
+			.post("/garage/"+user.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', loginResUser.headers['set-cookie'])
+			.expect(201);
+
 		// Register user for trackday
 		await request(app)
 			.post('/register/'+user.body.id+'/'+trackday.body.id)
@@ -562,6 +570,14 @@ describe('Testing user update', () => {
 		const now = new Date();
 		const trackday = await addTrackday(getFormattedDate(3), loginResAdmin.headers['set-cookie']) 
 
+		// Add bike to garage
+		await request(app)
+			.post("/garage/"+user.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', loginResUser.headers['set-cookie'])
+			.expect(201);
+
 		// Register user for trackday
 		await request(app)
 			.post('/register/'+user.body.id+'/'+trackday.body.id)
@@ -621,6 +637,14 @@ describe('Testing user update', () => {
 		
 			group: "yellow"
 		};
+
+		// Add bike to garage
+		await request(app)
+			.post("/garage/"+user.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', loginResUser.headers['set-cookie'])
+			.expect(201);
 
 		// Register user for trackday
 		await request(app)
@@ -943,26 +967,39 @@ describe('Testing user getTrackdays', () => {
 			.expect(200, { trackdays: [] })
 	});
 
-	test("get trackdays for user", async() => {
+	test("get trackdays for userZ", async() => {
 		const user = await addUser(user1, 201);
 		const admin = await addUser(userAdmin, 201)
-		const loginRes = await loginUser(userAdmin, 200);
+
+		const loginResUser = await loginUser(user1, 200);
+		const loginResAdmin = await loginUser(userAdmin, 200);
+		
 		// Create the trackday
 		const trackday = await request(app)
-							.post('/trackdays')
-							.type("form").send({date: '2024-06-05T14:00Z'})
-							.set('Cookie', loginRes.headers['set-cookie'])
-							.expect(201)
+			.post('/trackdays')
+			.type("form").send({date: '2500-06-05T14:00Z'})
+			.set('Cookie', loginResAdmin.headers['set-cookie'])
+			.expect(201)
+
+		// Add bike to garage
+		await request(app)
+			.post("/garage/"+user.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', loginResUser.headers['set-cookie'])
+			.expect(201);
+
+
 		// Register user for trackday
 		await request(app)
 			.post('/register/'+user.body.id+'/'+trackday.body.id)
 			.type("form").send({paymentMethod: 'credit', guests: 3})
-			.set('Cookie', loginRes.headers['set-cookie'])
+			.set('Cookie', loginResUser.headers['set-cookie'])
 			.expect(200)
 
 		await request(app)
 			.get("/users/"+user.body.id+'/trackdays')
-			.expect(200, { trackdays: ['2024-06-05T14:00:00.000Z'] })
+			.expect(200, { trackdays: ['2500-06-05T14:00:00.000Z'] })
 	});
 	
 	test("get trackdays for user - multiple trackdays", async() => {
@@ -970,16 +1007,25 @@ describe('Testing user getTrackdays', () => {
 		const admin = await addUser(userAdmin, 201)
 		const loginResAdmin = await loginUser(userAdmin, 200);
 		const loginResUser = await loginUser(user1, 200);
+
+		// Add bike to garage
+		await request(app)
+			.post("/garage/"+user.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', loginResUser.headers['set-cookie'])
+			.expect(201);
+
 		// Create the trackday 1
 		const trackday1 = await request(app)
 							.post('/trackdays')
-							.type("form").send({date: '2024-06-05T14:00Z'})
+							.type("form").send({date: '2500-06-05T14:00Z'})
 							.set('Cookie', loginResAdmin.headers['set-cookie'])
 							.expect(201)
 		// Create the trackday 2
 		const trackday2 = await request(app)
 							.post('/trackdays')
-							.type("form").send({date: '2024-07-02T14:00Z'})
+							.type("form").send({date: '2500-07-02T14:00Z'})
 							.set('Cookie', loginResAdmin.headers['set-cookie'])
 							.expect(201)
 		// Register user for trackday1
@@ -998,7 +1044,7 @@ describe('Testing user getTrackdays', () => {
 
 		await request(app)
 			.get("/users/"+user.body.id+'/trackdays')
-			.expect(200, { trackdays: ['2024-06-05T14:00:00.000Z', '2024-07-02T14:00:00.000Z'] })
+			.expect(200, { trackdays: ['2500-06-05T14:00:00.000Z', '2500-07-02T14:00:00.000Z'] })
 	});
 	
 })
