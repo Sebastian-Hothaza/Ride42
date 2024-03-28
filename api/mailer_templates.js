@@ -1,8 +1,8 @@
 /*
     Manage email templates here
-    TODO: requestReview
-*/
+    Arguments should be in {argName} form. Check helloWorld for example
 
+*/
 
 const helloWorld =
 `<body>
@@ -34,7 +34,9 @@ const helloWorld =
 const passwordChange =
 `<body>
     <div class="default-style">
-        Hello there
+        Hello {name}, <br /> <br />
+        Your password has been updated.<br /> <br />
+        If you did not request this password change, please contact us immediately.
     </div>
     
     <div class="io-ox-signature">
