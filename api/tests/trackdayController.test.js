@@ -1430,3 +1430,28 @@ describe('Testing checkin', () => {
 			.expect(200)
 	})
 })
+
+describe('Testing presentTrackdays', () => {
+	test("present trackdays - no dates", async () => {
+		
+		const trackday = await addTrackday(getFormattedDate(10))
+		await request(app)
+			.get('/presentTrackdays')
+			.expect(200)
+	});
+	test("present trackdays - multiple dates", async () => {
+		const trackday1 = await addTrackday(getFormattedDate(10))
+		const trackday2 = await addTrackday(getFormattedDate(15))
+		await request(app)
+			.get('/presentTrackdays')
+			.expect(200, [	{id: trackday1.body.id, date: getFormattedDate(10).slice(0,getFormattedDate(10).length-1)+':00.000Z', status:'regOpen'},
+							{id: trackday2.body.id, date: getFormattedDate(15).slice(0,getFormattedDate(15).length-1)+':00.000Z', status:'regOpen'}])
+	});
+	test("present trackdays", async () => {
+		
+		const trackday = await addTrackday(getFormattedDate(10))
+		await request(app)
+			.get('/presentTrackdays')
+			.expect(200, [{id: trackday.body.id, date: getFormattedDate(10).slice(0,getFormattedDate(10).length-1)+':00.000Z', status:'regOpen'}])
+	});
+})
