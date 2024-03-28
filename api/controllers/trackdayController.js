@@ -3,7 +3,8 @@ const User = require('../models/User');
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const controllerUtils = require('./controllerUtils')
-const mailer = require('../mailer')
+const sendEmail = require('../mailer')
+const mailTemplates = require('../mailer_templates')
 
 /*
 A note about payments
