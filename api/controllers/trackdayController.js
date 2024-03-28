@@ -3,6 +3,7 @@ const User = require('../models/User');
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const controllerUtils = require('./controllerUtils')
+const mailer = require('../mailer')
 
 /*
 A note about payments
@@ -12,7 +13,6 @@ API will feature support for mark paid & payWithCredit which will auto deduct cr
 
 /*
     --------------------------------------------- TODO ---------------------------------------------
-    add requirement for user to have at least 1 bike in garage to be eligible to register 
     email notifs (check in should have 12hr delay prompting user review)
     Payment handling logic - include tests (think about how to handle payments)
     code cleanup & review
