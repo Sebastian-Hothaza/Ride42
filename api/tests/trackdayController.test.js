@@ -194,7 +194,7 @@ async function fillTrackday(trackdayID, groupToFill){
 		await request(app)
 			.post('/register/'+user.body.id+'/'+trackdayID)
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 	}
 }
@@ -596,7 +596,7 @@ describe('Testing registering', () => {
 	test("invalid objectID trackday", async () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/invalid')
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.set('Cookie', adminCookie)
 			.expect(404, {msg: 'trackdayID is not a valid ObjectID'})
 	});
@@ -604,7 +604,7 @@ describe('Testing registering', () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
 			.post('/register/'+user1.body.id+'/1'+trackday.body.id.slice(1,trackday.body.id.length-1)+'1')
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.set('Cookie', adminCookie)
 			.expect(404, {msg: 'Trackday does not exist'})
 	});
@@ -612,7 +612,7 @@ describe('Testing registering', () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
 			.post('/register/'+'invalid/'+trackday.body.id)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.set('Cookie', adminCookie)
 			.expect(404, {msg: 'userID is not a valid ObjectID'})
 	});
@@ -620,7 +620,7 @@ describe('Testing registering', () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
 			.post('/register/'+'1'+user1.body.id.slice(1,user1.body.id.length-1)+'1'+'/'+trackday.body.id)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.set('Cookie', adminCookie)
 			.expect(404, {msg: 'User does not exist'})
 	});
@@ -649,7 +649,7 @@ describe('Testing registering', () => {
 
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(401)
 	});
 	test("not authorized", async () => {
@@ -658,7 +658,7 @@ describe('Testing registering', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', user2Cookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(403)
 	});
 	test("as admin", async () => {
@@ -667,7 +667,7 @@ describe('Testing registering', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', adminCookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 	});
 
@@ -677,13 +677,13 @@ describe('Testing registering', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(409)
 	});
 
@@ -693,7 +693,7 @@ describe('Testing registering', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(400)
 	});
 
@@ -703,7 +703,7 @@ describe('Testing registering', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', adminCookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 	});
 
@@ -720,7 +720,7 @@ describe('Testing registering', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(401)
 	})
 
@@ -737,7 +737,7 @@ describe('Testing registering', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', adminCookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 	})
 
@@ -747,7 +747,7 @@ describe('Testing registering', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(401, {msg: 'Cannot register for trackday <'+process.env.DAYS_LOCKOUT+' days away.'})
 	});
 	test("as admin - within 7 day lockout", async () => {
@@ -756,7 +756,7 @@ describe('Testing registering', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', adminCookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 	});
 	test("with credit - within 7 day lockout", async () => {
@@ -765,7 +765,7 @@ describe('Testing registering', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({paymentMethod: 'credit'})
+			.type('form').send({paymentMethod: 'credit', guests: 3})
 			.expect(200)
 	});
 
@@ -776,7 +776,7 @@ describe('Testing registering', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(401, {msg: 'trackday has reached capacity'})
 	});
 
@@ -788,7 +788,7 @@ describe('Testing registering', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', adminCookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 	});
 	
@@ -799,7 +799,7 @@ describe('Testing registering', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 	});
 
@@ -848,7 +848,7 @@ describe('Testing un-registering', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', user1Cookie) // Have to add user as admin
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 
 		await request(app)
@@ -874,7 +874,7 @@ describe('Testing un-registering', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', adminCookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 
 		
@@ -890,7 +890,7 @@ describe('Testing un-registering', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', adminCookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 
 		
@@ -906,7 +906,7 @@ describe('Testing un-registering', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', adminCookie) // Have to add user as admin
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 
 		
@@ -922,7 +922,7 @@ describe('Testing un-registering', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', adminCookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 
 		
@@ -938,7 +938,7 @@ describe('Testing un-registering', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', adminCookie)
-			.type('form').send({paymentMethod: 'credit'})
+			.type('form').send({paymentMethod: 'credit', guests: 3})
 			.expect(200)
 
 		
@@ -955,7 +955,7 @@ describe('Testing un-registering', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 
 		
@@ -1015,7 +1015,7 @@ describe('Testing rescheduling', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday1.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 
 		// Reschedule
@@ -1032,7 +1032,7 @@ describe('Testing rescheduling', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday1.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 
 		// Reschedule
@@ -1060,14 +1060,14 @@ describe('Testing rescheduling', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday1.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 
 		// Register for trackday2
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday2.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 
 		// Reschedule
@@ -1084,7 +1084,7 @@ describe('Testing rescheduling', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday1.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 
 		// Reschedule to trackday 2
@@ -1101,7 +1101,7 @@ describe('Testing rescheduling', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday1.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 
 		// Reschedule to trackday 2
@@ -1118,7 +1118,7 @@ describe('Testing rescheduling', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday1.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 
 		// Mark trackday2 as regClosed
@@ -1142,7 +1142,7 @@ describe('Testing rescheduling', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday1.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 
 		// Mark trackday2 as regClosed
@@ -1167,7 +1167,7 @@ describe('Testing rescheduling', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday1.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 
 		// Reschedule
@@ -1184,7 +1184,7 @@ describe('Testing rescheduling', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday1.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 
 		// Reschedule
@@ -1204,14 +1204,14 @@ describe('Testing rescheduling', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday1.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 
 		// Reschedule for trackday2
 		await request(app)
 			.put('/register/'+user1.body.id+'/'+trackday1.body.id+'/'+trackday2.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(401, {msg: 'trackday has reached capacity'})
 	});
 	test("as admin - reschedule to over capacity", async () => {
@@ -1224,14 +1224,14 @@ describe('Testing rescheduling', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday1.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 
 		// Reschedule for trackday2
 		await request(app)
 		.put('/register/'+user1.body.id+'/'+trackday1.body.id+'/'+trackday2.body.id)
 			.set('Cookie', adminCookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 	});
 
@@ -1242,7 +1242,7 @@ describe('Testing rescheduling', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday1.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 
 		// Reschedule
@@ -1349,7 +1349,7 @@ describe('Testing checkin', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 
 		// Check in user
@@ -1375,7 +1375,7 @@ describe('Testing checkin', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 
 		await request(app)
@@ -1412,7 +1412,7 @@ describe('Testing checkin', () => {
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({paymentMethod: 'etransfer'})
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 
 
