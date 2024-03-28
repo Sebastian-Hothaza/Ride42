@@ -6,10 +6,13 @@ const { body, validationResult } = require("express-validator");
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const controllerUtils = require('./controllerUtils')
+const sendEmail = require('../mailer')
+const mailTemplates = require('../mailer_templates')
 
 
 /*
     --------------------------------------------- TODO ---------------------------------------------
+    request QR code path
     code cleanup & review
     --------------------------------------------- TODO ---------------------------------------------
 */
@@ -61,9 +64,12 @@ exports.updatePassword = [
                 let user = await User.findById(req.params.userID).exec();
                 user.password = hashedPassword;
                 await user.save();
+                if (process.env.NODE_ENV === 'production'){
+                    await sendEmail(user.contact.email, "Your Password has been updated", mailTemplates.passwordChange, {name: user.name.firstName})
+                }
                 res.sendStatus(200);
             })
-            return;
+            return
         }
         return res.sendStatus(403)
     })
