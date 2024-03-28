@@ -18,31 +18,34 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 ### Specialized Requests
 
-**Log in a user (PUBLIC):** Submit a `POST` request to `login/:userID`. Server will respond with `id` of newly logged in user as well as attaching a JWT httpOnly cookies (access & refresh tokens).
+**Log in a user (PUBLIC):** Submit a `POST` request to `login/:userID`. Server will attach JWT httpOnly cookies (access & refresh tokens).
 
 **Change password of an existing user in the `Users` collection:** Submit a `PUT` request to `/password/:userID`. 
 
 **Get trackdays a user is registered for (PUBLIC):**  Submit a `GET` request to `/users/:userID/trackdays`. Server will respond with JSON `{"trackdays" : "[dates]"}`.
 
-**Verify a user is checked in (PUBLIC):** Submit a `GET` request to `/verify/:userID/:trackdayID`. Server will respond with `{"verified" : "true"}` or `{"verified" : "false"}` assuming user is registered for that trackday.
+**Verify a user is checked in (PUBLIC):** Submit a `GET` request to `/verify/:userID/:trackdayID/:bikeID`. Server will respond with `{"verified" : "true"}` or `{"verified" : "false"}`.
 
-**Add a user to a trackday:** Submit a `POST` request to `/register/:trackdayID/:userID`. Server will respond with `_id` of newly registered user.
+**Add a user to a trackday:** Submit a `POST` request to `/register/:trackdayID/:userID`. 
 
-**Remove a user from a trackday:** Submit a `DELETE` request to `/register/:trackdayID/:userID`. Server will respond with `_id` of newly unregistered user.
+**Remove a user from a trackday:** Submit a `DELETE` request to `/register/:trackdayID/:userID`.
 
-**Reschedule a user:** Submit a `PUT` request to `/register/:trackdayID_OLD/:userID/:trackdayID_NEW`. Server will respond with `_id` of newly rescheduled user.
+**Reschedule a user:** Submit a `PUT` request to `/register/:trackdayID_OLD/:userID/:trackdayID_NEW`.
 
-**Check in a user:** Submit a `PUT` request to `/checkin/:userID/:trackdayID`. Server will respond with `_id` of newly checked in user.
+**Check in a user:** Submit a `PUT` request to `/checkin/:userID/:trackdayID/:bikeID`.
 
-**Add a motorcycle to a users garage:** Submit a `POST` request to `/garage/:userID`. 
+**Add a motorcycle to a users garage:** Submit a `POST` request to `/garage/:userID/`. 
 
-**Remove a motorcycle from a users garage::** Submit a `DELETE` request to `/garage/:userID/`. Deleted by form field matching, NOT by ID.
+**Remove a motorcycle from a users garage:** Submit a `DELETE` request to `/garage/:userID/:bikeID`.
 
+**Get registration numbers for a trackday (PUBLIC):** Submit a `GET` request to `/registrationNums/:trackdayID`. 
+
+**Get trackdays basic info (PUBLIC):** Submit a `GET` request to `/presentTrackdays`.
 
 ### Create
-**Create a new user in the `Users` collection (PUBLIC):** Submit a `POST` request to `/users`. Server will respond with `id` of newly created user as well as attaching a JWT httpOnly cookie.
+**Create a new user in the `Users` collection (PUBLIC):** Submit a `POST` request to `/users`. Server will respond with `id` of newly created user.
 
-**Create a new Trackday in the `Trackdays` collection:** Submit a `POST` request to `/trackdays`. Server will respond with `_id` of newly created trackday.
+**Create a new Trackday in the `Trackdays` collection:** Submit a `POST` request to `/trackdays`. Server will respond with `id` of newly created trackday.
 
 ### Read
 **Get details of an existing user in the `Users` collection:** Submit a `GET` request to `/users/:userID`. Server will respond with JSON of the user.
@@ -56,7 +59,7 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 ### Update
 **Update an existing user in the `Users` collection:** Submit a `PUT` request to `/users/:userID`. Server will respond with `id` of newly updated user. Excludes password and garage.
 
-**Update an existing Trackday in the `Users` collection:** Submit a `PUT` request to `/trackdays/:trackdayID`. Server will respond with `_id` of newly updated trackday.
+**Update an existing Trackday in the `Users` collection:** Submit a `PUT` request to `/trackdays/:trackdayID`. Server will respond with `id` of newly updated trackday.
 
 
 ### Delete
