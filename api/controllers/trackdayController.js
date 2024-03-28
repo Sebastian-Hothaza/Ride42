@@ -124,6 +124,10 @@ exports.register = [
                 paid: false,
                 checkedIn: []
             })
+
+            // Update guests for trackday
+            trackday.guests += req.body.guests
+
             await trackday.save();
             return res.sendStatus(200);
         }
