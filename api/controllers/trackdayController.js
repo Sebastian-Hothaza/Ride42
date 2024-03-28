@@ -12,10 +12,9 @@ API will feature support for mark paid & payWithCredit which will auto deduct cr
 
 /*
     --------------------------------------------- TODO ---------------------------------------------
+    add requirement for user to have at least 1 bike in garage to be eligible to register 
     email notifs (check in should have 12hr delay prompting user review)
     Payment handling logic - include tests (think about how to handle payments)
-    add requirement for user to have at least 1 bike in garage to be eligible to register 
-    new API feature to list array of trackday ID's and date [{id: xxx, date: xxx}] so front end can know what to display
     code cleanup & review
     --------------------------------------------- TODO ---------------------------------------------
 */
@@ -112,6 +111,8 @@ exports.register = [
             // Deny if trackday is in the past (if time difference is negative)
             if (req.user.memberType !== 'admin' && trackday.status !== 'regOpen') return res.status(401).send({msg: 'registration closed'})
 
+            // Deny is user garage is empty
+            if (req.user.memberType !== 'admin' && !user.garage.length) return res.status(401).send({msg: 'cannot register with empty user garage'})
 
             // Add user to trackday
             trackday.members.push({
