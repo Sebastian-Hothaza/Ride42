@@ -13,12 +13,8 @@ API will feature support for mark paid & payWithCredit which will auto deduct cr
 /*
     --------------------------------------------- TODO ---------------------------------------------
     email notifs (check in should have 12hr delay prompting user review)
-   
- 
-    add guests field for trackday registration - update tests as necesarry
-    editing guests & status field in trackday update
     Payment handling logic - include tests (think about how to handle payments)
-    Add getRegNumbers to readme
+    add requirement for user to have at least 1 bike in garage to be eligible to register 
     new API feature to list array of trackday ID's and date [{id: xxx, date: xxx}] so front end can know what to display
     code cleanup & review
     --------------------------------------------- TODO ---------------------------------------------
@@ -29,10 +25,10 @@ API will feature support for mark paid & payWithCredit which will auto deduct cr
     --------------------------------------- FOR LATER REVIEW ---------------------------------------
     awaits can be bundled 
     figure out if .exec is needed
-    add requirement for user to have at least 1 bike in garage to be eligible to register 
     use mongoose populate property to make this more efficient instead of double query? Other opportunities for this too. 
     review trackday schema and how the ref is defined in members array
     optimization, ie. validateUserID fetches user from DB, avoid double fetching later in the processing
+    look into migrading updates to use save - codebase wide
     --------------------------------------- FOR LATER REVIEW ---------------------------------------
 */
 
@@ -264,11 +260,23 @@ exports.checkin = [
 
 // Returns a summary of number of people at a specified trackday in format {green: x, yellow: y, red: z, guests: g} PUBLIC.
 // NOTE: This is not tested since we test getRegNumbers_INTERNAL directly
-exports.getRegNumbers = asyncHandler(async(req,res,next) => {
-    const trackday = await Trackday.findById(req.params.trackdayID)
-    return res.send(getRegNumbers_INTERNAL(trackday))
-})
+exports.getRegNumbers = [
+    controllerUtils.validateTrackdayID,
 
+    asyncHandler(async(req,res,next) => {
+        const trackday = await Trackday.findById(req.params.trackdayID)
+        return res.send(getRegNumbers_INTERNAL(trackday))
+    })
+]
+
+// Returns an array of trackday dates in format [{id: x, date: y, status: z}] PUBLIC.
+exports.presentTrackdays = async(req,res,next) => {
+    const allDays = await Trackday.find()
+    let result = []
+    allDays.forEach((trackday)=>result.push({id: trackday.id, date: trackday.date, status: trackday.status}))
+    
+    return res.status(200).send(result)
+}
 
 
 //////////////////////////////////////
@@ -329,7 +337,7 @@ exports.trackday_post = [
 ]
 
 // Updates a trackday. Requires JWT with admin.
-// TODO: Update to use save() ?
+
 exports.trackday_put = [
 
     body("date",  "Date must be in YYYY-MM-DDThh:mmZ form where time is in UTC").isISO8601().isLength({ min: 17, max: 17}).escape(),
@@ -360,7 +368,7 @@ exports.trackday_put = [
                 _id: req.params.trackdayID
             })
             await Trackday.findByIdAndUpdate(req.params.trackdayID, trackday, {});
-            return res.status(201).json({_id: trackday.id});
+            return res.status(201).json({id: trackday.id});
         }
         return res.sendStatus(403)
     })
