@@ -267,7 +267,7 @@ exports.trackday_get = [
     
     asyncHandler(async(req,res,next) => {
         if (req.user.memberType === 'admin'){
-            const trackday = await Trackday.findById(req.params.trackdayID).exec();
+            const trackday = await Trackday.findById(req.params.trackdayID).populate('members.userID').exec();
             return res.status(200).json(trackday);
         }
         return res.sendStatus(403)
@@ -279,7 +279,7 @@ exports.trackday_getALL = [
     controllerUtils.verifyJWT,
     asyncHandler(async(req,res,next)=> {
         if (req.user.memberType === 'admin'){
-            const trackdays = await Trackday.find().exec();
+            const trackdays = await Trackday.find().populate('members.userID').exec();
             return res.status(200).json(trackdays);
         }
         return res.sendStatus(403)
