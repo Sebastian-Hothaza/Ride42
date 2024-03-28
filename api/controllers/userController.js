@@ -111,21 +111,22 @@ exports.garage_post = [
     asyncHandler(async(req,res,next) => {
         if (req.user.memberType === 'admin' || req.user.id === req.params.userID){
             const user = await User.findById(req.params.userID).exec();
-            let bike;
-
+            let bike
+            
             // Check if bike exists in the DB. If it does not, add it.
             bike = await Bike.findOne({year: {$eq: req.body.year}, make: {$eq: req.body.make}, model: {$eq: req.body.model}})
             if (!bike){
                 bike = new Bike({year: req.body.year, make: req.body.make, model: req.body.model});
                 await bike.save()
             }
-            
+
             // Check if user already has this bike in their garage
             for (let i=0; i<user.garage.length; i++){
-                if (bike.id == user.garage[i].id) return res.status(409).send({msg: 'Bike with these details already exists'});
+                if (user.garage[i].equals(bike.id)) return res.status(409).send({msg: 'Bike with these details already exists'});
             }
-           
-            user.garage.push(bike._id);
+            
+            user.garage.push(bike);
+
             await user.save();
             return res.status(201).json({id: bike.id});;
         }
@@ -135,7 +136,6 @@ exports.garage_post = [
 
 // Removes a bike from a users garage. Requires JWT with matching userID OR admin. 
 exports.garage_delete = [
-
     controllerUtils.verifyJWT,
     controllerUtils.validateUserID,
     controllerUtils.validateBikeID,
@@ -144,7 +144,8 @@ exports.garage_delete = [
         if (req.user.memberType === 'admin' || req.user.id === req.params.userID){
             const user = await User.findById(req.params.userID).select('garage').exec();
             const numBikesOriginally = user.garage.length;
-            user.garage = user.garage.filter((bikeID)=>(bikeID.id != req.params.bikeID))
+            user.garage = user.garage.filter((bikeID)=>(!bikeID.equals(req.params.bikeID)))
+
             await user.save()
             return (numBikesOriginally>user.garage.length)? res.sendStatus(200) : res.sendStatus(404)
         }
@@ -164,7 +165,7 @@ exports.user_get = [
     asyncHandler(async(req,res,next) => {
         // JWT is valid. Verify user is allowed to access this resource and return the information
         if (req.user.memberType === 'admin' || req.user.id === req.params.userID){
-            let user = await User.findById(req.params.userID).select('-password -refreshToken')
+            let user = await User.findById(req.params.userID).populate("garage").select('-password -refreshToken')
             return res.status(200).json(user);
         }
         return res.sendStatus(403)
@@ -178,7 +179,7 @@ exports.user_getALL = [
     asyncHandler(async(req,res)=>{
         // JWT is valid. Verify user is allowed to access this resource and return the information
         if (req.user.memberType === 'admin'){
-            let users = await User.find().select('-password -refreshToken').exec();
+            let users = await User.find().populate("garage").select('-password -refreshToken').exec();
             return res.status(200).json(users);
         }
         return res.sendStatus(403);
