@@ -12,33 +12,40 @@ API will feature support for mark paid & payWithCredit which will auto deduct cr
 
 /*
     --------------------------------------------- TODO ---------------------------------------------
-    code cleanup & review
     email notifs (check in should have 12hr delay prompting user review)
-    figure out if .exec is needed
+    for registration & update, we should only allow if status is regOpen - add tests to assure working
+ 
     add guests field for trackday registration - update tests as necesarry
     editing guests & status field in trackday update
     Payment handling logic - include tests (think about how to handle payments)
     Add getRegNumbers to readme
     new API feature to list array of trackday ID's and date [{id: xxx, date: xxx}] so front end can know what to display
-    email notif 12 hours later thanking user and requesting a review (for checkin)
-    add requirement for user to have at least 1 bike in garage to be eligible to register (? Maybe at a later date)
+    code cleanup & review
     --------------------------------------------- TODO ---------------------------------------------
+*/
+
+
+/*
+    --------------------------------------- FOR LATER REVIEW ---------------------------------------
+    awaits can be bundled 
+    figure out if .exec is needed
+    add requirement for user to have at least 1 bike in garage to be eligible to register 
+    use mongoose populate property to make this more efficient instead of double query? Other opportunities for this too. 
+    review trackday schema and how the ref is defined in members array
+    optimization, ie. validateUserID fetches user from DB, avoid double fetching later in the processing
+    --------------------------------------- FOR LATER REVIEW ---------------------------------------
 */
 
 // Returns a summary of number of people at a specified trackday in format {green: x, yellow: y, red: z, guests: g}
 // JS does not support function overloading, hence the 'INTERNAL' marking
-async function getRegNumbers_INTERNAL(trackdayID){
-    // TODO: Can we use mongoose populate property to make this more efficient instead of double query? Other opportunities for this too
-    const trackday = await Trackday.findById(trackdayID).exec();
+function getRegNumbers_INTERNAL(trackday){
     let green=0, yellow=0, red=0
     const guests=trackday.guests;
 
-
     // Check the members array first
     for (let i=0; i<trackday.members.length; i++){
-        const user = await User.findById(trackday.members[i].userID)
         // Increment group summary
-        switch(user.group){
+        switch(trackday.members[i].userID.group){
             case 'green':
                 green++
                 break;
@@ -82,30 +89,31 @@ exports.register = [
 
     asyncHandler(async(req,res,next) => {
         if (req.user.memberType === 'admin' || (req.user.id === req.params.userID)){
-            const trackday = await Trackday.findById(req.params.trackdayID).exec();
-
-            // Check if user is already registered to trackday
+            let [trackday, user] = await Promise.all([Trackday.findById(req.params.trackdayID).populate('members.userID').exec(), User.findById(req.params.userID)]);
+           
+            // Deny if user is already registered to trackday
             const memberEntry = trackday.members.find((member) => member.userID.equals(req.params.userID));
             if (memberEntry) return res.sendStatus(409)
 
-            // If user attempt to register for trackday < lockout period(7 default) away, deny registration
+            // Deny if user attempt to register for trackday < lockout period(7 default) away, deny registration
             if (req.body.paymentMethod !== 'credit' && req.user.memberType !== 'admin' && await controllerUtils.isInLockoutPeriod(req.params.trackdayID)){
                 return res.status(401).send({msg: 'Cannot register for trackday <'+process.env.DAYS_LOCKOUT+' days away.'})
             }
 
-            // Check if trackday is in the past (if time difference is negative)
+            // Deny if trackday is in the past (if time difference is negative)
             if (req.user.memberType !== 'admin' && trackday.date.getTime() - Date.now() < 0 ) return res.status(400).send({msg: 'Cannot register for trackday in the past'})
 
-            // Check if trackday is full
+            // Deny if trackday is full
             if (req.user.memberType !== 'admin'){
-                const curRegistrationNums = await getRegNumbers_INTERNAL(req.params.trackdayID)
-                const user = await User.findById(req.params.userID)
-                if ( (user.group == 'green' && curRegistrationNums.green === parseInt(process.env.GROUP_CAPACITY)) ||
-                     (user.group == 'yellow' && curRegistrationNums.yellow === parseInt(process.env.GROUP_CAPACITY)) ||
-                     (user.group == 'red' && curRegistrationNums.red === parseInt(process.env.GROUP_CAPACITY)) ){
+                if ( (user.group == 'green' && getRegNumbers_INTERNAL(trackday).green === parseInt(process.env.GROUP_CAPACITY)) ||
+                     (user.group == 'yellow' && getRegNumbers_INTERNAL(trackday).yellow === parseInt(process.env.GROUP_CAPACITY)) ||
+                     (user.group == 'red' && getRegNumbers_INTERNAL(trackday).red === parseInt(process.env.GROUP_CAPACITY)) ){
                     return res.status(401).send({msg: 'trackday has reached capacity'})
                 } 
             }
+
+            // Deny if trackday is in the past (if time difference is negative)
+            if (req.user.memberType !== 'admin' && trackday.status !== 'regOpen') return res.status(401).send({msg: 'registration closed'})
 
 
             // Add user to trackday
@@ -168,10 +176,10 @@ exports.reschedule = [
     controllerUtils.validateTrackdayID,
     
     asyncHandler(async(req,res,next) => {
-
         if (req.user.memberType === 'admin' || (req.user.id === req.params.userID && 1)){
-            const trackdayOLD = await Trackday.findById(req.params.trackdayID_OLD).exec();
-            const trackdayNEW = await Trackday.findById(req.params.trackdayID_NEW).exec();
+            let [trackdayOLD,trackdayNEW,user] = await Promise.all([Trackday.findById(req.params.trackdayID_OLD).exec(),
+                                                                    Trackday.findById(req.params.trackdayID_NEW).populate('members.userID').exec(),
+                                                                    User.findById(req.params.userID)])
 
             
             // Check that the member we want to reschedule is registered in old trackday
@@ -192,14 +200,15 @@ exports.reschedule = [
 
             // Check if trackday is full
             if (req.user.memberType !== 'admin'){
-                const curRegistrationNums = await getRegNumbers_INTERNAL(req.params.trackdayID_NEW)
-                const user = await User.findById(req.params.userID)
-                if ( (user.group == 'green' && curRegistrationNums.green === parseInt(process.env.GROUP_CAPACITY)) ||
-                     (user.group == 'yellow' && curRegistrationNums.yellow === parseInt(process.env.GROUP_CAPACITY)) ||
-                     (user.group == 'red' && curRegistrationNums.red === parseInt(process.env.GROUP_CAPACITY)) ){
+                if ( (user.group == 'green' && getRegNumbers_INTERNAL(trackdayNEW).green === parseInt(process.env.GROUP_CAPACITY)) ||
+                     (user.group == 'yellow' && getRegNumbers_INTERNAL(trackdayNEW).yellow === parseInt(process.env.GROUP_CAPACITY)) ||
+                     (user.group == 'red' && getRegNumbers_INTERNAL(trackdayNEW).red === parseInt(process.env.GROUP_CAPACITY)) ){
                     return res.status(401).send({msg: 'trackday has reached capacity'})
                 } 
             }
+
+            // Deny if trackday is in the past (if time difference is negative)
+            if (req.user.memberType !== 'admin' && trackdayNEW.status !== 'regOpen') return res.status(401).send({msg: 'registration closed'})
 
             // Add user to new trackday
             trackdayNEW.members.push({
@@ -251,7 +260,8 @@ exports.checkin = [
 // Returns a summary of number of people at a specified trackday in format {green: x, yellow: y, red: z, guests: g} PUBLIC.
 // NOTE: This is not tested since we test getRegNumbers_INTERNAL directly
 exports.getRegNumbers = asyncHandler(async(req,res,next) => {
-    return res.send(await getRegNumbers_INTERNAL(req.params.trackdayID))
+    const trackday = await Trackday.findById(req.params.trackdayID)
+    return res.send(getRegNumbers_INTERNAL(trackday))
 })
 
 

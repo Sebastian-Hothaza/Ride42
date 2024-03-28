@@ -707,6 +707,40 @@ describe('Testing registering', () => {
 			.expect(200)
 	});
 
+	test("registering for trackday which has closed registration", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		// Mark trackday as regClosed
+		await request(app)
+			.put('/trackdays/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.type('form').send({date: getFormattedDate(10), guests: 5, status: 'regClosed'})
+			.expect(201)
+
+		await request(app)
+			.post('/register/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.type('form').send({paymentMethod: 'etransfer'})
+			.expect(401)
+	})
+
+	test("registering for trackday which has closed registration - as admin", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		// Mark trackday as regClosed
+		await request(app)
+			.put('/trackdays/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.type('form').send({date: getFormattedDate(10), guests: 5, status: 'regClosed'})
+			.expect(201)
+
+		await request(app)
+			.post('/register/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.type('form').send({paymentMethod: 'etransfer'})
+			.expect(200)
+	})
+
 	test("as user - within 7 day lockout", async () => {
 		const trackday = await addTrackday(getFormattedDate(3))
 
@@ -1069,6 +1103,54 @@ describe('Testing rescheduling', () => {
 			.set('Cookie', user1Cookie)
 			.type('form').send({paymentMethod: 'etransfer'})
 			.expect(200)
+
+		// Reschedule to trackday 2
+		await request(app)
+			.put('/register/'+user1.body.id+'/'+trackday1.body.id+'/'+trackday2.body.id)
+			.set('Cookie', adminCookie)
+			.expect(200)
+	});
+
+	test("reschedule for trackday which has closed registration", async () => {
+		const trackday1 = await addTrackday(getFormattedDate(15))
+		const trackday2 = await addTrackday(getFormattedDate(20))
+		// Register for trackday1
+		await request(app)
+			.post('/register/'+user1.body.id+'/'+trackday1.body.id)
+			.set('Cookie', user1Cookie)
+			.type('form').send({paymentMethod: 'etransfer'})
+			.expect(200)
+
+		// Mark trackday2 as regClosed
+		await request(app)
+			.put('/trackdays/'+trackday2.body.id)
+			.set('Cookie', adminCookie)
+			.type('form').send({date: getFormattedDate(10), guests: 5, status: 'regClosed'})
+			.expect(201)
+
+		// Reschedule to trackday 2
+		await request(app)
+			.put('/register/'+user1.body.id+'/'+trackday1.body.id+'/'+trackday2.body.id)
+			.set('Cookie', user1Cookie)
+			.expect(401)
+	});
+
+	test("reschedule for trackday which has closed registration - as admin", async () => {
+		const trackday1 = await addTrackday(getFormattedDate(15))
+		const trackday2 = await addTrackday(getFormattedDate(20))
+		// Register for trackday1
+		await request(app)
+			.post('/register/'+user1.body.id+'/'+trackday1.body.id)
+			.set('Cookie', user1Cookie)
+			.type('form').send({paymentMethod: 'etransfer'})
+			.expect(200)
+
+		// Mark trackday2 as regClosed
+		await request(app)
+			.put('/trackdays/'+trackday2.body.id)
+			.set('Cookie', adminCookie)
+			.type('form').send({date: getFormattedDate(10), guests: 5, status: 'regClosed'})
+			.expect(201)
 
 		// Reschedule to trackday 2
 		await request(app)
