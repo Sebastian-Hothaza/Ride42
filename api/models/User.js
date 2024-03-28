@@ -15,7 +15,7 @@ const UserSchema = new mongoose.Schema({
 						phone:		 {type: Number, required: true, minLength: 10, maxLength: 10},
 						relationship:{type: String, required: true, minLength: 2, maxLength: 50},},
 
-	garage: [{ bikeID: { type: mongoose.Schema.Types.ObjectId, ref: "Bike" } }],
+	garage: [{ type: mongoose.Schema.Types.ObjectId, ref: "Bike" } ],
 
 	group: { type: String, required: true, enum: ["green", "yellow", "red"] },
 	credits: { type: Number, required: true},
