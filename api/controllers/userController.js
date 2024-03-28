@@ -51,27 +51,36 @@ exports.login = [
 
 // Updates a users password. Requires JWT with matching userID OR admin
 exports.updatePassword = [
-    body("password", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().isLength({ min: 8, max: 50}).matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
+    body("oldPassword", "Old password is not a valid password type").trim().isLength({ min: 8, max: 50}).matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
+    body("newPassword", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().isLength({ min: 8, max: 50}).matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
     controllerUtils.verifyJWT,
     controllerUtils.validateForm,
     controllerUtils.validateUserID,
 
     asyncHandler(async (req,res,next) => {
-        // JWT is valid. Verify user is allowed to update password
         if (req.user.memberType === 'admin' || req.user.id === req.params.userID){
-            bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
+            bcrypt.hash(req.body.newPassword, 10, async (err, hashedPassword) => {
                 if (err) console.log("bcrypt error")
                 let user = await User.findById(req.params.userID).exec();
-                user.password = hashedPassword;
-                await user.save();
-                if (process.env.NODE_ENV === 'production'){
-                    await sendEmail(user.contact.email, "Your Password has been updated", mailTemplates.passwordChange, {name: user.name.firstName})
+
+                // Verify old Password
+                const passwordMatch = await bcrypt.compare(req.body.oldPassword, user.password)
+                if (passwordMatch){
+                    user.password = hashedPassword;
+                    await user.save();
+                    if (process.env.NODE_ENV === 'production'){
+                        await sendEmail(user.contact.email, "Your Password has been updated", mailTemplates.passwordChange, {name: user.name.firstName})
+                    }
+                    res.sendStatus(200);
+                }else{
+                    res.status(403).send({msg: "old password is incorrect"});
                 }
-                res.sendStatus(200);
+                
+                
             })
-            return
+            return // This return returns from the async handler fn
         }
-        return res.sendStatus(403)
+        return res.sendStatus(403) // This return returns from the async handler fn
     })
 ]
 

@@ -861,7 +861,7 @@ describe('Testing password update', () => {
 		const loginRes = await loginUser(user1, 200)
 		await request(app)
 			.put("/password/invalid")
-			.type("form").send({password: 'ValidPassword1'})
+			.type("form").send({oldPassword: user1.password, newPassword: 'ValidPsw1'})
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: 'userID is not a valid ObjectID' })
 	});
@@ -872,7 +872,7 @@ describe('Testing password update', () => {
 			
 		await request(app)
 			.put('/password/'+'1'+user.body.id.slice(1,user.body.id.length-1)+'1')
-			.type("form").send({password: 'ValidPassword1'})
+			.type("form").send({oldPassword: user1.password, newPassword: 'ValidPsw1'})
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: 'User does not exist' }) 
 	});
@@ -882,8 +882,7 @@ describe('Testing password update', () => {
 		const loginRes = await loginUser(user1, 200)
 		await request(app)
 			.put("/password/"+user.body.id)
-			.type("form")
-			.send({field: 'param'})
+			.type("form").send({field: 'param'})
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(400);
 	});
@@ -893,8 +892,7 @@ describe('Testing password update', () => {
 		const loginRes = await loginUser(user1, 200)
 		await request(app)
 			.put("/password/"+user.body.id)
-			.type("form")
-			.send({ password: 'noNumbers'})
+			.type("form").send({oldPassword: user1.password, newPassword: 'nonumbers'})
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(400);
 	});
@@ -908,9 +906,8 @@ describe('Testing password update', () => {
 
 		await request(app)
 			.put("/password/"+res2.body.id)
-			.type("form")
+			.type("form").send({oldPassword: user1.password, newPassword: 'ValidPsw1'})
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.send({ password: 'ValidPassword1'})
 			.expect(403);
 	});
 
@@ -921,10 +918,21 @@ describe('Testing password update', () => {
 
 		await request(app)
 			.put("/password/"+res.body.id)
+			.type("form").send({oldPassword: user1.password, newPassword: 'ValidPsw1'})
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200);
+	});
+
+	test("update password for a user - incorrect old password", async() => {
+		const res = await addUser(user1, 201);
+		const loginRes = await loginUser(user1, 200);
+
+		await request(app)
+			.put("/password/"+res.body.id)
 			.type("form")
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.send({ password: 'ValidPassword1'})
-			.expect(200);
+			.send({ oldPassword: 'WrongPassword123', newPassword: 'ValidPassword1'})
+			.expect(403, {msg: "old password is incorrect"});
 	});
 
 	test("update password for a user", async() => {
@@ -935,7 +943,7 @@ describe('Testing password update', () => {
 			.put("/password/"+res.body.id)
 			.type("form")
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.send({ password: 'ValidPassword1'})
+			.send({ oldPassword: 'Abcd1234', newPassword: 'ValidPassword1'})
 			.expect(200);
 	});
 })
