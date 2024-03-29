@@ -73,8 +73,6 @@ exports.updatePassword = [
                 }else{
                     res.status(403).send({msg: "old password is incorrect"});
                 }
-                
-                
             })
             return // This return returns from the async handler fn
         }
@@ -240,6 +238,7 @@ exports.user_post = [
                 password: hashedPassword
             })
             await user.save();
+            await sendEmail(user.contact.email, "Welcome to Ride42", mailTemplates.welcomeUser,{name: user.name.firstName })
             return res.status(201).json({id: user.id});
         })
     }),
@@ -302,6 +301,7 @@ exports.user_put = [
                 _id: req.params.userID,
             })
             await User.findByIdAndUpdate(req.params.userID, user, {});
+            await sendEmail(user.contact.email, "Your account details have been updated", mailTemplates.updateUser,{name: user.name.firstName })
             return res.status(201).json({id: user.id});
         }
         return res.sendStatus(403)
