@@ -23,8 +23,8 @@ API will feature support for mark paid & payWithCredit which will auto deduct cr
 
 /*
     --------------------------------------- FOR LATER REVIEW ---------------------------------------
-    awaits can be bundled 
-    figure out if .exec is needed
+    awaits can be bundled into Promise.all([])
+    figure out if .exec is needed on queries
     use mongoose populate property to make this more efficient instead of double query? Other opportunities for this too. 
     review trackday schema and how the ref is defined in members array
     optimization, ie. validateUserID fetches user from DB, avoid double fetching later in the processing
@@ -90,7 +90,7 @@ exports.register = [
            
             // Deny if user is already registered to trackday
             const memberEntry = trackday.members.find((member) => member.userID.equals(req.params.userID));
-            if (memberEntry) return res.sendStatus(409)
+            if (memberEntry) return res.status(409).send({msg: "user already registered for this trackday"})
 
             // Deny if user attempt to register for trackday < lockout period(7 default) away, deny registration
             if (req.body.paymentMethod !== 'credit' && req.user.memberType !== 'admin' && await controllerUtils.isInLockoutPeriod(req.params.trackdayID)){
@@ -127,6 +127,8 @@ exports.register = [
             trackday.guests += req.body.guests
 
             await trackday.save();
+            await sendEmail(user.contact.email, "Ride42 Trackday Registration Confirmation", mailTemplates.registerTrackday,
+                            {name: user.name.firstName, date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'})})
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
