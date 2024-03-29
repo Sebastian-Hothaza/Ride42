@@ -79,18 +79,6 @@ exports.updatePassword = [
     })
 ]
 
-// Returns a list of dates corresponding to dates the user is registered for. PUBLIC
-exports.getTrackdays = [
-    controllerUtils.validateUserID,
-    asyncHandler(async (req,res,next) => {
-        let result = []
-        const allTrackdays = await Trackday.find({members: {$elemMatch: { userID: {$eq: req.params.userID}}}} ).exec(); // Trackdays that user is a part of
-        // For each trackday, append the date to the resulting array
-        allTrackdays.forEach((trackday)=>result.push(trackday.date))        
-        res.status(200).json({'trackdays' : result })
-    })
-]
-
 // Returns true if the user/bike is checked in for a given trackday. PUBLIC.
 exports.verify = [
     controllerUtils.validateUserID,
