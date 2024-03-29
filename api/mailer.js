@@ -21,21 +21,25 @@ async function main(recipient,subject,htmlBody,args){
             htmlBody = htmlBody.replace("{"+arg+"}", args[arg])
         })
     }
-    
-    try{
-        await transporter.sendMail({
-            from: '"Ride42" <info@ride42.ca>', 
-            to: recipient, 
-            attachments: [{
-                filename: 'ride42.png',
-                path: 'ride42.png',
-                cid: 'sigImg' 
-            }],
-            subject: subject, 
-            html: htmlBody.replace("{name}", args.name), 
-        });
-    }catch(err){
-        console.log(err)
+    if (process.env.NODE_ENV === 'production'){
+        try{
+            await transporter.sendMail({
+                from: '"Ride42" <info@ride42.ca>', 
+                to: recipient, 
+                attachments: [{
+                    filename: 'ride42.png',
+                    path: 'ride42.png',
+                    cid: 'sigImg' 
+                }],
+                subject: subject, 
+                html: htmlBody, 
+            });
+        }catch(err){
+            console.log(err)
+        }
+    }else{
+        console.log(htmlBody)
     }
+
 }
 module.exports = main;
