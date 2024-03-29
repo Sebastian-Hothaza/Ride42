@@ -1633,14 +1633,57 @@ describe('Testing presentTrackdays', () => {
 		const trackday2 = await addTrackday(getFormattedDate(15))
 		await request(app)
 			.get('/presentTrackdays')
-			.expect(200, [	{id: trackday1.body.id, date: getFormattedDate(10).slice(0,getFormattedDate(10).length-1)+':00.000Z', status:'regOpen'},
-							{id: trackday2.body.id, date: getFormattedDate(15).slice(0,getFormattedDate(15).length-1)+':00.000Z', status:'regOpen'}])
+			.expect(200, [	{id: trackday1.body.id,
+							date: getFormattedDate(10).slice(0,getFormattedDate(10).length-1)+':00.000Z',
+							status:'regOpen',
+							green: 0,
+							yellow: 0,
+							red: 0,
+							guests: 0,
+							groupCapacity: process.env.GROUP_CAPACITY
+							},
+							{
+								id: trackday2.body.id,
+								date: getFormattedDate(15).slice(0,getFormattedDate(15).length-1)+':00.000Z',
+								status:'regOpen',
+								green: 0,
+								yellow: 0,
+								red: 0,
+								guests: 0,
+								groupCapacity: process.env.GROUP_CAPACITY
+							}])
 	});
 	test("present trackdays", async () => {
-		
 		const trackday = await addTrackday(getFormattedDate(10))
+
+		// Registering user for trackday
+		// Add bike to garage
+		await request(app)
+			.post("/garage/"+user1.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', user1Cookie)
+			.expect(201);
+		// Register user for trackday
+		await request(app)
+			.post('/register/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
+			.expect(200)
+
+
+
 		await request(app)
 			.get('/presentTrackdays')
-			.expect(200, [{id: trackday.body.id, date: getFormattedDate(10).slice(0,getFormattedDate(10).length-1)+':00.000Z', status:'regOpen'}])
+			.expect(200, [{
+				id: trackday.body.id,
+				date: getFormattedDate(10).slice(0,getFormattedDate(10).length-1)+':00.000Z',
+				status:'regOpen',
+				green: 0,
+				yellow: 1,
+				red: 0,
+				guests: 3,
+				groupCapacity: process.env.GROUP_CAPACITY
+			}])
 	});
 })

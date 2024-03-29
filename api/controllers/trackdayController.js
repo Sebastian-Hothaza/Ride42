@@ -14,7 +14,10 @@ API will feature support for mark paid & payWithCredit which will auto deduct cr
 
 /*
     --------------------------------------------- TODO ---------------------------------------------
-    Payment handling logic - include tests (think about how to handle payments) - adjust email sending for unregister (Ie. dont send admin email if paymentMethod was credit)
+    merge getRegNumbers into presentTrackdays 
+    replace getTrackdays(userController) with presentTrackdaysForUser(trackdayController)
+    trackday_put issue where if form doesnt receive date, it double prints missing date message
+    Payment handling logic - include tests (think about how to handle payments) - doulve check email sending for unregister (Ie. dont send admin email if paymentMethod was credit)
     code cleanup & review
     --------------------------------------------- TODO ---------------------------------------------
 */
@@ -35,7 +38,7 @@ API will feature support for mark paid & payWithCredit which will auto deduct cr
 
 // Returns a summary of number of people at a specified trackday in format {green: x, yellow: y, red: z, guests: g}
 // JS does not support function overloading, hence the 'INTERNAL' marking
-function getRegNumbers_INTERNAL(trackday){
+function getRegNumbers(trackday){
     let green=0, yellow=0, red=0
     const guests=trackday.guests;
 
@@ -103,9 +106,9 @@ exports.register = [
 
             // Deny if trackday is full
             if (req.user.memberType !== 'admin'){
-                if ( (user.group == 'green' && getRegNumbers_INTERNAL(trackday).green === parseInt(process.env.GROUP_CAPACITY)) ||
-                     (user.group == 'yellow' && getRegNumbers_INTERNAL(trackday).yellow === parseInt(process.env.GROUP_CAPACITY)) ||
-                     (user.group == 'red' && getRegNumbers_INTERNAL(trackday).red === parseInt(process.env.GROUP_CAPACITY)) ){
+                if ( (user.group == 'green' && getRegNumbers(trackday).green === parseInt(process.env.GROUP_CAPACITY)) ||
+                     (user.group == 'yellow' && getRegNumbers(trackday).yellow === parseInt(process.env.GROUP_CAPACITY)) ||
+                     (user.group == 'red' && getRegNumbers(trackday).red === parseInt(process.env.GROUP_CAPACITY)) ){
                     return res.status(401).send({msg: 'trackday has reached capacity'})
                 } 
             }
@@ -214,9 +217,9 @@ exports.reschedule = [
 
             // Check if trackday is full
             if (req.user.memberType !== 'admin'){
-                if ( (user.group == 'green' && getRegNumbers_INTERNAL(trackdayNEW).green === parseInt(process.env.GROUP_CAPACITY)) ||
-                     (user.group == 'yellow' && getRegNumbers_INTERNAL(trackdayNEW).yellow === parseInt(process.env.GROUP_CAPACITY)) ||
-                     (user.group == 'red' && getRegNumbers_INTERNAL(trackdayNEW).red === parseInt(process.env.GROUP_CAPACITY)) ){
+                if ( (user.group == 'green' && getRegNumbers(trackdayNEW).green === parseInt(process.env.GROUP_CAPACITY)) ||
+                     (user.group == 'yellow' && getRegNumbers(trackdayNEW).yellow === parseInt(process.env.GROUP_CAPACITY)) ||
+                     (user.group == 'red' && getRegNumbers(trackdayNEW).red === parseInt(process.env.GROUP_CAPACITY)) ){
                     return res.status(401).send({msg: 'trackday has reached capacity'})
                 } 
             }
@@ -273,23 +276,31 @@ exports.checkin = [
     })
 ]
 
-// Returns a summary of number of people at a specified trackday in format {green: x, yellow: y, red: z, guests: g} PUBLIC.
-// NOTE: This is not tested since we test getRegNumbers_INTERNAL directly
-exports.getRegNumbers = [
-    controllerUtils.validateTrackdayID,
-
-    asyncHandler(async(req,res,next) => {
-        const trackday = await Trackday.findById(req.params.trackdayID)
-        return res.send(getRegNumbers_INTERNAL(trackday))
-    })
-]
-
-// Returns an array of trackday dates in format [{id: x, date: y, status: z}] PUBLIC.
+// Returns an array of trackday dates in format [{id: x, date: x, status: x, green: x, yellow: x, red: x, guests: x, groupCapacity: x}] PUBLIC.
 exports.presentTrackdays = async(req,res,next) => {
-    const allDays = await Trackday.find()
+    const allDays = await Trackday.find().populate('members.userID')
     let result = []
-    allDays.forEach((trackday)=>result.push({id: trackday.id, date: trackday.date, status: trackday.status}))
+    allDays.forEach((trackday)=>{
+
+        result.push({
+            id: trackday.id,
+            date: trackday.date,
+            status: trackday.status,
+            green: getRegNumbers(trackday).green,
+            yellow: getRegNumbers(trackday).yellow,
+            red: getRegNumbers(trackday).red,
+            guests: getRegNumbers(trackday).guests,
+            groupCapacity: process.env.GROUP_CAPACITY
+        })
+    })
     
+    return res.status(200).send(result)
+}
+
+// Returns an array of trackday dates that user is registered for in format [{id: x, date: x, status: x, green: x, yellow: x, red: x, guests: x, groupCapacity: x, paid: x}] PUBLIC.
+// TODO: TESTING
+exports.presentTrackdaysForUser = async(req,res,next) => {
+    //TODO
     return res.status(200).send(result)
 }
 
@@ -355,7 +366,7 @@ exports.trackday_post = [
 
 exports.trackday_put = [
 
-    body("date",  "Date must be in YYYY-MM-DDThh:mmZ form where time is in UTC").isISO8601().isLength({ min: 17, max: 17}).escape(),
+    body("date",  "Date must be in YYYY-MM-DDThh:mm form where time is in UTC").isISO8601().isLength({ min: 17, max: 17}).escape(),
     body("guests",  "Guests must be numeric").trim().isNumeric().escape(),
     body("status",  "Status must be one of: [regOpen, regClosed, finished, cancelled]").trim().isIn(["regOpen", "regClosed", "finished", "cancelled"]).escape(),
 
