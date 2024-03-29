@@ -63,7 +63,9 @@ const passwordChange =
 const registerTrackday =
 `<body>
     <div class="default-style">
-        Hello there
+        Hello {name}, <br /> <br />
+        You are now registered for the trackday on {date}.<br /> <br />
+        We look forward to seeing you on track soon!
     </div>
     
     <div class="io-ox-signature">
