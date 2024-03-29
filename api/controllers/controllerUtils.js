@@ -51,6 +51,7 @@ async function validateTrackdayID(req, res, next){
 
 // Called by middleware functions
 // Verify that the req.params.bikeID is a valid objectID and that it exists in our DB
+// NOTE: makes no guarantee that the bikeID is actually present in the users garage!
 async function validateBikeID(req, res, next){
     if (!ObjectId.isValid(req.params.bikeID)) return res.status(404).send({msg: 'bikeID is not a valid ObjectID'});
     const bikeExists = await Bike.exists({_id: req.params.bikeID});
