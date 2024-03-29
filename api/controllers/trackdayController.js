@@ -14,7 +14,6 @@ API will feature support for mark paid & payWithCredit which will auto deduct cr
 
 /*
     --------------------------------------------- TODO ---------------------------------------------
-    email notifs (check in should have 12hr delay prompting user review)
     Payment handling logic - include tests (think about how to handle payments) - adjust email sending for unregister (Ie. dont send admin email if paymentMethod was credit)
     code cleanup & review
     --------------------------------------------- TODO ---------------------------------------------
@@ -28,8 +27,9 @@ API will feature support for mark paid & payWithCredit which will auto deduct cr
     use mongoose populate property to make this more efficient instead of double query? Other opportunities for this too. 
     review trackday schema and how the ref is defined in members array
     optimization, ie. validateUserID fetches user from DB, avoid double fetching later in the processing
-    look into migrading updates to use save - codebase wide
+    look into migrating updates to use save - codebase wide
     send email 12h after user check in requesting a review
+    email signature image WITHOUT showing up as attachment - possible?
     --------------------------------------- FOR LATER REVIEW ---------------------------------------
 */
 
