@@ -22,8 +22,6 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 **Change password of an existing user in the `Users` collection:** Submit a `PUT` request to `/password/:userID`. 
 
-**Get trackdays a user is registered for (PUBLIC):**  Submit a `GET` request to `/users/:userID/trackdays`. Server will respond with JSON `{"trackdays" : "[dates]"}`.
-
 **Verify a user is checked in (PUBLIC):** Submit a `GET` request to `/verify/:userID/:trackdayID/:bikeID`. Server will respond with `{"verified" : "true"}` or `{"verified" : "false"}`.
 
 **Add a user to a trackday:** Submit a `POST` request to `/register/:trackdayID/:userID`. 
