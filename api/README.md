@@ -38,9 +38,9 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 **Remove a motorcycle from a users garage:** Submit a `DELETE` request to `/garage/:userID/:bikeID`.
 
-<!-- **Get registration numbers for a trackday (PUBLIC):** Submit a `GET` request to `/registrationNums/:trackdayID`.  -->
-
 **Get trackdays basic info (PUBLIC):** Submit a `GET` request to `/presentTrackdays`.
+
+**Get trackdays basic info for trackdays a user is registered for (PUBLIC):** Submit a `GET` request to `/presentTrackdays/:userID`.
 
 **Notify admin of QR code request:** Submit a `GET` request to `/qrcode/:userID/:bikeID`.
 
