@@ -1,7 +1,6 @@
 /*
     Manage email templates here
     Arguments should be in {argName} form. Check helloWorld for example
-
 */
 
 const helloWorld =
@@ -92,7 +91,9 @@ const registerTrackday =
 const unregisterTrackday =
 `<body>
     <div class="default-style">
-        Hello there
+        Hello {name}, <br /> <br />
+        We have cancelled your trackday on {date}.<br /> <br />
+        You should receive a refund within 5 business days.
     </div>
     
     <div class="io-ox-signature">
@@ -116,10 +117,19 @@ const unregisterTrackday =
     </div>
 </body>`
 
+const unregisterTrackday_admin =
+`<body>
+    <div class="default-style">
+        User {name} has cancelled trackday on {date}. Refund required.
+    </div>
+</body>`
+
 const rescheduleTrackday =
 `<body>
     <div class="default-style">
-        Hello there
+        Hello {name}, <br /> <br />
+        Your trackday on {dateOLD} has been re-scheduled to {dateNEW}.<br /> <br />
+        We look forward to seeing you on track soon!
     </div>
     
     <div class="io-ox-signature">
@@ -225,4 +235,4 @@ const updateUser =
 </body>`
 
 
-module.exports = { helloWorld,passwordChange,registerTrackday,unregisterTrackday,rescheduleTrackday,requestReview,welcomeUser,updateUser };
+module.exports = { helloWorld,passwordChange,registerTrackday,unregisterTrackday,unregisterTrackday_admin, rescheduleTrackday,requestReview,welcomeUser,updateUser };
