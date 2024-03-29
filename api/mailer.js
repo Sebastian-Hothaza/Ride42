@@ -37,7 +37,7 @@ async function main(recipient,subject,htmlBody,args){
         }catch(err){
             console.log(err)
         }
-    }else{
+    }else if (process.env.NODE_ENV === 'development'){
         console.log(htmlBody)
     }
 
