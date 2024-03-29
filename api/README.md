@@ -30,7 +30,7 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 **Remove a user from a trackday:** Submit a `DELETE` request to `/register/:trackdayID/:userID`.
 
-**Reschedule a user:** Submit a `PUT` request to `/register/:trackdayID_OLD/:userID/:trackdayID_NEW`.
+**Reschedule a user:** Submit a `PUT` request to `/register/:userID/:trackdayID_OLD/:trackdayID_NEW`.
 
 **Check in a user:** Submit a `PUT` request to `/checkin/:userID/:trackdayID/:bikeID`.
 
