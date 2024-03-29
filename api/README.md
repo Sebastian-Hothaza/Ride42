@@ -42,6 +42,9 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 **Get trackdays basic info (PUBLIC):** Submit a `GET` request to `/presentTrackdays`.
 
+**Notify admin of QR code request:** Submit a `GET` request to `/qrcode/:userID/:bikeID`.
+
+
 ### Create
 **Create a new user in the `Users` collection (PUBLIC):** Submit a `POST` request to `/users`. Server will respond with `id` of newly created user.
 

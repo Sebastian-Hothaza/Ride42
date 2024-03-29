@@ -10,6 +10,8 @@ router.get('/verify/:userID/:trackdayID/:bikeID', userController.verify)
 router.put('/password/:userID', userController.updatePassword)
 router.post('/garage/:userID', userController.garage_post)
 router.delete('/garage/:userID/:bikeID', userController.garage_delete)
+router.get('/qrcode/:userID/:bikeID', userController.requestQRCode)
+
 
 
 router.get('/users/:userID', userController.user_get)
