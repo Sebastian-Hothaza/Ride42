@@ -14,9 +14,9 @@ API will feature support for mark paid & payWithCredit which will auto deduct cr
 
 /*
     --------------------------------------------- TODO ---------------------------------------------
-    merge getRegNumbers into presentTrackdays 
-    replace getTrackdays(userController) with presentTrackdaysForUser(trackdayController)
+    update guests correctly for trackday register, unregister, reschedule
     trackday_put issue where if form doesnt receive date, it double prints missing date message
+
     Payment handling logic - include tests (think about how to handle payments) - doulve check email sending for unregister (Ie. dont send admin email if paymentMethod was credit)
     code cleanup & review
     --------------------------------------------- TODO ---------------------------------------------
@@ -298,11 +298,31 @@ exports.presentTrackdays = async(req,res,next) => {
 }
 
 // Returns an array of trackday dates that user is registered for in format [{id: x, date: x, status: x, green: x, yellow: x, red: x, guests: x, groupCapacity: x, paid: x}] PUBLIC.
-// TODO: TESTING
-exports.presentTrackdaysForUser = async(req,res,next) => {
-    //TODO
-    return res.status(200).send(result)
-}
+exports.presentTrackdaysForUser = [
+    controllerUtils.validateUserID,
+
+    asyncHandler(async(req,res,next) => {
+        // Get all trackdays that user is a part of
+        const allDays = await Trackday.find({members: {$elemMatch: { userID: {$eq: req.params.userID}}}} ).populate('members.userID').exec(); 
+        let result = []
+        
+        allDays.forEach((trackday)=>{
+            result.push({
+                id: trackday.id,
+                date: trackday.date,
+                status: trackday.status,
+                green: getRegNumbers(trackday).green,
+                yellow: getRegNumbers(trackday).yellow,
+                red: getRegNumbers(trackday).red,
+                guests: getRegNumbers(trackday).guests,
+                groupCapacity: process.env.GROUP_CAPACITY,
+                // trackday members array currently has ALL members for that particular trackday. Fetch specific member entry so we can check payment status
+                paid: trackday.members.find((member) => member.userID.equals(req.params.userID)).paid
+            })
+        })
+        return res.status(200).send(result)
+    })
+]
 
 
 //////////////////////////////////////
@@ -336,7 +356,6 @@ exports.trackday_getALL = [
 ]
 
 // Creates a trackday. Requires JWT with admin.
-// TODO: Revise validator to ensure data is received in correct format
 exports.trackday_post = [
     body("date",  "Date must be in YYYY-MM-DDThh:mmZ form where time is in UTC").isISO8601().isLength({ min: 17, max: 17}).escape(),
     controllerUtils.verifyJWT,

@@ -1687,3 +1687,117 @@ describe('Testing presentTrackdays', () => {
 			}])
 	});
 })
+
+describe('Testing presentTrackdaysForUser', () => {
+	test("get trackdays for invalid objectID user", async() => {
+		await request(app)
+			.get("/presentTrackdays/invalid")
+			.expect(404, { msg: 'userID is not a valid ObjectID' })
+	});
+
+	test("invalid userID user", async() => {			
+		await request(app)
+			.get("/presentTrackdays/"+'1'+user1.body.id.slice(1,user1.body.id.length-1)+'1')
+			.expect(404, { msg: 'User does not exist' }) 
+	});
+
+	test("presentTrackdaysForUser - no trackdays", async() => {
+		// Create the trackday
+		const trackday = await addTrackday(getFormattedDate(3), adminCookie)
+
+		await request(app)
+			.get("/presentTrackdays/"+user1.body.id)
+			.expect(200, [])
+	});
+
+	test("presentTrackdaysForUser", async() => {		
+		// Create the trackday
+		const trackday = await addTrackday('2500-06-05T14:00Z', adminCookie)
+
+		// Add bike to garage
+		await request(app)
+			.post("/garage/"+user1.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', user1Cookie)
+			.expect(201);
+
+
+		// Register user for trackday
+		await request(app)
+			.post('/register/'+user1.body.id+'/'+trackday.body.id)
+			.type("form").send({paymentMethod: 'etransfer', guests: 3})
+			.set('Cookie', user1Cookie)
+			.expect(200)
+
+		await request(app)
+			.get("/presentTrackdays/"+user1.body.id)
+			.expect(200, [{
+				id: trackday.body.id,
+				date: '2500-06-05T14:00:00.000Z',
+				status: 'regOpen',
+				green: 0,
+				yellow: 1,
+				red: 0,
+				guests: 3,
+				groupCapacity: process.env.GROUP_CAPACITY,
+				paid: false
+			  }])
+	});
+	
+	test("get trackdays for user - multiple trackdays", async() => {		
+		// Create the trackday
+		const trackday1 = await addTrackday('2500-06-05T14:00Z', adminCookie)
+		const trackday2 = await addTrackday('2500-07-07T14:00Z', adminCookie)
+
+		// Add bike to garage
+		await request(app)
+			.post("/garage/"+user1.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', user1Cookie)
+			.expect(201);
+
+
+		// Register user for trackday1
+		await request(app)
+			.post('/register/'+user1.body.id+'/'+trackday1.body.id)
+			.type("form").send({paymentMethod: 'etransfer', guests: 3})
+			.set('Cookie', user1Cookie)
+			.expect(200)
+
+		// Register user for trackday2
+		await request(app)
+			.post('/register/'+user1.body.id+'/'+trackday2.body.id)
+			.type("form").send({paymentMethod: 'etransfer', guests: 2})
+			.set('Cookie', user1Cookie)
+			.expect(200)
+
+		await request(app)
+			.get("/presentTrackdays/"+user1.body.id)
+			.expect(200, [{
+				id: trackday1.body.id,
+				date: '2500-06-05T14:00:00.000Z',
+				status: 'regOpen',
+				green: 0,
+				yellow: 1,
+				red: 0,
+				guests: 3,
+				groupCapacity: process.env.GROUP_CAPACITY,
+				paid: false
+			  },
+			  {
+				id: trackday2.body.id,
+				date: '2500-07-07T14:00:00.000Z',
+				status: 'regOpen',
+				green: 0,
+				yellow: 1,
+				red: 0,
+				guests: 2,
+				groupCapacity: process.env.GROUP_CAPACITY,
+				paid: false
+			  }])
+	});
+	
+	
+})
