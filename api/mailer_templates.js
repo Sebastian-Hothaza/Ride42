@@ -183,7 +183,11 @@ const requestReview =
 const welcomeUser =
 `<body>
     <div class="default-style">
-        Hello there
+        Hello {name}, <br /> <br />
+        Welcome to Ride42! We are excited to have you as part of our community.<br /> <br />
+        Now is a great time to head over to your dashboard and add your bike to your garage.
+        Once you have done that, you will be able to register for trackday with Ride42.<br /> <br />
+        We look forward to seeing you on track soon!
     </div>
     
     <div class="io-ox-signature">
@@ -210,7 +214,9 @@ const welcomeUser =
 const updateUser =
 `<body>
     <div class="default-style">
-        Hello there
+        Hello {name}, <br /> <br />
+        Your account details have been updated<br /> <br />
+        If you did not change your details recently, please contact us immediately!
     </div>
     
     <div class="io-ox-signature">
