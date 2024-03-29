@@ -12,7 +12,6 @@ const mailTemplates = require('../mailer_templates')
 
 /*
     --------------------------------------------- TODO ---------------------------------------------
-    request QR code path
     code cleanup & review
     --------------------------------------------- TODO ---------------------------------------------
 */
@@ -139,6 +138,8 @@ exports.garage_post = [
             user.garage.push(bike);
 
             await user.save();
+            await sendEmail(process.env.ADMIN_EMAIL, "QR CODE REQUEST", mailTemplates.QRCodeRequest,
+                            {name: user.name.firstName, userID: req.params.userID, bikeID: bike.id})
             return res.status(201).json({id: bike.id});;
         }
         return res.sendStatus(403)
@@ -154,6 +155,11 @@ exports.garage_delete = [
     asyncHandler(async (req,res,next) => {
         if (req.user.memberType === 'admin' || req.user.id === req.params.userID){
             const user = await User.findById(req.params.userID).select('garage').exec();
+
+            // Verify the bikeID is actually in the users garage
+            const hasBike = user.garage.some((bikeID)=>bikeID.equals(req.params.bikeID))
+            if (!hasBike) res.status(404).send({msg: "this bike does not exist in your garage"})
+
             const numBikesOriginally = user.garage.length;
             user.garage = user.garage.filter((bikeID)=>(!bikeID.equals(req.params.bikeID)))
 
@@ -162,6 +168,28 @@ exports.garage_delete = [
         }
         return res.sendStatus(403)
     }),
+]
+
+// Sends email to admin notifying user requests a QR code for a specific bikeID
+exports.requestQRCode = [
+    controllerUtils.verifyJWT,
+    controllerUtils.validateUserID,
+    controllerUtils.validateBikeID,
+
+    asyncHandler(async(req,res,next) => {
+        if (req.user.memberType === 'admin' || (req.user.id === req.params.userID)){
+            const user = await User.findById(req.params.userID).exec();
+
+            // Verify the bikeID is actually in the users garage
+            const hasBike = user.garage.some((bikeID)=>bikeID.equals(req.params.bikeID))
+            if (!hasBike) res.status(404).send({msg: "this bike does not exist in your garage"})
+
+            await sendEmail(process.env.ADMIN_EMAIL, "QR CODE REQUEST", mailTemplates.QRCodeRequest,
+                            {name: req.user.name, userID: req.params.userID, bikeID: req.params.bikeID})
+            return res.sendStatus(200)
+        }
+        return res.sendStatus(403)
+    })
 ]
 
 
