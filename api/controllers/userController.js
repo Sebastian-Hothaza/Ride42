@@ -68,9 +68,7 @@ exports.updatePassword = [
                 if (passwordMatch){
                     user.password = hashedPassword;
                     await user.save();
-                    if (process.env.NODE_ENV === 'production'){
-                        await sendEmail(user.contact.email, "Your Password has been updated", mailTemplates.passwordChange, {name: user.name.firstName})
-                    }
+                    await sendEmail(user.contact.email, "Your Password has been updated", mailTemplates.passwordChange, {name: user.name.firstName})
                     res.sendStatus(200);
                 }else{
                     res.status(403).send({msg: "old password is incorrect"});
