@@ -15,7 +15,7 @@ API will feature support for mark paid & payWithCredit which will auto deduct cr
 /*
     --------------------------------------------- TODO ---------------------------------------------
     email notifs (check in should have 12hr delay prompting user review)
-    Payment handling logic - include tests (think about how to handle payments)
+    Payment handling logic - include tests (think about how to handle payments) - adjust email sending for unregister (Ie. dont send admin email if paymentMethod was credit)
     code cleanup & review
     --------------------------------------------- TODO ---------------------------------------------
 */
@@ -29,6 +29,7 @@ API will feature support for mark paid & payWithCredit which will auto deduct cr
     review trackday schema and how the ref is defined in members array
     optimization, ie. validateUserID fetches user from DB, avoid double fetching later in the processing
     look into migrading updates to use save - codebase wide
+    send email 12h after user check in requesting a review
     --------------------------------------- FOR LATER REVIEW ---------------------------------------
 */
 
@@ -145,7 +146,7 @@ exports.unregister = [
    
     asyncHandler(async(req,res,next) => {
         if (req.user.memberType === 'admin' || (req.user.id === req.params.userID)){
-            const trackday = await Trackday.findById(req.params.trackdayID).exec();
+            let [trackday, user] = await Promise.all([Trackday.findById(req.params.trackdayID).populate('members.userID').exec(), User.findById(req.params.userID)]);
 
             // Check user is actually registered for that trackday
             const memberEntry = trackday.members.find((member) => member.userID.equals(req.params.userID));
@@ -167,6 +168,14 @@ exports.unregister = [
 
             trackday.members = trackday.members.filter((member)=> !member.userID.equals(req.params.userID)) 
             await trackday.save();
+            // Send email to user
+            await sendEmail(user.contact.email, "Ride42 Trackday Cancellation Confirmation", mailTemplates.unregisterTrackday,
+                            {name: user.name.firstName, date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'})})
+            // Notify admin only if payment wasn't made with credit (credit is auto refunded)
+            if (memberEntry.paymentMethod !== 'credit'){
+                await sendEmail(process.env.ADMIN_EMAIL, "TRACKDAY CANCELATION", mailTemplates.unregisterTrackday_admin,
+                            {name: user.name.firstName, date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'})})
+            }
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
@@ -228,6 +237,8 @@ exports.reschedule = [
             trackdayOLD.members = trackdayOLD.members.filter((member)=> !member.userID.equals(req.params.userID)) 
             await trackdayOLD.save();
 
+            await sendEmail(user.contact.email, "Ride42 Trackday Reschedule Confirmation", mailTemplates.rescheduleTrackday,
+                            {name: user.name.firstName, dateOLD: trackdayOLD.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'}), dateNEW: trackdayNEW.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'})})
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
