@@ -192,14 +192,14 @@ exports.requestQRCode = [
 //////////////////////////////////////
 //              CRUD
 //////////////////////////////////////
-// Get a single user. Requires JWT with matching userID OR admin
+// Get a single user. Requires JWT with matching userID OR staff/admin
 exports.user_get = [
     controllerUtils.verifyJWT,
     controllerUtils.validateUserID,
 
     asyncHandler(async(req,res,next) => {
         // JWT is valid. Verify user is allowed to access this resource and return the information
-        if (req.user.memberType === 'admin' || req.user.id === req.params.userID){
+        if (req.user.memberType === 'admin' || req.user.memberType === 'staff' || req.user.id === req.params.userID){
             let user = await User.findById(req.params.userID).populate("garage", '-__v').select('-password -refreshToken -__v')
             return res.status(200).json(user);
         }
@@ -207,13 +207,13 @@ exports.user_get = [
     })
 ]
 
-// Gets all users. Requires JWT with admin
+// Gets all users. Requires JWT with staff/admin
 exports.user_getALL = [
     controllerUtils.verifyJWT,
 
     asyncHandler(async(req,res)=>{
         // JWT is valid. Verify user is allowed to access this resource and return the information
-        if (req.user.memberType === 'admin'){
+        if (req.user.memberType === 'admin' || req.user.memberType === 'staff'){
             let users = await User.find().populate("garage", '-__v').select('-password -refreshToken -__v').exec();
             return res.status(200).json(users);
         }
