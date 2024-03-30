@@ -7,19 +7,15 @@ const sendEmail = require('../mailer')
 const mailTemplates = require('../mailer_templates')
 
 /*
-A note about payments
-For now, all payments will be handled manually (credit card & e transfer.)
-API will feature support for mark paid & payWithCredit which will auto deduct credit where applicable
+PAYMENT NOTE
+credit card & e-transfer handled manually
+credit handled automatically
+gate always marked as paid
 */
 
 /*
     --------------------------------------------- TODO ---------------------------------------------
-    edit register to allow registering gate person (accessible by staff and admin only) - testing for these new features
-    payments - deduct credit
-    double check email sending for unregister (Ie. dont send admin email if paymentMethod was credit)
-    double check email sending
-    code cleanup & review
-    run through work flow
+    code cleanup & review - use methods where possible 
     --------------------------------------------- TODO ---------------------------------------------
 */
 
@@ -44,7 +40,6 @@ API will feature support for mark paid & payWithCredit which will auto deduct cr
 // JS does not support function overloading, hence the 'INTERNAL' marking
 function getRegNumbers(trackday){
     let green=0, yellow=0, red=0, guests=0
-
 
     // Check the members array
     for (let i=0; i<trackday.members.length; i++){
@@ -132,16 +127,21 @@ exports.register = [
             // Deny is user garage is empty
             if (req.user.memberType !== 'admin' && !user.garage.length) return res.status(401).send({msg: 'cannot register with empty user garage'})
 
+            // If paying with credit, check balance is available and deduct
+            if (req.body.paymentMethod === 'credit'){
+                if (!user.credits) return res.status(400).send({msg: 'insufficient credits'})
+                user.credits--;
+                await user.save();
+            } 
+
             // Add user to trackday
             trackday.members.push({
                 user: req.params.userID,
                 paymentMethod: req.body.paymentMethod,
-                paid: (req.body.paymentMethod === 'gate')?true:false,
+                paid: (req.body.paymentMethod === 'gate' || req.body.paymentMethod === 'credit')?true:false,
                 guests: req.body.guests,
                 checkedIn: []
             })
-
-           
 
             await trackday.save();
             await sendEmail(user.contact.email, "Ride42 Trackday Registration Confirmation", mailTemplates.registerTrackday,
@@ -173,9 +173,10 @@ exports.unregister = [
 
 
             // If user attempt to unregister for trackday < lockout period(7 default) away, deny unregistration
-            if (memberEntry.paymentMethod !== 'credit' && req.user.memberType !== 'admin' && await controllerUtils.isInLockoutPeriod(req.params.trackdayID)){
+            if ( await controllerUtils.isInLockoutPeriod(req.params.trackdayID) && 
+                 memberEntry.paymentMethod !== 'credit' && req.body.paymentMethod !== 'gate' && req.user.memberType !== 'admin'  ){
                 return res.status(401).send({msg: 'Cannot unregister for trackday <'+process.env.DAYS_LOCKOUT+' days away.'})
-            }
+            }  
 
             // Check if trackday is in the past (if time difference is negative)
             if (req.user.memberType !== 'admin' && trackday.date.getTime() - Date.now() < 0 ) return res.status(400).send({msg: 'Cannot un-register for trackday in the past'})
@@ -183,7 +184,11 @@ exports.unregister = [
             // Remove user from trackday
             trackday.members = trackday.members.filter((member)=> !member.user.equals(req.params.userID)) 
 
-        
+            // If paying with credit, add credit back to users balance
+            if (memberEntry.paymentMethod === 'credit'){
+                user.credits++;
+                await user.save();
+            } 
             await trackday.save();
             // Send email to user
             await sendEmail(user.contact.email, "Ride42 Trackday Cancellation Confirmation", mailTemplates.unregisterTrackday,
@@ -383,6 +388,9 @@ exports.updatePaid = [
 
             // Check that user we want to mark as paid is actually registerd for the trackday
             if (!memberEntry) return res.status(404).send({msg: 'Member is not registered for that trackday'});
+
+            // Block changing paid status for credit and gate paymentMethods
+            if (memberEntry.paymentMethod === 'credit' || memberEntry.paymentMethod === 'gate') return res.status(400).send({msg: 'Cannot change paid status on gate or credit registrations'});
 
 
             // Prevent setting paid status to what it was already set to
