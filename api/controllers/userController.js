@@ -118,7 +118,7 @@ exports.garage_post = [
             let bike
             
             // Check if bike exists in the DB. If it does not, add it.
-            bike = await Bike.findOne({year: {$eq: req.body.year}, make: {$eq: req.body.make}, model: {$eq: req.body.model}})
+            bike = await Bike.findOne({year: {$eq: req.body.year}, make: {$regex: req.body.make, $options: 'i'}, model: {$regex: req.body.model, $options: 'i'}})
             if (!bike){
                 bike = new Bike({year: req.body.year, make: req.body.make, model: req.body.model});
                 await bike.save()
@@ -245,7 +245,7 @@ exports.user_post = [
     
     asyncHandler(async(req, res, next)=>{
         // Check if a user already exists with same email
-        const duplicateUser = await User.find({'contact.email': {$eq: req.body.email}})
+        const duplicateUser = await User.find({'contact.email': {$regex: req.body.email, $options: 'i'}})
         if (duplicateUser.length) return res.status(409).send({msg: 'User with this email already exists'});
         
         bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
@@ -303,7 +303,7 @@ exports.user_put = [
             const oldUser = await User.findById(req.params.userID).exec();
 
             // Check if a user already exists with same email
-            const duplicateUser = await User.findOne({'contact.email': {$eq: req.body.email}})
+            const duplicateUser = await User.findOne({'contact.email': {$regex: req.body.email, $options: 'i'}})
             if (duplicateUser && oldUser.contact.email !== req.body.email) return res.status(409).send({msg: 'User with this email already exists'});
 
             // If user attempt to change group and has a trackday booked < lockout period(7 default) away, fail update entirely
