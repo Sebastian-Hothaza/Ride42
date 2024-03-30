@@ -1413,20 +1413,6 @@ describe('Testing rescheduling', () => {
 })
 
 describe('Testing checkin', () => {
-	test("invalid objectID trackday", async () => {
-		await request(app)
-			.post('/checkin/'+user1.body.id+'/invalid/someBikeID')
-			.set('Cookie', adminCookie)
-			.expect(404, {msg: 'trackdayID is not a valid ObjectID'})
-	});
-	test("invalid trackdayID trackday", async () => {
-		
-		const trackday = await addTrackday(getFormattedDate(10))
-		await request(app)
-			.post('/checkin/'+user1.body.id+'/1'+trackday.body.id.slice(1,trackday.body.id.length-1)+'1'+'/someBikeID')
-			.set('Cookie', adminCookie)
-			.expect(404, {msg: 'Trackday does not exist'})
-	});
 	test("invalid objectID user", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
@@ -1441,7 +1427,20 @@ describe('Testing checkin', () => {
 			.set('Cookie', adminCookie)
 			.expect(404, {msg: 'User does not exist'})
 	});
-
+	test("invalid objectID trackday", async () => {
+		await request(app)
+			.post('/checkin/'+user1.body.id+'/invalid/someBikeID')
+			.set('Cookie', adminCookie)
+			.expect(404, {msg: 'trackdayID is not a valid ObjectID'})
+	});
+	test("invalid trackdayID trackday", async () => {
+		
+		const trackday = await addTrackday(getFormattedDate(10))
+		await request(app)
+			.post('/checkin/'+user1.body.id+'/1'+trackday.body.id.slice(1,trackday.body.id.length-1)+'1'+'/someBikeID')
+			.set('Cookie', adminCookie)
+			.expect(404, {msg: 'Trackday does not exist'})
+	});
 	test("verify for invalid objectID bike", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 
@@ -1466,6 +1465,7 @@ describe('Testing checkin', () => {
 			.set('Cookie', adminCookie)
 			.expect(404, {msg: 'Bike does not exist'})
 	});
+
 
 	test("no JWT", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
@@ -1770,4 +1770,141 @@ describe('Testing presentTrackdaysForUser', () => {
 	});
 	
 	
+})
+
+describe('Testing updatePaid', () => {
+	test("invalid objectID user", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+		await request(app)
+			.post('/paid/'+'invalid/'+trackday.body.id)
+			.type('form').send({setPaid: 'true'})
+			.set('Cookie', adminCookie)
+			.expect(404, {msg: 'userID is not a valid ObjectID'})
+	});
+	test("invalid userID user", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+		await request(app)
+			.post('/paid/'+'1'+user1.body.id.slice(1,user1.body.id.length-1)+'1'+'/'+trackday.body.id)
+			.type('form').send({setPaid: 'true'})
+			.set('Cookie', adminCookie)
+			.expect(404, {msg: 'User does not exist'})
+	});
+	test("invalid objectID trackday", async () => {
+		await request(app)
+			.post('/paid/'+user1.body.id+'/invalid/')
+			.type('form').send({setPaid: 'true'})
+			.set('Cookie', adminCookie)
+			.expect(404, {msg: 'trackdayID is not a valid ObjectID'})
+	});
+	test("invalid trackdayID trackday", async () => {
+		
+		const trackday = await addTrackday(getFormattedDate(10))
+		await request(app)
+			.post('/paid/'+user1.body.id+'/1'+trackday.body.id.slice(1,trackday.body.id.length-1)+'1')
+			.type('form').send({setPaid: 'true'})
+			.set('Cookie', adminCookie)
+			.expect(404, {msg: 'Trackday does not exist'})
+	});
+
+	test("no JWT", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+		await request(app)
+			.post('/paid/'+user1.body.id+'/'+trackday.body.id)
+			.expect(401)
+	});
+	test("not authorized", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		await request(app)
+			.post('/paid/'+user1.body.id+'/'+trackday.body.id)
+			.type('form').send({setPaid: 'true'})
+			.set('Cookie', user1Cookie)
+			.expect(403)
+	});
+
+	test("already marked as paid", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		// Add bike to garage
+		const bike = await request(app)
+			.post("/garage/"+user1.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', user1Cookie)
+			.expect(201);
+
+		// Register for trackday
+		await request(app)
+			.post('/register/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
+			.expect(200)
+
+		// Mark user as paid
+		await request(app)
+			.post('/paid/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.type('form').send({setPaid: 'true'})
+			.expect(200)
+
+		// Mark user as paid
+		await request(app)
+			.post('/paid/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.type('form').send({setPaid: 'true'})
+			.expect(400, {msg: 'user already marked as paid'})
+	})
+	test("not registered for that day", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+		
+		// Mark user as paid
+		await request(app)
+			.post('/paid/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.type('form').send({setPaid: 'true'})
+			.expect(404, {msg: 'Member is not registered for that trackday'})
+	})
+
+	test('updating paid', async() => {		
+		// Create the trackday
+		const trackday = await addTrackday('2500-06-05T14:00Z', adminCookie)
+
+		// Add bike to garage
+		await request(app)
+			.post("/garage/"+user1.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', user1Cookie)
+			.expect(201);
+
+
+		// Register user for trackday
+		await request(app)
+			.post('/register/'+user1.body.id+'/'+trackday.body.id)
+			.type("form").send({paymentMethod: 'etransfer', guests: 3})
+			.set('Cookie', user1Cookie)
+			.expect(200)
+		
+		// Mark user as paid
+		await request(app)
+			.post('/paid/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.type('form').send({setPaid: 'true'})
+			.expect(200)
+
+		// Verify they actually got marked as paid
+		await request(app)
+			.get("/presentTrackdays/"+user1.body.id)
+			.expect(200, [{
+				id: trackday.body.id,
+				date: '2500-06-05T14:00:00.000Z',
+				status: 'regOpen',
+				green: 0,
+				yellow: 1,
+				red: 0,
+				guests: 3,
+				groupCapacity: process.env.GROUP_CAPACITY,
+				paid: true
+			  }])
+	});
 })

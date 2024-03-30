@@ -14,11 +14,12 @@ API will feature support for mark paid & payWithCredit which will auto deduct cr
 
 /*
     --------------------------------------------- TODO ---------------------------------------------
-    add back guests property got get and get all (CRUD)
-    trackday_put issue where if form doesnt receive date, it double prints missing date message
-
-    Payment handling logic - include tests (think about how to handle payments) - doulve check email sending for unregister (Ie. dont send admin email if paymentMethod was credit)
+    add walkonRegister feature and testing
+    edit register to allow registering gate person (accessible by staff and admin only) - testing for these new features
+    double check email sending for unregister (Ie. dont send admin email if paymentMethod was credit)
+    double check email sending
     code cleanup & review
+    run through work flow
     --------------------------------------------- TODO ---------------------------------------------
 */
 
@@ -33,6 +34,8 @@ API will feature support for mark paid & payWithCredit which will auto deduct cr
     look into migrating updates to use save - codebase wide
     send email 12h after user check in requesting a review
     email signature image WITHOUT showing up as attachment - possible?
+    review validation chain setup
+    case insensitivity for garage (Ie. 2009 Yamaha R6 and 2009 YAMAHA r6 should be same entry in bikes DB)
     --------------------------------------- FOR LATER REVIEW ---------------------------------------
 */
 
@@ -326,6 +329,36 @@ exports.presentTrackdaysForUser = [
     })
 ]
 
+// Updates paid status of member for a trackday. Requires JWT with admin.
+exports.updatePaid = [
+    body('setPaid', 'setPaid must be either true or false').trim().isBoolean().escape(),
+
+    controllerUtils.verifyJWT,
+    controllerUtils.validateForm,
+    controllerUtils.validateUserID,
+    controllerUtils.validateTrackdayID,
+
+    asyncHandler(async(req,res,next) => {
+        if (req.user.memberType === 'admin'){
+            const trackday = await Trackday.findById(req.params.trackdayID).populate('members.user', '-password -refreshToken -__v').exec();                                        
+            const memberEntry = trackday.members.find((member) => member.user.equals(req.params.userID));
+
+            // Check that user we want to mark as paid is actually registerd for the trackday
+            if (!memberEntry) return res.status(404).send({msg: 'Member is not registered for that trackday'});
+
+
+            // Prevent setting paid status to what it was already set to
+            if (memberEntry.paid && req.body.setPaid) return res.status(400).send({msg: "user already marked as paid"})
+            if (!memberEntry.paid && !req.body.setPaid) return res.status(400).send({msg: "user already marked as unpaid"})
+
+            // Update paid status
+            memberEntry.paid = memberEntry.paid? false:true
+            await trackday.save()
+            return res.sendStatus(200)
+        }
+        return res.sendStatus(403)
+    })
+]
 
 //////////////////////////////////////
 //              CRUD
@@ -383,8 +416,12 @@ exports.trackday_post = [
     })
 ]
 
-// Updates a trackday. Requires JWT with admin.
-
+// Updates a trackday EXCLUDING members and walkons. Requires JWT with admin.
+/*
+    /// PERMISSIONS ///
+    USER: contact, emergencyContact, group(7 day requirement; else fail entire request)
+    ADMIN: name, credits, member type
+*/
 exports.trackday_put = [
 
     body("date",  "Date must be in YYYY-MM-DDThh:mm form where time is in UTC").isISO8601().bail().isLength({ min: 17, max: 17}).escape(),
