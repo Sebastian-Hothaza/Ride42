@@ -437,7 +437,7 @@ describe('Testing trackday update', () => {
 			.expect(409)
 	});
 
-	test("update trackdayZ", async () => {
+	test("update trackday", async () => {
 		// Create trackday
 		const trackday = await addTrackday(getFormattedDate(10))
 		// Update it

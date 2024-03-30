@@ -441,24 +441,24 @@ describe('Testing user update', () => {
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 
-		expect((updatedUser.body.firstName)).toEqual(user1_unauthorizedFields.name_firstName);
-		expect((updatedUser.body.lastName)).toEqual(user1_unauthorizedFields.name_lastName);
+		expect((updatedUser.body.firstName)).toEqual(user1_unauthorizedFields.name_firstName.toLowerCase());
+		expect((updatedUser.body.lastName)).toEqual(user1_unauthorizedFields.name_lastName.toLowerCase());
 
-		expect((updatedUser.body.contact.email)).toEqual(user1_unauthorizedFields.email);
-		expect((updatedUser.body.contact.phone)).toEqual(user1_unauthorizedFields.phone);
-		expect((updatedUser.body.contact.address)).toEqual(user1_unauthorizedFields.address);
-		expect((updatedUser.body.contact.city)).toEqual(user1_unauthorizedFields.city);
-		expect((updatedUser.body.contact.province)).toEqual(user1_unauthorizedFields.province);
+		expect((updatedUser.body.contact.email)).toEqual(user1_unauthorizedFields.email.toLowerCase());
+		expect((updatedUser.body.contact.phone)).toEqual(user1_unauthorizedFields.phone.toLowerCase());
+		expect((updatedUser.body.contact.address)).toEqual(user1_unauthorizedFields.address.toLowerCase());
+		expect((updatedUser.body.contact.city)).toEqual(user1_unauthorizedFields.city.toLowerCase());
+		expect((updatedUser.body.contact.province)).toEqual(user1_unauthorizedFields.province.toLowerCase());
 
-		expect((updatedUser.body.emergencyContact.firstName)).toEqual(user1_unauthorizedFields.EmergencyName_firstName);
-		expect((updatedUser.body.emergencyContact.lastName)).toEqual(user1_unauthorizedFields.EmergencyName_lastName);
+		expect((updatedUser.body.emergencyContact.firstName)).toEqual(user1_unauthorizedFields.EmergencyName_firstName.toLowerCase());
+		expect((updatedUser.body.emergencyContact.lastName)).toEqual(user1_unauthorizedFields.EmergencyName_lastName.toLowerCase());
 		expect((updatedUser.body.emergencyContact.phone)).toEqual(parseInt(user1_unauthorizedFields.EmergencyPhone));
-		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1_unauthorizedFields.EmergencyRelationship);
+		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1_unauthorizedFields.EmergencyRelationship.toLowerCase());
 
-		expect((updatedUser.body.group)).toEqual(user1_unauthorizedFields.group);
+		expect((updatedUser.body.group)).toEqual(user1_unauthorizedFields.group.toLowerCase());
 
 		expect((updatedUser.body.credits)).toEqual(user1_unauthorizedFields.credits);
-		expect((updatedUser.body.memberType)).toEqual(user1_unauthorizedFields.memberType);
+		expect((updatedUser.body.memberType)).toEqual(user1_unauthorizedFields.memberType.toLowerCase());
 	})	
 
 
@@ -508,16 +508,16 @@ describe('Testing user update', () => {
 			.set('Cookie', loginResUser.headers['set-cookie'])
 			.expect(200)
 
-		expect((updatedUser.body.contact.email)).toEqual(user1.email);
-		expect((updatedUser.body.contact.phone)).toEqual(user1.phone);
-		expect((updatedUser.body.contact.address)).toEqual(user1.address);
-		expect((updatedUser.body.contact.city)).toEqual(user1.city);
-		expect((updatedUser.body.contact.province)).toEqual(user1.province);
+		expect((updatedUser.body.contact.email)).toEqual(user1.email.toLowerCase());
+		expect((updatedUser.body.contact.phone)).toEqual(user1.phone.toLowerCase());
+		expect((updatedUser.body.contact.address)).toEqual(user1.address.toLowerCase());
+		expect((updatedUser.body.contact.city)).toEqual(user1.city.toLowerCase());
+		expect((updatedUser.body.contact.province)).toEqual(user1.province.toLowerCase());
 
-		expect((updatedUser.body.emergencyContact.firstName)).toEqual(user1.EmergencyName_firstName);
-		expect((updatedUser.body.emergencyContact.lastName)).toEqual(user1.EmergencyName_lastName);
+		expect((updatedUser.body.emergencyContact.firstName)).toEqual(user1.EmergencyName_firstName.toLowerCase());
+		expect((updatedUser.body.emergencyContact.lastName)).toEqual(user1.EmergencyName_lastName.toLowerCase());
 		expect((updatedUser.body.emergencyContact.phone)).toEqual(parseInt(user1.EmergencyPhone));
-		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1.EmergencyRelationship);
+		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1.EmergencyRelationship.toLowerCase());
 
 		expect((updatedUser.body.group)).toEqual(user1.group);
 	});
@@ -553,18 +553,18 @@ describe('Testing user update', () => {
 			.set('Cookie', loginResUser.headers['set-cookie'])
 			.expect(200)
 
-		expect((updatedUser.body.contact.email)).toEqual(user1_update.email);
-		expect((updatedUser.body.contact.phone)).toEqual(user1_update.phone);
-		expect((updatedUser.body.contact.address)).toEqual(user1_update.address);
-		expect((updatedUser.body.contact.city)).toEqual(user1_update.city);
-		expect((updatedUser.body.contact.province)).toEqual(user1_update.province);
+		expect((updatedUser.body.contact.email)).toEqual(user1_update.email.toLowerCase());
+		expect((updatedUser.body.contact.phone)).toEqual(user1_update.phone.toLowerCase());
+		expect((updatedUser.body.contact.address)).toEqual(user1_update.address.toLowerCase());
+		expect((updatedUser.body.contact.city)).toEqual(user1_update.city.toLowerCase());
+		expect((updatedUser.body.contact.province)).toEqual(user1_update.province.toLowerCase());
 
-		expect((updatedUser.body.emergencyContact.firstName)).toEqual(user1_update.EmergencyName_firstName);
-		expect((updatedUser.body.emergencyContact.lastName)).toEqual(user1_update.EmergencyName_lastName);
+		expect((updatedUser.body.emergencyContact.firstName)).toEqual(user1_update.EmergencyName_firstName.toLowerCase());
+		expect((updatedUser.body.emergencyContact.lastName)).toEqual(user1_update.EmergencyName_lastName.toLowerCase());
 		expect((updatedUser.body.emergencyContact.phone)).toEqual(parseInt(user1_update.EmergencyPhone));
-		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1_update.EmergencyRelationship);
+		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1_update.EmergencyRelationship.toLowerCase());
 
-		expect((updatedUser.body.group)).toEqual(user1_update.group);
+		expect((updatedUser.body.group)).toEqual(user1_update.group.toLowerCase());
 	});
 	
 	test("Update specific user group - as admin - within 7 day lockout", async () => {
@@ -613,18 +613,18 @@ describe('Testing user update', () => {
 			.set('Cookie', loginResUser.headers['set-cookie'])
 			.expect(200)
 
-		expect((updatedUser.body.contact.email)).toEqual(user1_update.email);
-		expect((updatedUser.body.contact.phone)).toEqual(user1_update.phone);
-		expect((updatedUser.body.contact.address)).toEqual(user1_update.address);
-		expect((updatedUser.body.contact.city)).toEqual(user1_update.city);
-		expect((updatedUser.body.contact.province)).toEqual(user1_update.province);
+		expect((updatedUser.body.contact.email)).toEqual(user1_update.email.toLowerCase());
+		expect((updatedUser.body.contact.phone)).toEqual(user1_update.phone.toLowerCase());
+		expect((updatedUser.body.contact.address)).toEqual(user1_update.address.toLowerCase());
+		expect((updatedUser.body.contact.city)).toEqual(user1_update.city.toLowerCase());
+		expect((updatedUser.body.contact.province)).toEqual(user1_update.province.toLowerCase());
 
-		expect((updatedUser.body.emergencyContact.firstName)).toEqual(user1_update.EmergencyName_firstName);
-		expect((updatedUser.body.emergencyContact.lastName)).toEqual(user1_update.EmergencyName_lastName);
+		expect((updatedUser.body.emergencyContact.firstName)).toEqual(user1_update.EmergencyName_firstName.toLowerCase());
+		expect((updatedUser.body.emergencyContact.lastName)).toEqual(user1_update.EmergencyName_lastName.toLowerCase());
 		expect((updatedUser.body.emergencyContact.phone)).toEqual(parseInt(user1_update.EmergencyPhone));
-		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1_update.EmergencyRelationship);
+		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1_update.EmergencyRelationship.toLowerCase());
 
-		expect((updatedUser.body.group)).toEqual(user1_update.group);
+		expect((updatedUser.body.group)).toEqual(user1_update.group.toLowerCase());
 	});
 
 	test("Update specific user - as user - within 7 day lockout without changing group", async () => {
@@ -688,18 +688,18 @@ describe('Testing user update', () => {
 			.set('Cookie', loginResUser.headers['set-cookie'])
 			.expect(200)
 
-		expect((updatedUser.body.contact.email)).toEqual(user1_update_noChangeGroup.email);
-		expect((updatedUser.body.contact.phone)).toEqual(user1_update_noChangeGroup.phone);
-		expect((updatedUser.body.contact.address)).toEqual(user1_update_noChangeGroup.address);
-		expect((updatedUser.body.contact.city)).toEqual(user1_update_noChangeGroup.city);
-		expect((updatedUser.body.contact.province)).toEqual(user1_update_noChangeGroup.province);
+		expect((updatedUser.body.contact.email)).toEqual(user1_update_noChangeGroup.email.toLowerCase());
+		expect((updatedUser.body.contact.phone)).toEqual(user1_update_noChangeGroup.phone.toLowerCase());
+		expect((updatedUser.body.contact.address)).toEqual(user1_update_noChangeGroup.address.toLowerCase());
+		expect((updatedUser.body.contact.city)).toEqual(user1_update_noChangeGroup.city.toLowerCase());
+		expect((updatedUser.body.contact.province)).toEqual(user1_update_noChangeGroup.province.toLowerCase());
 
-		expect((updatedUser.body.emergencyContact.firstName)).toEqual(user1_update_noChangeGroup.EmergencyName_firstName);
-		expect((updatedUser.body.emergencyContact.lastName)).toEqual(user1_update_noChangeGroup.EmergencyName_lastName);
+		expect((updatedUser.body.emergencyContact.firstName)).toEqual(user1_update_noChangeGroup.EmergencyName_firstName.toLowerCase());
+		expect((updatedUser.body.emergencyContact.lastName)).toEqual(user1_update_noChangeGroup.EmergencyName_lastName.toLowerCase());
 		expect((updatedUser.body.emergencyContact.phone)).toEqual(parseInt(user1_update_noChangeGroup.EmergencyPhone));
-		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1_update_noChangeGroup.EmergencyRelationship);
+		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1_update_noChangeGroup.EmergencyRelationship.toLowerCase());
 
-		expect((updatedUser.body.group)).toEqual(user1_update_noChangeGroup.group);
+		expect((updatedUser.body.group)).toEqual(user1_update_noChangeGroup.group.toLowerCase());
 	});
 
 
@@ -735,16 +735,16 @@ describe('Testing user update', () => {
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 
-		expect((updatedUser.body.contact.email)).toEqual(user1.email);
-		expect((updatedUser.body.contact.phone)).toEqual(user1.phone);
-		expect((updatedUser.body.contact.address)).toEqual(user1.address);
-		expect((updatedUser.body.contact.city)).toEqual(user1.city);
-		expect((updatedUser.body.contact.province)).toEqual(user1.province);
+		expect((updatedUser.body.contact.email)).toEqual(user1.email.toLowerCase());
+		expect((updatedUser.body.contact.phone)).toEqual(user1.phone.toLowerCase());
+		expect((updatedUser.body.contact.address)).toEqual(user1.address.toLowerCase());
+		expect((updatedUser.body.contact.city)).toEqual(user1.city.toLowerCase());
+		expect((updatedUser.body.contact.province)).toEqual(user1.province.toLowerCase());
 
-		expect((updatedUser.body.emergencyContact.firstName)).toEqual(user1.EmergencyName_firstName);
-		expect((updatedUser.body.emergencyContact.lastName)).toEqual(user1.EmergencyName_lastName);
+		expect((updatedUser.body.emergencyContact.firstName)).toEqual(user1.EmergencyName_firstName.toLowerCase());
+		expect((updatedUser.body.emergencyContact.lastName)).toEqual(user1.EmergencyName_lastName.toLowerCase());
 		expect((updatedUser.body.emergencyContact.phone)).toEqual(parseInt(user1.EmergencyPhone));
-		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1.EmergencyRelationship);
+		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1.EmergencyRelationship.toLowerCase());
 
 		expect((updatedUser.body.group)).toEqual(user1.group);
 
@@ -767,18 +767,18 @@ describe('Testing user update', () => {
 		.set('Cookie', loginRes.headers['set-cookie'])
 		.expect(200)
 
-		expect((updatedUser.body.contact.email)).toEqual(user1_update.email);
-		expect((updatedUser.body.contact.phone)).toEqual(user1_update.phone);
-		expect((updatedUser.body.contact.address)).toEqual(user1_update.address);
-		expect((updatedUser.body.contact.city)).toEqual(user1_update.city);
-		expect((updatedUser.body.contact.province)).toEqual(user1_update.province);
+		expect((updatedUser.body.contact.email)).toEqual(user1_update.email.toLowerCase());
+		expect((updatedUser.body.contact.phone)).toEqual(user1_update.phone.toLowerCase());
+		expect((updatedUser.body.contact.address)).toEqual(user1_update.address.toLowerCase());
+		expect((updatedUser.body.contact.city)).toEqual(user1_update.city.toLowerCase());
+		expect((updatedUser.body.contact.province)).toEqual(user1_update.province.toLowerCase());
 
-		expect((updatedUser.body.emergencyContact.firstName)).toEqual(user1_update.EmergencyName_firstName);
-		expect((updatedUser.body.emergencyContact.lastName)).toEqual(user1_update.EmergencyName_lastName);
+		expect((updatedUser.body.emergencyContact.firstName)).toEqual(user1_update.EmergencyName_firstName.toLowerCase());
+		expect((updatedUser.body.emergencyContact.lastName)).toEqual(user1_update.EmergencyName_lastName.toLowerCase());
 		expect((updatedUser.body.emergencyContact.phone)).toEqual(parseInt(user1_update.EmergencyPhone));
-		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1_update.EmergencyRelationship);
+		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1_update.EmergencyRelationship.toLowerCase());
 
-		expect((updatedUser.body.group)).toEqual(user1_update.group);
+		expect((updatedUser.body.group)).toEqual(user1_update.group.toLowerCase());
 
 	});
 

@@ -12,6 +12,7 @@ const mailTemplates = require('../mailer_templates')
 
 /*
     --------------------------------------------- TODO ---------------------------------------------
+    restrict province to oneOf
     code cleanup & review
     --------------------------------------------- TODO ---------------------------------------------
 */
@@ -30,7 +31,8 @@ exports.login = [
 
     // Form data is valid. Check that user exists in DB and that password matches
     asyncHandler(async (req, res, next) => {
-        const user = await User.findOne({'contact.email': req.body.email}).exec();
+        const user = await User.findOne({'contact.email': {$regex: req.body.email, $options: 'i'}}).exec();
+        
         if (user){
             // Verify Password
             const passwordMatch = await bcrypt.compare(req.body.password, user.password)
@@ -44,6 +46,7 @@ exports.login = [
                 // Store user specific refresh token in DB
                 user.refreshToken = refreshToken;
                 await user.save();
+                
                 res.sendStatus(200)
             }else{
                 return res.status(400).json({msg: 'Incorrect Password'});
@@ -120,7 +123,7 @@ exports.garage_post = [
             // Check if bike exists in the DB. If it does not, add it.
             bike = await Bike.findOne({year: {$eq: req.body.year}, make: {$regex: req.body.make, $options: 'i'}, model: {$regex: req.body.model, $options: 'i'}})
             if (!bike){
-                bike = new Bike({year: req.body.year, make: req.body.make, model: req.body.model});
+                bike = new Bike({year: req.body.year, make: req.body.make.toLowerCase(), model: req.body.model.toLowerCase()});
                 await bike.save()
             }
 
@@ -251,11 +254,22 @@ exports.user_post = [
         bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
             // Create the user and insert into the DB
             const user = new User({
-                firstName: req.body.name_firstName, 
-                lastName: req.body.name_lastName,
-                contact: {email: req.body.email, phone:req.body.phone, address: req.body.address, city: req.body.city, province: req.body.province},
-                emergencyContact: { firstName: req.body.EmergencyName_firstName, lastName: req.body.EmergencyName_lastName, phone: req.body.EmergencyPhone, relationship: req.body.EmergencyRelationship},
-                group: req.body.group,
+                firstName: req.body.name_firstName.toLowerCase(), 
+                lastName: req.body.name_lastName.toLowerCase(),
+                contact: {
+                    email: req.body.email.toLowerCase(),
+                    phone:req.body.phone.toLowerCase(),
+                    address: req.body.address.toLowerCase(),
+                    city: req.body.city.toLowerCase(),
+                    province: req.body.province.toLowerCase()
+                },
+                emergencyContact: {
+                    firstName: req.body.EmergencyName_firstName.toLowerCase(),
+                    lastName: req.body.EmergencyName_lastName.toLowerCase(),
+                    phone: req.body.EmergencyPhone.toLowerCase(),
+                    relationship: req.body.EmergencyRelationship.toLowerCase()
+                },
+                group: req.body.group.toLowerCase(),
                 credits: 0,
                 memberType: 'regular',
                 password: hashedPassword
@@ -294,6 +308,7 @@ exports.user_put = [
     asyncHandler(async (req,res,next) => {
         // JWT is valid. Verify user is allowed to access this resource and update the object
         // If user attempts to tamper with unauthorized fields, return 403
+        
         if (req.user.memberType !== 'admin' &&
             (req.body.name_firstName || req.body.name_lastName ||
                 req.body.credits || req.body.memberType)) return res.sendStatus(403) 
@@ -305,23 +320,36 @@ exports.user_put = [
             // Check if a user already exists with same email
             const duplicateUser = await User.findOne({'contact.email': {$regex: req.body.email, $options: 'i'}})
             if (duplicateUser && oldUser.contact.email !== req.body.email) return res.status(409).send({msg: 'User with this email already exists'});
-
+            
             // If user attempt to change group and has a trackday booked < lockout period(7 default) away, fail update entirely
             if (req.body.group !== oldUser.group && req.user.memberType !== 'admin' && await controllerUtils.hasTrackdayWithinLockout(req.params.userID)){
                 return res.status(401).send({msg: 'Cannot change group when registered for trackday <'+process.env.DAYS_LOCKOUT+' days away.'})
             }
+            
             const user = new User({
-                firstName: (req.user.memberType === 'admin' && req.body.name_firstName)? req.body.name_firstName: oldUser.name_firstName,
-                lastName: (req.user.memberType === 'admin' && req.body.name_lastName)? req.body.name_lastName: oldUser.name_lastName,
-                contact: {email: req.body.email, phone:req.body.phone, address: req.body.address, city: req.body.city, province: req.body.province},
-                emergencyContact: { firstName: req.body.EmergencyName_firstName, lastName: req.body.EmergencyName_lastName, phone: req.body.EmergencyPhone, relationship: req.body.EmergencyRelationship},
+                firstName: (req.user.memberType === 'admin' && req.body.name_firstName)? req.body.name_firstName.toLowerCase(): oldUser.name_firstName,
+                lastName: (req.user.memberType === 'admin' && req.body.name_lastName)? req.body.name_lastName.toLowerCase(): oldUser.name_lastName,
+                contact: {
+                    email: req.body.email.toLowerCase(),
+                    phone:req.body.phone.toLowerCase(),
+                    address: req.body.address.toLowerCase(),
+                    city: req.body.city.toLowerCase(),
+                    province: req.body.province.toLowerCase()
+                },
+                emergencyContact: {
+                    firstName: req.body.EmergencyName_firstName.toLowerCase(),
+                    lastName: req.body.EmergencyName_lastName.toLowerCase(),
+                    phone: req.body.EmergencyPhone.toLowerCase(),
+                    relationship: req.body.EmergencyRelationship.toLowerCase()
+                },
                 garage: oldUser.garage,
-                group: req.body.group,
+                group: req.body.group.toLowerCase(),
                 credits: (req.user.memberType === 'admin' && req.body.credits)? req.body.credits : oldUser.credits,
-                memberType: (req.user.memberType === 'admin' && req.body.memberType)? req.body.memberType : oldUser.memberType,
+                memberType: (req.user.memberType === 'admin' && req.body.memberType)? req.body.memberType.toLowerCase() : oldUser.memberType,
                 password: oldUser.password,
                 _id: req.params.userID,
             })
+            
             await User.findByIdAndUpdate(req.params.userID, user, {});
             await sendEmail(user.contact.email, "Your account details have been updated", mailTemplates.updateUser,{name: user.firstName })
             return res.status(201).json({id: user.id});
@@ -373,11 +401,22 @@ exports.admin = [
         bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
             // Create the user and insert into the DB
             const user = new User({
-                firstName: req.body.name_firstName,
-                lastName: req.body.name_lastName,
-                contact: {email: req.body.email, phone:req.body.phone, address: req.body.address, city: req.body.city, province: req.body.province},
-                emergencyContact: { firstName: req.body.EmergencyName_firstName, lastName: req.body.EmergencyName_lastName, phone: req.body.EmergencyPhone, relationship: req.body.EmergencyRelationship},
-                group: req.body.group,
+                firstName: req.body.name_firstName.toLowerCase(),
+                lastName: req.body.name_lastName.toLowerCase(),
+                contact: {
+                    email: req.body.email.toLowerCase(),
+                    phone:req.body.phone.toLowerCase(),
+                    address: req.body.address.toLowerCase(),
+                    city: req.body.city.toLowerCase(),
+                    province: req.body.province.toLowerCase()
+                },
+                emergencyContact: {
+                    firstName: req.body.EmergencyName_firstName.toLowerCase(),
+                    lastName: req.body.EmergencyName_lastName.toLowerCase(),
+                    phone: req.body.EmergencyPhone.toLowerCase(),
+                    relationship: req.body.EmergencyRelationship.toLowerCase()
+                },
+                group: req.body.group.toLowerCase(),
                 credits: 0,
                 memberType: 'admin',
                 password: hashedPassword
