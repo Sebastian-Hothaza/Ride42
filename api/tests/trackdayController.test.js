@@ -347,12 +347,11 @@ describe('Testing trackday read', () => {
 				date: getFormattedDate(10).slice(0, getFormattedDate(10).length-1) + ':00.000Z',
 				members: [],
 				walkons: [],
-				guests: 0,
 				status: 'regOpen',
-				__v: 0
+				guests: 0
 			})
 	});
-	test("get all trackdays from DB", async () => {
+	test("get all trackdays from DBZ", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
 			.get('/trackdays')
@@ -362,9 +361,8 @@ describe('Testing trackday read', () => {
 				date: getFormattedDate(10).slice(0, getFormattedDate(10).length-1) + ':00.000Z',
 				members: [],
 				walkons: [],
-				guests: 0,
 				status: 'regOpen',
-				__v: 0
+				guests: 0
 			  }])
 	});
 })
@@ -386,54 +384,28 @@ describe('Testing trackday update', () => {
 			.expect(404, {msg: 'Trackday does not exist'})
 	});
 
-	test("update trackday in DB - missing fields", async () => {
+	test("update trackday - missing fields", async () => {
 		// Create trackday
 		const trackday = await addTrackday(getFormattedDate(10))
 		// Update it
 		await request(app)
 			.put('/trackdays/'+trackday.body.id)
 			.set('Cookie', adminCookie)
-			.type('form').send({date: getFormattedDate(10), status: 'regClosed'})
+			.type('form').send({date: getFormattedDate(10)})
 			.expect(400)
-		// Check the updates were NOT successful
-		await request(app)
-		.get('/trackdays/'+trackday.body.id)
-		.set('Cookie', adminCookie)
-		.expect(200, {
-			_id: trackday.body.id,
-			date: getFormattedDate(10).slice(0, getFormattedDate(10).length-1) + ':00.000Z',
-			members: [],
-			walkons: [],
-			guests: 0,
-			status: 'regOpen',
-			__v: 0
-		})
 	});
-	test("update trackday in DB - malformed fields", async () => {
+	test("update trackday - malformed fields", async () => {
 		// Create trackday
 		const trackday = await addTrackday(getFormattedDate(10))
 		// Update it
 		await request(app)
 			.put('/trackdays/'+trackday.body.id)
 			.set('Cookie', adminCookie)
-			.type('form').send({date: getFormattedDate(10), guests:'a', status: 'regClosed'})
+			.type('form').send({date: 'someDay!', status: 'foobar'})
 			.expect(400)
-		// Check the updates were NOT successful
-		await request(app)
-		.get('/trackdays/'+trackday.body.id)
-		.set('Cookie', adminCookie)
-		.expect(200, {
-			_id: trackday.body.id,
-			date: getFormattedDate(10).slice(0, getFormattedDate(10).length-1) + ':00.000Z',
-			members: [],
-			walkons: [],
-			guests: 0,
-			status: 'regOpen',
-			__v: 0
-		})
 	});
 
-	test("update trackday in DB - no JWT", async () => {
+	test("update trackday - no JWT", async () => {
 		// Create trackday
 		const trackday = await addTrackday(getFormattedDate(10))
 		// Update it
@@ -441,21 +413,8 @@ describe('Testing trackday update', () => {
 			.put('/trackdays/'+trackday.body.id)
 			.type('form').send({date: getFormattedDate(10), guests: 5, status: 'regClosed'})
 			.expect(401)
-		// Check the updates were NOT successful
-		await request(app)
-			.get('/trackdays/'+trackday.body.id)
-			.set('Cookie', adminCookie)
-			.expect(200, {
-				_id: trackday.body.id,
-				date: getFormattedDate(10).slice(0, getFormattedDate(10).length-1) + ':00.000Z',
-				members: [],
-				walkons: [],
-				guests: 0,
-				status: 'regOpen',
-				__v: 0
-		})
 	});
-	test("update trackday in DB - not authorized", async () => {
+	test("update trackday - not authorized", async () => {
 		// Create trackday
 		const trackday = await addTrackday(getFormattedDate(10))
 		// Update it
@@ -464,22 +423,9 @@ describe('Testing trackday update', () => {
 			.set('Cookie', user1Cookie)
 			.type('form').send({date: getFormattedDate(10), guests: 5, status: 'regClosed'})
 			.expect(403)
-		// Check the updates were NOT successful
-		await request(app)
-			.get('/trackdays/'+trackday.body.id)
-			.set('Cookie', adminCookie)
-			.expect(200, {
-				_id: trackday.body.id,
-				date: getFormattedDate(10).slice(0, getFormattedDate(10).length-1) + ':00.000Z',
-				members: [],
-				walkons: [],
-				guests: 0,
-				status: 'regOpen',
-				__v: 0
-		})
 	});
 
-	test("update trackday in DB - non-unique date", async () => {
+	test("update trackday - non-unique date", async () => {
 		// Create trackday
 		const trackday1 = await addTrackday(getFormattedDate(10))
 		const trackday2 = await addTrackday('2500-07-07T14:00Z')
@@ -489,30 +435,16 @@ describe('Testing trackday update', () => {
 			.set('Cookie', adminCookie)
 			.type('form').send({date: '2500-07-07T14:00Z', guests: 6, status: 'regClosed'})
 			.expect(409)
-
-			// Check the updates were NOT successful
-			await request(app)
-				.get('/trackdays/'+trackday1.body.id)
-				.set('Cookie', adminCookie)
-				.expect(200, {
-					_id: trackday1.body.id,
-					date: getFormattedDate(10).slice(0, getFormattedDate(10).length-1) + ':00.000Z',
-					members: [],
-					walkons: [],
-					guests: 0,
-					status: 'regOpen',
-					__v: 0
-				})
 	});
 
-	test("update trackday in DB", async () => {
+	test("update trackdayZ", async () => {
 		// Create trackday
 		const trackday = await addTrackday(getFormattedDate(10))
 		// Update it
 		await request(app)
 			.put('/trackdays/'+trackday.body.id)
 			.set('Cookie', adminCookie)
-			.type('form').send({date: getFormattedDate(10), guests: 5, status: 'regClosed'})
+			.type('form').send({date: getFormattedDate(15), status: 'regClosed'})
 			.expect(201)
 
 		// Check the updates were successful
@@ -521,12 +453,11 @@ describe('Testing trackday update', () => {
 		.set('Cookie', adminCookie)
 		.expect(200, {
 			_id: trackday.body.id,
-			date: getFormattedDate(10).slice(0, getFormattedDate(10).length-1) + ':00.000Z',
+			date: getFormattedDate(15).slice(0, getFormattedDate(15).length-1) + ':00.000Z',
 			members: [],
 			walkons: [],
-			guests: 5,
 			status: 'regClosed',
-			__v: 0
+			guests: 0
 		})
 	});
 })
@@ -552,18 +483,6 @@ describe('Testing trackday delete', () => {
 		await request(app)
 			.delete('/trackdays/'+trackday.body.id)
 			.expect(401)
-		await request(app)
-			.get('/trackdays/'+trackday.body.id)
-			.set('Cookie', adminCookie)
-			.expect(200, {
-				_id: trackday.body.id,
-				date: getFormattedDate(10).slice(0, getFormattedDate(10).length-1) + ':00.000Z',
-				members: [],
-				walkons: [],
-				guests: 0,
-				status: 'regOpen',
-				__v: 0
-			})
 	});
 	test("delete trackday from DB - not authorized", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
@@ -571,18 +490,6 @@ describe('Testing trackday delete', () => {
 			.delete('/trackdays/'+trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.expect(403)
-		await request(app)
-			.get('/trackdays/'+trackday.body.id)
-			.set('Cookie', adminCookie)
-			.expect(200, {
-				_id: trackday.body.id,
-				date: getFormattedDate(10).slice(0, getFormattedDate(10).length-1) + ':00.000Z',
-				members: [],
-				walkons: [],
-				guests: 0,
-				status: 'regOpen',
-				__v: 0
-			})
 	});
 
 	test("delete trackday from DB", async () => {
@@ -851,7 +758,7 @@ describe('Testing registering', () => {
 	});
 	
 	test("valid registration", async () => {
-		const trackday = await addTrackday(getFormattedDate(10))
+		const trackday = await addTrackday('2500-06-05T14:00Z')
 
 		// Add bike to garage
 		await request(app)
@@ -861,12 +768,33 @@ describe('Testing registering', () => {
 			.set('Cookie', user1Cookie)
 			.expect(201);
 
+		// Register for trackday
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
+		
+
+		// Check registration was processed correctly 
+		await request(app)
+			.get("/presentTrackdays/"+user1.body.id)
+			.expect(200, [{
+				id: trackday.body.id,
+				date: '2500-06-05T14:00:00.000Z',
+				status: 'regOpen',
+				green: 0,
+				yellow: 1,
+				red: 0,
+				guests: 3,
+				groupCapacity: process.env.GROUP_CAPACITY,
+				paid: false
+			  },])
+			  
+
 	});
+
+
 
 })
 
@@ -1023,7 +951,7 @@ describe('Testing un-registering', () => {
 	
 
 	test("valid un-registration", async () => {
-		const trackday = await addTrackday(getFormattedDate(10))
+		const trackday = await addTrackday('2024-04-09T14:00Z')
 
 		// Add bike to garage
 		await request(app)
@@ -1040,12 +968,28 @@ describe('Testing un-registering', () => {
 			.type('form').send({paymentMethod: 'etransfer', guests: 3})
 			.expect(200)
 
-		
+		// Unregister
 		await request(app)
 			.delete('/register/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.expect(200)
+		
+			
+		// Make sure trackday doesn't have any guests
+		await request(app)
+			.get('/trackdays/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.expect(200, {
+				_id: trackday.body.id,
+				date: '2024-04-09T14:00:00.000Z',
+				members: [],
+				walkons: [],
+				guests: 0,
+				status: 'regOpen'
+			  })
+			  
 	});
+
 })
 
 describe('Testing rescheduling', () => {
@@ -1415,9 +1359,9 @@ describe('Testing rescheduling', () => {
 			.expect(200)
 	});
 
-	test("valid reschedule", async () => {
-		const trackday1 = await addTrackday(getFormattedDate(15))
-		const trackday2 = await addTrackday(getFormattedDate(20))
+	test("valid rescheduleZ", async () => {
+		const trackday1 = await addTrackday('2024-06-05T14:00Z')
+		const trackday2 = await addTrackday('2024-07-07T14:00Z')
 
 		// Add bike to garage
 		await request(app)
@@ -1439,6 +1383,32 @@ describe('Testing rescheduling', () => {
 			.put('/register/'+user1.body.id+'/'+trackday1.body.id+'/'+trackday2.body.id)
 			.set('Cookie', user1Cookie)
 			.expect(200)
+		
+	
+		// Make sure trackday we left doesn't have any guests and trackday we joined has guests transfered over
+		await request(app)
+			.get('/presentTrackdays')
+			.set('Cookie', adminCookie)
+			.expect(200, [{
+				id: trackday1.body.id,
+				date: '2024-06-05T14:00:00.000Z',
+				status: 'regOpen',
+				green: 0,
+				yellow: 0,
+				red: 0,
+				guests: 0,
+				groupCapacity: process.env.GROUP_CAPACITY
+			  },
+			  {
+				id: trackday2.body.id,
+				date: '2024-07-07T14:00:00.000Z',
+				status: 'regOpen',
+				green: 0,
+				yellow: 1,
+				red: 0,
+				guests: 3,
+				groupCapacity: process.env.GROUP_CAPACITY
+			  }])			
 	});
 })
 

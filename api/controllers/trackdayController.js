@@ -14,7 +14,7 @@ API will feature support for mark paid & payWithCredit which will auto deduct cr
 
 /*
     --------------------------------------------- TODO ---------------------------------------------
-    update guests correctly for trackday register, unregister, reschedule
+    add back guests property got get and get all (CRUD)
     trackday_put issue where if form doesnt receive date, it double prints missing date message
 
     Payment handling logic - include tests (think about how to handle payments) - doulve check email sending for unregister (Ie. dont send admin email if paymentMethod was credit)
@@ -39,10 +39,10 @@ API will feature support for mark paid & payWithCredit which will auto deduct cr
 // Returns a summary of number of people at a specified trackday in format {green: x, yellow: y, red: z, guests: g}
 // JS does not support function overloading, hence the 'INTERNAL' marking
 function getRegNumbers(trackday){
-    let green=0, yellow=0, red=0
-    const guests=trackday.guests;
+    let green=0, yellow=0, red=0, guests=0
 
-    // Check the members array first
+
+    // Check the members array
     for (let i=0; i<trackday.members.length; i++){
         // Increment group summary
         switch(trackday.members[i].userID.group){
@@ -56,6 +56,7 @@ function getRegNumbers(trackday){
                 red++
                 break;
         }
+        guests += trackday.members[i].guests
     }
 
     // Check the walkons
@@ -124,11 +125,9 @@ exports.register = [
                 userID: req.params.userID,
                 paymentMethod: req.body.paymentMethod,
                 paid: false,
+                guests: req.body.guests,
                 checkedIn: []
             })
-
-            // Update guests for trackday
-            trackday.guests += req.body.guests
 
             await trackday.save();
             await sendEmail(user.contact.email, "Ride42 Trackday Registration Confirmation", mailTemplates.registerTrackday,
@@ -161,15 +160,13 @@ exports.unregister = [
                 return res.status(401).send({msg: 'Cannot unregister for trackday <'+process.env.DAYS_LOCKOUT+' days away.'})
             }
 
-
-            // Check that the member we want to remove from the trackday/members array actually exists
-            const memberExists = trackday.members.some((member) => member.userID.equals(req.params.userID))
-            if (!memberExists) return res.status(404).send({msg: 'Member is not registered for that trackday'});
-
             // Check if trackday is in the past (if time difference is negative)
             if (req.user.memberType !== 'admin' && trackday.date.getTime() - Date.now() < 0 ) return res.status(400).send({msg: 'Cannot un-register for trackday in the past'})
 
+            // Remove user from trackday
             trackday.members = trackday.members.filter((member)=> !member.userID.equals(req.params.userID)) 
+
+        
             await trackday.save();
             // Send email to user
             await sendEmail(user.contact.email, "Ride42 Trackday Cancellation Confirmation", mailTemplates.unregisterTrackday,
@@ -232,6 +229,7 @@ exports.reschedule = [
                 userID: memberEntryOLD.userID,
                 paymentMethod: memberEntryOLD.paymentMethod,
                 paid: memberEntryOLD.paid,
+                guests: memberEntryOLD.guests,
                 checkedIn: memberEntryOLD.checkedIn
             })
             await trackdayNEW.save();
@@ -336,8 +334,8 @@ exports.trackday_get = [
     
     asyncHandler(async(req,res,next) => {
         if (req.user.memberType === 'admin'){
-            const trackday = await Trackday.findById(req.params.trackdayID).populate('members.userID').exec();
-            return res.status(200).json(trackday);
+            const trackday = await Trackday.findById(req.params.trackdayID).populate('members.userID').select('-__v').exec();
+            return res.status(200).send({...trackday._doc, guests: getRegNumbers(trackday).guests});
         }
         return res.sendStatus(403)
     })
@@ -348,7 +346,8 @@ exports.trackday_getALL = [
     controllerUtils.verifyJWT,
     asyncHandler(async(req,res,next)=> {
         if (req.user.memberType === 'admin'){
-            const trackdays = await Trackday.find().populate('members.userID').exec();
+            const trackdays = await Trackday.find().populate('members.userID').select('-__v').exec();
+            trackdays.forEach((trackday)=>trackday._doc = {...trackday._doc, guests: getRegNumbers(trackday).guests})
             return res.status(200).json(trackdays);
         }
         return res.sendStatus(403)
@@ -371,7 +370,6 @@ exports.trackday_post = [
                 date: req.body.date,
                 members: [],
                 walkons: [],
-                guests: 0,
                 status: "regOpen"
             })
             await trackday.save();
@@ -386,7 +384,6 @@ exports.trackday_post = [
 exports.trackday_put = [
 
     body("date",  "Date must be in YYYY-MM-DDThh:mm form where time is in UTC").isISO8601().isLength({ min: 17, max: 17}).escape(),
-    body("guests",  "Guests must be numeric").trim().isNumeric().escape(),
     body("status",  "Status must be one of: [regOpen, regClosed, finished, cancelled]").trim().isIn(["regOpen", "regClosed", "finished", "cancelled"]).escape(),
 
     controllerUtils.verifyJWT,
@@ -408,7 +405,6 @@ exports.trackday_put = [
                 date: req.body.date,
                 members: oldTrackday.members,
                 walkons: oldTrackday.walkons,
-                guests: req.body.guests,
                 status: req.body.status,
                 _id: req.params.trackdayID
             })
