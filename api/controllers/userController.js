@@ -16,6 +16,12 @@ const mailTemplates = require('../mailer_templates')
     --------------------------------------------- TODO ---------------------------------------------
 */
 
+/*
+    --------------------------------------- FOR LATER REVIEW ---------------------------------------
+    user DB should have names stored as f_name and l_name directly instead of name objects
+    --------------------------------------- FOR LATER REVIEW ---------------------------------------
+*/
+
 // Logs in a user. PUBLIC. Returns httpOnly cookie containing JWT token.
 exports.login = [
     body("email", "Email must be in format of samplename@sampledomain.com").trim().isEmail().escape(), 
@@ -265,7 +271,6 @@ exports.user_post = [
     /// PERMISSIONS ///
     USER: contact, emergencyContact, group(7 day requirement; else fail entire request)
     ADMIN: name, credits, member type
-    NOTES: garage and password is managed thru separate funtion
 */
 exports.user_put = [
     body("email", "Email must be in format of samplename@sampledomain.com").trim().isEmail().escape(), 
