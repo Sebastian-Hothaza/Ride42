@@ -7,7 +7,7 @@ const UserSchema = new mongoose.Schema({
 				phone:   { type: String, required: true, minLength: 10, maxLength:10 },
 				address: { type: String, required: true, minLength: 2, maxLength: 50 },
 				city:    { type: String, required: true, minLength: 2, maxLength: 50 },
-				province:{ type: String, required: true, minLength: 2, maxLength: 50 }},
+				province:{ type: String, required: true, enum: ["ontario", "quebec", "other"] }},
 	emergencyContact: { firstName: 		{ type: String, required: true, minLength: 2, maxLength: 50 },
 						lastName:		{ type: String, required: true, minLength: 2, maxLength: 50 },
 						phone:		 	{ type: Number, required: true, minLength: 10,maxLength: 10 },

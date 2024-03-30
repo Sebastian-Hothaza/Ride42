@@ -12,7 +12,6 @@ const mailTemplates = require('../mailer_templates')
 
 /*
     --------------------------------------------- TODO ---------------------------------------------
-    restrict province to oneOf
     code cleanup & review
     --------------------------------------------- TODO ---------------------------------------------
 */
@@ -232,7 +231,7 @@ exports.user_post = [
     body("phone", "Phone must contain 10 digits").trim().isLength({ min: 10, max: 10}).escape(), 
     body("address", "Address must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
     body("city", "City must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
-    body("province", "Province must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+    body("province", "Province must be either ontario, quebec or other").trim().isIn(['ontario', 'quebec', 'other']).escape(),
 
     body("EmergencyName_firstName", "Emergency Contact First Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
     body("EmergencyName_lastName", "Emergency Contact Last Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
@@ -292,7 +291,7 @@ exports.user_put = [
     body("phone", "Phone must contain 10 digits").trim().isLength({ min: 10, max: 10}).escape(), 
     body("address", "Address must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
     body("city", "City must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
-    body("province", "Province must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+    body("province", "Province must be either ontario, quebec or other").trim().isIn(['ontario', 'quebec', 'other']).escape(),
 
     body("EmergencyName_firstName", "Emergency Contact First Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
     body("EmergencyName_lastName", "Emergency Contact Last Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
@@ -383,7 +382,7 @@ exports.admin = [
     body("phone", "Phone must contain 10 digits").trim().isLength({ min: 10, max: 10}).escape(), 
     body("address", "Address must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
     body("city", "City must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
-    body("province", "Province must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+    body("province", "Province must be either ontario, quebec or other").trim().isIn(['ontario', 'quebec', 'other']).escape(),
 
     body("EmergencyName_firstName", "Emergency Contact First Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
     body("EmergencyName_lastName", "Emergency Contact Last Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),

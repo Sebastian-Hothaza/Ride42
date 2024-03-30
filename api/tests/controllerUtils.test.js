@@ -52,7 +52,7 @@ const userAdmin={
 	phone: "2269881414",
 	address: "55 Coventtry Dr",
 	city: "Kitchener",
-	province: "Ontario",
+	province: "ontario",
 	EmergencyName_firstName: "Ligia",
 	EmergencyName_lastName: "Hothaza",
 	EmergencyPhone: "2269883609",
