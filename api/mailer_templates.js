@@ -93,7 +93,7 @@ const unregisterTrackday =
     <div class="default-style">
         Hello {name}, <br /> <br />
         We have cancelled your trackday on {date}.<br /> <br />
-        You should receive a refund within 5 business days.
+        If you paid with an existing credit, it has been added back to your account. Otherwise, you should receive a refund within 5 business days.
     </div>
     
     <div class="io-ox-signature">
