@@ -50,8 +50,8 @@ exports.login = [
 
 // Updates a users password. Requires JWT with matching userID OR admin
 exports.updatePassword = [
-    body("oldPassword", "Old password is not a valid password type").trim().isLength({ min: 8, max: 50}).matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
-    body("newPassword", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().isLength({ min: 8, max: 50}).matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
+    body("oldPassword", "Old password is not a valid password type").trim().isLength({ min: 8, max: 50}).bail().matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
+    body("newPassword", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().isLength({ min: 8, max: 50}).bail().matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
     controllerUtils.verifyJWT,
     controllerUtils.validateForm,
     controllerUtils.validateUserID,
@@ -98,7 +98,7 @@ exports.verify = [
 
 // Adds a bike to the users garage. Requires JWT with matching userID OR admin. 
 exports.garage_post = [
-    body("year",  "Year must contain 4 digits").trim().isNumeric().isLength({ min: 4, max: 4}).escape(),
+    body("year",  "Year must contain 4 digits").trim().isNumeric().bail().isLength({ min: 4, max: 4}).escape(),
     body("make",  "Make must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
     body("model", "Model must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
 
@@ -231,7 +231,7 @@ exports.user_post = [
     body("EmergencyRelationship", "Emergency Contact relationship definition must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
 
     body("group", "Group must be either green, yellow or red").trim().isIn(['green', 'yellow', 'red']).escape(),
-    body("password", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().isLength({ min: 8, max: 50}).matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
+    body("password", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().isLength({ min: 8, max: 50}).bail().matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
 
     controllerUtils.validateForm,
 
@@ -357,7 +357,7 @@ exports.admin = [
     body("EmergencyRelationship", "Emergency Contact relationship definition must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
 
     body("group", "Group must be either green, yellow or red").trim().isIn(['green', 'yellow', 'red']).escape(),
-    body("password", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().isLength({ min: 8, max: 50}).matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
+    body("password", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().isLength({ min: 8, max: 50}).bail().matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
 
     controllerUtils.validateForm,
 
