@@ -89,7 +89,7 @@ exports.verify = [
         const trackday = await Trackday.findById(req.params.trackdayID).exec();
 
         // Check that the member we want to verify for a trackday actually exists in the trackday
-        const memberEntry = trackday.members.find((member) => member.userID.equals(req.params.userID));
+        const memberEntry = trackday.members.find((member) => member.user.equals(req.params.userID));
         
 
         memberEntry && memberEntry.checkedIn.includes(req.params.bikeID)? res.status(200).json({'verified' : 'true'}) : res.status(200).json({'verified' : 'false'})

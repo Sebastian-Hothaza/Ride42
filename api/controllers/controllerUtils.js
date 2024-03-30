@@ -69,8 +69,8 @@ async function isInLockoutPeriod(trackdayID){
 }
 
 // Returns true if user is registered for a trackday within the lockout period (7 days default)
-async function hasTrackdayWithinLockout(user){
-    const allTrackdays = await Trackday.find({members: {$elemMatch: { userID: {$eq: user}}}} ).exec(); // Trackdays that user is a part of
+async function hasTrackdayWithinLockout(userID){
+    const allTrackdays = await Trackday.find({members: {$elemMatch: { user: {$eq: userID}}}} ).exec(); // Trackdays that user is a part of
     
     // Check each trackday user is registered for to see if any of them are within lockout period
     for (let i=0; i<allTrackdays.length; i++){

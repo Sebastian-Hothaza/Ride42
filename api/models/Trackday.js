@@ -10,7 +10,7 @@ Ie. A trackday on June 5 2024 at 10am would be submitted as 2024-06-05T14:00Z
 
 const TrackdaySchema = new mongoose.Schema({
 	date: { type: Date, required: true },
-	members: [{ userID: 		{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+	members: [{ user: 		{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
 				paymentMethod: 	{ type: String, required: true, enum: ["etransfer", "credit", "creditCard", "gate"] },
 				paid: 			{ type: Boolean, required: true},
 				guests: 		{ type: Number, required: true },

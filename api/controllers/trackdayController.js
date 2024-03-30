@@ -45,7 +45,7 @@ function getRegNumbers(trackday){
     // Check the members array
     for (let i=0; i<trackday.members.length; i++){
         // Increment group summary
-        switch(trackday.members[i].userID.group){
+        switch(trackday.members[i].user.group){
             case 'green':
                 green++
                 break;
@@ -90,11 +90,13 @@ exports.register = [
     
 
     asyncHandler(async(req,res,next) => {
+        
         if (req.user.memberType === 'admin' || (req.user.id === req.params.userID)){
-            let [trackday, user] = await Promise.all([Trackday.findById(req.params.trackdayID).populate('members.userID').exec(), User.findById(req.params.userID)]);
-           
+          
+            let [trackday, user] = await Promise.all([Trackday.findById(req.params.trackdayID).populate('members.user').exec(), User.findById(req.params.userID)]);
+            
             // Deny if user is already registered to trackday
-            const memberEntry = trackday.members.find((member) => member.userID.equals(req.params.userID));
+            const memberEntry = trackday.members.find((member) => member.user.equals(req.params.userID));
             if (memberEntry) return res.status(409).send({msg: "user already registered for this trackday"})
 
             // Deny if user attempt to register for trackday < lockout period(7 default) away, deny registration
@@ -122,12 +124,14 @@ exports.register = [
 
             // Add user to trackday
             trackday.members.push({
-                userID: req.params.userID,
+                user: req.params.userID,
                 paymentMethod: req.body.paymentMethod,
                 paid: false,
                 guests: req.body.guests,
                 checkedIn: []
             })
+
+           
 
             await trackday.save();
             await sendEmail(user.contact.email, "Ride42 Trackday Registration Confirmation", mailTemplates.registerTrackday,
@@ -148,10 +152,10 @@ exports.unregister = [
    
     asyncHandler(async(req,res,next) => {
         if (req.user.memberType === 'admin' || (req.user.id === req.params.userID)){
-            let [trackday, user] = await Promise.all([Trackday.findById(req.params.trackdayID).populate('members.userID').exec(), User.findById(req.params.userID)]);
+            let [trackday, user] = await Promise.all([Trackday.findById(req.params.trackdayID).populate('members.user').exec(), User.findById(req.params.userID)]);
 
             // Check user is actually registered for that trackday
-            const memberEntry = trackday.members.find((member) => member.userID.equals(req.params.userID));
+            const memberEntry = trackday.members.find((member) => member.user.equals(req.params.userID));
             if (!memberEntry) return res.status(400).send({msg: 'Cannot unregister; member is not registered for that trackday'});
 
 
@@ -164,7 +168,7 @@ exports.unregister = [
             if (req.user.memberType !== 'admin' && trackday.date.getTime() - Date.now() < 0 ) return res.status(400).send({msg: 'Cannot un-register for trackday in the past'})
 
             // Remove user from trackday
-            trackday.members = trackday.members.filter((member)=> !member.userID.equals(req.params.userID)) 
+            trackday.members = trackday.members.filter((member)=> !member.user.equals(req.params.userID)) 
 
         
             await trackday.save();
@@ -192,16 +196,16 @@ exports.reschedule = [
     asyncHandler(async(req,res,next) => {
         if (req.user.memberType === 'admin' || (req.user.id === req.params.userID && 1)){
             let [trackdayOLD,trackdayNEW,user] = await Promise.all([Trackday.findById(req.params.trackdayID_OLD).exec(),
-                                                                    Trackday.findById(req.params.trackdayID_NEW).populate('members.userID').exec(),
+                                                                    Trackday.findById(req.params.trackdayID_NEW).populate('members.user').exec(),
                                                                     User.findById(req.params.userID)])
 
             
             // Check that the member we want to reschedule is registered in old trackday
-            const memberEntryOLD = trackdayOLD.members.find((member) => member.userID.equals(req.params.userID));
+            const memberEntryOLD = trackdayOLD.members.find((member) => member.user.equals(req.params.userID));
             if (!memberEntryOLD) return res.status(404).send({msg: 'Member is not registered for that trackday'});
 
             // Check if user is already registered for trackday they want to reschedule to
-            const memberEntryNEW = trackdayNEW.members.find((member) => member.userID.equals(req.params.userID));
+            const memberEntryNEW = trackdayNEW.members.find((member) => member.user.equals(req.params.userID));
             if (memberEntryNEW) return res.status(409).send({msg: 'Member is already scheduled for trackday you want to reschedule to'})
 
             // If user attempt to reschdule for trackday < lockout period(7 default) away, deny reschedule
@@ -226,7 +230,7 @@ exports.reschedule = [
 
             // Add user to new trackday
             trackdayNEW.members.push({
-                userID: memberEntryOLD.userID,
+                user: memberEntryOLD.user,
                 paymentMethod: memberEntryOLD.paymentMethod,
                 paid: memberEntryOLD.paid,
                 guests: memberEntryOLD.guests,
@@ -235,7 +239,7 @@ exports.reschedule = [
             await trackdayNEW.save();
 
             // Remove the user from the OLD trackday
-            trackdayOLD.members = trackdayOLD.members.filter((member)=> !member.userID.equals(req.params.userID)) 
+            trackdayOLD.members = trackdayOLD.members.filter((member)=> !member.user.equals(req.params.userID)) 
             await trackdayOLD.save();
 
             await sendEmail(user.contact.email, "Ride42 Trackday Reschedule Confirmation", mailTemplates.rescheduleTrackday,
@@ -259,7 +263,7 @@ exports.checkin = [
             const trackday = await Trackday.findById(req.params.trackdayID).exec();
 
             // Check that the member we want to check in for trackday actually exists
-            const memberEntry = trackday.members.find((member) => member.userID.equals(req.params.userID));
+            const memberEntry = trackday.members.find((member) => member.user.equals(req.params.userID));
             if (!memberEntry) return res.status(404).send({msg: 'Member is not registered for that trackday'});
 
             // Check that member is not already checked in
@@ -276,7 +280,7 @@ exports.checkin = [
 
 // Returns an array of trackday dates in format [{id: x, date: x, status: x, green: x, yellow: x, red: x, guests: x, groupCapacity: x}] PUBLIC.
 exports.presentTrackdays = async(req,res,next) => {
-    const allDays = await Trackday.find().populate('members.userID')
+    const allDays = await Trackday.find().populate('members.user')
     let result = []
     allDays.forEach((trackday)=>{
 
@@ -301,7 +305,7 @@ exports.presentTrackdaysForUser = [
 
     asyncHandler(async(req,res,next) => {
         // Get all trackdays that user is a part of
-        const allDays = await Trackday.find({members: {$elemMatch: { userID: {$eq: req.params.userID}}}} ).populate('members.userID').exec(); 
+        const allDays = await Trackday.find({members: {$elemMatch: { user: {$eq: req.params.userID}}}} ).populate('members.user').exec(); 
         let result = []
         
         allDays.forEach((trackday)=>{
@@ -315,7 +319,7 @@ exports.presentTrackdaysForUser = [
                 guests: getRegNumbers(trackday).guests,
                 groupCapacity: process.env.GROUP_CAPACITY,
                 // trackday members array currently has ALL members for that particular trackday. Fetch specific member entry so we can check payment status
-                paid: trackday.members.find((member) => member.userID.equals(req.params.userID)).paid
+                paid: trackday.members.find((member) => member.user.equals(req.params.userID)).paid
             })
         })
         return res.status(200).send(result)
@@ -334,7 +338,7 @@ exports.trackday_get = [
     
     asyncHandler(async(req,res,next) => {
         if (req.user.memberType === 'admin'){
-            const trackday = await Trackday.findById(req.params.trackdayID).populate('members.userID').select('-__v').exec();
+            const trackday = await Trackday.findById(req.params.trackdayID).populate('members.user').select('-__v').exec();
             return res.status(200).send({...trackday._doc, guests: getRegNumbers(trackday).guests});
         }
         return res.sendStatus(403)
@@ -346,7 +350,7 @@ exports.trackday_getALL = [
     controllerUtils.verifyJWT,
     asyncHandler(async(req,res,next)=> {
         if (req.user.memberType === 'admin'){
-            const trackdays = await Trackday.find().populate('members.userID').select('-__v').exec();
+            const trackdays = await Trackday.find().populate('members.user').select('-__v').exec();
             trackdays.forEach((trackday)=>trackday._doc = {...trackday._doc, guests: getRegNumbers(trackday).guests})
             return res.status(200).json(trackdays);
         }
