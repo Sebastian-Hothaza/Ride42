@@ -473,12 +473,19 @@ describe('Testing user update', () => {
 		const trackday = await addTrackday(getFormattedDate(3), loginResAdmin.headers['set-cookie']) 
 
 		// Add bike to garage
-			await request(app)
+		await request(app)
 			.post("/garage/"+user.body.id)
 			.type("form")
 			.send({year: '2009', make: 'Yamaha', model: "R6"})
 			.set('Cookie', loginResUser.headers['set-cookie'])
 			.expect(201);
+
+		// Edit user so he has a credit
+		await request(app)
+				.put('/users/'+user.body.id)
+				.type('form').send({...user1, credits: 5 })
+				.set('Cookie', loginResAdmin.headers['set-cookie'])
+				.expect(201)
 
 		// Register user for trackday
 		await request(app)
@@ -528,7 +535,7 @@ describe('Testing user update', () => {
 		// Register user for trackday
 		await request(app)
 			.post('/register/'+user.body.id+'/'+trackday.body.id)
-			.type('form').send({paymentMethod: 'credit', guests: 3})
+			.type('form').send({paymentMethod: 'creditCard', guests: 3})
 			.set('Cookie', loginResAdmin.headers['set-cookie'])
 			.expect(200)
 
@@ -577,6 +584,13 @@ describe('Testing user update', () => {
 			.send({year: '2009', make: 'Yamaha', model: "R6"})
 			.set('Cookie', loginResUser.headers['set-cookie'])
 			.expect(201);
+
+		// Edit user so he has a credit
+		await request(app)
+			.put('/users/'+user.body.id)
+			.type('form').send({...user1, credits: 5 })
+			.set('Cookie', loginResAdmin.headers['set-cookie'])
+			.expect(201)
 
 		// Register user for trackday
 		await request(app)
@@ -645,6 +659,13 @@ describe('Testing user update', () => {
 			.send({year: '2009', make: 'Yamaha', model: "R6"})
 			.set('Cookie', loginResUser.headers['set-cookie'])
 			.expect(201);
+
+		// Edit user so he has a credit
+		await request(app)
+			.put('/users/'+user.body.id)
+			.type('form').send({...user1, credits: 5 })
+			.set('Cookie', loginResAdmin.headers['set-cookie'])
+			.expect(201)
 
 		// Register user for trackday
 		await request(app)
@@ -1043,7 +1064,7 @@ describe('Testing verify', () => {
 		// Register user for trackday
 		await request(app)
 			.post('/register/'+user.body.id+'/'+trackday.body.id)
-			.type("form").send({paymentMethod: 'credit', guests: 3})
+			.type("form").send({paymentMethod: 'creditCard', guests: 3})
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 		
@@ -1078,7 +1099,7 @@ describe('Testing verify', () => {
 		// Register user for trackday
 		await request(app)
 			.post('/register/'+user.body.id+'/'+trackday.body.id)
-			.type("form").send({paymentMethod: 'credit', guests: 3})
+			.type("form").send({paymentMethod: 'creditCard', guests: 3})
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 
