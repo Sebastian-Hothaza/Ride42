@@ -192,7 +192,7 @@ exports.user_get = [
     asyncHandler(async(req,res,next) => {
         // JWT is valid. Verify user is allowed to access this resource and return the information
         if (req.user.memberType === 'admin' || req.user.id === req.params.userID){
-            let user = await User.findById(req.params.userID).populate("garage").select('-password -refreshToken -__v')
+            let user = await User.findById(req.params.userID).populate("garage", '-__v').select('-password -refreshToken -__v')
             return res.status(200).json(user);
         }
         return res.sendStatus(403)
@@ -206,7 +206,7 @@ exports.user_getALL = [
     asyncHandler(async(req,res)=>{
         // JWT is valid. Verify user is allowed to access this resource and return the information
         if (req.user.memberType === 'admin'){
-            let users = await User.find().populate("garage").select('-password -refreshToken -__v').exec();
+            let users = await User.find().populate("garage", '-__v').select('-password -refreshToken -__v').exec();
             return res.status(200).json(users);
         }
         return res.sendStatus(403);

@@ -93,7 +93,7 @@ exports.register = [
         
         if (req.user.memberType === 'admin' || (req.user.id === req.params.userID)){
           
-            let [trackday, user] = await Promise.all([Trackday.findById(req.params.trackdayID).populate('members.user').exec(), User.findById(req.params.userID)]);
+            let [trackday, user] = await Promise.all([Trackday.findById(req.params.trackdayID).populate('members.user', '-password -refreshToken -__v').exec(), User.findById(req.params.userID)]);
             
             // Deny if user is already registered to trackday
             const memberEntry = trackday.members.find((member) => member.user.equals(req.params.userID));
@@ -152,7 +152,7 @@ exports.unregister = [
    
     asyncHandler(async(req,res,next) => {
         if (req.user.memberType === 'admin' || (req.user.id === req.params.userID)){
-            let [trackday, user] = await Promise.all([Trackday.findById(req.params.trackdayID).populate('members.user').exec(), User.findById(req.params.userID)]);
+            let [trackday, user] = await Promise.all([Trackday.findById(req.params.trackdayID).populate('members.user','-password -refreshToken -__v').exec(), User.findById(req.params.userID)]);
 
             // Check user is actually registered for that trackday
             const memberEntry = trackday.members.find((member) => member.user.equals(req.params.userID));
@@ -196,7 +196,7 @@ exports.reschedule = [
     asyncHandler(async(req,res,next) => {
         if (req.user.memberType === 'admin' || (req.user.id === req.params.userID && 1)){
             let [trackdayOLD,trackdayNEW,user] = await Promise.all([Trackday.findById(req.params.trackdayID_OLD).exec(),
-                                                                    Trackday.findById(req.params.trackdayID_NEW).populate('members.user').exec(),
+                                                                    Trackday.findById(req.params.trackdayID_NEW).populate('members.user','-password -refreshToken -__v').exec(),
                                                                     User.findById(req.params.userID)])
 
             
@@ -280,7 +280,7 @@ exports.checkin = [
 
 // Returns an array of trackday dates in format [{id: x, date: x, status: x, green: x, yellow: x, red: x, guests: x, groupCapacity: x}] PUBLIC.
 exports.presentTrackdays = async(req,res,next) => {
-    const allDays = await Trackday.find().populate('members.user')
+    const allDays = await Trackday.find().populate('members.user','-password -refreshToken -__v')
     let result = []
     allDays.forEach((trackday)=>{
 
@@ -305,7 +305,7 @@ exports.presentTrackdaysForUser = [
 
     asyncHandler(async(req,res,next) => {
         // Get all trackdays that user is a part of
-        const allDays = await Trackday.find({members: {$elemMatch: { user: {$eq: req.params.userID}}}} ).populate('members.user').exec(); 
+        const allDays = await Trackday.find({members: {$elemMatch: { user: {$eq: req.params.userID}}}} ).populate('members.user','-password -refreshToken -__v').exec(); 
         let result = []
         
         allDays.forEach((trackday)=>{
@@ -338,7 +338,7 @@ exports.trackday_get = [
     
     asyncHandler(async(req,res,next) => {
         if (req.user.memberType === 'admin'){
-            const trackday = await Trackday.findById(req.params.trackdayID).populate('members.user').select('-__v').exec();
+            const trackday = await Trackday.findById(req.params.trackdayID).populate('members.user', '-password -refreshToken -__v').select('-__v').exec();
             return res.status(200).send({...trackday._doc, guests: getRegNumbers(trackday).guests});
         }
         return res.sendStatus(403)
@@ -350,7 +350,7 @@ exports.trackday_getALL = [
     controllerUtils.verifyJWT,
     asyncHandler(async(req,res,next)=> {
         if (req.user.memberType === 'admin'){
-            const trackdays = await Trackday.find().populate('members.user').select('-__v').exec();
+            const trackdays = await Trackday.find().populate('members.user', '-password -refreshToken -__v').select('-__v').exec();
             trackdays.forEach((trackday)=>trackday._doc = {...trackday._doc, guests: getRegNumbers(trackday).guests})
             return res.status(200).json(trackdays);
         }
