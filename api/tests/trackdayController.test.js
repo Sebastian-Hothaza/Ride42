@@ -1806,6 +1806,8 @@ describe('Testing updatePaid', () => {
 			.expect(404, {msg: 'Trackday does not exist'})
 	});
 
+
+
 	test("no JWT", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
@@ -1820,6 +1822,25 @@ describe('Testing updatePaid', () => {
 			.type('form').send({setPaid: 'true'})
 			.set('Cookie', user1Cookie)
 			.expect(403)
+	});
+
+	test("missing fields", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		await request(app)
+			.post('/paid/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.type('form').send({})
+			.expect(400)
+	});
+	test(" malformed fields", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		await request(app)
+			.post('/paid/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.type('form').send({setPaid: 'chewingGum'})
+			.expect(400)
 	});
 
 	test("already marked as paid", async () => {
