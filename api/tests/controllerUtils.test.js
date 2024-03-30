@@ -189,7 +189,7 @@ describe('Testing isInLockoutPeriod', () => {
 	// Define the route and server side handling of request
 	app.get('/isInLockoutPeriod/:trackdayID', async (req,res,next) => {
 		const result = await controllerUtils.isInLockoutPeriod(req.params.trackdayID)
-		return (result)? res.send('true'):res.send('false') // TODO: just send the result directly
+		return (result)? res.send('true'):res.send('false')
 	});
 	
 	test("trackday within 7 days", async() => {
