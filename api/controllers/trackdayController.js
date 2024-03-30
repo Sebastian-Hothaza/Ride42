@@ -254,7 +254,33 @@ exports.reschedule = [
     })
 ]
 
-// Marks a user as checked in. Requires JWT with staff or admin.
+// Adds walkon customer to walkons Requires JWT with staff/admin.
+// TODO: Add to readme
+exports.walkons = [
+    body("name_firstName", "First Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+    body("name_lastName", "Last Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+    body("group", "Group must be either green, yellow or red").trim().isIn(['green', 'yellow', 'red']).escape(),
+
+    controllerUtils.verifyJWT,
+    controllerUtils.validateForm,
+    controllerUtils.validateTrackdayID,
+
+    asyncHandler(async(req,res,next) => {
+        if (req.user.memberType === 'admin' || req.user.memberType === 'staff'){
+            const trackday = await Trackday.findById(req.params.trackdayID).exec();
+            
+            trackday.walkons.push({
+                name: { firstName: req.body.name_firstName, lastName: req.body.name_lastName },
+                group: req.body.group
+            })
+            await trackday.save();
+            return res.sendStatus(201);
+        }
+        return res.sendStatus(403)
+    })
+]
+
+// Marks a user as checked in. Requires JWT with staff/admin.
 exports.checkin = [
     controllerUtils.verifyJWT,
     controllerUtils.validateUserID,

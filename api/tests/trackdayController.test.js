@@ -1929,3 +1929,102 @@ describe('Testing updatePaid', () => {
 			  }])
 	});
 })
+
+describe('Testing walkons', ()=>{
+	test("invalid objectID trackday", async () => {
+		await request(app)
+			.post('/walkons/invalid/')
+			.type('form').send({name_firstName: 'John', name_lastName: 'Doe', group: 'yellow'})
+			.set('Cookie', adminCookie)
+			.expect(404, {msg: 'trackdayID is not a valid ObjectID'})
+	});
+	test("invalid trackdayID trackday", async () => {
+		
+		const trackday = await addTrackday(getFormattedDate(10))
+		await request(app)
+			.post('/walkons/'+'1'+trackday.body.id.slice(1,trackday.body.id.length-1)+'1')
+			.type('form').send({name_firstName: 'John', name_lastName: 'Doe', group: 'yellow'})
+			.set('Cookie', adminCookie)
+			.expect(404, {msg: 'Trackday does not exist'})
+	});
+
+	test("missing fields", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		await request(app)
+			.post('/walkons/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.type('form').send({})
+			.expect(400)
+	});
+	test(" malformed fields", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		await request(app)
+			.post('/walkons/'+trackday.body.id)
+			.set('Cookie', adminCookie)
+			.type('form').send({name_firstName: 'John', name_lastName: 'D', group: 'purple'})
+			.expect(400)
+	});
+
+	test("no JWT", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+		await request(app)
+			.post('/walkons/'+trackday.body.id)
+			.expect(401)
+	});
+	test("not authorized", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		await request(app)
+			.post('/walkons/'+trackday.body.id)
+			.type('form').send({name_firstName: 'John', name_lastName: 'Doe', group: 'yellow'})
+			.set('Cookie', user1Cookie)
+			.expect(403)
+	});
+	test('as staff', async ()=>{
+		// Create the trackday
+		const trackday = await addTrackday('2500-06-05T14:00Z', adminCookie)
+
+		// Create staff member
+		const staff = await addUser(userStaff);
+		await request(app)
+			.put('/users/'+staff.body.id)
+			.type('form').send(userStaff_update)
+			.set('Cookie', adminCookie)
+			.expect(201)
+		const staffLoginRes = await loginUser(userStaff);
+
+		// Add to walkons
+		await request(app)
+			.post('/walkons/'+trackday.body.id)
+			.type('form').send({name_firstName: 'John', name_lastName: 'Doe', group: 'yellow'})
+			.set('Cookie', staffLoginRes.headers['set-cookie'])
+			.expect(201) 
+	});
+
+	test('add to walkons', async ()=>{
+		// Create the trackday
+		const trackday = await addTrackday('2500-06-05T14:00Z', adminCookie)
+		// Add to walkons
+		await request(app)
+			.post('/walkons/'+trackday.body.id)
+			.type('form').send({name_firstName: 'John', name_lastName: 'Doe', group: 'yellow'})
+			.set('Cookie', adminCookie)
+			.expect(201) 
+
+		//Verify user added to trackday
+		await request(app)
+			.get("/presentTrackdays")
+			.expect(200, [{
+					id: trackday.body.id,
+					date: '2500-06-05T14:00:00.000Z',
+					status: 'regOpen',
+					green: 0,
+					yellow: 1,
+					red: 0,
+					guests: 0,
+					groupCapacity: process.env.GROUP_CAPACITY,
+				}])
+	});
+})

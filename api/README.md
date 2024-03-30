@@ -44,6 +44,9 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 **Update payment status of a user for a trackday:** Submit a `POST` request to `/paid/:userID/:trackdayID`.
 
+**Add walkon user to a trackday:** Submit a `POST` request to `'/walkons/:trackdayID'`.
+
+
 
 ### Create
 **Create a new user in the `Users` collection (PUBLIC):** Submit a `POST` request to `/users`. Server will respond with `id` of newly created user.
