@@ -3,6 +3,12 @@
     Arguments should be in {argName} form. Check helloWorld for example
 */
 
+/*
+    --------------------------------------------- TODO ---------------------------------------------
+    capitalize first letter
+    --------------------------------------------- TODO ---------------------------------------------
+*/
+
 const helloWorld =
 `<body>
     <div class="default-style">
