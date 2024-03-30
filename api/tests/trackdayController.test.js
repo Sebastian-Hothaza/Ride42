@@ -684,6 +684,14 @@ describe('Testing registering', () => {
 	});
 	test("with credit - within 7 day lockout", async () => {
 		const trackday = await addTrackday(getFormattedDate(3))
+
+		// Edit user so he has a credit
+		await request(app)
+			.put('/users/'+user1.body.id)
+			.type('form').send({...user1Info, credits: 5 })
+			.set('Cookie', adminCookie)
+			.expect(201)
+
 		// Add bike to garage
 		await request(app)
 			.post("/garage/"+user1.body.id)
@@ -814,6 +822,86 @@ describe('Testing registering', () => {
 			.expect(403)
 	});
 
+	test('registration - using credit', async () => {
+		const trackday = await addTrackday('2500-06-05T14:00Z')
+
+		// Add bike to garage
+		await request(app)
+			.post("/garage/"+user1.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', user1Cookie)
+			.expect(201);
+
+		// Edit user so he has a credit
+		await request(app)
+			.put('/users/'+user1.body.id)
+			.type('form').send({...user1Info, credits: 5 })
+			.set('Cookie', adminCookie)
+			.expect(201)
+
+		// Register for trackday
+		await request(app)
+			.post('/register/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.type('form').send({paymentMethod: 'credit', guests: 3})
+			.expect(200)
+		
+
+		// Check registration was processed correctly 
+		await request(app)
+			.get("/presentTrackdays/"+user1.body.id)
+			.expect(200, [{
+				id: trackday.body.id,
+				date: '2500-06-05T14:00:00.000Z',
+				status: 'regOpen',
+				green: 0,
+				yellow: 1,
+				red: 0,
+				guests: 3,
+				groupCapacity: process.env.GROUP_CAPACITY,
+				paid: true
+			  },])
+
+		// Check that users credit was used up
+		const updatedUser = await request(app)
+			  .get('/users/'+user1.body.id)
+			  .set('Cookie', user1Cookie)
+			  .expect(200)
+		expect(updatedUser.body.credits).toBe(4)
+	});
+
+	test('registration - using credit - no balance', async () => {
+		const trackday = await addTrackday('2500-06-05T14:00Z')
+
+		// Add bike to garage
+		await request(app)
+			.post("/garage/"+user1.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', user1Cookie)
+			.expect(201);
+
+		// Register for trackday
+		await request(app)
+			.post('/register/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.type('form').send({paymentMethod: 'credit', guests: 3})
+			.expect(400, {msg: 'insufficient credits'})
+		
+
+		// Check registration was processed correctly 
+		await request(app)
+			.get("/presentTrackdays/"+user1.body.id)
+			.expect(200, [])
+
+		// Check that users credit is unchanged
+		const updatedUser = await request(app)
+			  .get('/users/'+user1.body.id)
+			  .set('Cookie', user1Cookie)
+			  .expect(200)
+		expect(updatedUser.body.credits).toBe(0)
+	});
 
 	test("registration", async () => {
 		const trackday = await addTrackday('2500-06-05T14:00Z')
@@ -994,6 +1082,13 @@ describe('Testing un-registering', () => {
 	test("with credit - within 7 day lockout", async () => {
 		const trackday = await addTrackday(getFormattedDate(3))
 
+		// Edit user so he has a credit
+		await request(app)
+			.put('/users/'+user1.body.id)
+			.type('form').send({...user1Info, credits: 5 })
+			.set('Cookie', adminCookie)
+			.expect(201)
+
 		// Register for trackday
 		await request(app)
 			.post('/register/'+user1.body.id+'/'+trackday.body.id)
@@ -1008,8 +1103,46 @@ describe('Testing un-registering', () => {
 			.expect(200)
 	});
 	
+	test('un-registration - using credit', async () => {
+		const trackday = await addTrackday('2500-06-05T14:00Z')
 
-	test("valid un-registration", async () => {
+		// Add bike to garage
+		await request(app)
+			.post("/garage/"+user1.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', user1Cookie)
+			.expect(201);
+
+		// Edit user so he has a credit
+		await request(app)
+			.put('/users/'+user1.body.id)
+			.type('form').send({...user1Info, credits: 5 })
+			.set('Cookie', adminCookie)
+			.expect(201)
+
+		// Register for trackday
+		await request(app)
+			.post('/register/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.type('form').send({paymentMethod: 'credit', guests: 3})
+			.expect(200)
+		
+		// Unregister
+		await request(app)
+			.delete('/register/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.expect(200)	
+
+		// Check that users credit was refunded
+		const updatedUser = await request(app)
+			  .get('/users/'+user1.body.id)
+			  .set('Cookie', user1Cookie)
+			  .expect(200)
+		expect(updatedUser.body.credits).toBe(5)
+	});
+
+	test("un-registration", async () => {
 		const trackday = await addTrackday('2024-04-09T14:00Z')
 
 		// Add bike to garage
