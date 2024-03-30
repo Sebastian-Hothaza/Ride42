@@ -360,7 +360,7 @@ exports.trackday_getALL = [
 
 // Creates a trackday. Requires JWT with admin.
 exports.trackday_post = [
-    body("date",  "Date must be in YYYY-MM-DDThh:mmZ form where time is in UTC").isISO8601().isLength({ min: 17, max: 17}).escape(),
+    body("date",  "Date must be in YYYY-MM-DDThh:mmZ form where time is in UTC").isISO8601().bail().isLength({ min: 17, max: 17}).escape(),
     controllerUtils.verifyJWT,
     controllerUtils.validateForm,
     
@@ -387,7 +387,7 @@ exports.trackday_post = [
 
 exports.trackday_put = [
 
-    body("date",  "Date must be in YYYY-MM-DDThh:mm form where time is in UTC").isISO8601().isLength({ min: 17, max: 17}).escape(),
+    body("date",  "Date must be in YYYY-MM-DDThh:mm form where time is in UTC").isISO8601().bail().isLength({ min: 17, max: 17}).escape(),
     body("status",  "Status must be one of: [regOpen, regClosed, finished, cancelled]").trim().isIn(["regOpen", "regClosed", "finished", "cancelled"]).escape(),
 
     controllerUtils.verifyJWT,
