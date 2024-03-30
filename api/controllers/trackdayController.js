@@ -145,7 +145,7 @@ exports.register = [
 
             await trackday.save();
             await sendEmail(user.contact.email, "Ride42 Trackday Registration Confirmation", mailTemplates.registerTrackday,
-                            {name: user.name.firstName, date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'})})
+                            {name: user.firstName, date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'})})
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
@@ -192,11 +192,11 @@ exports.unregister = [
             await trackday.save();
             // Send email to user
             await sendEmail(user.contact.email, "Ride42 Trackday Cancellation Confirmation", mailTemplates.unregisterTrackday,
-                            {name: user.name.firstName, date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'})})
+                            {name: user.firstName, date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'})})
             // Notify admin only if payment wasn't made with credit (credit is auto refunded)
             if (memberEntry.paymentMethod !== 'credit'){
                 await sendEmail(process.env.ADMIN_EMAIL, "TRACKDAY CANCELATION", mailTemplates.unregisterTrackday_admin,
-                            {name: user.name.firstName, date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'})})
+                            {name: user.firstName, date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'})})
             }
             return res.sendStatus(200);
         }
@@ -264,7 +264,7 @@ exports.reschedule = [
             await trackdayOLD.save();
 
             await sendEmail(user.contact.email, "Ride42 Trackday Reschedule Confirmation", mailTemplates.rescheduleTrackday,
-                            {name: user.name.firstName, dateOLD: trackdayOLD.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'}), dateNEW: trackdayNEW.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'})})
+                            {name: user.firstName, dateOLD: trackdayOLD.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'}), dateNEW: trackdayNEW.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'})})
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
@@ -287,7 +287,8 @@ exports.walkons = [
             const trackday = await Trackday.findById(req.params.trackdayID).exec();
             
             trackday.walkons.push({
-                name: { firstName: req.body.name_firstName, lastName: req.body.name_lastName },
+                firstName: req.body.name_firstName,
+                lastName: req.body.name_lastName,
                 group: req.body.group
             })
             await trackday.save();

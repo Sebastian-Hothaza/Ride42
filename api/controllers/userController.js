@@ -36,7 +36,7 @@ exports.login = [
             const passwordMatch = await bcrypt.compare(req.body.password, user.password)
             if (passwordMatch){
                 // Generate tokens and attach as cookies
-                const accessToken = jwt.sign({id: user._id, memberType: user.memberType, name: user.name.firstName}, process.env.JWT_ACCESS_CODE, {expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION}) 
+                const accessToken = jwt.sign({id: user._id, memberType: user.memberType, name: user.firstName}, process.env.JWT_ACCESS_CODE, {expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION}) 
                 const refreshToken = jwt.sign({id: user._id}, process.env.JWT_REFRESH_CODE, {expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRATION}) 
                 res.cookie([`JWT_ACCESS_TOKEN=${accessToken}; secure; httponly; samesite=None;`])
                 res.cookie([`JWT_REFRESH_TOKEN=${refreshToken}; secure; httponly; samesite=None;`])
@@ -73,7 +73,7 @@ exports.updatePassword = [
                 if (passwordMatch){
                     user.password = hashedPassword;
                     await user.save();
-                    await sendEmail(user.contact.email, "Your Password has been updated", mailTemplates.passwordChange, {name: user.name.firstName})
+                    await sendEmail(user.contact.email, "Your Password has been updated", mailTemplates.passwordChange, {name: user.firstName})
                     res.sendStatus(200);
                 }else{
                     res.status(403).send({msg: "old password is incorrect"});
@@ -133,7 +133,7 @@ exports.garage_post = [
 
             await user.save();
             await sendEmail(process.env.ADMIN_EMAIL, "QR CODE REQUEST", mailTemplates.QRCodeRequest,
-                            {name: user.name.firstName, userID: req.params.userID, bikeID: bike.id})
+                            {name: user.firstName, userID: req.params.userID, bikeID: bike.id})
             return res.status(201).json({id: bike.id});;
         }
         return res.sendStatus(403)
@@ -251,16 +251,17 @@ exports.user_post = [
         bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
             // Create the user and insert into the DB
             const user = new User({
-                name: {firstName: req.body.name_firstName, lastName: req.body.name_lastName},
+                firstName: req.body.name_firstName, 
+                lastName: req.body.name_lastName,
                 contact: {email: req.body.email, phone:req.body.phone, address: req.body.address, city: req.body.city, province: req.body.province},
-                emergencyContact: { name: {firstName: req.body.EmergencyName_firstName, lastName: req.body.EmergencyName_lastName}, phone: req.body.EmergencyPhone, relationship: req.body.EmergencyRelationship},
+                emergencyContact: { firstName: req.body.EmergencyName_firstName, lastName: req.body.EmergencyName_lastName, phone: req.body.EmergencyPhone, relationship: req.body.EmergencyRelationship},
                 group: req.body.group,
                 credits: 0,
                 memberType: 'regular',
                 password: hashedPassword
             })
             await user.save();
-            await sendEmail(user.contact.email, "Welcome to Ride42", mailTemplates.welcomeUser,{name: user.name.firstName })
+            await sendEmail(user.contact.email, "Welcome to Ride42", mailTemplates.welcomeUser,{name: user.firstName })
             return res.status(201).json({id: user.id});
         })
     }),
@@ -310,10 +311,10 @@ exports.user_put = [
                 return res.status(401).send({msg: 'Cannot change group when registered for trackday <'+process.env.DAYS_LOCKOUT+' days away.'})
             }
             const user = new User({
-                name: {firstName: (req.user.memberType === 'admin' && req.body.name_firstName)? req.body.name_firstName: oldUser.name_firstName,
-                        lastName: (req.user.memberType === 'admin' && req.body.name_lastName)? req.body.name_lastName: oldUser.name_lastName},
+                firstName: (req.user.memberType === 'admin' && req.body.name_firstName)? req.body.name_firstName: oldUser.name_firstName,
+                lastName: (req.user.memberType === 'admin' && req.body.name_lastName)? req.body.name_lastName: oldUser.name_lastName,
                 contact: {email: req.body.email, phone:req.body.phone, address: req.body.address, city: req.body.city, province: req.body.province},
-                emergencyContact: { name: {firstName: req.body.EmergencyName_firstName, lastName: req.body.EmergencyName_lastName}, phone: req.body.EmergencyPhone, relationship: req.body.EmergencyRelationship},
+                emergencyContact: { firstName: req.body.EmergencyName_firstName, lastName: req.body.EmergencyName_lastName, phone: req.body.EmergencyPhone, relationship: req.body.EmergencyRelationship},
                 garage: oldUser.garage,
                 group: req.body.group,
                 credits: (req.user.memberType === 'admin' && req.body.credits)? req.body.credits : oldUser.credits,
@@ -322,7 +323,7 @@ exports.user_put = [
                 _id: req.params.userID,
             })
             await User.findByIdAndUpdate(req.params.userID, user, {});
-            await sendEmail(user.contact.email, "Your account details have been updated", mailTemplates.updateUser,{name: user.name.firstName })
+            await sendEmail(user.contact.email, "Your account details have been updated", mailTemplates.updateUser,{name: user.firstName })
             return res.status(201).json({id: user.id});
         }
         return res.sendStatus(403)
@@ -372,9 +373,10 @@ exports.admin = [
         bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
             // Create the user and insert into the DB
             const user = new User({
-                name: {firstName: req.body.name_firstName, lastName: req.body.name_lastName},
+                firstName: req.body.name_firstName,
+                lastName: req.body.name_lastName,
                 contact: {email: req.body.email, phone:req.body.phone, address: req.body.address, city: req.body.city, province: req.body.province},
-                emergencyContact: { name: {firstName: req.body.EmergencyName_firstName, lastName: req.body.EmergencyName_lastName}, phone: req.body.EmergencyPhone, relationship: req.body.EmergencyRelationship},
+                emergencyContact: { firstName: req.body.EmergencyName_firstName, lastName: req.body.EmergencyName_lastName, phone: req.body.EmergencyPhone, relationship: req.body.EmergencyRelationship},
                 group: req.body.group,
                 credits: 0,
                 memberType: 'admin',

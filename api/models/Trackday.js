@@ -14,11 +14,11 @@ const TrackdaySchema = new mongoose.Schema({
 				paymentMethod: 	{ type: String, required: true, enum: ["etransfer", "credit", "creditCard", "gate"] },
 				paid: 			{ type: Boolean, required: true},
 				guests: 		{ type: Number, required: true },
-				checkedIn: 		[{ type: mongoose.Schema.Types.ObjectId }] }],
-	walkons: [{ name: { firstName: { type: String, required: true, minLength: 2, maxLength: 50 },
-						lastName:  { type: String, required: true, minLength: 2, maxLength: 50 }},
-				group: { type: String, required: true, enum: ["green", "yellow", "red"] }}],
-	status: { type: String, required: true, enum: ["regOpen", "regClosed", "finished", "cancelled"] }
+				checkedIn: 		[{ type: mongoose.Schema.Types.ObjectId }]}],
+	walkons: [{ firstName: 		{ type: String, required: true, minLength: 2, maxLength: 50 },
+				lastName:  		{ type: String, required: true, minLength: 2, maxLength: 50 },
+				group: 			{ type: String, required: true, enum: ["green", "yellow", "red"] }}],
+	status:	{ type: String, required: true, enum: ["regOpen", "regClosed", "finished", "cancelled"] }
 });
 
 // Export model

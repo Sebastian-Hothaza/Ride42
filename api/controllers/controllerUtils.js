@@ -98,7 +98,7 @@ async function verifyJWT(req, res, next){
             if (user.refreshToken !== req.cookies.JWT_REFRESH_TOKEN) return res.sendStatus(403)
 
             // JWT_REFRESH is valid! Create new JWT_ACCESS. 
-            const accessToken = jwt.sign({id: user._id, memberType: user.memberType, name: user.name.firstName}, 
+            const accessToken = jwt.sign({id: user._id, memberType: user.memberType, name: user.firstName}, 
                                             process.env.JWT_ACCESS_CODE, {expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION}) 
             res.cookie([`JWT_ACCESS_TOKEN=${accessToken}; secure; httponly; samesite=None;`])
             payload = jwt.verify(accessToken, process.env.JWT_ACCESS_CODE);

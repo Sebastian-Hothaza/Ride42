@@ -441,8 +441,8 @@ describe('Testing user update', () => {
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 
-		expect((updatedUser.body.name.firstName)).toEqual(user1_unauthorizedFields.name_firstName);
-		expect((updatedUser.body.name.lastName)).toEqual(user1_unauthorizedFields.name_lastName);
+		expect((updatedUser.body.firstName)).toEqual(user1_unauthorizedFields.name_firstName);
+		expect((updatedUser.body.lastName)).toEqual(user1_unauthorizedFields.name_lastName);
 
 		expect((updatedUser.body.contact.email)).toEqual(user1_unauthorizedFields.email);
 		expect((updatedUser.body.contact.phone)).toEqual(user1_unauthorizedFields.phone);
@@ -450,8 +450,8 @@ describe('Testing user update', () => {
 		expect((updatedUser.body.contact.city)).toEqual(user1_unauthorizedFields.city);
 		expect((updatedUser.body.contact.province)).toEqual(user1_unauthorizedFields.province);
 
-		expect((updatedUser.body.emergencyContact.name.firstName)).toEqual(user1_unauthorizedFields.EmergencyName_firstName);
-		expect((updatedUser.body.emergencyContact.name.lastName)).toEqual(user1_unauthorizedFields.EmergencyName_lastName);
+		expect((updatedUser.body.emergencyContact.firstName)).toEqual(user1_unauthorizedFields.EmergencyName_firstName);
+		expect((updatedUser.body.emergencyContact.lastName)).toEqual(user1_unauthorizedFields.EmergencyName_lastName);
 		expect((updatedUser.body.emergencyContact.phone)).toEqual(parseInt(user1_unauthorizedFields.EmergencyPhone));
 		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1_unauthorizedFields.EmergencyRelationship);
 
@@ -514,8 +514,8 @@ describe('Testing user update', () => {
 		expect((updatedUser.body.contact.city)).toEqual(user1.city);
 		expect((updatedUser.body.contact.province)).toEqual(user1.province);
 
-		expect((updatedUser.body.emergencyContact.name.firstName)).toEqual(user1.EmergencyName_firstName);
-		expect((updatedUser.body.emergencyContact.name.lastName)).toEqual(user1.EmergencyName_lastName);
+		expect((updatedUser.body.emergencyContact.firstName)).toEqual(user1.EmergencyName_firstName);
+		expect((updatedUser.body.emergencyContact.lastName)).toEqual(user1.EmergencyName_lastName);
 		expect((updatedUser.body.emergencyContact.phone)).toEqual(parseInt(user1.EmergencyPhone));
 		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1.EmergencyRelationship);
 
@@ -559,8 +559,8 @@ describe('Testing user update', () => {
 		expect((updatedUser.body.contact.city)).toEqual(user1_update.city);
 		expect((updatedUser.body.contact.province)).toEqual(user1_update.province);
 
-		expect((updatedUser.body.emergencyContact.name.firstName)).toEqual(user1_update.EmergencyName_firstName);
-		expect((updatedUser.body.emergencyContact.name.lastName)).toEqual(user1_update.EmergencyName_lastName);
+		expect((updatedUser.body.emergencyContact.firstName)).toEqual(user1_update.EmergencyName_firstName);
+		expect((updatedUser.body.emergencyContact.lastName)).toEqual(user1_update.EmergencyName_lastName);
 		expect((updatedUser.body.emergencyContact.phone)).toEqual(parseInt(user1_update.EmergencyPhone));
 		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1_update.EmergencyRelationship);
 
@@ -619,8 +619,8 @@ describe('Testing user update', () => {
 		expect((updatedUser.body.contact.city)).toEqual(user1_update.city);
 		expect((updatedUser.body.contact.province)).toEqual(user1_update.province);
 
-		expect((updatedUser.body.emergencyContact.name.firstName)).toEqual(user1_update.EmergencyName_firstName);
-		expect((updatedUser.body.emergencyContact.name.lastName)).toEqual(user1_update.EmergencyName_lastName);
+		expect((updatedUser.body.emergencyContact.firstName)).toEqual(user1_update.EmergencyName_firstName);
+		expect((updatedUser.body.emergencyContact.lastName)).toEqual(user1_update.EmergencyName_lastName);
 		expect((updatedUser.body.emergencyContact.phone)).toEqual(parseInt(user1_update.EmergencyPhone));
 		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1_update.EmergencyRelationship);
 
@@ -694,8 +694,8 @@ describe('Testing user update', () => {
 		expect((updatedUser.body.contact.city)).toEqual(user1_update_noChangeGroup.city);
 		expect((updatedUser.body.contact.province)).toEqual(user1_update_noChangeGroup.province);
 
-		expect((updatedUser.body.emergencyContact.name.firstName)).toEqual(user1_update_noChangeGroup.EmergencyName_firstName);
-		expect((updatedUser.body.emergencyContact.name.lastName)).toEqual(user1_update_noChangeGroup.EmergencyName_lastName);
+		expect((updatedUser.body.emergencyContact.firstName)).toEqual(user1_update_noChangeGroup.EmergencyName_firstName);
+		expect((updatedUser.body.emergencyContact.lastName)).toEqual(user1_update_noChangeGroup.EmergencyName_lastName);
 		expect((updatedUser.body.emergencyContact.phone)).toEqual(parseInt(user1_update_noChangeGroup.EmergencyPhone));
 		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1_update_noChangeGroup.EmergencyRelationship);
 
@@ -741,8 +741,8 @@ describe('Testing user update', () => {
 		expect((updatedUser.body.contact.city)).toEqual(user1.city);
 		expect((updatedUser.body.contact.province)).toEqual(user1.province);
 
-		expect((updatedUser.body.emergencyContact.name.firstName)).toEqual(user1.EmergencyName_firstName);
-		expect((updatedUser.body.emergencyContact.name.lastName)).toEqual(user1.EmergencyName_lastName);
+		expect((updatedUser.body.emergencyContact.firstName)).toEqual(user1.EmergencyName_firstName);
+		expect((updatedUser.body.emergencyContact.lastName)).toEqual(user1.EmergencyName_lastName);
 		expect((updatedUser.body.emergencyContact.phone)).toEqual(parseInt(user1.EmergencyPhone));
 		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1.EmergencyRelationship);
 
@@ -773,8 +773,8 @@ describe('Testing user update', () => {
 		expect((updatedUser.body.contact.city)).toEqual(user1_update.city);
 		expect((updatedUser.body.contact.province)).toEqual(user1_update.province);
 
-		expect((updatedUser.body.emergencyContact.name.firstName)).toEqual(user1_update.EmergencyName_firstName);
-		expect((updatedUser.body.emergencyContact.name.lastName)).toEqual(user1_update.EmergencyName_lastName);
+		expect((updatedUser.body.emergencyContact.firstName)).toEqual(user1_update.EmergencyName_firstName);
+		expect((updatedUser.body.emergencyContact.lastName)).toEqual(user1_update.EmergencyName_lastName);
 		expect((updatedUser.body.emergencyContact.phone)).toEqual(parseInt(user1_update.EmergencyPhone));
 		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1_update.EmergencyRelationship);
 
