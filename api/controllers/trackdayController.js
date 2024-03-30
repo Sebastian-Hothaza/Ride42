@@ -14,8 +14,8 @@ API will feature support for mark paid & payWithCredit which will auto deduct cr
 
 /*
     --------------------------------------------- TODO ---------------------------------------------
-    add walkonRegister feature and testing
     edit register to allow registering gate person (accessible by staff and admin only) - testing for these new features
+    payments - deduct credit
     double check email sending for unregister (Ie. dont send admin email if paymentMethod was credit)
     double check email sending
     code cleanup & review
@@ -36,6 +36,7 @@ API will feature support for mark paid & payWithCredit which will auto deduct cr
     email signature image WITHOUT showing up as attachment - possible?
     review validation chain setup
     case insensitivity for garage (Ie. 2009 Yamaha R6 and 2009 YAMAHA r6 should be same entry in bikes DB)
+    optimize tests
     --------------------------------------- FOR LATER REVIEW ---------------------------------------
 */
 
@@ -81,7 +82,7 @@ function getRegNumbers(trackday){
     return {green, yellow, red, guests}
 }
 
-// Registers a user for a trackday. Requires JWT with matching userID OR admin.
+// Registers a user for a trackday. Requires JWT with matching userID OR admin. Staff permitted for gate registrations.
 exports.register = [
     body("paymentMethod",  "PaymentMethod must be one of: [etransfer, credit, creditCard, gate]").trim().isIn(["etransfer", "credit", "creditCard", "gate"]).escape(),
     body("guests",  "Guests must be numeric").trim().isNumeric().escape(),
@@ -95,23 +96,29 @@ exports.register = [
     asyncHandler(async(req,res,next) => {
         
         if (req.user.memberType === 'admin' || (req.user.id === req.params.userID)){
-          
             let [trackday, user] = await Promise.all([Trackday.findById(req.params.trackdayID).populate('members.user', '-password -refreshToken -__v').exec(), User.findById(req.params.userID)]);
             
+            // Deny gate registrations unless they come from staff or admin
+            if (req.body.paymentMethod === 'gate' && req.user.memberType !== 'admin' && req.user.memberType !== 'staff'){
+                return res.status(403).send({msg: "only staff or admins can process gate registrations"})
+            }
+
             // Deny if user is already registered to trackday
             const memberEntry = trackday.members.find((member) => member.user.equals(req.params.userID));
             if (memberEntry) return res.status(409).send({msg: "user already registered for this trackday"})
 
-            // Deny if user attempt to register for trackday < lockout period(7 default) away, deny registration
-            if (req.body.paymentMethod !== 'credit' && req.user.memberType !== 'admin' && await controllerUtils.isInLockoutPeriod(req.params.trackdayID)){
+            // Deny if user attempt to register for trackday < lockout period(7 default) away
+            if ( await controllerUtils.isInLockoutPeriod(req.params.trackdayID) && 
+                 req.body.paymentMethod !== 'credit' && req.body.paymentMethod !== 'gate' && req.user.memberType !== 'admin' ){
                 return res.status(401).send({msg: 'Cannot register for trackday <'+process.env.DAYS_LOCKOUT+' days away.'})
-            }
+            }            
+            
 
             // Deny if trackday is in the past (if time difference is negative)
             if (req.user.memberType !== 'admin' && trackday.date.getTime() - Date.now() < 0 ) return res.status(400).send({msg: 'Cannot register for trackday in the past'})
 
             // Deny if trackday is full
-            if (req.user.memberType !== 'admin'){
+            if (req.user.memberType !== 'admin' && req.user.memberType !== 'staff'){
                 if ( (user.group == 'green' && getRegNumbers(trackday).green === parseInt(process.env.GROUP_CAPACITY)) ||
                      (user.group == 'yellow' && getRegNumbers(trackday).yellow === parseInt(process.env.GROUP_CAPACITY)) ||
                      (user.group == 'red' && getRegNumbers(trackday).red === parseInt(process.env.GROUP_CAPACITY)) ){
@@ -129,7 +136,7 @@ exports.register = [
             trackday.members.push({
                 user: req.params.userID,
                 paymentMethod: req.body.paymentMethod,
-                paid: false,
+                paid: (req.body.paymentMethod === 'gate')?true:false,
                 guests: req.body.guests,
                 checkedIn: []
             })
@@ -160,6 +167,9 @@ exports.unregister = [
             // Check user is actually registered for that trackday
             const memberEntry = trackday.members.find((member) => member.user.equals(req.params.userID));
             if (!memberEntry) return res.status(400).send({msg: 'Cannot unregister; member is not registered for that trackday'});
+
+            // Deny if trying to unregister a gate entry
+            if (memberEntry.paymentMethod === 'gate' && req.user.memberType !== 'admin') return res.status(401).send({msg: 'cannot unregister a gate registration'})
 
 
             // If user attempt to unregister for trackday < lockout period(7 default) away, deny unregistration
@@ -211,6 +221,9 @@ exports.reschedule = [
             const memberEntryNEW = trackdayNEW.members.find((member) => member.user.equals(req.params.userID));
             if (memberEntryNEW) return res.status(409).send({msg: 'Member is already scheduled for trackday you want to reschedule to'})
 
+            // Deny if trying to reschedule a gate entry
+            if (memberEntryOLD.paymentMethod === 'gate' && req.user.memberType !== 'admin') return res.status(401).send({msg: 'cannot reschedule a gate registration'})
+
             // If user attempt to reschdule for trackday < lockout period(7 default) away, deny reschedule
             if (memberEntryOLD.paymentMethod !== 'credit' && req.user.memberType !== 'admin' && await controllerUtils.isInLockoutPeriod(req.params.trackdayID_NEW)){
                 return res.status(401).send({msg: 'Cannot reschedule to a trackday <'+process.env.DAYS_LOCKOUT+' days away.'})
@@ -255,7 +268,6 @@ exports.reschedule = [
 ]
 
 // Adds walkon customer to walkons Requires JWT with staff/admin.
-// TODO: Add to readme
 exports.walkons = [
     body("name_firstName", "First Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
     body("name_lastName", "Last Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
