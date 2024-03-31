@@ -46,8 +46,8 @@ afterEach(async () => {
 
 
 const userAdmin={ 
-	name_firstName: "Sebastian",
-	name_lastName: "Hothaza",
+	firstName: "Sebastian",
+	lastName: "Hothaza",
 	email: "sebastianhothaza@gmail.com",
 	phone: "2269881414",
 	address: "55 Coventtry Dr",
@@ -62,7 +62,7 @@ const userAdmin={
 };
 
 async function addUser(userInfo, expectedResponseCode){
-	const res = (userInfo.name_firstName==='Sebastian')?
+	const res = (userInfo.firstName==='Sebastian')?
 		 await request(app).post("/admin").type("form").send(userInfo).expect(expectedResponseCode)
 		:await request(app).post("/users").type("form").send(userInfo).expect(expectedResponseCode)
 	return res;

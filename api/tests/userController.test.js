@@ -38,8 +38,8 @@ afterEach(async () => {
 //////////////////////////////////////
 
 const user1={ 
-	name_firstName: "Joe",
-	name_lastName: "Adams",
+	firstName: "Joe",
+	lastName: "Adams",
 	email: "user1@gmail.com",
 	phone: "2261451298",
 	address: "123 Apple Ave.",
@@ -54,8 +54,8 @@ const user1={
 };
 
 const user2={ 
-	name_firstName: "Bob",
-	name_lastName: "Smith",
+	firstName: "Bob",
+	lastName: "Smith",
 	email: "user2@gmail.com",
 	phone: "5194618362",
 	address: "24 Apple Cres.",
@@ -70,8 +70,8 @@ const user2={
 };
 
 const userAdmin={ 
-	name_firstName: "Sebastian",
-	name_lastName: "Hothaza",
+	firstName: "Sebastian",
+	lastName: "Hothaza",
 	email: "sebastianhothaza@gmail.com",
 	phone: "2269881414",
 	address: "55 Coventtry Dr",
@@ -101,8 +101,8 @@ const user1_update={
 };
 
 const user1_malformed={ 
-	name_firstName: "Joe",
-	name_lastName: "Adams",
+	firstName: "Joe",
+	lastName: "Adams",
 	email: "user1gmail.com", //missing '@'
 	phone: "2261451298",
 	address: "123 Apple Ave.",
@@ -117,8 +117,8 @@ const user1_malformed={
 };
 
 const user1_missingFields={ 
-	name_firstName: "Joe",
-	name_lastName: "Adams",
+	firstName: "Joe",
+	lastName: "Adams",
 
 	phone: "2261451298",
 	address: "123 Apple Ave.",
@@ -133,7 +133,7 @@ const user1_missingFields={
 };
 
 async function addUser(userInfo, expectedResponseCode){
-	const res = (userInfo.name_firstName==='Sebastian')?
+	const res = (userInfo.firstName==='Sebastian')?
 		 await request(app).post("/admin").type("form").send(userInfo).expect(expectedResponseCode)
 		:await request(app).post("/users").type("form").send(userInfo).expect(expectedResponseCode)
 	return res;
@@ -366,8 +366,8 @@ describe('Testing user update', () => {
 		const loginRes = await loginUser(user1, 200)
 
 		const user1_unauthorizedFields={ 
-			name_firstName: "JoeX",
-			name_lastName: "AdamsX",
+			firstName: "JoeX",
+			lastName: "AdamsX",
 			email: "user1X@gmail.com",
 			phone: "2261451299",
 			address: "123 AppleX AveX.",
@@ -398,8 +398,8 @@ describe('Testing user update', () => {
 		const loginRes = await loginUser(userAdmin, 200)
 
 		const user1_unauthorizedFields={ 
-			name_firstName: "JoeX",
-			name_lastName: "AdamsX",
+			firstName: "JoeX",
+			lastName: "AdamsX",
 			email: "user1X@gmail.com",
 			phone: "2261451299",
 			address: "123 AppleX AveX.",
@@ -430,8 +430,8 @@ describe('Testing user update', () => {
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 
-		expect((updatedUser.body.firstName)).toEqual(user1_unauthorizedFields.name_firstName.toLowerCase());
-		expect((updatedUser.body.lastName)).toEqual(user1_unauthorizedFields.name_lastName.toLowerCase());
+		expect((updatedUser.body.firstName)).toEqual(user1_unauthorizedFields.firstName.toLowerCase());
+		expect((updatedUser.body.lastName)).toEqual(user1_unauthorizedFields.lastName.toLowerCase());
 
 		expect((updatedUser.body.contact.email)).toEqual(user1_unauthorizedFields.email.toLowerCase());
 		expect((updatedUser.body.contact.phone)).toEqual(user1_unauthorizedFields.phone.toLowerCase());

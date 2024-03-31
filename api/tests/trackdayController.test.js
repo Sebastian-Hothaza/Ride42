@@ -64,8 +64,8 @@ afterEach(async () => {
 //////////////////////////////////////
 
 const user1Info={ 
-	name_firstName: "Joe",
-	name_lastName: "Adams",
+	firstName: "Joe",
+	lastName: "Adams",
 	email: "user1@gmail.com",
 	phone: "2261451298",
 	address: "123 Apple Ave.",
@@ -80,8 +80,8 @@ const user1Info={
 };
 
 const user2Info={ 
-	name_firstName: "Bob",
-	name_lastName: "Smith",
+	firstName: "Bob",
+	lastName: "Smith",
 	email: "user2@gmail.com",
 	phone: "5194618362",
 	address: "24 Apple Cres.",
@@ -96,8 +96,8 @@ const user2Info={
 };
 
 const userAdmin={ 
-	name_firstName: "Sebastian",
-	name_lastName: "Hothaza",
+	firstName: "Sebastian",
+	lastName: "Hothaza",
 	email: "sebastianhothaza@gmail.com",
 	phone: "2269881414",
 	address: "55 Coventtry Dr",
@@ -112,8 +112,8 @@ const userAdmin={
 };
 
 const userStaff={ 
-	name_firstName: "Diana",
-	name_lastName: "Hothaza",
+	firstName: "Diana",
+	lastName: "Hothaza",
 	email: "dianahothaza@gmail.com",
 	phone: "2269881414",
 	address: "55 Coventtry Dr",
@@ -148,7 +148,7 @@ const userStaff_update={
 };
 
 async function addUser(userInfo){
-	const res = (userInfo.name_firstName==='Sebastian')?
+	const res = (userInfo.firstName==='Sebastian')?
 		 await request(app).post("/admin").type("form").send(userInfo).expect(201)
 		:await request(app).post("/users").type("form").send(userInfo).expect(201)
 	return res;
@@ -169,8 +169,8 @@ async function fillTrackday(trackdayID, groupToFill){
 	for (let i = 0; i < process.env.GROUP_CAPACITY; i++){
 		const userEmail = "JohnDoe"+i+"@gmail.com"
 		const userInfo={ 
-			name_firstName: "John",
-			name_lastName: "Doe",
+			firstName: "John",
+			lastName: "Doe",
 			email: userEmail,
 			phone: "2261451298",
 			address: "123 Apple Ave.",

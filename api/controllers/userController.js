@@ -225,8 +225,8 @@ exports.user_getALL = [
 // Creates a user. PUBLIC.
 // NOTE: We do not provide any JWT functionality here. It is up to the front end to make a POST request to /login if desired.
 exports.user_post = [
-    body("name_firstName", "First Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
-    body("name_lastName", "Last Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+    body("firstName", "First Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+    body("lastName", "Last Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
 
     body("email", "Email must be in format of samplename@sampledomain.com").trim().isEmail().escape(), 
     body("phone", "Phone must contain 10 digits").trim().isLength({ min: 10, max: 10}).escape(), 
@@ -254,8 +254,8 @@ exports.user_post = [
         bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
             // Create the user and insert into the DB
             const user = new User({
-                firstName: req.body.name_firstName.toLowerCase(), 
-                lastName: req.body.name_lastName.toLowerCase(),
+                firstName: req.body.firstName.toLowerCase(), 
+                lastName: req.body.lastName.toLowerCase(),
                 contact: {
                     email: req.body.email.toLowerCase(),
                     phone:req.body.phone.toLowerCase(),
@@ -310,7 +310,7 @@ exports.user_put = [
         // If user attempts to tamper with unauthorized fields, return 403
         
         if (req.user.memberType !== 'admin' &&
-            (req.body.name_firstName || req.body.name_lastName ||
+            (req.body.firstName || req.body.lastName ||
                 req.body.credits || req.body.memberType)) return res.sendStatus(403) 
 
         if (req.user.id === req.params.userID || req.user.memberType === 'admin'){ // User is editing themselves or admin is editing them
@@ -319,7 +319,7 @@ exports.user_put = [
 
             // Check if a user already exists with same email
             const duplicateUser = await User.findOne({'contact.email': {$regex: req.body.email, $options: 'i'}})
-            if (duplicateUser && oldUser.contact.email !== req.body.email) return res.status(409).send({msg: 'User with this email already exists'});
+            if (duplicateUser && oldUser.contact.email !== req.body.email.toLowerCase()) return res.status(409).send({msg: 'User with this email already exists'});
             
             // If user attempt to change group and has a trackday booked < lockout period(7 default) away, fail update entirely
             if (req.body.group !== oldUser.group && req.user.memberType !== 'admin' && await controllerUtils.hasTrackdayWithinLockout(req.params.userID)){
@@ -327,8 +327,8 @@ exports.user_put = [
             }
             
             const user = new User({
-                firstName: (req.user.memberType === 'admin' && req.body.name_firstName)? req.body.name_firstName.toLowerCase(): oldUser.name_firstName,
-                lastName: (req.user.memberType === 'admin' && req.body.name_lastName)? req.body.name_lastName.toLowerCase(): oldUser.name_lastName,
+                firstName: (req.user.memberType === 'admin' && req.body.firstName)? req.body.firstName.toLowerCase(): oldUser.firstName,
+                lastName: (req.user.memberType === 'admin' && req.body.lastName)? req.body.lastName.toLowerCase(): oldUser.lastName,
                 contact: {
                     email: req.body.email.toLowerCase(),
                     phone:req.body.phone.toLowerCase(),
@@ -374,8 +374,8 @@ exports.user_delete = [
 
 // Testing use only, route available only in test NODE_env. Creates admin user.
 exports.admin = [
-    body("name_firstName", "First Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
-    body("name_lastName", "Last Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+    body("firstName", "First Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+    body("lastName", "Last Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
 
     body("email", "Email must be in format of samplename@sampledomain.com").trim().isEmail().escape(), 
     body("phone", "Phone must contain 10 digits").trim().isLength({ min: 10, max: 10}).escape(), 
@@ -399,8 +399,8 @@ exports.admin = [
         bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
             // Create the user and insert into the DB
             const user = new User({
-                firstName: req.body.name_firstName.toLowerCase(),
-                lastName: req.body.name_lastName.toLowerCase(),
+                firstName: req.body.firstName.toLowerCase(),
+                lastName: req.body.lastName.toLowerCase(),
                 contact: {
                     email: req.body.email.toLowerCase(),
                     phone:req.body.phone.toLowerCase(),
