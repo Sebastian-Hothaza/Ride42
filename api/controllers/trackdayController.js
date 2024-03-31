@@ -274,8 +274,8 @@ exports.reschedule = [
 
 // Adds walkon customer to walkons Requires JWT with staff/admin.
 exports.walkons = [
-    body("name_firstName", "First Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
-    body("name_lastName", "Last Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+    body("firstName", "First Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+    body("lastName", "Last Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
     body("group", "Group must be either green, yellow or red").trim().isIn(['green', 'yellow', 'red']).escape(),
 
     controllerUtils.verifyJWT,
@@ -287,8 +287,8 @@ exports.walkons = [
             const trackday = await Trackday.findById(req.params.trackdayID).exec();
             
             trackday.walkons.push({
-                firstName: req.body.name_firstName,
-                lastName: req.body.name_lastName,
+                firstName: req.body.firstName,
+                lastName: req.body.lastName,
                 group: req.body.group
             })
             await trackday.save();
@@ -313,8 +313,8 @@ exports.checkin = [
             const memberEntry = trackday.members.find((member) => member.user.equals(req.params.userID));
             if (!memberEntry) return res.status(404).send({msg: 'Member is not registered for that trackday'});
 
-            // Check that member is not already checked in
-            if(memberEntry.checkedIn.length) res.status(400).json({msg : 'member already checked in'})
+            // Check that member is not already checked in with that same bike
+            if(memberEntry.checkedIn.includes(req.params.bikeID)) res.status(400).json({msg : 'member already checked in with this bike'})
 
             memberEntry.checkedIn.push(req.params.bikeID);
             await trackday.save();
@@ -395,8 +395,8 @@ exports.updatePaid = [
 
 
             // Prevent setting paid status to what it was already set to
-            if (memberEntry.paid && req.body.setPaid) return res.status(400).send({msg: "user already marked as paid"})
-            if (!memberEntry.paid && !req.body.setPaid) return res.status(400).send({msg: "user already marked as unpaid"})
+            if (memberEntry.paid && req.body.setPaid == 'true') return res.status(400).send({msg: "user already marked as paid"})
+            if (!memberEntry.paid && req.body.setPaid == 'false') return res.status(400).send({msg: "user already marked as unpaid"})
 
             // Update paid status
             memberEntry.paid = memberEntry.paid? false:true
