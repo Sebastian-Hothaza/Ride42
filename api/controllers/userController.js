@@ -58,7 +58,7 @@ exports.login = [
 
 // Updates a users password. Requires JWT with matching userID OR admin
 exports.updatePassword = [
-    body("oldPassword", "Old password is not a valid password type").trim().isLength({ min: 8, max: 50}).bail().matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
+    body("oldPassword", "Old password not provided or not a valid password type").trim().isLength({ min: 8, max: 50}).bail().matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
     body("newPassword", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().isLength({ min: 8, max: 50}).bail().matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
     
     controllerUtils.verifyJWT,
