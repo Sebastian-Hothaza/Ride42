@@ -1,3 +1,26 @@
+const signature =
+`
+<div class="io-ox-signature">
+        <div class="default-style">
+            <div class="default-style">
+                &nbsp;
+            </div>
+            <div>
+                <span style="color: #808080;">Sebastian Hothaza</span>
+            </div> <span style="color: #808080;"><em>Founder</em></span>
+        </div>
+        <div class="default-style">
+            <img class="aspect-ratio" style="max-width: 100%;" src="cid:sigImg" alt="" width="130" height="30">
+        </div>
+        <div class="default-style">
+            <a href="http://ride42.ca/"><strong>Visit us online</strong></a>
+        </div>
+        <div class="default-style">
+            <a href="https://www.facebook.com/groups/ride42/"><strong>Join us on Facebook</strong></a>
+        </div>
+</div>
+`
+
 const welcomeUser =
 `<body>
     <div class="default-style">
@@ -121,27 +144,6 @@ const notifyPaid =
     ${signature}
 </body>`
 
-const signature =
-`
-<div class="io-ox-signature">
-        <div class="default-style">
-            <div class="default-style">
-                &nbsp;
-            </div>
-            <div>
-                <span style="color: #808080;">Sebastian Hothaza</span>
-            </div> <span style="color: #808080;"><em>Founder</em></span>
-        </div>
-        <div class="default-style">
-            <img class="aspect-ratio" style="max-width: 100%;" src="cid:sigImg" alt="" width="130" height="30">
-        </div>
-        <div class="default-style">
-            <a href="http://ride42.ca/"><strong>Visit us online</strong></a>
-        </div>
-        <div class="default-style">
-            <a href="https://www.facebook.com/groups/ride42/"><strong>Join us on Facebook</strong></a>
-        </div>
-</div>
-`
+
 
 module.exports={welcomeUser,updateUser,passwordChange,QRCodeRequest,registerTrackday,unregisterTrackday,unregisterTrackday_admin,rescheduleTrackday, notifyPaid};
