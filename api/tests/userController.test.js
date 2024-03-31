@@ -1094,6 +1094,13 @@ describe('Testing verify', () => {
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 
+		// Mark user as paid
+		await request(app)
+			.put('/paid/'+user.body.id+'/'+trackday.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.type('form').send({setPaid: 'true'})
+			.expect(200)
+
 		// Check-in user for trackday
 		await request(app)
 			.post('/checkin/'+user.body.id+'/'+trackday.body.id+'/'+bike.body.id)
