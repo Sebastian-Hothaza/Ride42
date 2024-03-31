@@ -1940,7 +1940,7 @@ describe('Testing updatePaid', () => {
 	test("invalid objectID user", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
-			.post('/paid/'+'invalid/'+trackday.body.id)
+			.put('/paid/'+'invalid/'+trackday.body.id)
 			.type('form').send({setPaid: 'true'})
 			.set('Cookie', adminCookie)
 			.expect(404, {msg: 'userID is not a valid ObjectID'})
@@ -1948,14 +1948,14 @@ describe('Testing updatePaid', () => {
 	test("invalid userID user", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
-			.post('/paid/'+'1'+user1.body.id.slice(1,user1.body.id.length-1)+'1'+'/'+trackday.body.id)
+			.put('/paid/'+'1'+user1.body.id.slice(1,user1.body.id.length-1)+'1'+'/'+trackday.body.id)
 			.type('form').send({setPaid: 'true'})
 			.set('Cookie', adminCookie)
 			.expect(404, {msg: 'User does not exist'})
 	});
 	test("invalid objectID trackday", async () => {
 		await request(app)
-			.post('/paid/'+user1.body.id+'/invalid/')
+			.put('/paid/'+user1.body.id+'/invalid/')
 			.type('form').send({setPaid: 'true'})
 			.set('Cookie', adminCookie)
 			.expect(404, {msg: 'trackdayID is not a valid ObjectID'})
@@ -1964,7 +1964,7 @@ describe('Testing updatePaid', () => {
 		
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
-			.post('/paid/'+user1.body.id+'/1'+trackday.body.id.slice(1,trackday.body.id.length-1)+'1')
+			.put('/paid/'+user1.body.id+'/1'+trackday.body.id.slice(1,trackday.body.id.length-1)+'1')
 			.type('form').send({setPaid: 'true'})
 			.set('Cookie', adminCookie)
 			.expect(404, {msg: 'Trackday does not exist'})
@@ -1974,7 +1974,7 @@ describe('Testing updatePaid', () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 
 		await request(app)
-			.post('/paid/'+user1.body.id+'/'+trackday.body.id)
+			.put('/paid/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({})
 			.expect(400)
@@ -1983,7 +1983,7 @@ describe('Testing updatePaid', () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 
 		await request(app)
-			.post('/paid/'+user1.body.id+'/'+trackday.body.id)
+			.put('/paid/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({setPaid: 'chewingGum'})
 			.expect(400)
@@ -1992,14 +1992,14 @@ describe('Testing updatePaid', () => {
 	test("no JWT", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
-			.post('/paid/'+user1.body.id+'/'+trackday.body.id)
+			.put('/paid/'+user1.body.id+'/'+trackday.body.id)
 			.expect(401)
 	});
 	test("not authorized", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 
 		await request(app)
-			.post('/paid/'+user1.body.id+'/'+trackday.body.id)
+			.put('/paid/'+user1.body.id+'/'+trackday.body.id)
 			.type('form').send({setPaid: 'true'})
 			.set('Cookie', user1Cookie)
 			.expect(403)
@@ -2027,14 +2027,14 @@ describe('Testing updatePaid', () => {
 
 		// Mark user as paid
 		await request(app)
-			.post('/paid/'+user1.body.id+'/'+trackday.body.id)
+			.put('/paid/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({setPaid: 'true'})
 			.expect(200)
 
 		// Mark user as paid
 		await request(app)
-			.post('/paid/'+user1.body.id+'/'+trackday.body.id)
+			.put('/paid/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({setPaid: 'true'})
 			.expect(400, {msg: 'user already marked as paid'})
@@ -2045,7 +2045,7 @@ describe('Testing updatePaid', () => {
 		
 		// Mark user as paid
 		await request(app)
-			.post('/paid/'+user1.body.id+'/'+trackday.body.id)
+			.put('/paid/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({setPaid: 'true'})
 			.expect(404, {msg: 'Member is not registered for that trackday'})
@@ -2073,7 +2073,7 @@ describe('Testing updatePaid', () => {
 		
 		// Mark user as paid
 		await request(app)
-			.post('/paid/'+user1.body.id+'/'+trackday.body.id)
+			.put('/paid/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({setPaid: 'true'})
 			.expect(400)
@@ -2107,7 +2107,7 @@ describe('Testing updatePaid', () => {
 		
 		// Mark user as paid
 		await request(app)
-			.post('/paid/'+user1.body.id+'/'+trackday.body.id)
+			.put('/paid/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({setPaid: 'true'})
 			.expect(400)
@@ -2135,7 +2135,7 @@ describe('Testing updatePaid', () => {
 		
 		// Mark user as paid
 		await request(app)
-			.post('/paid/'+user1.body.id+'/'+trackday.body.id)
+			.put('/paid/'+user1.body.id+'/'+trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({setPaid: 'true'})
 			.expect(200)

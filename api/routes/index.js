@@ -28,7 +28,7 @@ router.put('/register/:userID/:trackdayID_OLD/:trackdayID_NEW', trackdayControll
 router.post('/checkin/:userID/:trackdayID/:bikeID', trackdayController.checkin)
 router.get('/presentTrackdays', trackdayController.presentTrackdays)
 router.get('/presentTrackdays/:userID', trackdayController.presentTrackdaysForUser)
-router.post('/paid/:userID/:trackdayID', trackdayController.updatePaid)
+router.put('/paid/:userID/:trackdayID', trackdayController.updatePaid)
 router.post('/walkons/:trackdayID', trackdayController.walkons)
 
 

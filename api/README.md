@@ -42,7 +42,7 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 **Notify admin of QR code request:** Submit a `POST` request to `/qrcode/:userID/:bikeID`.
 
-**Update payment status of a user for a trackday:** Submit a `POST` request to `/paid/:userID/:trackdayID`.
+**Update payment status of a user for a trackday:** Submit a `PUT` request to `/paid/:userID/:trackdayID`.
 
 **Add walkon user to a trackday:** Submit a `POST` request to `'/walkons/:trackdayID'`.
 
