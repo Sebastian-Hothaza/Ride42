@@ -46,7 +46,7 @@ exports.login = [
                 user.refreshToken = refreshToken;
                 await user.save();
                 
-                res.sendStatus(200)
+                return res.sendStatus(200);
             }else{
                 return res.status(400).json({msg: 'Incorrect Password'});
             }  
@@ -60,6 +60,7 @@ exports.login = [
 exports.updatePassword = [
     body("oldPassword", "Old password is not a valid password type").trim().isLength({ min: 8, max: 50}).bail().matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
     body("newPassword", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().isLength({ min: 8, max: 50}).bail().matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
+    
     controllerUtils.verifyJWT,
     controllerUtils.validateForm,
     controllerUtils.validateUserID,
@@ -72,7 +73,7 @@ exports.updatePassword = [
 
                 // Verify old Password
                 const passwordMatch = await bcrypt.compare(req.body.oldPassword, user.password)
-                if (passwordMatch){
+                if (passwordMatch || req.user.memberType === 'admin'){
                     user.password = hashedPassword;
                     await user.save();
                     await sendEmail(user.contact.email, "Your Password has been updated", mailTemplates.passwordChange, {name: user.firstName})
@@ -361,10 +362,8 @@ exports.user_put = [
 exports.user_delete = [
     controllerUtils.verifyJWT,
     controllerUtils.validateUserID,
-    
 
     asyncHandler(async(req,res,next) => {
-        // JWT is valid. Verify user is allowed to access this resource and delete the user
         if (req.user.memberType === 'admin'){
             await User.findByIdAndDelete(req.params.userID);
             return res.sendStatus(200);

@@ -165,8 +165,6 @@ function getFormattedDate(offsetDays){
 //              TESTS
 //////////////////////////////////////
 
-// Testing user read > get invalid objectID user CAUSING LEAK
-
 
 describe('Testing user create', () => {
 	test("add user to DB - missing fields", async() => {
@@ -210,9 +208,6 @@ describe('Testing user read', () => {
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: 'userID is not a valid ObjectID' }) 
 	});
-
-
-
 	test("get invalid userID user", async() => {
 		const user = await addUser(user2, 201)
 		const loginRes = await loginUser(user2, 200)
@@ -296,7 +291,6 @@ describe('Testing user read', () => {
 })
 
 describe('Testing user update', () => {
-
 	test("Update invalid objectID user", async() => {
 		const user = await addUser(user1, 201)
 		const loginRes = await loginUser(user1, 200)
@@ -307,7 +301,6 @@ describe('Testing user update', () => {
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: 'userID is not a valid ObjectID' })
 	});
-
 	test("Update invalid userID user", async() => {
 		const user = await addUser(user1, 201)
 		const loginRes = await loginUser(user1, 200)
@@ -330,7 +323,6 @@ describe('Testing user update', () => {
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(400)
 	})
-
 	test("Update specific user - malformed fields", async() => {
 		const user = await addUser(user1, 201)
 		const loginRes = await loginUser(user1, 200)
@@ -348,7 +340,6 @@ describe('Testing user update', () => {
 			.type('form').send(user1_update)
 			.expect(401)
 	})
-
 	test("Update specific user - unauthorized", async() => {
 		const res1 = await addUser(user1, 201);
 		const res2 = await addUser(user2, 201);
@@ -359,7 +350,6 @@ describe('Testing user update', () => {
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(403)
 	})
-
 	test("Update specific user - as admin", async() => {
 		const user = await addUser(user1, 201);
 		await addUser(userAdmin, 201);
@@ -402,8 +392,7 @@ describe('Testing user update', () => {
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(403)
 	})
-
-	test("Update specific user - as admin - changing name, credits & user type", async() => {
+	test("Update specific user - change unauthorized fields - as admin", async() => {
 		const user = await addUser(user1, 201);
 		await addUser(userAdmin, 201);
 		const loginRes = await loginUser(userAdmin, 200)
@@ -462,7 +451,7 @@ describe('Testing user update', () => {
 	})	
 
 
-	test("Update specific user group - as user - within 7 day lockout", async () => {
+	test("Update specific user group within 7 day lockout", async () => {
 		const user = await addUser(user1, 201);
 		const loginResUser = await loginUser(user1, 200);
 
@@ -521,53 +510,7 @@ describe('Testing user update', () => {
 
 		expect((updatedUser.body.group)).toEqual(user1.group);
 	});
-
-	test("Update specific user group - as user - old trackday past", async () => {
-		const user = await addUser(user1, 201);
-		const loginResUser = await loginUser(user1, 200);
-
-		await addUser(userAdmin, 201);
-		const loginResAdmin = await loginUser(userAdmin, 200);
-		
-		const now = new Date();
-		const trackday = await addTrackday(getFormattedDate(-3), loginResAdmin.headers['set-cookie'])
-
-		// Register user for trackday
-		await request(app)
-			.post('/register/'+user.body.id+'/'+trackday.body.id)
-			.type('form').send({paymentMethod: 'creditCard', guests: 3})
-			.set('Cookie', loginResAdmin.headers['set-cookie'])
-			.expect(200)
-
-		// Update user
-		await request(app)
-			.put('/users/'+user.body.id)
-			.set('Cookie', loginResUser.headers['set-cookie'])
-			.type("form").send(user1_update)
-			.expect(201)
-
-		
-
-		const updatedUser = await request(app)
-			.get('/users/'+user.body.id)
-			.set('Cookie', loginResUser.headers['set-cookie'])
-			.expect(200)
-
-		expect((updatedUser.body.contact.email)).toEqual(user1_update.email.toLowerCase());
-		expect((updatedUser.body.contact.phone)).toEqual(user1_update.phone.toLowerCase());
-		expect((updatedUser.body.contact.address)).toEqual(user1_update.address.toLowerCase());
-		expect((updatedUser.body.contact.city)).toEqual(user1_update.city.toLowerCase());
-		expect((updatedUser.body.contact.province)).toEqual(user1_update.province.toLowerCase());
-
-		expect((updatedUser.body.emergencyContact.firstName)).toEqual(user1_update.EmergencyName_firstName.toLowerCase());
-		expect((updatedUser.body.emergencyContact.lastName)).toEqual(user1_update.EmergencyName_lastName.toLowerCase());
-		expect((updatedUser.body.emergencyContact.phone)).toEqual(parseInt(user1_update.EmergencyPhone));
-		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1_update.EmergencyRelationship.toLowerCase());
-
-		expect((updatedUser.body.group)).toEqual(user1_update.group.toLowerCase());
-	});
-	
-	test("Update specific user group - as admin - within 7 day lockout", async () => {
+	test("Update specific user group within 7 day lockout - as admin", async () => {
 		const user = await addUser(user1, 201);
 		const loginResUser = await loginUser(user1, 200);
 
@@ -626,8 +569,7 @@ describe('Testing user update', () => {
 
 		expect((updatedUser.body.group)).toEqual(user1_update.group.toLowerCase());
 	});
-
-	test("Update specific user - as user - within 7 day lockout without changing group", async () => {
+	test("Update specific user within 7 day lockout without changing group", async () => {
 		const user = await addUser(user1, 201);
 		const loginResUser = await loginUser(user1, 200);
 
@@ -701,8 +643,51 @@ describe('Testing user update', () => {
 
 		expect((updatedUser.body.group)).toEqual(user1_update_noChangeGroup.group.toLowerCase());
 	});
+	test("Update specific user group - old trackday past", async () => {
+		const user = await addUser(user1, 201);
+		const loginResUser = await loginUser(user1, 200);
 
+		await addUser(userAdmin, 201);
+		const loginResAdmin = await loginUser(userAdmin, 200);
+		
+		const now = new Date();
+		const trackday = await addTrackday(getFormattedDate(-3), loginResAdmin.headers['set-cookie'])
 
+		// Register user for trackday
+		await request(app)
+			.post('/register/'+user.body.id+'/'+trackday.body.id)
+			.type('form').send({paymentMethod: 'creditCard', guests: 3})
+			.set('Cookie', loginResAdmin.headers['set-cookie'])
+			.expect(200)
+
+		// Update user
+		await request(app)
+			.put('/users/'+user.body.id)
+			.set('Cookie', loginResUser.headers['set-cookie'])
+			.type("form").send(user1_update)
+			.expect(201)
+
+		
+
+		const updatedUser = await request(app)
+			.get('/users/'+user.body.id)
+			.set('Cookie', loginResUser.headers['set-cookie'])
+			.expect(200)
+
+		expect((updatedUser.body.contact.email)).toEqual(user1_update.email.toLowerCase());
+		expect((updatedUser.body.contact.phone)).toEqual(user1_update.phone.toLowerCase());
+		expect((updatedUser.body.contact.address)).toEqual(user1_update.address.toLowerCase());
+		expect((updatedUser.body.contact.city)).toEqual(user1_update.city.toLowerCase());
+		expect((updatedUser.body.contact.province)).toEqual(user1_update.province.toLowerCase());
+
+		expect((updatedUser.body.emergencyContact.firstName)).toEqual(user1_update.EmergencyName_firstName.toLowerCase());
+		expect((updatedUser.body.emergencyContact.lastName)).toEqual(user1_update.EmergencyName_lastName.toLowerCase());
+		expect((updatedUser.body.emergencyContact.phone)).toEqual(parseInt(user1_update.EmergencyPhone));
+		expect((updatedUser.body.emergencyContact.relationship)).toEqual(user1_update.EmergencyRelationship.toLowerCase());
+
+		expect((updatedUser.body.group)).toEqual(user1_update.group.toLowerCase());
+	});
+	
 
 	test("Update user - email taken by other user", async () => {
 		const res1 = await addUser(user1, 201);
@@ -749,7 +734,6 @@ describe('Testing user update', () => {
 		expect((updatedUser.body.group)).toEqual(user1.group);
 
 	});
-
 	test("Update user", async () => {
 		const res = await addUser(user1, 201);
 		const loginRes = await loginUser(user1, 200);
@@ -781,7 +765,6 @@ describe('Testing user update', () => {
 		expect((updatedUser.body.group)).toEqual(user1_update.group.toLowerCase());
 
 	});
-
 })
 
 describe('Testing user delete', () => {
@@ -793,7 +776,6 @@ describe('Testing user delete', () => {
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: 'userID is not a valid ObjectID' })
 	});
-
 	test("Delete invalid userID user", async() => {
 		const user = await addUser(user1, 201)
 		const loginRes = await loginUser(user1, 200)
@@ -810,7 +792,6 @@ describe('Testing user delete', () => {
 			.delete('/users/'+user.body.id)
 			.expect(401) 
 	});
-
 	test("Delete user - unauthorized", async() => {
 		const user = await addUser(user1, 201)
 		const loginRes = await loginUser(user1, 200)
@@ -836,8 +817,6 @@ describe('Testing user delete', () => {
 			.expect(404) 
 	});
 })
-
-
 
 
 
@@ -886,7 +865,6 @@ describe('Testing password update', () => {
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: 'userID is not a valid ObjectID' })
 	});
-
 	test("update password - invalid userID user", async() => {
 		const user = await addUser(user1, 201)
 		const loginRes = await loginUser(user1, 200)
@@ -907,7 +885,6 @@ describe('Testing password update', () => {
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(400);
 	});
-
 	test("update password - malformed fields", async() => {
 		const user = await addUser(user1, 201)
 		const loginRes = await loginUser(user1, 200)
@@ -917,9 +894,17 @@ describe('Testing password update', () => {
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(400);
 	});
-	
-	
 
+	test("update password for a user - no JWT", async() => {
+		const res1 = await addUser(user1, 201);
+		const res2 = await addUser(user2, 201);
+		const loginRes = await loginUser(user1, 200);
+
+		await request(app)
+			.put("/password/"+res2.body.id)
+			.type("form").send({oldPassword: user1.password, newPassword: 'ValidPsw1'})
+			.expect(401);
+	});
 	test("update password for a user - unauthorized", async() => {
 		const res1 = await addUser(user1, 201);
 		const res2 = await addUser(user2, 201);
@@ -931,7 +916,6 @@ describe('Testing password update', () => {
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(403);
 	});
-
 	test("update password for a user - admin", async() => {
 		const res = await addUser(user1, 201);
 		const admin = await addUser(userAdmin, 201);
@@ -956,6 +940,19 @@ describe('Testing password update', () => {
 			.expect(403, {msg: "old password is incorrect"});
 	});
 
+	test("update password for a user - incorrect old password - as admin", async() => {
+		const res = await addUser(user1, 201);
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(userAdmin, 200);
+
+		await request(app)
+			.put("/password/"+res.body.id)
+			.type("form")
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.send({ oldPassword: 'WrongPassword123', newPassword: 'ValidPassword1'})
+			.expect(200);
+	});
+
 	test("update password for a user", async() => {
 		const res = await addUser(user1, 201);
 		const loginRes = await loginUser(user1, 200);
@@ -968,7 +965,6 @@ describe('Testing password update', () => {
 			.expect(200);
 	});
 })
-
 
 describe('Testing verify', () => {
 	test("verify for invalid objectID user", async() => {
