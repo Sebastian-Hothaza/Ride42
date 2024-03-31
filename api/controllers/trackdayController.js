@@ -89,7 +89,6 @@ exports.register = [
     
 
     asyncHandler(async(req,res,next) => {
-        
         if (req.user.memberType === 'admin' || (req.user.id === req.params.userID)){
             let [trackday, user] = await Promise.all([Trackday.findById(req.params.trackdayID).populate('members.user', '-password -refreshToken -__v').exec(), User.findById(req.params.userID)]);
             
@@ -235,7 +234,8 @@ exports.reschedule = [
             }
 
             // Check if trackday is in the past (if time difference is negative)
-            if (req.user.memberType !== 'admin' && trackdayNEW.date.getTime() - Date.now() < 0 ) return res.status(400).send({msg: 'Cannot register for trackday in the past'})
+            if (req.user.memberType !== 'admin' && trackdayNEW.date.getTime() - Date.now() < 0 ) return res.status(400).send({msg: 'Cannot register to a trackday in the past'})
+            if (req.user.memberType !== 'admin' && trackdayOLD.date.getTime() - Date.now() < 0 ) return res.status(400).send({msg: 'Cannot register from a trackday in the past'})
 
             // Check if trackday is full
             if (req.user.memberType !== 'admin'){
@@ -441,6 +441,7 @@ exports.trackday_getALL = [
 // Creates a trackday. Requires JWT with admin.
 exports.trackday_post = [
     body("date",  "Date must be in YYYY-MM-DDThh:mmZ form where time is in UTC").isISO8601().bail().isLength({ min: 17, max: 17}).escape(),
+
     controllerUtils.verifyJWT,
     controllerUtils.validateForm,
     
@@ -464,13 +465,7 @@ exports.trackday_post = [
 ]
 
 // Updates a trackday EXCLUDING members and walkons. Requires JWT with admin.
-/*
-    /// PERMISSIONS ///
-    USER: contact, emergencyContact, group(7 day requirement; else fail entire request)
-    ADMIN: name, credits, member type
-*/
 exports.trackday_put = [
-
     body("date",  "Date must be in YYYY-MM-DDThh:mm form where time is in UTC").isISO8601().bail().isLength({ min: 17, max: 17}).escape(),
     body("status",  "Status must be one of: [regOpen, regClosed, finished, cancelled]").trim().isIn(["regOpen", "regClosed", "finished", "cancelled"]).escape(),
 
@@ -508,14 +503,11 @@ exports.trackday_delete = [
     controllerUtils.verifyJWT,
     controllerUtils.validateTrackdayID,
     
-
     asyncHandler(async(req,res,next) => {
-
         if (req.user.memberType === 'admin'){
             await Trackday.findByIdAndDelete(req.params.trackdayID);
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
-       
     })
 ]
