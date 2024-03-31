@@ -40,7 +40,7 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 **Get trackdays basic info for trackdays a user is registered for (PUBLIC):** Submit a `GET` request to `/presentTrackdays/:userID`.
 
-**Notify admin of QR code request:** Submit a `GET` request to `/qrcode/:userID/:bikeID`.
+**Notify admin of QR code request:** Submit a `POST` request to `/qrcode/:userID/:bikeID`.
 
 **Update payment status of a user for a trackday:** Submit a `POST` request to `/paid/:userID/:trackdayID`.
 

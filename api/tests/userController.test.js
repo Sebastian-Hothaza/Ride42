@@ -1354,7 +1354,7 @@ describe('Request QR code', () => {
 		const user = await addUser(user1, 201)
 		const loginRes = await loginUser(user1, 200)
 		await request(app)
-			.get("/qrcode/invalid/someBikeID")
+			.post("/qrcode/invalid/someBikeID")
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: 'userID is not a valid ObjectID' })
 	});
@@ -1363,7 +1363,7 @@ describe('Request QR code', () => {
 		const loginRes = await loginUser(user1, 200)
 
 		await request(app)
-			.get('/qrcode/'+'1'+user.body.id.slice(1,user.body.id.length-1)+'1'+'/someBikeID')
+			.post('/qrcode/'+'1'+user.body.id.slice(1,user.body.id.length-1)+'1'+'/someBikeID')
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: 'User does not exist' }) 
 	});
@@ -1371,7 +1371,7 @@ describe('Request QR code', () => {
 		const user = await addUser(user1, 201)
 		const loginRes = await loginUser(user1, 200)
 		await request(app)
-			.get("/qrcode/"+user.body.id+'/invalid')
+			.post("/qrcode/"+user.body.id+'/invalid')
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: 'bikeID is not a valid ObjectID' })
 	});
@@ -1384,7 +1384,7 @@ describe('Request QR code', () => {
 										.set('Cookie', loginRes.headers['set-cookie']).expect(201);
 
 		await request(app)
-			.get("/qrcode/"+user.body.id+'/'+'1'+bike.body.id.slice(1,bike.body.id.length-1)+'1')
+			.post("/qrcode/"+user.body.id+'/'+'1'+bike.body.id.slice(1,bike.body.id.length-1)+'1')
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: 'Bike does not exist' });
 	});
@@ -1393,7 +1393,7 @@ describe('Request QR code', () => {
 		const user = await addUser(user1, 201);
 
 		await request(app)
-			.get('/qrcode/'+user.body.id+'/someBikeID')
+			.post('/qrcode/'+user.body.id+'/someBikeID')
 			.expect(401);
 	});
 	test("request code - unauthorized", async() => {
@@ -1404,7 +1404,7 @@ describe('Request QR code', () => {
 		const bike = await request(app).post("/garage/"+res2.body.id).type("form").send({year: '2009', make: 'Yamaha', model: "R6"})
 										.set('Cookie', loginRes.headers['set-cookie']).expect(201);
 		await request(app)
-			.get('/qrcode/'+res1.body.id+'/'+bike.body.id)
+			.post('/qrcode/'+res1.body.id+'/'+bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(403);
 	});
@@ -1416,7 +1416,7 @@ describe('Request QR code', () => {
 		const bike = await request(app).post("/garage/"+user.body.id).type("form").send({year: '2009', make: 'Yamaha', model: "R6"})
 										.set('Cookie', loginRes.headers['set-cookie']).expect(201);
 		await request(app)
-			.get("/qrcode/"+user.body.id+'/'+bike.body.id)
+			.post("/qrcode/"+user.body.id+'/'+bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200);
 	});
@@ -1437,7 +1437,7 @@ describe('Request QR code', () => {
 			.expect(200);
 
 		await request(app)
-			.get("/qrcode/"+user.body.id+'/'+bike.body.id)
+			.post("/qrcode/"+user.body.id+'/'+bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, {msg: "this bike does not exist in your garage"});
 	});
@@ -1451,7 +1451,7 @@ describe('Request QR code', () => {
 										.set('Cookie', loginRes.headers['set-cookie']).expect(201);
 
 		await request(app)
-			.get("/qrcode/"+user.body.id+'/'+bike.body.id)
+			.post("/qrcode/"+user.body.id+'/'+bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200);
 	});
