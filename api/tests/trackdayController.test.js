@@ -1680,7 +1680,7 @@ describe('Testing checkin', () => {
 			.expect(200)
 	})
 
-	test("already checked in", async () => {
+	test("already checked in that bike", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 
 		// Add bike to garage
@@ -1706,7 +1706,43 @@ describe('Testing checkin', () => {
 		await request(app)
 			.post('/checkin/'+user1.body.id+'/'+trackday.body.id+'/'+bike.body.id)
 			.set('Cookie', adminCookie)
-			.expect(400, {msg : 'member already checked in'})
+			.expect(400, {msg : 'member already checked in with this bike'})
+	})
+
+	test("check in multiple bikes", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		// Add bike1 to garage
+		const bike1 = await request(app)
+			.post("/garage/"+user1.body.id)
+			.type("form")
+			.send({year: '2009', make: 'Yamaha', model: "R6"})
+			.set('Cookie', user1Cookie)
+			.expect(201);
+
+		// Add bike2 to garage
+		const bike2 = await request(app)
+			.post("/garage/"+user1.body.id)
+			.type("form")
+			.send({year: '2010', make: 'Yamaha', model: "R1"})
+			.set('Cookie', user1Cookie)
+			.expect(201);
+
+		// Register for trackday
+		await request(app)
+			.post('/register/'+user1.body.id+'/'+trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.type('form').send({paymentMethod: 'etransfer', guests: 3})
+			.expect(200)
+		// Check in both bikes
+		await request(app)
+			.post('/checkin/'+user1.body.id+'/'+trackday.body.id+'/'+bike1.body.id)
+			.set('Cookie', adminCookie)
+			.expect(200)
+		await request(app)
+			.post('/checkin/'+user1.body.id+'/'+trackday.body.id+'/'+bike2.body.id)
+			.set('Cookie', adminCookie)
+			.expect(200)
 	})
 
 	test("not registered for that day", async () => {
