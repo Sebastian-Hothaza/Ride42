@@ -320,5 +320,12 @@ describe('Testing verifyJWT', () => {
 			.expect(200)
 	});
 
+	test("verifyJWT - bad token", async () => {
+		await request(app)
+			.get("/testverifyJWT")
+			.set('Cookie', [`JWT_ACCESS_TOKEN=nonsense; secure; httponly; samesite=None;`])
+			.expect(401)
+	});
+
 	test.todo("verifyJWT - testing refresh token utilization")
 })
