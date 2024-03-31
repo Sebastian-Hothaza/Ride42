@@ -1,18 +1,40 @@
-/*
-    Manage email templates here
-    Arguments should be in {argName} form. Check helloWorld for example
-*/
-
-/*
-    --------------------------------------------- TODO ---------------------------------------------
-    capitalize first letter
-    --------------------------------------------- TODO ---------------------------------------------
-*/
-
-const helloWorld =
+const welcomeUser =
 `<body>
     <div class="default-style">
-        Hello there {name}!
+        Hello {name}, <br /> <br />
+        Welcome to Ride42! We are excited to have you as part of our community.<br /> <br />
+        Now is a great time to head over to your dashboard and add your bike to your garage.
+        Once you have done that, you will be able to register for trackdays with Ride42.<br /> <br />
+        We look forward to having you as part of our valued community!
+    </div>
+    
+    <div class="io-ox-signature">
+        <div class="default-style">
+            <div class="default-style">
+                &nbsp;
+            </div>
+            <div>
+                <span style="color: #808080;">Sebastian Hothaza</span>
+            </div> <span style="color: #808080;"><em>Founder</em></span>
+        </div>
+        <div class="default-style">
+            <img class="aspect-ratio" style="max-width: 100%;" src="cid:sigImg" alt="" width="130" height="30">
+        </div>
+        <div class="default-style">
+            <a href="http://ride42.ca/"><strong>Visit us online</strong></a>
+        </div>
+        <div class="default-style">
+            <a href="https://www.facebook.com/groups/ride42/"><strong>Join us on Facebook</strong></a>
+        </div>
+    </div>
+</body>`
+
+const updateUser =
+`<body>
+    <div class="default-style">
+        Hello {name}, <br /> <br />
+        Your account details have been updated<br /> <br />
+        If you did not make any recent changes, please contact us immediately.
     </div>
     
     <div class="io-ox-signature">
@@ -43,25 +65,13 @@ const passwordChange =
         Your password has been updated.<br /> <br />
         If you did not request this password change, please contact us immediately.
     </div>
-    
-    <div class="io-ox-signature">
-        <div class="default-style">
-            <div class="default-style">
-                &nbsp;
-            </div>
-            <div>
-                <span style="color: #808080;">Sebastian Hothaza</span>
-            </div> <span style="color: #808080;"><em>Founder</em></span>
-        </div>
-        <div class="default-style">
-            <img class="aspect-ratio" style="max-width: 100%;" src="cid:sigImg" alt="" width="130" height="30">
-        </div>
-        <div class="default-style">
-            <a href="http://ride42.ca/"><strong>Visit us online</strong></a>
-        </div>
-        <div class="default-style">
-            <a href="https://www.facebook.com/groups/ride42/"><strong>Join us on Facebook</strong></a>
-        </div>
+    ${signature}
+</body>`
+
+const QRCodeRequest =
+`<body>
+    <div class="default-style">
+        A QR code has been requested for {name}(userID: {userID}) for bikeID: {bikeID}
     </div>
 </body>`
 
@@ -72,26 +82,7 @@ const registerTrackday =
         You are now registered for the trackday on {date}.<br /> <br />
         We look forward to seeing you on track soon!
     </div>
-    
-    <div class="io-ox-signature">
-        <div class="default-style">
-            <div class="default-style">
-                &nbsp;
-            </div>
-            <div>
-                <span style="color: #808080;">Sebastian Hothaza</span>
-            </div> <span style="color: #808080;"><em>Founder</em></span>
-        </div>
-        <div class="default-style">
-            <img class="aspect-ratio" style="max-width: 100%;" src="cid:sigImg" alt="" width="130" height="30">
-        </div>
-        <div class="default-style">
-            <a href="http://ride42.ca/"><strong>Visit us online</strong></a>
-        </div>
-        <div class="default-style">
-            <a href="https://www.facebook.com/groups/ride42/"><strong>Join us on Facebook</strong></a>
-        </div>
-    </div>
+    ${signature}
 </body>`
 
 const unregisterTrackday =
@@ -101,32 +92,13 @@ const unregisterTrackday =
         We have cancelled your trackday on {date}.<br /> <br />
         If you paid with an existing credit, it has been added back to your account. Otherwise, you should receive a refund within 5 business days.
     </div>
-    
-    <div class="io-ox-signature">
-        <div class="default-style">
-            <div class="default-style">
-                &nbsp;
-            </div>
-            <div>
-                <span style="color: #808080;">Sebastian Hothaza</span>
-            </div> <span style="color: #808080;"><em>Founder</em></span>
-        </div>
-        <div class="default-style">
-            <img class="aspect-ratio" style="max-width: 100%;" src="cid:sigImg" alt="" width="130" height="30">
-        </div>
-        <div class="default-style">
-            <a href="http://ride42.ca/"><strong>Visit us online</strong></a>
-        </div>
-        <div class="default-style">
-            <a href="https://www.facebook.com/groups/ride42/"><strong>Join us on Facebook</strong></a>
-        </div>
-    </div>
+    ${signature}
 </body>`
 
 const unregisterTrackday_admin =
 `<body>
     <div class="default-style">
-        User {name} has cancelled trackday on {date}. Refund required.
+        User {name} has cancelled trackday on {date}. Refund MAY be required; check to make sure.
     </div>
 </body>`
 
@@ -137,66 +109,21 @@ const rescheduleTrackday =
         Your trackday on {dateOLD} has been re-scheduled to {dateNEW}.<br /> <br />
         We look forward to seeing you on track soon!
     </div>
-    
-    <div class="io-ox-signature">
-        <div class="default-style">
-            <div class="default-style">
-                &nbsp;
-            </div>
-            <div>
-                <span style="color: #808080;">Sebastian Hothaza</span>
-            </div> <span style="color: #808080;"><em>Founder</em></span>
-        </div>
-        <div class="default-style">
-            <img class="aspect-ratio" style="max-width: 100%;" src="cid:sigImg" alt="" width="130" height="30">
-        </div>
-        <div class="default-style">
-            <a href="http://ride42.ca/"><strong>Visit us online</strong></a>
-        </div>
-        <div class="default-style">
-            <a href="https://www.facebook.com/groups/ride42/"><strong>Join us on Facebook</strong></a>
-        </div>
-    </div>
+    ${signature}
 </body>`
 
-const requestReview =
-`<body>
-    <div class="default-style">
-        Hello there
-    </div>
-    
-    <div class="io-ox-signature">
-        <div class="default-style">
-            <div class="default-style">
-                &nbsp;
-            </div>
-            <div>
-                <span style="color: #808080;">Sebastian Hothaza</span>
-            </div> <span style="color: #808080;"><em>Founder</em></span>
-        </div>
-        <div class="default-style">
-            <img class="aspect-ratio" style="max-width: 100%;" src="cid:sigImg" alt="" width="130" height="30">
-        </div>
-        <div class="default-style">
-            <a href="http://ride42.ca/"><strong>Visit us online</strong></a>
-        </div>
-        <div class="default-style">
-            <a href="https://www.facebook.com/groups/ride42/"><strong>Join us on Facebook</strong></a>
-        </div>
-    </div>
-</body>`
-
-const welcomeUser =
+const notifyPaid =
 `<body>
     <div class="default-style">
         Hello {name}, <br /> <br />
-        Welcome to Ride42! We are excited to have you as part of our community.<br /> <br />
-        Now is a great time to head over to your dashboard and add your bike to your garage.
-        Once you have done that, you will be able to register for trackday with Ride42.<br /> <br />
-        We look forward to seeing you on track soon!
+        Your payment for the {date} trackday has been processed.<br /> <br />
     </div>
-    
-    <div class="io-ox-signature">
+    ${signature}
+</body>`
+
+const signature =
+`
+<div class="io-ox-signature">
         <div class="default-style">
             <div class="default-style">
                 &nbsp;
@@ -214,65 +141,7 @@ const welcomeUser =
         <div class="default-style">
             <a href="https://www.facebook.com/groups/ride42/"><strong>Join us on Facebook</strong></a>
         </div>
-    </div>
-</body>`
+</div>
+`
 
-const updateUser =
-`<body>
-    <div class="default-style">
-        Hello {name}, <br /> <br />
-        Your account details have been updated<br /> <br />
-        If you did not change your details recently, please contact us immediately!
-    </div>
-    
-    <div class="io-ox-signature">
-        <div class="default-style">
-            <div class="default-style">
-                &nbsp;
-            </div>
-            <div>
-                <span style="color: #808080;">Sebastian Hothaza</span>
-            </div> <span style="color: #808080;"><em>Founder</em></span>
-        </div>
-        <div class="default-style">
-            <img class="aspect-ratio" style="max-width: 100%;" src="cid:sigImg" alt="" width="130" height="30">
-        </div>
-        <div class="default-style">
-            <a href="http://ride42.ca/"><strong>Visit us online</strong></a>
-        </div>
-        <div class="default-style">
-            <a href="https://www.facebook.com/groups/ride42/"><strong>Join us on Facebook</strong></a>
-        </div>
-    </div>
-</body>`
-
-const QRCodeRequest =
-`<body>
-    <div class="default-style">
-        A QR code has been requested for {name}(userID: {userID}) for bikeID: {bikeID}
-    </div>
-    
-    <div class="io-ox-signature">
-        <div class="default-style">
-            <div class="default-style">
-                &nbsp;
-            </div>
-            <div>
-                <span style="color: #808080;">Sebastian Hothaza</span>
-            </div> <span style="color: #808080;"><em>Founder</em></span>
-        </div>
-        <div class="default-style">
-            <img class="aspect-ratio" style="max-width: 100%;" src="cid:sigImg" alt="" width="130" height="30">
-        </div>
-        <div class="default-style">
-            <a href="http://ride42.ca/"><strong>Visit us online</strong></a>
-        </div>
-        <div class="default-style">
-            <a href="https://www.facebook.com/groups/ride42/"><strong>Join us on Facebook</strong></a>
-        </div>
-    </div>
-</body>`
-
-
-module.exports = {  helloWorld,passwordChange,registerTrackday,unregisterTrackday,unregisterTrackday_admin,
-                    rescheduleTrackday,requestReview,welcomeUser,updateUser, QRCodeRequest };
+module.exports={welcomeUser,updateUser,passwordChange,QRCodeRequest,registerTrackday,unregisterTrackday,unregisterTrackday_admin,rescheduleTrackday, notifyPaid};
