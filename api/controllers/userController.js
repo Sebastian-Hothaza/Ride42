@@ -76,7 +76,7 @@ exports.updatePassword = [
                 if (passwordMatch || req.user.memberType === 'admin'){
                     user.password = hashedPassword;
                     await user.save();
-                    await sendEmail(user.contact.email, "Your Password has been updated", mailTemplates.passwordChange, {name: user.firstName})
+                    await sendEmail(user.contact.email, "Your Password has been updated", mailTemplates.passwordChange, {name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1)})
                     res.sendStatus(200);
                 }else{
                     res.status(403).send({msg: "old password is incorrect"});
@@ -136,7 +136,7 @@ exports.garage_post = [
 
             await user.save();
             await sendEmail(process.env.ADMIN_EMAIL, "QR CODE REQUEST", mailTemplates.QRCodeRequest,
-                            {name: user.firstName, userID: req.params.userID, bikeID: bike.id})
+                            {name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), userID: req.params.userID, bikeID: bike.id})
             return res.status(201).json({id: bike.id});;
         }
         return res.sendStatus(403)
@@ -182,7 +182,7 @@ exports.requestQRCode = [
             if (!hasBike) res.status(404).send({msg: "this bike does not exist in your garage"})
 
             await sendEmail(process.env.ADMIN_EMAIL, "QR CODE REQUEST", mailTemplates.QRCodeRequest,
-                            {name: req.user.name, userID: req.params.userID, bikeID: req.params.bikeID})
+                            {name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), userID: req.params.userID, bikeID: req.params.bikeID})
             return res.sendStatus(200)
         }
         return res.sendStatus(403)
@@ -275,7 +275,7 @@ exports.user_post = [
                 password: hashedPassword
             })
             await user.save();
-            await sendEmail(user.contact.email, "Welcome to Ride42", mailTemplates.welcomeUser,{name: user.firstName })
+            await sendEmail(user.contact.email, "Welcome to Ride42", mailTemplates.welcomeUser,{name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1)})
             return res.status(201).json({id: user.id});
         })
     }),
@@ -351,7 +351,7 @@ exports.user_put = [
             })
             
             await User.findByIdAndUpdate(req.params.userID, user, {});
-            await sendEmail(user.contact.email, "Your account details have been updated", mailTemplates.updateUser,{name: user.firstName })
+            await sendEmail(user.contact.email, "Your account details have been updated", mailTemplates.updateUser,{name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1)})
             return res.status(201).json({id: user.id});
         }
         return res.sendStatus(403)
