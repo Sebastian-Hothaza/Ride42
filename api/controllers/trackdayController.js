@@ -314,10 +314,10 @@ exports.checkin = [
             if (!memberEntry) return res.status(404).send({msg: 'Member is not registered for that trackday'});
 
             // Check that member is not already checked in with that same bike
-            if(memberEntry.checkedIn.includes(req.params.bikeID)) res.status(400).json({msg : 'member already checked in with this bike'})
+            if(memberEntry.checkedIn.includes(req.params.bikeID)) return res.status(400).json({msg : 'member already checked in with this bike'})
 
             // Do not allow checkin if unpaid
-            if(!memberEntry.paid) res.status(400).json({msg : 'member is not paid'})
+            if(!memberEntry.paid) return res.status(400).json({msg : 'member is not paid'})
 
             memberEntry.checkedIn.push(req.params.bikeID);
             await trackday.save();
