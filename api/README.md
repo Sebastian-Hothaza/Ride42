@@ -30,15 +30,15 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 **Reschedule a user:** Submit a `PUT` request to `/register/:userID/:trackdayID_OLD/:trackdayID_NEW`.
 
-**Check in a user:** Submit a `PUT` request to `/checkin/:userID/:trackdayID/:bikeID`.
+**Check in a user:** Submit a `POST` request to `/checkin/:userID/:trackdayID/:bikeID`.
 
-**Add a motorcycle to a users garage:** Submit a `POST` request to `/garage/:userID/`. 
+**Add a motorcycle to a users garage:** Submit a `POST` request to `/garage/:userID/`. Server will respond with `id` of newly created bike.
 
 **Remove a motorcycle from a users garage:** Submit a `DELETE` request to `/garage/:userID/:bikeID`.
 
-**Get trackdays basic info (PUBLIC):** Submit a `GET` request to `/presentTrackdays`.
+**Get trackdays basic info (PUBLIC):** Submit a `GET` request to `/presentTrackdays`. Server will respond with JSON of all the trackdays.
 
-**Get trackdays basic info for trackdays a user is registered for (PUBLIC):** Submit a `GET` request to `/presentTrackdays/:userID`.
+**Get trackdays basic info for trackdays a user is registered for (PUBLIC):** Submit a `GET` request to `/presentTrackdays/:userID`. Server will respond with JSON of all the trackdays that a user is registered for.
 
 **Notify admin of QR code request:** Submit a `POST` request to `/qrcode/:userID/:bikeID`.
 
