@@ -144,7 +144,7 @@ exports.register = [
 
             await trackday.save();
             await sendEmail(user.contact.email, "Ride42 Trackday Registration Confirmation", mailTemplates.registerTrackday,
-                            {name: user.firstName, date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'})})
+                            {name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'})})
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
@@ -191,11 +191,11 @@ exports.unregister = [
             await trackday.save();
             // Send email to user
             await sendEmail(user.contact.email, "Ride42 Trackday Cancellation Confirmation", mailTemplates.unregisterTrackday,
-                            {name: user.firstName, date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'})})
+                            {name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'})})
             // Notify admin only if payment wasn't made with credit (credit is auto refunded)
             if (memberEntry.paymentMethod !== 'credit'){
                 await sendEmail(process.env.ADMIN_EMAIL, "TRACKDAY CANCELATION", mailTemplates.unregisterTrackday_admin,
-                            {name: user.firstName, date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'})})
+                            {name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'})})
             }
             return res.sendStatus(200);
         }
@@ -264,7 +264,7 @@ exports.reschedule = [
             await trackdayOLD.save();
 
             await sendEmail(user.contact.email, "Ride42 Trackday Reschedule Confirmation", mailTemplates.rescheduleTrackday,
-                            {name: user.firstName, dateOLD: trackdayOLD.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'}), dateNEW: trackdayNEW.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'})})
+                            {name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), dateOLD: trackdayOLD.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'}), dateNEW: trackdayNEW.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'})})
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
@@ -389,7 +389,6 @@ exports.updatePaid = [
         if (req.user.memberType === 'admin'){
             const trackday = await Trackday.findById(req.params.trackdayID).populate('members.user', '-password -refreshToken -__v').exec();                                        
             const memberEntry = trackday.members.find((member) => member.user.equals(req.params.userID));
-
             // Check that user we want to mark as paid is actually registerd for the trackday
             if (!memberEntry) return res.status(404).send({msg: 'Member is not registered for that trackday'});
 
@@ -403,6 +402,16 @@ exports.updatePaid = [
 
             // Update paid status
             memberEntry.paid = memberEntry.paid? false:true
+            
+
+            // Send email confirmation to user
+            if (memberEntry.paid) {
+                await sendEmail(memberEntry.user.contact.email, "Payment Confirmation", mailTemplates.notifyPaid, {
+                    name: memberEntry.user.firstName.charAt(0).toUpperCase() + memberEntry.user.firstName.slice(1),
+                    date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'
+                })})
+            }
+            
             await trackday.save()
             return res.sendStatus(200)
         }
