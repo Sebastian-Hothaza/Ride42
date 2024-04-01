@@ -4,6 +4,9 @@ require("./mongoConfig")
 
 const app = express();
 
+// cors setup
+const cors = require('cors')
+app.use(cors()); // Enable ALL CORS requests
 
 if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
 app.use(express.json()); 
