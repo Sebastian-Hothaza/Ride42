@@ -1,10 +1,13 @@
 import { Link, NavLink } from "react-router-dom";
+import { useState } from 'react'
 
 import r42 from '../assets/ride42.png'
 import r42_small from '../assets/r42_small.png'
 import helmet from '../assets/helmet.png'
 
 const Navbar = () => {
+	const [expandedMenu, setExpandedMenu] = useState(false)
+
 	return (
 		<nav className="navbar">
 			{/* DESKTOP */}
@@ -21,7 +24,7 @@ const Navbar = () => {
 
 			{/* MOBILE */}
 			<ul className="navbar-mobile">
-				<li className="menu-button">
+				<li className="menu-button" onClick={()=>setExpandedMenu(!expandedMenu)}>
 					<span className="bar"></span>
 					<span className="bar"></span>
 					<span className="bar"></span>
@@ -29,12 +32,14 @@ const Navbar = () => {
 				<Link to="/"><img src={r42_small} id='headerImg'></img></Link>
 				<Link to="/dashboard"><img src={helmet} id='helmetImg'></img></Link>
 			</ul>
-			<ul className="menu-button-links">
+			{ expandedMenu &&
+				<ul className="menu-button-links" >
 				<Link to="/dates">Dates</Link>
 				<Link to="/rules">Rules</Link>
 				<Link to="/faq">FAQ</Link>
 				<Link to="/shop">Shop</Link>
-			</ul>
+				</ul>
+			}
 
 		</nav>
 	);
