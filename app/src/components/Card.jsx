@@ -1,9 +1,7 @@
 import './stylesheets/card.css'
 
 const Card = ({ heading, body, img, inverted }) => {
-    console.log('url(' + img + ')')
     return (<>
-
         {inverted ?
             <div className='card'>
                 <img src={img} alt="" />
@@ -21,7 +19,6 @@ const Card = ({ heading, body, img, inverted }) => {
                 <img src={img} alt="" />
             </div>
         }
-
     </>
     );
 };

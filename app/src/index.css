@@ -12,3 +12,8 @@ a{
     text-decoration: none;
     color: inherit;
 }
+
+:root{
+    --dark-gray: #212121;
+	--accent-color: #DC0000;
+}

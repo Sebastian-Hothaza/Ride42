@@ -1,7 +1,3 @@
-:root{
-    --dark-gray: #212121;
-}
-
 .navbar{
     display: flex;
     justify-content: space-between;

@@ -17,7 +17,7 @@
 }
 
 .cardContent h1{
-    background-color: red;
+    background-color: var(--accent-color);
     color: white;
     padding: 10px 0;
     width: 20rem;
