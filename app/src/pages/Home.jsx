@@ -14,16 +14,14 @@ const Home = () => {
 	return (
 		<>
 		<Navbar />
-		<div className="main">
-			<div className="heroImage">
-				<div className="heroText">
-					{/* TODO: Add some hero text content here */}
-				</div>
+		<div className="heroImage">
+			<div className="heroText">
+				{/* TODO: Add some hero text content here */}
 			</div>
-			<div className="cards">
-				<Card heading='About Us' body={mockText} img={square} inverted={false}/>
-				<Card heading='What We Offer' body={mockText} img={square} inverted={true}/>
-			</div>
+		</div>
+		<div className="cards">
+			<Card heading='About Us' body={mockText} img={square} inverted={false}/>
+			<Card heading='What We Offer' body={mockText} img={square} inverted={true}/>
 		</div>
 		<Footer />
 		</>

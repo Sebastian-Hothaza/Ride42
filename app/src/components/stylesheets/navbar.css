@@ -2,39 +2,35 @@
     display: flex;
     justify-content: space-between;
     position: fixed;
-    width: 100vw;
+    width: 100%;
     background-color: var(--dark-gray);
     color: white;
     font-size: 1.25rem;
-    padding-left: 2rem; 
-    padding-right: 2rem; 
 }
 
 .navbar-main{
     display: flex;
+    padding-left: 3rem; 
+ 
 }
 
-.navbar-mobile{
-    display: none;
-    align-items: center;
-    flex-grow: 1;
-    justify-content: space-between;
-    padding: .5rem 1rem;
-}
 
 .navbar-main>a{
     display: flex;
     align-items: center;
-    padding: .5rem 1rem;
+    padding: 1rem 1rem;
 }
 
 .navbar-dashboard{
     display: flex;
     align-items: center;
-    padding: 0 .75rem;
+    padding-right: 3rem; 
 }
 
 
+.navbar-main-mobile{
+    display: none;
+}
 
 #headerImg{
     margin-top: 3px;
@@ -51,30 +47,7 @@
     font-weight: bold;
 }
 
-.menu-button{
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    width: 30px;
-    height: 21px
-}
 
-.menu-button .bar{
-    height: 3px;
-    width: 100%;
-    background-color: white;
-    border-radius: 10px;
-}
-
-.menu-button-links{
-    display: flex;
-    flex-direction: column;
-    text-align: center;
-}
-
-.menu-button-links>a{
-    margin: .5rem 0;
-}
 
 .navbar-main>a:hover, .navbar-dashboard:hover{
     background-color: black;
@@ -93,8 +66,41 @@
     .navbar-dashboard{
         display: none;
     }
-    .navbar-mobile{
+    .navbar-main-mobile{
         display: flex;
+        align-items: center;
+        flex-grow: 1;
+        justify-content: space-between;
+        padding: .25rem 1.5rem;
+    }
+    .navbar-dashboard-mobile{
+        display: flex;
+        align-items: center;
+    }
+
+    .menu-button{
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        width: 30px;
+        height: 21px
+    }
+    
+    .menu-button .bar{
+        height: 3px;
+        width: 100%;
+        background-color: white;
+        border-radius: 10px;
+    }
+    
+    .menu-button-links{
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .menu-button-links>a{
+        margin: .6rem 0;
     }
 
 }

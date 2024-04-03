@@ -25,21 +25,22 @@ const Navbar = () => {
 			</div>
 
 			{/* MOBILE */}
-			<ul className="navbar-mobile">
-				<li className="menu-button" onClick={()=>setExpandedMenu(!expandedMenu)}>
+			<ul className="navbar-main-mobile">
+				<li className="menu-button" onClick={() => setExpandedMenu(!expandedMenu)}>
 					<span className="bar"></span>
 					<span className="bar"></span>
 					<span className="bar"></span>
 				</li>
 				<Link to="/"><img src={r42_small} id='headerImg'></img></Link>
-				<Link to="/dashboard"><img src={helmet} id='helmetImg'></img></Link>
+				<Link to="/dashboard" className="navbar-dashboard-mobile"><img src={helmet} id='helmetImg'></img></Link>
 			</ul>
-			{ expandedMenu &&
+			{expandedMenu &&
 				<ul className="menu-button-links" >
-				<Link to="/dates">Dates</Link>
-				<Link to="/rules">Rules</Link>
-				<Link to="/faq">FAQ</Link>
-				<Link to="/shop">Shop</Link>
+					<Link to="/">Home</Link>
+					<Link to="/dates">Dates</Link>
+					<Link to="/rules">Rules</Link>
+					<Link to="/faq">FAQ</Link>
+					<Link to="/shop">Shop</Link>
 				</ul>
 			}
 
