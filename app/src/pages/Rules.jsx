@@ -1,9 +1,12 @@
+import Navbar from "../components/Navbar";
+
 const Rules = () => {
-    return (
-      <div>
-        <h1>Rules</h1>
-      </div>
-    );
-  };
-  
-  export default Rules;
+	return (
+		<div>
+			<Navbar />
+			<h1>Rules</h1>
+		</div>
+	);
+};
+
+export default Rules;

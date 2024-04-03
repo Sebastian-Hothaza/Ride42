@@ -1,0 +1,53 @@
+:root{
+    --dark-gray: #212121;
+}
+
+.navbar{
+    display: flex;
+    justify-content: space-between;
+    background-color: var(--dark-gray);
+    color: white;
+    font-size: 1.25rem;
+    padding-left: 2rem; 
+    padding-right: 2rem; 
+}
+
+.navbar-main{
+    display: flex;
+}
+
+.navbar-main>li{
+    display: flex;
+    align-items: center;
+    padding: .5rem 1rem;
+}
+
+.navbar-dashboard{
+    display: flex;
+    align-items: center;
+    padding: 0 .75rem;
+}
+
+.navbar a{
+    text-decoration: none;
+    color: inherit;
+}
+
+#headerImg{
+    margin-top: 3px;
+    height: 2rem;
+}
+
+#helmetImg{
+    margin-top: 3px;
+    height: 2rem;
+}
+
+.selected {
+    background-color: black;
+    font-weight: bold;
+}
+
+.navbar-main>li:hover, .navbar-dashboard:hover{
+    background-color: black;
+}
