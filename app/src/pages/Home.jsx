@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import Card from "../components/Card"
 
 import square from '../assets/square.jpg'
@@ -24,6 +25,7 @@ const Home = () => {
 				<Card heading='What We Offer' body={mockText} img={square} inverted={true}/>
 			</div>
 		</div>
+		<Footer />
 		</>
 	);
 };

@@ -1,0 +1,31 @@
+.footer{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--dark-gray);
+    color: white;
+    padding: 1rem 2rem;
+}
+
+#desktop-contact>a{
+    text-decoration: underline;
+}
+
+#mobile-contact{
+    display: none
+}
+
+
+@media (max-width: 700px) {
+    #desktop-contact{
+        display: none;
+    }
+    #mobile-contact{
+        font-size: 3rem;
+        margin-bottom: 8px;
+        display: inline;
+    }
+    #footer-logo{
+        display: none;
+    }
+}
