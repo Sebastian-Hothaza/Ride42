@@ -12,7 +12,7 @@ const Navbar = () => {
 		<nav className="navbar">
 			{/* DESKTOP */}
 			<ul className="navbar-main">
-				<NavLink to="/"><img src={r42} id='headerImg'></img></NavLink>
+				<Link to="/"><img src={r42} id='headerImg'></img></Link>
 				<NavLink to="/dates">Dates</NavLink>
 				<NavLink to="/rules">Rules</NavLink>
 				<NavLink to="/faq">FAQ</NavLink>

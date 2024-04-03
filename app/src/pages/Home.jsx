@@ -1,13 +1,22 @@
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
+import cover from '../assets/cover.jpg'
+
+import './stylesheets/home.css'
+
 const Home = () => {
 	return (
-		<div>
-			<Navbar />
-			<h1>Home</h1>
-			<Link to="/dates">See dates</Link>
+		<>
+		<Navbar />
+		<div className="main">
+			<div className="heroImage">
+				<div className="heroText">
+					{/* TODO: Add some hero text content here */}
+				</div>
+			</div>
 		</div>
+		</>
 	);
 };
 

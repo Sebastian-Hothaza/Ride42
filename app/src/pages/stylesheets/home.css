@@ -1,0 +1,16 @@
+.heroImage{
+    background-image: linear-gradient(rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15)),  url('../../assets/cover.jpg');
+    height: 70vh;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+@media (max-width: 700px) {
+
+    .heroImage{
+
+        height: 40vh;
+
+    }
+}
