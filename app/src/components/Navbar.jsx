@@ -5,6 +5,8 @@ import r42 from '../assets/ride42.png'
 import r42_small from '../assets/r42_small.png'
 import helmet from '../assets/helmet.png'
 
+import './stylesheets/navbar.css'
+
 const Navbar = () => {
 	const [expandedMenu, setExpandedMenu] = useState(false)
 

@@ -7,7 +7,6 @@ import './App.css'
 
 function App() {
     const [allTrackdays, setAllTrackdays] = useState('');
-    const [activeTab, setActiveTab] = useState('');
 
     const APIServer = (process.env.NODE_ENV === 'production') ? 'https://api.ride42.ca/' : 'http://localhost:3000/'
     useEffect(() => {
@@ -23,9 +22,6 @@ function App() {
             console.log(err.message)
         }
     }
-
-
-
     return (
         <>
             <Outlet context={allTrackdays} />
