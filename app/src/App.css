@@ -89,6 +89,8 @@
 @media (max-width: 700px) {
     .navbar{
         flex-direction: column;
+        padding-left: .5rem; 
+        padding-right: .5rem; 
     }
     .navbar-main{
         display: none;
