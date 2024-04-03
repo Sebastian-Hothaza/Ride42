@@ -19,7 +19,7 @@ const Home = () => {
 				{/* TODO: Add some hero text content here */}
 			</div>
 		</div>
-		<div className="cards">
+		<div className="main">
 			<Card heading='About Us' body={mockText} img={square} inverted={false}/>
 			<Card heading='What We Offer' body={mockText} img={square} inverted={true}/>
 		</div>

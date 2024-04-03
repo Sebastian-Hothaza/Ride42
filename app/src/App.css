@@ -1,3 +1,11 @@
 body{
     background-color: ghostwhite;
 }
+
+.main{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 5rem 0;
+    gap: 5rem;
+}

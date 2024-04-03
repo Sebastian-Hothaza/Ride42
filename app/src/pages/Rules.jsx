@@ -5,7 +5,9 @@ const Rules = () => {
 	return (
 		<div>
 			<Navbar />
-			<h1>Rules</h1>
+			<div className="main">
+				<h1>Rules</h1>
+			</div>
 			<Footer />
 		</div>
 	);

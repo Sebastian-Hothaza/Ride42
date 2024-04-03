@@ -6,13 +6,6 @@
     background-size: cover;
 }
 
-.cards{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 5rem 10rem;
-    gap: 5rem;
-}
 
 @media (max-width: 1200px) {
     .heroImage{

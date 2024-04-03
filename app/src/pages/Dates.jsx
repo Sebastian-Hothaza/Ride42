@@ -12,9 +12,8 @@ function Dates() {
 		<>
 			<Navbar />
 			<div className="main">
-				hello
 				{allTrackdays && allTrackdays.map((item) => {
-					return <li key={item.id}>{item.date}</li>
+					return <h2 key={item.id}>{item.date}</h2>
 				})}
 			</div>
 

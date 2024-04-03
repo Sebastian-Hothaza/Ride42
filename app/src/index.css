@@ -14,6 +14,6 @@ a{
 }
 
 :root{
-    --dark-gray: rgba(33,33,33,1);
+    --dark-gray: rgba(33,33,33,.95);
 	--accent-color: #DC0000;
 }
