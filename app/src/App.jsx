@@ -7,7 +7,12 @@ import './App.css'
 
 function App() {
     const [allTrackdays, setAllTrackdays] = useState('');
+    const [activeTab, setActiveTab] = useState('');
+
     const APIServer = (process.env.NODE_ENV === 'production') ? 'https://api.ride42.ca/' : 'http://localhost:3000/'
+    useEffect(() => {
+        fetchAPIData();
+    }, [])
     async function fetchAPIData() {
         try {
             const response = await fetch(APIServer + 'presentTrackdays');
@@ -19,9 +24,7 @@ function App() {
         }
     }
 
-    useEffect(() => {
-        fetchAPIData();
-    }, [])
+
 
     return (
         <>

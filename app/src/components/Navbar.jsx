@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 
 import r42 from '../assets/ride42.png'
 import r42_small from '../assets/r42_small.png'
@@ -9,14 +9,14 @@ const Navbar = () => {
 		<nav className="navbar">
 			{/* DESKTOP */}
 			<ul className="navbar-main">
-				<li><Link to="/"><img src={r42} id='headerImg'></img></Link></li>
-				<li><Link to="/dates">Dates</Link></li>
-				<li><Link to="/rules">Rules</Link></li>
-				<li><Link to="/faq">FAQ</Link></li>
-				<li><Link to="/shop">Shop</Link></li>
+				<NavLink to="/"><img src={r42} id='headerImg'></img></NavLink>
+				<NavLink to="/dates">Dates</NavLink>
+				<NavLink to="/rules">Rules</NavLink>
+				<NavLink to="/faq">FAQ</NavLink>
+				<NavLink to="/shop">Shop</NavLink>
 			</ul>
 			<div className="navbar-dashboard">
-				<Link to="/dashboard"><img src={helmet} id='helmetImg'></img></Link>
+				<NavLink to="/dashboard"><img src={helmet} id='helmetImg'></img></NavLink>
 			</div>
 
 			{/* MOBILE */}
@@ -26,15 +26,14 @@ const Navbar = () => {
 					<span className="bar"></span>
 					<span className="bar"></span>
 				</li>
-				<li><Link to="/"><img src={r42_small} id='headerImg'></img></Link></li>
-				<li><Link to="/dashboard"><img src={helmet} id='helmetImg'></img></Link></li>
+				<Link to="/"><img src={r42_small} id='headerImg'></img></Link>
+				<Link to="/dashboard"><img src={helmet} id='helmetImg'></img></Link>
 			</ul>
 			<ul className="menu-button-links">
-
-				<li><Link to="/dates">Dates</Link></li>
-				<li><Link to="/rules">Rules</Link></li>
-				<li><Link to="/faq">FAQ</Link></li>
-				<li><Link to="/shop">Shop</Link></li>
+				<Link to="/dates">Dates</Link>
+				<Link to="/rules">Rules</Link>
+				<Link to="/faq">FAQ</Link>
+				<Link to="/shop">Shop</Link>
 			</ul>
 
 		</nav>
