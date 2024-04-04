@@ -20,7 +20,7 @@ const Home = () => {
 		</div>
 		<div className="main">
 			<Card heading='About Us' body={pageContent.TEXT_AboutUs} img={square} inverted={false}/>
-			<Card heading='What We Offer' body={'mockText'} img={square} inverted={true}/>
+			<Card heading='What We Offer' body={'pageContent.TEXT_AboutUs'} img={square} inverted={true}/>
 		</div>
 		<Footer />
 		</>
