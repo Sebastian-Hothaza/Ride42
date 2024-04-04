@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 import './App.css'
 
-
+import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
     const [allTrackdays, setAllTrackdays] = useState('');
@@ -24,6 +24,7 @@ function App() {
     }
     return (
         <>
+            <ScrollToTop />
             <Outlet context={allTrackdays} />
         </>
     )
