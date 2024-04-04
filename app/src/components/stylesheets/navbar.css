@@ -1,8 +1,8 @@
 .navbar{
     display: flex;
     justify-content: space-between;
-    position: sticky;
-    top: 0;
+    position: fixed;
+    /* top: 0; */
     width: 100%;
     background-color: var(--dark-gray);
     color: white;
