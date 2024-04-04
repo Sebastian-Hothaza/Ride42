@@ -18,7 +18,7 @@ const Home = () => {
 				{/* TODO: Add some hero text content here */}
 			</div>
 		</div>
-		<div className="main" style={{padding: '5rem 0'}}>
+		<div className="main" style={{padding: '2rem 0'}}>
 			<Card heading='About Us' body={pageContent.TEXT_AboutUs} img={square} inverted={false}/>
 			<Card heading='What We Offer' body={'pageContent.TEXT_AboutUs'} img={square} inverted={true}/>
 		</div>
