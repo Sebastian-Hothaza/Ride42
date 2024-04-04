@@ -6,7 +6,7 @@ const Card = ({ heading, body, img, inverted }) => {
     return (<>
         {inverted ?
             <div className='card'>
-                <img src={img} alt="" />
+                {img? <img src={img} alt="" /> : null}
                 <div className='cardContent'>
                     <h1 style={{alignSelf: 'flex-end'}}>{heading}</h1>
                     <p style={{ whiteSpace: 'pre-wrap', textAlign: 'justify'}}>{body}</p>
@@ -18,7 +18,7 @@ const Card = ({ heading, body, img, inverted }) => {
                     <h1>{heading}</h1>
                     <p style={{ whiteSpace: 'pre-wrap', textAlign: 'justify'}}>{body}</p>
                 </div>
-                <img src={img} alt="" />
+                {img? <img src={img} alt="" /> : null}
             </div>
         }
     </>
