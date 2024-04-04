@@ -10,12 +10,9 @@
     display: flex;
     flex-direction: column;
     padding-top: 2rem;
+    width: 100%;
 }
 
-.card img{
-    width: 400px;
-    object-fit: cover;
-}
 
 .cardContent h1{
     background-color: var(--accent-color);
@@ -23,10 +20,18 @@
     padding: 10px 0;
     width: 20rem;
     text-align: center;
+    align-self: flex;
 }
 
 .cardContent p{
-    padding: 2rem 2rem;
+    padding: 3rem 2rem;
+    text-align: justify;
+    
+}
+
+.card img{
+    width: 400px;
+    object-fit: cover;
 }
 
 

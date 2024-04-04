@@ -9,14 +9,14 @@ const Card = ({ heading, body, img, inverted }) => {
                 {img? <img src={img} alt="" /> : null}
                 <div className='cardContent'>
                     <h1 style={{alignSelf: 'flex-end'}}>{heading}</h1>
-                    <p style={{ whiteSpace: 'pre-wrap', textAlign: 'justify'}}>{body}</p>
+                    {body}
                 </div>
             </div>
             :
             <div className='card'>
                 <div className='cardContent'>
                     <h1>{heading}</h1>
-                    <p style={{ whiteSpace: 'pre-wrap', textAlign: 'justify'}}>{body}</p>
+                    {body}
                 </div>
                 {img? <img src={img} alt="" /> : null}
             </div>
