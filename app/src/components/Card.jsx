@@ -14,7 +14,7 @@ const Card = ({ heading, body, img, inverted }) => {
             <div className='card'>
                 <div className='cardContent'>
                     <h1>{heading}</h1>
-                    <p>{body}</p>
+                    <p style={{ whiteSpace: 'pre-wrap', textAlign: 'justify'}}>{body}</p>
                 </div>
                 <img src={img} alt="" />
             </div>

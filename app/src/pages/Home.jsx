@@ -3,12 +3,11 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Card from "../components/Card"
 
+import pageContent from './pagecontent'
 import square from '../assets/square.jpg'
-
 
 import './stylesheets/home.css'
 
-const mockText = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ultrices vitae auctor eu augue ut. Maecenas accumsan lacus vel facilisis. Pharetra diam sit amet nisl suscipit. Nibh ipsum consequat nisl vel pretium lectus quam id. Enim lobortis scelerisque fermentum dui faucibus in ornare. Facilisi nullam vehicula ipsum a arcu cursus vitae congue. In ornare quam viverra orci sagittis eu volutpat.'
 
 const Home = () => {
 	return (
@@ -20,8 +19,8 @@ const Home = () => {
 			</div>
 		</div>
 		<div className="main">
-			<Card heading='About Us' body={mockText} img={square} inverted={false}/>
-			<Card heading='What We Offer' body={mockText} img={square} inverted={true}/>
+			<Card heading='About Us' body={pageContent.TEXT_AboutUs} img={square} inverted={false}/>
+			<Card heading='What We Offer' body={'mockText'} img={square} inverted={true}/>
 		</div>
 		<Footer />
 		</>

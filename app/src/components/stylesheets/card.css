@@ -7,13 +7,13 @@
 
 .cardContent{
     display: flex;
-    flex-grow: 1;
     flex-direction: column;
     padding-top: 2rem;
 }
 
 .card img{
-    height: 400px;
+    width: 400px;
+    object-fit: cover;
 }
 
 .cardContent h1{
