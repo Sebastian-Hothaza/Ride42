@@ -8,7 +8,7 @@ import './index.css'
 TODO:
 mobile navbar position adj (helmet padding)
 navbar make it sticky or fixed but avoid janky arbitraty margin on main class
-
+dates page should indicate if trackday is cancelled (layout should say cancelled in that case)
 */
 
 ReactDOM.createRoot(document.getElementById('root')).render(
