@@ -15,6 +15,7 @@ const UserSchema = new mongoose.Schema({
 	garage: 		[{ type: mongoose.Schema.Types.ObjectId, ref: "Bike" } ],
 	group: 			{ type: String, required: true, enum: ["green", "yellow", "red"] },
 	credits: 		{ type: Number, required: true},
+	waiver:			{ type: Boolean, required: true},
 	memberType: 	{ type: String, required: true, enum: ["regular", "staff", "admin"] },
 	password: 		{ type: String, required: true },
 	refreshToken: 	{ type: String }

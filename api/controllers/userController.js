@@ -18,7 +18,7 @@ const mailTemplates = require('../mailer_templates')
 
 /*
     --------------------------------------- FOR LATER REVIEW ---------------------------------------
-    user DB should have names stored as f_name and l_name directly instead of name objects
+    
     --------------------------------------- FOR LATER REVIEW ---------------------------------------
 */
 
@@ -189,6 +189,21 @@ exports.requestQRCode = [
     })
 ]
 
+// Marks user as having waiver signed. Requires JWT with admin or staff.
+exports.markWaiver = [
+    controllerUtils.verifyJWT,
+    controllerUtils.validateUserID,
+
+    asyncHandler(async(req,res,next) => {
+        if (req.user.memberType === 'admin' || req.user.memberType === 'staff'){
+            const user = await User.findById(req.params.userID).exec();
+            user.waiver = true;
+            await user.save();
+            return res.sendStatus(200);
+        }
+        return res.sendStatus(403)
+    })
+]
 
 //////////////////////////////////////
 //              CRUD
@@ -271,6 +286,7 @@ exports.user_post = [
                 },
                 group: req.body.group.toLowerCase(),
                 credits: 0,
+                waiver: false,
                 memberType: 'regular',
                 password: hashedPassword
             })
@@ -281,7 +297,7 @@ exports.user_post = [
     }),
 ]
 
-// Update user info EXCLUDING password and garage. Requires JWT with matching userID OR admin
+// Update user info EXCLUDING password, garage and waiver. Requires JWT with matching userID OR admin
 /*
     /// PERMISSIONS ///
     USER: contact, emergencyContact, group(7 day requirement; else fail entire request)
@@ -345,6 +361,7 @@ exports.user_put = [
                 garage: oldUser.garage,
                 group: req.body.group.toLowerCase(),
                 credits: (req.user.memberType === 'admin' && req.body.credits)? req.body.credits : oldUser.credits,
+                waiver: oldUser.waiver,
                 memberType: (req.user.memberType === 'admin' && req.body.memberType)? req.body.memberType.toLowerCase() : oldUser.memberType,
                 password: oldUser.password,
                 _id: req.params.userID,
@@ -416,6 +433,7 @@ exports.admin = [
                 },
                 group: req.body.group.toLowerCase(),
                 credits: 0,
+                waiver: true,
                 memberType: 'admin',
                 password: hashedPassword
             })

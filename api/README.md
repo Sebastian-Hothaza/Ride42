@@ -46,6 +46,8 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 **Add walkon user to a trackday:** Submit a `POST` request to `'/walkons/:trackdayID'`.
 
+**Mark user as having waiver completed:** Submit a `POST` request to `'/waiver/:userID'`.
+
 
 
 ### Create
@@ -63,7 +65,7 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 **Get all trackdays:** Submit a `GET` request to `/trackdays`. Server will respond with JSON of all the trackdays.
 
 ### Update
-**Update an existing user in the `Users` collection:** Submit a `PUT` request to `/users/:userID`. Server will respond with `id` of newly updated user. Excludes password and garage.
+**Update an existing user in the `Users` collection:** Submit a `PUT` request to `/users/:userID`. Server will respond with `id` of newly updated user. Excludes password, waiver and garage.
 
 **Update an existing Trackday in the `Users` collection:** Submit a `PUT` request to `/trackdays/:trackdayID`. Server will respond with `id` of newly updated trackday.
 

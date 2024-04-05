@@ -15,6 +15,9 @@ gate always marked as paid
 
 /*
     --------------------------------------------- TODO ---------------------------------------------
+    add layout param
+    require layout param it for trackday registration
+    edit presentTrackdays to also show votes for each layout
     code cleanup & review - use methods where possible 
     --------------------------------------------- TODO ---------------------------------------------
 */
@@ -307,7 +310,7 @@ exports.checkin = [
     
     asyncHandler(async(req,res,next) => {
         if (req.user.memberType === 'admin' || req.user.memberType === 'staff'){
-            const trackday = await Trackday.findById(req.params.trackdayID).exec();
+            const trackday = await Trackday.findById(req.params.trackdayID).populate('members.user', 'waiver').exec();
 
             // Check that the member we want to check in for trackday actually exists
             const memberEntry = trackday.members.find((member) => member.user.equals(req.params.userID));
@@ -318,6 +321,9 @@ exports.checkin = [
 
             // Do not allow checkin if unpaid
             if(!memberEntry.paid) return res.status(400).json({msg : 'member is not paid'})
+
+            // Do not allow checkin if user does not have a waiver signed
+            if(!memberEntry.user.waiver) return res.status(401).json({msg : 'member has not signed waiver'})
 
             memberEntry.checkedIn.push(req.params.bikeID);
             await trackday.save();
