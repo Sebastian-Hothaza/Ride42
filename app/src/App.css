@@ -24,7 +24,7 @@ img{
 }
 
 
-@media (max-width: 700px) {
+@media (max-width: 750px) {
     .main{
         padding: 6rem 0;
         gap: 1rem;
