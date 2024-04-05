@@ -336,6 +336,7 @@ describe('Testing trackday read', () => {
 				members: [],
 				walkons: [],
 				status: 'regOpen',
+				layout: 'tbd',
 				guests: 0
 			})
 	});
@@ -350,17 +351,19 @@ describe('Testing trackday read', () => {
 				members: [],
 				walkons: [],
 				status: 'regOpen',
+				layout: 'tbd',
 				guests: 0
 			}])
 	});
 })
+
 
 describe('Testing trackday update', () => {
 	test("update invalid objectID trackday", async () => {
 		await request(app)
 			.put('/trackdays/invalid')
 			.set('Cookie', adminCookie)
-			.type('form').send({ date: getFormattedDate(10), guests: 0, status: 'regOpen' })
+			.type('form').send({ date: getFormattedDate(10), guests: 0, status: 'regOpen', layout: 'technical'})
 			.expect(404, { msg: 'trackdayID is not a valid ObjectID' })
 	});
 	test("update invalid trackdayID trackday", async () => {
@@ -368,7 +371,7 @@ describe('Testing trackday update', () => {
 		await request(app)
 			.put('/trackdays/' + '1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1')
 			.set('Cookie', adminCookie)
-			.type('form').send({ date: getFormattedDate(10), guests: 0, status: 'regOpen' })
+			.type('form').send({ date: getFormattedDate(10), guests: 0, status: 'regOpen' , layout: 'technical'})
 			.expect(404, { msg: 'Trackday does not exist' })
 	});
 
@@ -409,7 +412,7 @@ describe('Testing trackday update', () => {
 		await request(app)
 			.put('/trackdays/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({ date: getFormattedDate(10), guests: 5, status: 'regClosed' })
+			.type('form').send({ date: getFormattedDate(10), guests: 5, status: 'regClosed', layout: 'technical' })
 			.expect(403)
 	});
 
@@ -421,7 +424,7 @@ describe('Testing trackday update', () => {
 		await request(app)
 			.put('/trackdays/' + trackday1.body.id)
 			.set('Cookie', adminCookie)
-			.type('form').send({ date: '2500-07-07T14:00Z', guests: 6, status: 'regClosed' })
+			.type('form').send({ date: '2500-07-07T14:00Z', guests: 6, status: 'regClosed', layout: 'technical' })
 			.expect(409)
 	});
 
@@ -432,7 +435,7 @@ describe('Testing trackday update', () => {
 		await request(app)
 			.put('/trackdays/' + trackday.body.id)
 			.set('Cookie', adminCookie)
-			.type('form').send({ date: getFormattedDate(15), status: 'regClosed' })
+			.type('form').send({ date: getFormattedDate(15), status: 'regClosed', layout: 'technical'})
 			.expect(201)
 
 		// Check the updates were successful
@@ -445,6 +448,7 @@ describe('Testing trackday update', () => {
 				members: [],
 				walkons: [],
 				status: 'regClosed',
+				layout: 'technical',
 				guests: 0
 			})
 	});
@@ -622,7 +626,7 @@ describe('Testing registering', () => {
 		await request(app)
 			.put('/trackdays/' + trackday.body.id)
 			.set('Cookie', adminCookie)
-			.type('form').send({ date: getFormattedDate(10), guests: 5, status: 'regClosed' })
+			.type('form').send({ date: getFormattedDate(10), guests: 5, status: 'regClosed', layout: 'technical' })
 			.expect(201)
 
 		// Register as user
@@ -750,6 +754,7 @@ describe('Testing registering', () => {
 				id: trackday.body.id,
 				date: getFormattedDate(2).slice(0, getFormattedDate(2).length - 1) + ':00.000Z',
 				status: 'regOpen',
+				layout: 'tbd',
 				green: 0,
 				yellow: 1,
 				red: 0,
@@ -793,6 +798,7 @@ describe('Testing registering', () => {
 				id: trackday.body.id,
 				date: '2500-06-05T14:00:00.000Z',
 				status: 'regOpen',
+				layout: 'tbd',
 				green: 0,
 				yellow: 1,
 				red: 0,
@@ -866,6 +872,7 @@ describe('Testing registering', () => {
 				id: trackday.body.id,
 				date: '2500-06-05T14:00:00.000Z',
 				status: 'regOpen',
+				layout: 'tbd',
 				green: 0,
 				yellow: 1,
 				red: 0,
@@ -1077,7 +1084,7 @@ describe('Testing un-registering', () => {
 		expect(updatedUser.body.credits).toBe(5)
 
 	});
-	test("un-registrationz", async () => {
+	test("un-registration", async () => {
 		const trackday = await addTrackday('2500-04-09T14:00Z')
 
 		// Add bike to garage
@@ -1112,7 +1119,8 @@ describe('Testing un-registering', () => {
 				members: [],
 				walkons: [],
 				guests: 0,
-				status: 'regOpen'
+				status: 'regOpen',
+				layout: 'tbd'
 			})
 
 	});
@@ -1343,7 +1351,7 @@ describe('Testing rescheduling', () => {
 		await request(app)
 			.put('/trackdays/' + trackday2.body.id)
 			.set('Cookie', adminCookie)
-			.type('form').send({ date: getFormattedDate(10), guests: 5, status: 'regClosed' })
+			.type('form').send({ date: getFormattedDate(10), guests: 5, status: 'regClosed', layout: 'technical' })
 			.expect(201)
 
 		// As user
@@ -1458,6 +1466,7 @@ describe('Testing rescheduling', () => {
 				id: trackday1.body.id,
 				date: '2024-06-05T14:00:00.000Z',
 				status: 'regOpen',
+				layout: 'tbd',
 				green: 0,
 				yellow: 0,
 				red: 0,
@@ -1468,6 +1477,7 @@ describe('Testing rescheduling', () => {
 				id: trackday2.body.id,
 				date: '2024-07-07T14:00:00.000Z',
 				status: 'regOpen',
+				layout: 'tbd',
 				green: 0,
 				yellow: 1,
 				red: 0,
@@ -1567,6 +1577,7 @@ describe('Testing walkons', () => {
 				id: trackday.body.id,
 				date: '2500-06-05T14:00:00.000Z',
 				status: 'regOpen',
+				layout: 'tbd', 
 				green: 0,
 				yellow: 1,
 				red: 0,
@@ -1910,6 +1921,7 @@ describe('Testing presentTrackdays', () => {
 				id: trackday1.body.id,
 				date: getFormattedDate(10).slice(0, getFormattedDate(10).length - 1) + ':00.000Z',
 				status: 'regOpen',
+				layout: 'tbd',
 				green: 0,
 				yellow: 0,
 				red: 0,
@@ -1920,6 +1932,7 @@ describe('Testing presentTrackdays', () => {
 				id: trackday2.body.id,
 				date: getFormattedDate(15).slice(0, getFormattedDate(15).length - 1) + ':00.000Z',
 				status: 'regOpen',
+				layout: 'tbd',
 				green: 0,
 				yellow: 0,
 				red: 0,
@@ -1957,6 +1970,7 @@ describe('Testing presentTrackdays', () => {
 				id: trackday.body.id,
 				date: getFormattedDate(10).slice(0, getFormattedDate(10).length - 1) + ':00.000Z',
 				status: 'regOpen',
+				layout: 'tbd',
 				green: 0,
 				yellow: 1,
 				red: 1,
@@ -2013,6 +2027,7 @@ describe('Testing presentTrackdaysForUser', () => {
 				id: trackday.body.id,
 				date: '2500-06-05T14:00:00.000Z',
 				status: 'regOpen',
+				layout: 'tbd',
 				green: 0,
 				yellow: 1,
 				red: 0,
@@ -2056,6 +2071,7 @@ describe('Testing presentTrackdaysForUser', () => {
 				id: trackday1.body.id,
 				date: '2500-06-05T14:00:00.000Z',
 				status: 'regOpen',
+				layout: 'tbd',
 				green: 0,
 				yellow: 1,
 				red: 0,
@@ -2067,6 +2083,7 @@ describe('Testing presentTrackdaysForUser', () => {
 				id: trackday2.body.id,
 				date: '2500-07-07T14:00:00.000Z',
 				status: 'regOpen',
+				layout: 'tbd',
 				green: 0,
 				yellow: 1,
 				red: 0,
@@ -2290,6 +2307,7 @@ describe('Testing updatePaid', () => {
 				id: trackday.body.id,
 				date: '2500-06-05T14:00:00.000Z',
 				status: 'regOpen',
+				layout: 'tbd',
 				green: 0,
 				yellow: 1,
 				red: 0,

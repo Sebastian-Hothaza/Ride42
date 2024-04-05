@@ -18,7 +18,8 @@ const TrackdaySchema = new mongoose.Schema({
 	walkons: [{ firstName: 		{ type: String, required: true, minLength: 2, maxLength: 50 },
 				lastName:  		{ type: String, required: true, minLength: 2, maxLength: 50 },
 				group: 			{ type: String, required: true, enum: ["green", "yellow", "red"] }}],
-	status:	{ type: String, required: true, enum: ["regOpen", "regClosed", "finished", "cancelled"] }
+	status:	{ type: String, required: true, enum: ["regOpen", "regClosed", "finished", "cancelled"] },
+	layout:	{ type: String, required: true, enum: ["tbd", "technical", "Rtechnical", "alien", "Ralien", "modified", "Rmodified", "long"] }
 });
 
 // Export model

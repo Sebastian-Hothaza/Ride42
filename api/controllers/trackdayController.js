@@ -15,9 +15,9 @@ gate always marked as paid
 
 /*
     --------------------------------------------- TODO ---------------------------------------------
-    add layout param
-    require layout param it for trackday registration
-    edit presentTrackdays to also show votes for each layout
+    require layout vote param for trackday registration (todo: what about gate registrations?) 
+    add feature for admin to getLayoutVotes to summarize votes for a given trackday
+ 
     code cleanup & review - use methods where possible 
     --------------------------------------------- TODO ---------------------------------------------
 */
@@ -334,7 +334,7 @@ exports.checkin = [
     })
 ]
 
-// Returns an array of trackday dates in format [{id: x, date: x, status: x, green: x, yellow: x, red: x, guests: x, groupCapacity: x}] PUBLIC.
+// Returns an array of trackday dates in format [{id: x, date: x, status: x, layout: x, green: x, yellow: x, red: x, guests: x, groupCapacity: x}] PUBLIC.
 exports.presentTrackdays = async(req,res,next) => {
     const allDays = await Trackday.find().populate('members.user','-password -refreshToken -__v')
     let result = []
@@ -344,6 +344,7 @@ exports.presentTrackdays = async(req,res,next) => {
             id: trackday.id,
             date: trackday.date,
             status: trackday.status,
+            layout: trackday.layout,
             green: getRegNumbers(trackday).green,
             yellow: getRegNumbers(trackday).yellow,
             red: getRegNumbers(trackday).red,
@@ -355,7 +356,7 @@ exports.presentTrackdays = async(req,res,next) => {
     return res.status(200).send(result)
 }
 
-// Returns an array of trackday dates that user is registered for in format [{id: x, date: x, status: x, green: x, yellow: x, red: x, guests: x, groupCapacity: x, paid: x}] PUBLIC.
+// Returns an array of trackday dates that user is registered for in format [{id: x, date: x, status: x, layout: x, green: x, yellow: x, red: x, guests: x, groupCapacity: x, paid: x}] PUBLIC.
 exports.presentTrackdaysForUser = [
     controllerUtils.validateUserID,
 
@@ -369,6 +370,7 @@ exports.presentTrackdaysForUser = [
                 id: trackday.id,
                 date: trackday.date,
                 status: trackday.status,
+                layout: trackday.layout,
                 green: getRegNumbers(trackday).green,
                 yellow: getRegNumbers(trackday).yellow,
                 red: getRegNumbers(trackday).red,
@@ -473,7 +475,8 @@ exports.trackday_post = [
                 date: req.body.date,
                 members: [],
                 walkons: [],
-                status: "regOpen"
+                status: "regOpen",
+                layout: 'tbd'
             })
             await trackday.save();
             return res.status(201).json({id: trackday.id});
@@ -483,9 +486,11 @@ exports.trackday_post = [
 ]
 
 // Updates a trackday EXCLUDING members and walkons. Requires JWT with admin.
+// TODO: updates tests for layout
 exports.trackday_put = [
     body("date",  "Date must be in YYYY-MM-DDThh:mm form where time is in UTC").isISO8601().bail().isLength({ min: 17, max: 17}).escape(),
     body("status",  "Status must be one of: [regOpen, regClosed, finished, cancelled]").trim().isIn(["regOpen", "regClosed", "finished", "cancelled"]).escape(),
+    body("layout",  "Layout must be one of: [tbd, technical, Rtechnical, alien, Ralien, modified, Rmodified, long]").trim().isIn(["tbd", "technical", "Rtechnical", "alien", "Ralien", "modified", "Rmodified", "long"]).escape(),
 
     controllerUtils.verifyJWT,
     controllerUtils.validateForm,
@@ -507,6 +512,7 @@ exports.trackday_put = [
                 members: oldTrackday.members,
                 walkons: oldTrackday.walkons,
                 status: req.body.status,
+                layout: req.body.layout,
                 _id: req.params.trackdayID
             })
             await Trackday.findByIdAndUpdate(req.params.trackdayID, trackday, {});
