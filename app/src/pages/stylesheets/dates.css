@@ -26,3 +26,27 @@
     font-style: italic;
     color: rgb(80, 80, 80);
 }
+
+#scheduleText{
+    font-size: 1.25rem;
+}
+
+table{
+    font-size: 1.25rem;
+    margin: 1rem 2rem;
+    border-spacing: 0;
+}
+
+
+tr{
+    background-color: whitesmoke;
+}
+tr:nth-child(odd){
+    background-color: lightgray;
+}
+
+.priceEntry{
+    font-size: 2rem;
+    display: flex;
+    justify-content: space-between;
+}

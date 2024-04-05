@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Card from "../components/Card"
 
+import pageContent from './Pagecontent'
 
 import './stylesheets/dates.css'
 
@@ -90,8 +91,8 @@ function Dates() {
 			<Navbar />
 			<div className="main">
 				<Card heading='Dates & Layout' body={datesBody} img={square} inverted={false} />
-				{/* <Card heading='Schedule' body={'mockText'} img={square} inverted={true}/> */}
-				{/* <Card heading='Pricing Info' body={'mockText'} img={square} inverted={false}/> */}
+				<Card heading='Schedule' body={pageContent.HTML_Schedule} img={square} inverted={true}/>
+				<Card heading='Pricing Info' body={pageContent.HTML_PricingInfo} img={square} inverted={false}/>
 			</div>
 
 

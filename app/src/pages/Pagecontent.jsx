@@ -37,8 +37,56 @@ const HTML_Offer = <div>
     </ul>
 </div>
 
+const HTML_Schedule = <table>
+    <tr>
+        <td>6pm the day before</td>
+        <td>Gates open, camp overnight if you’d like!</td>
+    </tr>
+    <tr>
+        <td>10pm the day before</td>
+        <td>Gates lock</td>
+    </tr>
+    <tr>
+        <td>8am</td>
+        <td>Gates open</td>
+    </tr>
+    <tr>
+        <td>9:30am</td>
+        <td>Mandatory riders meeting</td>
+    </tr>
+    <tr>
+        <td>9:50am</td>
+        <td>Sighting lap - mandatory for new riders</td>
+    </tr>
+    <tr>
+        <td>10am</td>
+        <td>Lapping starts</td>
+    </tr>
+    <tr>
+        <td>1pm</td>
+        <td>Lunch break(1 hour)</td>
+    </tr>
+    <tr>
+        <td>6pm</td>
+        <td>Lapping ends</td>
+    </tr>
 
+</table>
 
+const HTML_PricingInfo = <p>
+    <div className="priceEntry">
+        <div>Pre-Registration (7 days in advance):</div>
+        <div style={{ fontWeight: 'bold' }}>$170</div>
+    </div>
+    <br></br>
+    <div className="priceEntry">
+        <div>Gate Registration: </div>
+        <div style={{ fontWeight: 'bold' }}>$190</div>
+    </div>
+    <br></br>
+    <br></br>
+    <br></br>
+    <span style={{ fontStyle: 'italic' }}>Gate registrations are space permitting and BBQ lunch is not guaranteed.</span>
+</p>
 
-
-export default { HTML_AboutUs, HTML_Offer }
+export default { HTML_AboutUs, HTML_Offer, HTML_Schedule, HTML_PricingInfo }
