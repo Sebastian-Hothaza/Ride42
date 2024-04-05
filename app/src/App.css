@@ -10,9 +10,30 @@ body{
     gap: 5rem;
 }
 
+.imageContainer{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 1500px;
+    height: 100%;
+}
+
+img{
+    min-width: 0;
+}
+
+
 @media (max-width: 700px) {
     .main{
         padding: 6rem 0;
         gap: 1rem;
+    }
+    .imageContainer{
+        flex-direction: column;
+    }
+
+    img{
+        width: 100%;
     }
 }
