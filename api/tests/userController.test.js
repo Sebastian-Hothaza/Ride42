@@ -479,7 +479,7 @@ describe('Testing user update', () => {
 		// Register user for trackday
 		await request(app)
 			.post('/register/' + user.body.id + '/' + trackday.body.id)
-			.type('form').send({ paymentMethod: 'credit', guests: 3 })
+			.type('form').send({ paymentMethod: 'credit', guests: 3, layoutVote: 'none' })
 			.set('Cookie', loginResUser.headers['set-cookie'])
 			.expect(200)
 
@@ -538,7 +538,7 @@ describe('Testing user update', () => {
 		// Register user for trackday
 		await request(app)
 			.post('/register/' + user.body.id + '/' + trackday.body.id)
-			.type('form').send({ paymentMethod: 'credit', guests: 3 })
+			.type('form').send({ paymentMethod: 'credit', guests: 3, layoutVote: 'none' })
 			.set('Cookie', loginResUser.headers['set-cookie'])
 			.expect(200)
 
@@ -612,7 +612,7 @@ describe('Testing user update', () => {
 		// Register user for trackday
 		await request(app)
 			.post('/register/' + user.body.id + '/' + trackday.body.id)
-			.type('form').send({ paymentMethod: 'credit', guests: 3 })
+			.type('form').send({ paymentMethod: 'credit', guests: 3, layoutVote: 'none' })
 			.set('Cookie', loginResUser.headers['set-cookie'])
 			.expect(200)
 
@@ -656,7 +656,7 @@ describe('Testing user update', () => {
 		// Register user for trackday
 		await request(app)
 			.post('/register/' + user.body.id + '/' + trackday.body.id)
-			.type('form').send({ paymentMethod: 'creditCard', guests: 3 })
+			.type('form').send({ paymentMethod: 'creditCard', guests: 3, layoutVote: 'none' })
 			.set('Cookie', loginResAdmin.headers['set-cookie'])
 			.expect(200)
 
@@ -1055,7 +1055,7 @@ describe('Testing verify', () => {
 		// Register user for trackday
 		await request(app)
 			.post('/register/' + user.body.id + '/' + trackday.body.id)
-			.type("form").send({ paymentMethod: 'creditCard', guests: 3 })
+			.type("form").send({ paymentMethod: 'creditCard', guests: 3, layoutVote: 'none' })
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 
@@ -1090,7 +1090,7 @@ describe('Testing verify', () => {
 		// Register user for trackday
 		await request(app)
 			.post('/register/' + user.body.id + '/' + trackday.body.id)
-			.type("form").send({ paymentMethod: 'creditCard', guests: 3 })
+			.type("form").send({ paymentMethod: 'creditCard', guests: 3, layoutVote: 'none'  })
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 

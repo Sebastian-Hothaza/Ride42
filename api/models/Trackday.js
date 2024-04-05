@@ -14,6 +14,7 @@ const TrackdaySchema = new mongoose.Schema({
 				paymentMethod: 	{ type: String, required: true, enum: ["etransfer", "credit", "creditCard", "gate"] },
 				paid: 			{ type: Boolean, required: true},
 				guests: 		{ type: Number, required: true },
+				layoutVote:		{ type: String, required: true, enum: ["none", "technical", "Rtechnical", "alien", "Ralien", "modified", "Rmodified", "long"] },
 				checkedIn: 		[{ type: mongoose.Schema.Types.ObjectId }]}],
 	walkons: [{ firstName: 		{ type: String, required: true, minLength: 2, maxLength: 50 },
 				lastName:  		{ type: String, required: true, minLength: 2, maxLength: 50 },

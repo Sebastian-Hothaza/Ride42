@@ -244,7 +244,7 @@ describe('Testing hasTrackdayWithinLockout', () => {
 		// Register user for trackday
 		await request(app)
 			.post('/register/'+admin.body.id+'/'+trackday.body.id)
-			.type('form').send({paymentMethod: 'creditCard', guests: 3})
+			.type('form').send({paymentMethod: 'creditCard', guests: 3, layoutVote: 'none'})
 			.set('Cookie', loginResAdmin.headers['set-cookie'])
 			.expect(200)
 
@@ -264,7 +264,7 @@ describe('Testing hasTrackdayWithinLockout', () => {
 		// Register user for trackday
 		await request(app)
 			.post('/register/'+admin.body.id+'/'+trackday.body.id)
-			.type('form').send({paymentMethod: 'creditCard', guests: 3})
+			.type('form').send({paymentMethod: 'creditCard', guests: 3, layoutVote: 'none'})
 			.set('Cookie', loginResAdmin.headers['set-cookie'])
 			.expect(200)
 
@@ -285,7 +285,7 @@ describe('Testing hasTrackdayWithinLockout', () => {
 		// Register user for trackday
 		await request(app)
 			.post('/register/'+admin.body.id+'/'+trackday.body.id)
-			.type('form').send({paymentMethod: 'creditCard', guests: 3})
+			.type('form').send({paymentMethod: 'creditCard', guests: 3, layoutVote: 'none'})
 			.set('Cookie', loginResAdmin.headers['set-cookie'])
 			.expect(200)
 

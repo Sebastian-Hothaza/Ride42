@@ -15,7 +15,6 @@ gate always marked as paid
 
 /*
     --------------------------------------------- TODO ---------------------------------------------
-    require layout vote param for trackday registration (todo: what about gate registrations?) 
     add feature for admin to getLayoutVotes to summarize votes for a given trackday
  
     code cleanup & review - use methods where possible 
@@ -83,6 +82,7 @@ function getRegNumbers(trackday){
 // Registers a user for a trackday. Requires JWT with matching userID OR admin. Staff permitted for gate registrations.
 exports.register = [
     body("paymentMethod",  "PaymentMethod must be one of: [etransfer, credit, creditCard, gate]").trim().isIn(["etransfer", "credit", "creditCard", "gate"]).escape(),
+    body("layoutVote",  "Layout vote must be one of: [none, technical, Rtechnical, alien, Ralien, modified, Rmodified, long]").trim().isIn(["none", "technical", "Rtechnical", "alien", "Ralien", "modified", "Rmodified", "long"]).escape(),
     body("guests",  "Guests must be numeric").trim().isNumeric().escape(),
 
     controllerUtils.verifyJWT,
@@ -142,6 +142,7 @@ exports.register = [
                 paymentMethod: req.body.paymentMethod,
                 paid: (req.body.paymentMethod === 'gate' || req.body.paymentMethod === 'credit')?true:false,
                 guests: req.body.guests,
+                layoutVote: req.body.layoutVote,
                 checkedIn: []
             })
 
@@ -258,6 +259,7 @@ exports.reschedule = [
                 paymentMethod: memberEntryOLD.paymentMethod,
                 paid: memberEntryOLD.paid,
                 guests: memberEntryOLD.guests,
+                layoutVote: memberEntryOLD.layoutVote,
                 checkedIn: memberEntryOLD.checkedIn
             })
             await trackdayNEW.save();
