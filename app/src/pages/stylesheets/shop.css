@@ -1,0 +1,28 @@
+.main.inverted{
+    flex-direction: row;
+    justify-content: center;
+}
+
+.main.inverted img{
+    width: 100%;
+}
+
+.shopCard{ 
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    background-color: white;
+    box-shadow: 0 12px 24px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    text-align: center;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+@media (max-width: 1200px) {
+    .main.inverted{
+        flex-direction: column;
+        justify-content: center;
+    }
+}
