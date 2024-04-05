@@ -14,9 +14,6 @@ import './stylesheets/home.css'
 
 const Home = () => {
 
-	const HTML_AboutUs_LOCAL = <p>Hello World</p>
-
-
 	return (
 		<>
 			<Navbar />

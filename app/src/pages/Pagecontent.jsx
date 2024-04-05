@@ -27,7 +27,7 @@ const HTML_Offer = <div>
         Hosted exclusively at Grand Bend Motorplex, our goal is to provide you a consistent trackday experience where you can expect:
         <br></br><br></br>
     </p>
-    <ul className="withBullets">
+    <ul>
         <li>Trackday run by experienced personnel who are eager to ensure you have a great time</li>
         <li>Safe and structured riding divided into groups based on skill level. Occasionally we may go down to 2 groups; our goal is to maximize your time on track while maintaining a safe environment</li>
         <li>Experienced pro level regional and national racers available for one-on-one coaching and guidance</li>

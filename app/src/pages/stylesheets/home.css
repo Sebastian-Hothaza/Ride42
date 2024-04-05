@@ -6,11 +6,7 @@
     background-size: cover;
 }
 
-ul.withBullets{
-    list-style-type: disc;
-    padding: 0 2.5rem;
-    text-align: justify;
-}
+
 
 @media (max-width: 1200px) {
     .heroImage{

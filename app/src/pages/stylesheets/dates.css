@@ -1,0 +1,28 @@
+#datesUl{
+    font-size: 1.5rem;
+    columns: 2;
+    margin-bottom: 2rem;
+}
+
+#datesUl li{
+    margin-bottom: 10px;
+}
+
+.dateEntry{
+    display: flex;
+    justify-content: space-between;
+    margin-right: 4rem;
+}
+
+#bookBtn{
+    margin: auto;
+    padding: 1rem 2rem;
+    background-color: black;
+    color: white;
+    font-size: 1.5rem;
+}
+
+#layout{
+    font-style: italic;
+    color: rgb(80, 80, 80);
+}
