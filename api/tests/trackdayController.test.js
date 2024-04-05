@@ -363,7 +363,7 @@ describe('Testing trackday update', () => {
 		await request(app)
 			.put('/trackdays/invalid')
 			.set('Cookie', adminCookie)
-			.type('form').send({ date: getFormattedDate(10), guests: 0, status: 'regOpen', layout: 'technical'})
+			.type('form').send({ date: getFormattedDate(10), guests: 0, status: 'regOpen', layout: 'technical' })
 			.expect(404, { msg: 'trackdayID is not a valid ObjectID' })
 	});
 	test("update invalid trackdayID trackday", async () => {
@@ -371,7 +371,7 @@ describe('Testing trackday update', () => {
 		await request(app)
 			.put('/trackdays/' + '1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1')
 			.set('Cookie', adminCookie)
-			.type('form').send({ date: getFormattedDate(10), guests: 0, status: 'regOpen' , layout: 'technical'})
+			.type('form').send({ date: getFormattedDate(10), guests: 0, status: 'regOpen', layout: 'technical' })
 			.expect(404, { msg: 'Trackday does not exist' })
 	});
 
@@ -435,7 +435,7 @@ describe('Testing trackday update', () => {
 		await request(app)
 			.put('/trackdays/' + trackday.body.id)
 			.set('Cookie', adminCookie)
-			.type('form').send({ date: getFormattedDate(15), status: 'regClosed', layout: 'technical'})
+			.type('form').send({ date: getFormattedDate(15), status: 'regClosed', layout: 'technical' })
 			.expect(201)
 
 		// Check the updates were successful
@@ -760,6 +760,15 @@ describe('Testing registering', () => {
 				red: 0,
 				guests: 0,
 				groupCapacity: process.env.GROUP_CAPACITY,
+				votes: {
+					technical: 0,
+					Rtechnical: 0,
+					alien: 0,
+					Ralien: 0,
+					modified: 0,
+					Rmodified: 0,
+					long: 0
+				},
 				paid: true
 			},])
 	});
@@ -787,7 +796,7 @@ describe('Testing registering', () => {
 		await request(app)
 			.post('/register/' + user1.body.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({ paymentMethod: 'credit', guests: 3, layoutVote: 'none' })
+			.type('form').send({ paymentMethod: 'credit', guests: 3, layoutVote: 'alien' })
 			.expect(200)
 
 
@@ -804,6 +813,15 @@ describe('Testing registering', () => {
 				red: 0,
 				guests: 3,
 				groupCapacity: process.env.GROUP_CAPACITY,
+				votes: {
+					technical: 0,
+					Rtechnical: 0,
+					alien: 1,
+					Ralien: 0,
+					modified: 0,
+					Rmodified: 0,
+					long: 0
+				},
 				paid: true
 			},])
 
@@ -846,6 +864,58 @@ describe('Testing registering', () => {
 		expect(updatedUser.body.credits).toBe(0)
 	});
 
+	test("registration with multiple votes for layout", async () => {
+		const trackday = await addTrackday('2500-06-05T14:00Z')
+
+		// Add bike to garage
+		await request(app)
+			.post("/garage/" + user1.body.id)
+			.type("form")
+			.send({ year: '2009', make: 'Yamaha', model: "R6" })
+			.set('Cookie', user1Cookie)
+			.expect(201);
+
+		// Register for trackday
+		await request(app)
+			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.type('form')
+			.send('paymentMethod=etransfer')
+			.send('guests=3')
+			.send('layoutVote=technical')
+			.send('layoutVote=alien')
+			.send('layoutVote=Rtechnical')
+			.expect(200)
+
+
+		// Check registration was processed correctly 
+		await request(app)
+			.get("/presentTrackdays/" + user1.body.id)
+			.expect(200, [{
+				id: trackday.body.id,
+				date: '2500-06-05T14:00:00.000Z',
+				status: 'regOpen',
+				layout: 'tbd',
+				green: 0,
+				yellow: 1,
+				red: 0,
+				guests: 3,
+				groupCapacity: process.env.GROUP_CAPACITY,
+				votes: {
+					technical: 1,
+					Rtechnical: 1,
+					alien: 1,
+					Ralien: 0,
+					modified: 0,
+					Rmodified: 0,
+					long: 0
+				},
+				paid: false
+			},])
+
+
+	});
+
 	test("registration", async () => {
 		const trackday = await addTrackday('2500-06-05T14:00Z')
 
@@ -878,6 +948,15 @@ describe('Testing registering', () => {
 				red: 0,
 				guests: 3,
 				groupCapacity: process.env.GROUP_CAPACITY,
+				votes: {
+					technical: 0,
+					Rtechnical: 0,
+					alien: 0,
+					Ralien: 0,
+					modified: 0,
+					Rmodified: 0,
+					long: 0
+				},
 				paid: false
 			},])
 
@@ -1471,7 +1550,16 @@ describe('Testing rescheduling', () => {
 				yellow: 0,
 				red: 0,
 				guests: 0,
-				groupCapacity: process.env.GROUP_CAPACITY
+				groupCapacity: process.env.GROUP_CAPACITY,
+				votes: {
+					technical: 0,
+					Rtechnical: 0,
+					alien: 0,
+					Ralien: 0,
+					modified: 0,
+					Rmodified: 0,
+					long: 0
+				},
 			},
 			{
 				id: trackday2.body.id,
@@ -1482,7 +1570,16 @@ describe('Testing rescheduling', () => {
 				yellow: 1,
 				red: 0,
 				guests: 3,
-				groupCapacity: process.env.GROUP_CAPACITY
+				groupCapacity: process.env.GROUP_CAPACITY,
+				votes: {
+					technical: 0,
+					Rtechnical: 0,
+					alien: 0,
+					Ralien: 0,
+					modified: 0,
+					Rmodified: 0,
+					long: 0
+				},
 			}])
 	});
 })
@@ -1577,12 +1674,21 @@ describe('Testing walkons', () => {
 				id: trackday.body.id,
 				date: '2500-06-05T14:00:00.000Z',
 				status: 'regOpen',
-				layout: 'tbd', 
+				layout: 'tbd',
 				green: 0,
 				yellow: 1,
 				red: 0,
 				guests: 0,
 				groupCapacity: process.env.GROUP_CAPACITY,
+				votes: {
+					technical: 0,
+					Rtechnical: 0,
+					alien: 0,
+					Ralien: 0,
+					modified: 0,
+					Rmodified: 0,
+					long: 0
+				},
 			}])
 	});
 })
@@ -1864,7 +1970,7 @@ describe('Testing checkin', () => {
 		await request(app)
 			.post('/checkin/' + user1.body.id + '/' + trackday.body.id + '/' + bike.body.id)
 			.set('Cookie', adminCookie)
-			.expect(401, {msg: 'member has not signed waiver'})
+			.expect(401, { msg: 'member has not signed waiver' })
 	})
 	test("valid checkin", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
@@ -1926,7 +2032,16 @@ describe('Testing presentTrackdays', () => {
 				yellow: 0,
 				red: 0,
 				guests: 0,
-				groupCapacity: process.env.GROUP_CAPACITY
+				groupCapacity: process.env.GROUP_CAPACITY,
+				votes: {
+					technical: 0,
+					Rtechnical: 0,
+					alien: 0,
+					Ralien: 0,
+					modified: 0,
+					Rmodified: 0,
+					long: 0
+				},
 			},
 			{
 				id: trackday2.body.id,
@@ -1937,7 +2052,16 @@ describe('Testing presentTrackdays', () => {
 				yellow: 0,
 				red: 0,
 				guests: 0,
-				groupCapacity: process.env.GROUP_CAPACITY
+				groupCapacity: process.env.GROUP_CAPACITY,
+				votes: {
+					technical: 0,
+					Rtechnical: 0,
+					alien: 0,
+					Ralien: 0,
+					modified: 0,
+					Rmodified: 0,
+					long: 0
+				},
 			}])
 	});
 	test("present trackdays", async () => {
@@ -1975,7 +2099,16 @@ describe('Testing presentTrackdays', () => {
 				yellow: 1,
 				red: 1,
 				guests: 5,
-				groupCapacity: process.env.GROUP_CAPACITY
+				groupCapacity: process.env.GROUP_CAPACITY,
+				votes: {
+					technical: 0,
+					Rtechnical: 0,
+					alien: 0,
+					Ralien: 0,
+					modified: 0,
+					Rmodified: 0,
+					long: 0
+				},
 			}])
 	});
 })
@@ -2033,6 +2166,15 @@ describe('Testing presentTrackdaysForUser', () => {
 				red: 0,
 				guests: 3,
 				groupCapacity: process.env.GROUP_CAPACITY,
+				votes: {
+					technical: 0,
+					Rtechnical: 0,
+					alien: 0,
+					Ralien: 0,
+					modified: 0,
+					Rmodified: 0,
+					long: 0
+				},
 				paid: false
 			}])
 	});
@@ -2077,6 +2219,15 @@ describe('Testing presentTrackdaysForUser', () => {
 				red: 0,
 				guests: 3,
 				groupCapacity: process.env.GROUP_CAPACITY,
+				votes: {
+					technical: 0,
+					Rtechnical: 0,
+					alien: 0,
+					Ralien: 0,
+					modified: 0,
+					Rmodified: 0,
+					long: 0
+				},
 				paid: false
 			},
 			{
@@ -2089,6 +2240,15 @@ describe('Testing presentTrackdaysForUser', () => {
 				red: 0,
 				guests: 2,
 				groupCapacity: process.env.GROUP_CAPACITY,
+				votes: {
+					technical: 0,
+					Rtechnical: 0,
+					alien: 0,
+					Ralien: 0,
+					modified: 0,
+					Rmodified: 0,
+					long: 0
+				},
 				paid: false
 			}])
 	});
@@ -2289,7 +2449,7 @@ describe('Testing updatePaid', () => {
 		// Register user for trackday
 		await request(app)
 			.post('/register/' + user1.body.id + '/' + trackday.body.id)
-			.type("form").send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
+			.type("form").send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'long' })
 			.set('Cookie', user1Cookie)
 			.expect(200)
 
@@ -2313,6 +2473,15 @@ describe('Testing updatePaid', () => {
 				red: 0,
 				guests: 3,
 				groupCapacity: process.env.GROUP_CAPACITY,
+				votes: {
+					technical: 0,
+					Rtechnical: 0,
+					alien: 0,
+					Ralien: 0,
+					modified: 0,
+					Rmodified: 0,
+					long: 1
+				},
 				paid: true
 			}])
 	});

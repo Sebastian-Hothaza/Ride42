@@ -15,8 +15,6 @@ gate always marked as paid
 
 /*
     --------------------------------------------- TODO ---------------------------------------------
-    add feature for admin to getLayoutVotes to summarize votes for a given trackday
- 
     code cleanup & review - use methods where possible 
     --------------------------------------------- TODO ---------------------------------------------
 */
@@ -38,15 +36,24 @@ gate always marked as paid
     --------------------------------------- FOR LATER REVIEW ---------------------------------------
 */
 
-// Returns a summary of number of people at a specified trackday in format {green: x, yellow: y, red: z, guests: g}
-// JS does not support function overloading, hence the 'INTERNAL' marking
-function getRegNumbers(trackday){
-    let green=0, yellow=0, red=0, guests=0
+// Returns a summary of number of people at a specified trackday in format {green: x, yellow: y, red: z, guests: g, votes: {techincal: 7, alien: 5, ...}}
+function getRegDetails(trackday) {
+    let green = 0, yellow = 0, red = 0, guests = 0
+
+    let votes = {
+        technical: 0,
+        Rtechnical: 0,
+        alien: 0,
+        Ralien: 0,
+        modified: 0,
+        Rmodified: 0,
+        long: 0
+    }
 
     // Check the members array
-    for (let i=0; i<trackday.members.length; i++){
+    for (let i = 0; i < trackday.members.length; i++) {
         // Increment group summary
-        switch(trackday.members[i].user.group){
+        switch (trackday.members[i].user.group) {
             case 'green':
                 green++
                 break;
@@ -57,13 +64,19 @@ function getRegNumbers(trackday){
                 red++
                 break;
         }
+
+        // Updates votes
+        trackday.members[i].layoutVote.forEach((vote)=>{
+            if (vote !== 'none') votes[vote]++;
+        })
+
+        // Check guests
         guests += trackday.members[i].guests
     }
-
     // Check the walkons
-    for (let i=0; i<trackday.walkons.length; i++){
+    for (let i = 0; i < trackday.walkons.length; i++) {
         // Increment group summary
-        switch(trackday.walkons[i].group){
+        switch (trackday.walkons[i].group) {
             case 'green':
                 green++
                 break;
@@ -75,84 +88,86 @@ function getRegNumbers(trackday){
                 break;
         }
     }
-
-    return {green, yellow, red, guests}
+    return { green, yellow, red, guests, votes }
 }
 
 // Registers a user for a trackday. Requires JWT with matching userID OR admin. Staff permitted for gate registrations.
 exports.register = [
-    body("paymentMethod",  "PaymentMethod must be one of: [etransfer, credit, creditCard, gate]").trim().isIn(["etransfer", "credit", "creditCard", "gate"]).escape(),
-    body("layoutVote",  "Layout vote must be one of: [none, technical, Rtechnical, alien, Ralien, modified, Rmodified, long]").trim().isIn(["none", "technical", "Rtechnical", "alien", "Ralien", "modified", "Rmodified", "long"]).escape(),
-    body("guests",  "Guests must be numeric").trim().isNumeric().escape(),
+    body("paymentMethod", "PaymentMethod must be one of: [etransfer, credit, creditCard, gate]").trim().isIn(["etransfer", "credit", "creditCard", "gate"]).escape(),
+    body("layoutVote", "Layout vote must be provided and each value must be one of: [none, technical, Rtechnical, alien, Ralien, modified, Rmodified, long]").trim().isIn(["none", "technical", "Rtechnical", "alien", "Ralien", "modified", "Rmodified", "long"]).escape(),
+    body("guests", "Guests must be numeric").trim().isNumeric().escape(),
 
     controllerUtils.verifyJWT,
     controllerUtils.validateForm,
     controllerUtils.validateUserID,
     controllerUtils.validateTrackdayID,
-    
 
-    asyncHandler(async(req,res,next) => {
-        if (req.user.memberType === 'admin' || (req.user.id === req.params.userID)){
+
+    asyncHandler(async (req, res, next) => {
+        if (req.user.memberType === 'admin' || (req.user.id === req.params.userID)) {
             let [trackday, user] = await Promise.all([Trackday.findById(req.params.trackdayID).populate('members.user', '-password -refreshToken -__v').exec(), User.findById(req.params.userID)]);
-            
+
             // Deny gate registrations unless they come from staff or admin
-            if (req.body.paymentMethod === 'gate' && req.user.memberType !== 'admin' && req.user.memberType !== 'staff'){
-                return res.status(403).send({msg: "only staff or admins can process gate registrations"})
+            if (req.body.paymentMethod === 'gate' && req.user.memberType !== 'admin' && req.user.memberType !== 'staff') {
+                return res.status(403).send({ msg: "only staff or admins can process gate registrations" })
             }
 
             // Deny if user is already registered to trackday
             const memberEntry = trackday.members.find((member) => member.user.equals(req.params.userID));
-            if (memberEntry) return res.status(409).send({msg: "user already registered for this trackday"})
+            if (memberEntry) return res.status(409).send({ msg: "user already registered for this trackday" })
 
             // Deny if user attempt to register for trackday < lockout period(7 default) away
-            if ( await controllerUtils.isInLockoutPeriod(req.params.trackdayID) && 
-                 req.body.paymentMethod !== 'credit' && req.body.paymentMethod !== 'gate' && req.user.memberType !== 'admin' ){
-                return res.status(401).send({msg: 'Cannot register for trackday <'+process.env.DAYS_LOCKOUT+' days away.'})
-            }            
+            if (await controllerUtils.isInLockoutPeriod(req.params.trackdayID) &&
+                req.body.paymentMethod !== 'credit' && req.body.paymentMethod !== 'gate' && req.user.memberType !== 'admin') {
+                return res.status(401).send({ msg: 'Cannot register for trackday <' + process.env.DAYS_LOCKOUT + ' days away.' })
+            }
+
+
+            // Deny if trackday is in the past (if time difference is negative)
+            if (req.user.memberType !== 'admin' && trackday.date.getTime() - Date.now() < 0) return res.status(400).send({ msg: 'Cannot register for trackday in the past' })
+
+            // Deny if trackday is full
+            if (req.user.memberType !== 'admin' && req.user.memberType !== 'staff') {
+                if ((user.group == 'green' && getRegDetails(trackday).green === parseInt(process.env.GROUP_CAPACITY)) ||
+                    (user.group == 'yellow' && getRegDetails(trackday).yellow === parseInt(process.env.GROUP_CAPACITY)) ||
+                    (user.group == 'red' && getRegDetails(trackday).red === parseInt(process.env.GROUP_CAPACITY))) {
+                    return res.status(401).send({ msg: 'trackday has reached capacity' })
+                }
+            }
             
 
             // Deny if trackday is in the past (if time difference is negative)
-            if (req.user.memberType !== 'admin' && trackday.date.getTime() - Date.now() < 0 ) return res.status(400).send({msg: 'Cannot register for trackday in the past'})
-
-            // Deny if trackday is full
-            if (req.user.memberType !== 'admin' && req.user.memberType !== 'staff'){
-                if ( (user.group == 'green' && getRegNumbers(trackday).green === parseInt(process.env.GROUP_CAPACITY)) ||
-                     (user.group == 'yellow' && getRegNumbers(trackday).yellow === parseInt(process.env.GROUP_CAPACITY)) ||
-                     (user.group == 'red' && getRegNumbers(trackday).red === parseInt(process.env.GROUP_CAPACITY)) ){
-                    return res.status(401).send({msg: 'trackday has reached capacity'})
-                } 
-            }
-
-            // Deny if trackday is in the past (if time difference is negative)
-            if (req.user.memberType !== 'admin' && trackday.status !== 'regOpen') return res.status(401).send({msg: 'registration closed'})
+            if (req.user.memberType !== 'admin' && trackday.status !== 'regOpen') return res.status(401).send({ msg: 'registration closed' })
 
             // Deny is user garage is empty
-            if (req.user.memberType !== 'admin' && !user.garage.length) return res.status(401).send({msg: 'cannot register with empty user garage'})
+            if (req.user.memberType !== 'admin' && !user.garage.length) return res.status(401).send({ msg: 'cannot register with empty user garage' })
 
             // If paying with credit, check balance is available and deduct
-            if (req.body.paymentMethod === 'credit'){
-                if (!user.credits) return res.status(400).send({msg: 'insufficient credits'})
+            if (req.body.paymentMethod === 'credit') {
+                if (!user.credits) return res.status(400).send({ msg: 'insufficient credits' })
                 user.credits--;
                 await user.save();
-            } 
+            }
 
             // Add user to trackday
             trackday.members.push({
                 user: req.params.userID,
                 paymentMethod: req.body.paymentMethod,
-                paid: (req.body.paymentMethod === 'gate' || req.body.paymentMethod === 'credit')?true:false,
+                paid: (req.body.paymentMethod === 'gate' || req.body.paymentMethod === 'credit') ? true : false,
                 guests: req.body.guests,
                 layoutVote: req.body.layoutVote,
                 checkedIn: []
             })
 
+           
+
             await trackday.save();
             await sendEmail(user.contact.email, "Ride42 Trackday Registration Confirmation", mailTemplates.registerTrackday,
-                            {name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'})})
+                { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) })
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
-        
+
     })
 ]
 
@@ -161,50 +176,50 @@ exports.unregister = [
     controllerUtils.verifyJWT,
     controllerUtils.validateUserID,
     controllerUtils.validateTrackdayID,
-    
-   
-    asyncHandler(async(req,res,next) => {
-        if (req.user.memberType === 'admin' || (req.user.id === req.params.userID)){
-            let [trackday, user] = await Promise.all([Trackday.findById(req.params.trackdayID).populate('members.user','-password -refreshToken -__v').exec(), User.findById(req.params.userID)]);
+
+
+    asyncHandler(async (req, res, next) => {
+        if (req.user.memberType === 'admin' || (req.user.id === req.params.userID)) {
+            let [trackday, user] = await Promise.all([Trackday.findById(req.params.trackdayID).populate('members.user', '-password -refreshToken -__v').exec(), User.findById(req.params.userID)]);
 
             // Check user is actually registered for that trackday
             const memberEntry = trackday.members.find((member) => member.user.equals(req.params.userID));
-            if (!memberEntry) return res.status(400).send({msg: 'Cannot unregister; member is not registered for that trackday'});
+            if (!memberEntry) return res.status(400).send({ msg: 'Cannot unregister; member is not registered for that trackday' });
 
             // Deny if trying to unregister a gate entry
-            if (memberEntry.paymentMethod === 'gate' && req.user.memberType !== 'admin') return res.status(401).send({msg: 'cannot unregister a gate registration'})
+            if (memberEntry.paymentMethod === 'gate' && req.user.memberType !== 'admin') return res.status(401).send({ msg: 'cannot unregister a gate registration' })
 
 
             // If user attempt to unregister for trackday < lockout period(7 default) away, deny unregistration
-            if ( await controllerUtils.isInLockoutPeriod(req.params.trackdayID) && 
-                 memberEntry.paymentMethod !== 'credit' && req.body.paymentMethod !== 'gate' && req.user.memberType !== 'admin'  ){
-                return res.status(401).send({msg: 'Cannot unregister for trackday <'+process.env.DAYS_LOCKOUT+' days away.'})
-            }  
+            if (await controllerUtils.isInLockoutPeriod(req.params.trackdayID) &&
+                memberEntry.paymentMethod !== 'credit' && req.body.paymentMethod !== 'gate' && req.user.memberType !== 'admin') {
+                return res.status(401).send({ msg: 'Cannot unregister for trackday <' + process.env.DAYS_LOCKOUT + ' days away.' })
+            }
 
             // Check if trackday is in the past (if time difference is negative)
-            if (req.user.memberType !== 'admin' && trackday.date.getTime() - Date.now() < 0 ) return res.status(400).send({msg: 'Cannot un-register for trackday in the past'})
+            if (req.user.memberType !== 'admin' && trackday.date.getTime() - Date.now() < 0) return res.status(400).send({ msg: 'Cannot un-register for trackday in the past' })
 
             // Remove user from trackday
-            trackday.members = trackday.members.filter((member)=> !member.user.equals(req.params.userID)) 
+            trackday.members = trackday.members.filter((member) => !member.user.equals(req.params.userID))
 
             // If paying with credit, add credit back to users balance
-            if (memberEntry.paymentMethod === 'credit'){
+            if (memberEntry.paymentMethod === 'credit') {
                 user.credits++;
                 await user.save();
-            } 
+            }
             await trackday.save();
             // Send email to user
             await sendEmail(user.contact.email, "Ride42 Trackday Cancellation Confirmation", mailTemplates.unregisterTrackday,
-                            {name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'})})
+                { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) })
             // Notify admin only if payment wasn't made with credit (credit is auto refunded)
-            if (memberEntry.paymentMethod !== 'credit'){
+            if (memberEntry.paymentMethod !== 'credit') {
                 await sendEmail(process.env.ADMIN_EMAIL, "TRACKDAY CANCELATION", mailTemplates.unregisterTrackday_admin,
-                            {name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'})})
+                    { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) })
             }
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
-       
+
     })
 ]
 
@@ -213,45 +228,45 @@ exports.reschedule = [
     controllerUtils.verifyJWT,
     controllerUtils.validateUserID,
     controllerUtils.validateTrackdayID,
-    
-    asyncHandler(async(req,res,next) => {
-        if (req.user.memberType === 'admin' || (req.user.id === req.params.userID && 1)){
-            let [trackdayOLD,trackdayNEW,user] = await Promise.all([Trackday.findById(req.params.trackdayID_OLD).exec(),
-                                                                    Trackday.findById(req.params.trackdayID_NEW).populate('members.user','-password -refreshToken -__v').exec(),
-                                                                    User.findById(req.params.userID)])
 
-            
+    asyncHandler(async (req, res, next) => {
+        if (req.user.memberType === 'admin' || (req.user.id === req.params.userID && 1)) {
+            let [trackdayOLD, trackdayNEW, user] = await Promise.all([Trackday.findById(req.params.trackdayID_OLD).exec(),
+            Trackday.findById(req.params.trackdayID_NEW).populate('members.user', '-password -refreshToken -__v').exec(),
+            User.findById(req.params.userID)])
+
+
             // Check that the member we want to reschedule is registered in old trackday
             const memberEntryOLD = trackdayOLD.members.find((member) => member.user.equals(req.params.userID));
-            if (!memberEntryOLD) return res.status(404).send({msg: 'Member is not registered for that trackday'});
+            if (!memberEntryOLD) return res.status(404).send({ msg: 'Member is not registered for that trackday' });
 
             // Check if user is already registered for trackday they want to reschedule to
             const memberEntryNEW = trackdayNEW.members.find((member) => member.user.equals(req.params.userID));
-            if (memberEntryNEW) return res.status(409).send({msg: 'Member is already scheduled for trackday you want to reschedule to'})
+            if (memberEntryNEW) return res.status(409).send({ msg: 'Member is already scheduled for trackday you want to reschedule to' })
 
             // Deny if trying to reschedule a gate entry
-            if (memberEntryOLD.paymentMethod === 'gate' && req.user.memberType !== 'admin') return res.status(401).send({msg: 'cannot reschedule a gate registration'})
+            if (memberEntryOLD.paymentMethod === 'gate' && req.user.memberType !== 'admin') return res.status(401).send({ msg: 'cannot reschedule a gate registration' })
 
             // If user attempt to reschdule for trackday < lockout period(7 default) away, deny reschedule
-            if (memberEntryOLD.paymentMethod !== 'credit' && req.user.memberType !== 'admin' && await controllerUtils.isInLockoutPeriod(req.params.trackdayID_NEW)){
-                return res.status(401).send({msg: 'Cannot reschedule to a trackday <'+process.env.DAYS_LOCKOUT+' days away.'})
+            if (memberEntryOLD.paymentMethod !== 'credit' && req.user.memberType !== 'admin' && await controllerUtils.isInLockoutPeriod(req.params.trackdayID_NEW)) {
+                return res.status(401).send({ msg: 'Cannot reschedule to a trackday <' + process.env.DAYS_LOCKOUT + ' days away.' })
             }
 
             // Check if trackday is in the past (if time difference is negative)
-            if (req.user.memberType !== 'admin' && trackdayNEW.date.getTime() - Date.now() < 0 ) return res.status(400).send({msg: 'Cannot register to a trackday in the past'})
-            if (req.user.memberType !== 'admin' && trackdayOLD.date.getTime() - Date.now() < 0 ) return res.status(400).send({msg: 'Cannot register from a trackday in the past'})
+            if (req.user.memberType !== 'admin' && trackdayNEW.date.getTime() - Date.now() < 0) return res.status(400).send({ msg: 'Cannot register to a trackday in the past' })
+            if (req.user.memberType !== 'admin' && trackdayOLD.date.getTime() - Date.now() < 0) return res.status(400).send({ msg: 'Cannot register from a trackday in the past' })
 
             // Check if trackday is full
-            if (req.user.memberType !== 'admin'){
-                if ( (user.group == 'green' && getRegNumbers(trackdayNEW).green === parseInt(process.env.GROUP_CAPACITY)) ||
-                     (user.group == 'yellow' && getRegNumbers(trackdayNEW).yellow === parseInt(process.env.GROUP_CAPACITY)) ||
-                     (user.group == 'red' && getRegNumbers(trackdayNEW).red === parseInt(process.env.GROUP_CAPACITY)) ){
-                    return res.status(401).send({msg: 'trackday has reached capacity'})
-                } 
+            if (req.user.memberType !== 'admin') {
+                if ((user.group == 'green' && getRegDetails(trackdayNEW).green === parseInt(process.env.GROUP_CAPACITY)) ||
+                    (user.group == 'yellow' && getRegDetails(trackdayNEW).yellow === parseInt(process.env.GROUP_CAPACITY)) ||
+                    (user.group == 'red' && getRegDetails(trackdayNEW).red === parseInt(process.env.GROUP_CAPACITY))) {
+                    return res.status(401).send({ msg: 'trackday has reached capacity' })
+                }
             }
 
             // Deny if trackday is in the past (if time difference is negative)
-            if (req.user.memberType !== 'admin' && trackdayNEW.status !== 'regOpen') return res.status(401).send({msg: 'registration closed'})
+            if (req.user.memberType !== 'admin' && trackdayNEW.status !== 'regOpen') return res.status(401).send({ msg: 'registration closed' })
 
             // Add user to new trackday
             trackdayNEW.members.push({
@@ -265,32 +280,32 @@ exports.reschedule = [
             await trackdayNEW.save();
 
             // Remove the user from the OLD trackday
-            trackdayOLD.members = trackdayOLD.members.filter((member)=> !member.user.equals(req.params.userID)) 
+            trackdayOLD.members = trackdayOLD.members.filter((member) => !member.user.equals(req.params.userID))
             await trackdayOLD.save();
 
             await sendEmail(user.contact.email, "Ride42 Trackday Reschedule Confirmation", mailTemplates.rescheduleTrackday,
-                            {name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), dateOLD: trackdayOLD.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'}), dateNEW: trackdayNEW.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'})})
+                { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), dateOLD: trackdayOLD.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }), dateNEW: trackdayNEW.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) })
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
-        
+
     })
 ]
 
 // Adds walkon customer to walkons Requires JWT with staff/admin.
 exports.walkons = [
-    body("firstName", "First Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
-    body("lastName", "Last Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
+    body("firstName", "First Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50 }).escape(),
+    body("lastName", "Last Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50 }).escape(),
     body("group", "Group must be either green, yellow or red").trim().isIn(['green', 'yellow', 'red']).escape(),
 
     controllerUtils.verifyJWT,
     controllerUtils.validateForm,
     controllerUtils.validateTrackdayID,
 
-    asyncHandler(async(req,res,next) => {
-        if (req.user.memberType === 'admin' || req.user.memberType === 'staff'){
+    asyncHandler(async (req, res, next) => {
+        if (req.user.memberType === 'admin' || req.user.memberType === 'staff') {
             const trackday = await Trackday.findById(req.params.trackdayID).exec();
-            
+
             trackday.walkons.push({
                 firstName: req.body.firstName,
                 lastName: req.body.lastName,
@@ -309,75 +324,77 @@ exports.checkin = [
     controllerUtils.validateUserID,
     controllerUtils.validateTrackdayID,
     controllerUtils.validateBikeID,
-    
-    asyncHandler(async(req,res,next) => {
-        if (req.user.memberType === 'admin' || req.user.memberType === 'staff'){
+
+    asyncHandler(async (req, res, next) => {
+        if (req.user.memberType === 'admin' || req.user.memberType === 'staff') {
             const trackday = await Trackday.findById(req.params.trackdayID).populate('members.user', 'waiver').exec();
 
             // Check that the member we want to check in for trackday actually exists
             const memberEntry = trackday.members.find((member) => member.user.equals(req.params.userID));
-            if (!memberEntry) return res.status(404).send({msg: 'Member is not registered for that trackday'});
+            if (!memberEntry) return res.status(404).send({ msg: 'Member is not registered for that trackday' });
 
             // Check that member is not already checked in with that same bike
-            if(memberEntry.checkedIn.includes(req.params.bikeID)) return res.status(400).json({msg : 'member already checked in with this bike'})
+            if (memberEntry.checkedIn.includes(req.params.bikeID)) return res.status(400).json({ msg: 'member already checked in with this bike' })
 
             // Do not allow checkin if unpaid
-            if(!memberEntry.paid) return res.status(400).json({msg : 'member is not paid'})
+            if (!memberEntry.paid) return res.status(400).json({ msg: 'member is not paid' })
 
             // Do not allow checkin if user does not have a waiver signed
-            if(!memberEntry.user.waiver) return res.status(401).json({msg : 'member has not signed waiver'})
+            if (!memberEntry.user.waiver) return res.status(401).json({ msg: 'member has not signed waiver' })
 
             memberEntry.checkedIn.push(req.params.bikeID);
             await trackday.save();
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
-       
+
     })
 ]
 
-// Returns an array of trackday dates in format [{id: x, date: x, status: x, layout: x, green: x, yellow: x, red: x, guests: x, groupCapacity: x}] PUBLIC.
-exports.presentTrackdays = async(req,res,next) => {
-    const allDays = await Trackday.find().populate('members.user','-password -refreshToken -__v')
+// Returns an array of trackday dates in format [{id: x, date: x, status: x, layout: x, green: x, yellow: x, red: x, guests: x, groupCapacity: x, votes: x}] PUBLIC.
+exports.presentTrackdays = async (req, res, next) => {
+    const allDays = await Trackday.find().populate('members.user', '-password -refreshToken -__v')
     let result = []
-    allDays.forEach((trackday)=>{
+    allDays.forEach((trackday) => {
 
         result.push({
             id: trackday.id,
             date: trackday.date,
             status: trackday.status,
             layout: trackday.layout,
-            green: getRegNumbers(trackday).green,
-            yellow: getRegNumbers(trackday).yellow,
-            red: getRegNumbers(trackday).red,
-            guests: getRegNumbers(trackday).guests,
-            groupCapacity: process.env.GROUP_CAPACITY
+            green: getRegDetails(trackday).green,
+            yellow: getRegDetails(trackday).yellow,
+            red: getRegDetails(trackday).red,
+            guests: getRegDetails(trackday).guests,
+            groupCapacity: process.env.GROUP_CAPACITY,
+            votes: getRegDetails(trackday).votes
         })
     })
-    
+
     return res.status(200).send(result)
 }
 
-// Returns an array of trackday dates that user is registered for in format [{id: x, date: x, status: x, layout: x, green: x, yellow: x, red: x, guests: x, groupCapacity: x, paid: x}] PUBLIC.
+// Returns an array of trackday dates that user is registered for in format [{id: x, date: x, status: x, layout: x, green: x, yellow: x, red: x, guests: x, groupCapacity: x,  votes: x, paid: x}] PUBLIC.
 exports.presentTrackdaysForUser = [
     controllerUtils.validateUserID,
 
-    asyncHandler(async(req,res,next) => {
+    asyncHandler(async (req, res, next) => {
         // Get all trackdays that user is a part of
-        const allDays = await Trackday.find({members: {$elemMatch: { user: {$eq: req.params.userID}}}} ).populate('members.user','-password -refreshToken -__v').exec(); 
+        const allDays = await Trackday.find({ members: { $elemMatch: { user: { $eq: req.params.userID } } } }).populate('members.user', '-password -refreshToken -__v').exec();
         let result = []
-        
-        allDays.forEach((trackday)=>{
+
+        allDays.forEach((trackday) => {
             result.push({
                 id: trackday.id,
                 date: trackday.date,
                 status: trackday.status,
                 layout: trackday.layout,
-                green: getRegNumbers(trackday).green,
-                yellow: getRegNumbers(trackday).yellow,
-                red: getRegNumbers(trackday).red,
-                guests: getRegNumbers(trackday).guests,
+                green: getRegDetails(trackday).green,
+                yellow: getRegDetails(trackday).yellow,
+                red: getRegDetails(trackday).red,
+                guests: getRegDetails(trackday).guests,
                 groupCapacity: process.env.GROUP_CAPACITY,
+                votes: getRegDetails(trackday).votes,
                 // trackday members array currently has ALL members for that particular trackday. Fetch specific member entry so we can check payment status
                 paid: trackday.members.find((member) => member.user.equals(req.params.userID)).paid
             })
@@ -395,33 +412,35 @@ exports.updatePaid = [
     controllerUtils.validateUserID,
     controllerUtils.validateTrackdayID,
 
-    asyncHandler(async(req,res,next) => {
-        if (req.user.memberType === 'admin'){
-            const trackday = await Trackday.findById(req.params.trackdayID).populate('members.user', '-password -refreshToken -__v').exec();                                        
+    asyncHandler(async (req, res, next) => {
+        if (req.user.memberType === 'admin') {
+            const trackday = await Trackday.findById(req.params.trackdayID).populate('members.user', '-password -refreshToken -__v').exec();
             const memberEntry = trackday.members.find((member) => member.user.equals(req.params.userID));
             // Check that user we want to mark as paid is actually registerd for the trackday
-            if (!memberEntry) return res.status(404).send({msg: 'Member is not registered for that trackday'});
+            if (!memberEntry) return res.status(404).send({ msg: 'Member is not registered for that trackday' });
 
             // Block changing paid status for credit and gate paymentMethods
-            if (memberEntry.paymentMethod === 'credit' || memberEntry.paymentMethod === 'gate') return res.status(400).send({msg: 'Cannot change paid status on gate or credit registrations'});
+            if (memberEntry.paymentMethod === 'credit' || memberEntry.paymentMethod === 'gate') return res.status(400).send({ msg: 'Cannot change paid status on gate or credit registrations' });
 
 
             // Prevent setting paid status to what it was already set to
-            if (memberEntry.paid && req.body.setPaid == 'true') return res.status(400).send({msg: "user already marked as paid"})
-            if (!memberEntry.paid && req.body.setPaid == 'false') return res.status(400).send({msg: "user already marked as unpaid"})
+            if (memberEntry.paid && req.body.setPaid == 'true') return res.status(400).send({ msg: "user already marked as paid" })
+            if (!memberEntry.paid && req.body.setPaid == 'false') return res.status(400).send({ msg: "user already marked as unpaid" })
 
             // Update paid status
-            memberEntry.paid = memberEntry.paid? false:true
-            
+            memberEntry.paid = memberEntry.paid ? false : true
+
 
             // Send email confirmation to user
             if (memberEntry.paid) {
                 await sendEmail(memberEntry.user.contact.email, "Payment Confirmation", mailTemplates.notifyPaid, {
                     name: memberEntry.user.firstName.charAt(0).toUpperCase() + memberEntry.user.firstName.slice(1),
-                    date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric'
-                })})
+                    date: trackday.date.toLocaleString('default', {
+                        weekday: 'long', month: 'long', day: 'numeric'
+                    })
+                })
             }
-            
+
             await trackday.save()
             return res.sendStatus(200)
         }
@@ -437,11 +456,11 @@ exports.updatePaid = [
 exports.trackday_get = [
     controllerUtils.verifyJWT,
     controllerUtils.validateTrackdayID,
-    
-    asyncHandler(async(req,res,next) => {
-        if (req.user.memberType === 'admin'){
+
+    asyncHandler(async (req, res, next) => {
+        if (req.user.memberType === 'admin') {
             const trackday = await Trackday.findById(req.params.trackdayID).populate('members.user', '-password -refreshToken -__v').select('-__v').exec();
-            return res.status(200).send({...trackday._doc, guests: getRegNumbers(trackday).guests});
+            return res.status(200).send({ ...trackday._doc, guests: getRegDetails(trackday).guests });
         }
         return res.sendStatus(403)
     })
@@ -450,10 +469,10 @@ exports.trackday_get = [
 // Returns all trackdays. Requires JWT with admin.
 exports.trackday_getALL = [
     controllerUtils.verifyJWT,
-    asyncHandler(async(req,res,next)=> {
-        if (req.user.memberType === 'admin'){
+    asyncHandler(async (req, res, next) => {
+        if (req.user.memberType === 'admin') {
             const trackdays = await Trackday.find().populate('members.user', '-password -refreshToken -__v').select('-__v').exec();
-            trackdays.forEach((trackday)=>trackday._doc = {...trackday._doc, guests: getRegNumbers(trackday).guests})
+            trackdays.forEach((trackday) => trackday._doc = { ...trackday._doc, guests: getRegDetails(trackday).guests })
             return res.status(200).json(trackdays);
         }
         return res.sendStatus(403)
@@ -462,16 +481,16 @@ exports.trackday_getALL = [
 
 // Creates a trackday. Requires JWT with admin.
 exports.trackday_post = [
-    body("date",  "Date must be in YYYY-MM-DDThh:mmZ form where time is in UTC").isISO8601().bail().isLength({ min: 17, max: 17}).escape(),
+    body("date", "Date must be in YYYY-MM-DDThh:mmZ form where time is in UTC").isISO8601().bail().isLength({ min: 17, max: 17 }).escape(),
 
     controllerUtils.verifyJWT,
     controllerUtils.validateForm,
-    
-    asyncHandler(async (req,res,next) => {
-        if (req.user.memberType === 'admin'){
+
+    asyncHandler(async (req, res, next) => {
+        if (req.user.memberType === 'admin') {
             // Check if a trackday already exists with same date and time details
-            const duplicateTrackday = await Trackday.find({date: {$eq: req.body.date}})
-            if (duplicateTrackday.length) return res.status(409).send({msg: 'Trackday with this date and time already exists'});
+            const duplicateTrackday = await Trackday.find({ date: { $eq: req.body.date } })
+            if (duplicateTrackday.length) return res.status(409).send({ msg: 'Trackday with this date and time already exists' });
             // Create trackday
             const trackday = new Trackday({
                 date: req.body.date,
@@ -481,7 +500,7 @@ exports.trackday_post = [
                 layout: 'tbd'
             })
             await trackday.save();
-            return res.status(201).json({id: trackday.id});
+            return res.status(201).json({ id: trackday.id });
         }
         return res.sendStatus(403)
     })
@@ -490,23 +509,23 @@ exports.trackday_post = [
 // Updates a trackday EXCLUDING members and walkons. Requires JWT with admin.
 // TODO: updates tests for layout
 exports.trackday_put = [
-    body("date",  "Date must be in YYYY-MM-DDThh:mm form where time is in UTC").isISO8601().bail().isLength({ min: 17, max: 17}).escape(),
-    body("status",  "Status must be one of: [regOpen, regClosed, finished, cancelled]").trim().isIn(["regOpen", "regClosed", "finished", "cancelled"]).escape(),
-    body("layout",  "Layout must be one of: [tbd, technical, Rtechnical, alien, Ralien, modified, Rmodified, long]").trim().isIn(["tbd", "technical", "Rtechnical", "alien", "Ralien", "modified", "Rmodified", "long"]).escape(),
+    body("date", "Date must be in YYYY-MM-DDThh:mm form where time is in UTC").isISO8601().bail().isLength({ min: 17, max: 17 }).escape(),
+    body("status", "Status must be one of: [regOpen, regClosed, finished, cancelled]").trim().isIn(["regOpen", "regClosed", "finished", "cancelled"]).escape(),
+    body("layout", "Layout must be one of: [tbd, technical, Rtechnical, alien, Ralien, modified, Rmodified, long]").trim().isIn(["tbd", "technical", "Rtechnical", "alien", "Ralien", "modified", "Rmodified", "long"]).escape(),
 
     controllerUtils.verifyJWT,
     controllerUtils.validateForm,
     controllerUtils.validateTrackdayID,
 
-    asyncHandler(async(req,res,next) => {
- 
-        if (req.user.memberType === 'admin'){
+    asyncHandler(async (req, res, next) => {
+
+        if (req.user.memberType === 'admin') {
             const oldTrackday = await Trackday.findById(req.params.trackdayID).select('date members walkons').exec();
 
             // Check for duplicates
-            const duplicateTrackday = await Trackday.findOne({date: {$eq: req.body.date}})
+            const duplicateTrackday = await Trackday.findOne({ date: { $eq: req.body.date } })
             const requestedUpdateDate = new Date(req.body.date).toISOString()
-            if (duplicateTrackday && requestedUpdateDate !== oldTrackday.date.toISOString()) return res.status(409).send({msg: 'Trackday with this date and time already exists'});
+            if (duplicateTrackday && requestedUpdateDate !== oldTrackday.date.toISOString()) return res.status(409).send({ msg: 'Trackday with this date and time already exists' });
 
             // Create trackday
             const trackday = new Trackday({
@@ -518,7 +537,7 @@ exports.trackday_put = [
                 _id: req.params.trackdayID
             })
             await Trackday.findByIdAndUpdate(req.params.trackdayID, trackday, {});
-            return res.status(201).json({id: trackday.id});
+            return res.status(201).json({ id: trackday.id });
         }
         return res.sendStatus(403)
     })
@@ -528,9 +547,9 @@ exports.trackday_put = [
 exports.trackday_delete = [
     controllerUtils.verifyJWT,
     controllerUtils.validateTrackdayID,
-    
-    asyncHandler(async(req,res,next) => {
-        if (req.user.memberType === 'admin'){
+
+    asyncHandler(async (req, res, next) => {
+        if (req.user.memberType === 'admin') {
             await Trackday.findByIdAndDelete(req.params.trackdayID);
             return res.sendStatus(200);
         }
