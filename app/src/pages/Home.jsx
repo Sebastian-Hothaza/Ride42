@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+
 import Card from "../components/Card"
 
 import pageContent from './Pagecontent'
@@ -16,7 +15,7 @@ const Home = () => {
 
 	return (
 		<>
-			<Navbar />
+
 			<div className="heroImage">
 				<div className="heroText">
 					{/* TODO: Add some hero text content here */}
@@ -31,7 +30,7 @@ const Home = () => {
 				</div>
 
 			</div>
-			<Footer />
+
 		</>
 	);
 };

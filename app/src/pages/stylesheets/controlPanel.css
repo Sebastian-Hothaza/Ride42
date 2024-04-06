@@ -1,0 +1,10 @@
+#controlPanel{
+    padding-top: 4.5rem;
+
+    display: flex;
+}
+
+.CPMenu{
+    display: flex;
+    flex-direction: column;
+}

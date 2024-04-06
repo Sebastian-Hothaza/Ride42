@@ -1,14 +1,12 @@
 import { NavLink, useOutletContext } from "react-router-dom";
 
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
 
-
+import './stylesheets/login.css'
 
 
 const Login = () => {
 
-    const {handleLogin, loggedIn} =  useOutletContext();
+    const {handleLogin} =  useOutletContext();
 
     function handleLoginSubmit(formData) {
         formData.preventDefault();
@@ -17,7 +15,6 @@ const Login = () => {
 
     return (
         <>
-            <Navbar />
             <div className="main inverted">
                 <div id='registerCard' >
                     <div className='cardContent'>
@@ -46,7 +43,6 @@ const Login = () => {
                     </form>
                 </div>
             </div>
-            <Footer />
         </>
     );
 };

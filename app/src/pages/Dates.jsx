@@ -1,7 +1,6 @@
 import { useOutletContext, Link, NavLink } from "react-router-dom";
-import { useState } from "react";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+
+
 import Card from "../components/Card"
 
 import pageContent from './Pagecontent'
@@ -11,10 +10,10 @@ import './stylesheets/dates.css'
 import square from '../assets/square.jpg'
 
 function Dates() {
-	const allTrackdays = useOutletContext();
+	const { allTrackdays } = useOutletContext();
 
 	// Sort all trackdays as order may not be correct when received from back end
-	if (allTrackdays) allTrackdays.sort((a,b) => (a.date > b.date) ? 1: ((b.date > a.date) ? -1 : 0))
+	if (allTrackdays) allTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
 
 
 
@@ -87,17 +86,17 @@ function Dates() {
 
 
 	return (
-		<>
-			<Navbar />
-			<div className="main">
-				<Card heading='Dates & Layout' body={datesBody} img={square} inverted={false} />
-				<Card heading='Schedule' body={pageContent.HTML_Schedule} img={square} inverted={true}/>
-				<Card heading='Pricing Info' body={pageContent.HTML_PricingInfo} img={square} inverted={false}/>
-			</div>
 
 
-			<Footer />
-		</>
+		<div className="main">
+			<Card heading='Dates & Layout' body={datesBody} img={square} inverted={false} />
+			<Card heading='Schedule' body={pageContent.HTML_Schedule} img={square} inverted={true} />
+			<Card heading='Pricing Info' body={pageContent.HTML_PricingInfo} img={square} inverted={false} />
+		</div>
+
+
+
+
 	);
 };
 

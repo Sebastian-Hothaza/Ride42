@@ -1,22 +1,18 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useOutletContext } from "react-router-dom";
 
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
 import './stylesheets/dashboard.css'
 import Login from "./Login";
+import ControlPanel from "./ControlPanel";
 
-/*
-Depending on if user logged in, show long in page or control panel
-*/
+
 
 const Dashboard = () => {
-
+	const { loggedIn } = useOutletContext();
 	return (
-		<>
-			<Navbar />
-			<Login />
-			<Footer />
-		</>
+		<div className="dashboard">
+			{/* {loggedIn ? <ControlPanel /> : <Login />}  */}
+			<ControlPanel />
+		</div>
 	);
 };
 
