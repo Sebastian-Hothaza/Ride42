@@ -1,0 +1,57 @@
+#registerCard{
+    display: flex;
+    box-shadow: 0 12px 24px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    max-width: 700px;
+    background-color: white;
+    width: 100%;
+}
+
+#whyRegisterList{
+    font-size: 1.25rem;
+}
+
+#whyRegisterList li{
+    padding: .5rem;
+}
+
+#registerBtnContainer{
+    display: flex;
+    justify-content: flex-end;
+}
+
+#registerBtn{
+    padding: 1rem 3rem;
+    margin-right: 2rem;
+}
+
+
+#loginCard{
+    display: flex;
+    flex-direction: column;
+    white-space: nowrap;
+    background-color: white;
+    box-shadow: 0 12px 24px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    align-self: stretch;
+    padding: 1rem 4rem;
+}
+
+#loginCard h1{
+    text-align: center;
+    margin: 4rem 0;
+}
+
+#loginCard form{
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+
+#logInBtn{
+    background-color: red;
+    color: white;
+    padding: .5rem 0;
+    font-size: 1.5rem;
+    text-align: center;
+    font-weight: bold;
+    border: none;
+}

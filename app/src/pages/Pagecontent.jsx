@@ -5,8 +5,8 @@
 
 const HTML_AboutUs = <p>
     Founded in 2024, Ride42 primarily focuses on running motorcycle trackdays at Grand Bend Motorplex. Many riders begin their motorcycle journey on the street
-    and soon realize the danger of exploring the limits of their machine on public roads. With other road users, unknown road surface conditions and no run off
-    area, the consequences and risks simply outweigh the rewards.<br></br>
+    and soon realize the danger of exploring the limits of their machine on public roads with other road users, unknown road surface conditions and no run off
+    area. The consequences and risks simply outweigh the rewards.<br></br>
     <br></br>
     Motorcycle trackdays allow enthusiasts a safe environment where they can truly enjoy and explore the limits of their machines. If you own a modern supersport
     motorcycle and have not been on track with it, you are doing it a disservice! Trackdays allow you to improve your skills in a safe and structured environment;
@@ -97,12 +97,12 @@ const HTML_BikeRules = <div className='rulesCard'>
     <ul>
         <li>Coolant MUST be replaced with either distilled water or a mix of distilled water & water wetter</li>
         <li>Glass must be removed or taped up. (Ie. mirrors and headlights). Plastic headlight lenses are acceptable. </li>
-        <li>Kickstands must be zip tied IF the return spring does not properly snap stand back.</li>
-        <li>Tires and brake pads must be in good condition.</li>
+        <li>Kickstands must be zip tied if the return spring does not properly snap stand back.</li>
+        <li>Tires and brakes must be in good condition.</li>
         <li>Throttle must snap back closed; check that your grip is not catching the bar end</li>
-        <li>No leaks of any kind (Ie: oil, coolant, fork seals, brake fluid)</li>
-        <li>No loose parts or missing bolts on motorcycle</li>
-        <li>Cameras are permitted but must be securely fastened</li>
+        <li>No leaks of any kind (Ie. oil, coolant, fork seals, brake fluid)</li>
+        <li>No loose parts or missing bolts</li>
+        <li>Cameras, if used, must be securely fastened</li>
     </ul>
 </div>
 
@@ -123,14 +123,14 @@ const HTML_OurPolicies = <div className='rulesCard'>
 
     <h3>Passing Rules</h3>
     <ul>
-        <li>Green(Novice): New-to-track riders. Passing restricted to straights</li>
-        <li>Yellow(Intermediate): Developing track riders. Once bike in front of you has initiated their turn in, inside passing is restricted until after the apex. Passing on outside permitted.</li>
+        <li>Green(Novice): New-to-track riders. Passing permitted only on straights</li>
+        <li>Yellow(Intermediate): Developing track riders. Once bike in front of you has initiated their turn in, inside passing is restricted until after the apex. Outside passing permitted.</li>
         <li>Red(Advanced): Experienced track riders and racers. Passing permitted anywhere; however this is a track day, not a race. Be respectful.</li>
     </ul>
 
     <h3>Pre-Registrations</h3>
     <p>
-        Pre-Registrations are accessible to our members thru the member dashboard. A pre-registration is a trackday booking at least 7 days before the event. Your payment <span style={{ fontWeight: 'bold' }}> must </span> also be
+        Pre-Registrations are accessible to our members thru the member dashboard. A pre-registration is a trackday booking made at least 7 days before the event. Your payment <span style={{ fontWeight: 'bold' }}> must </span> also be
         received at least 7 days before the event; otherwise your booking is void.
     </p>
     <h3>Pre-season bundles</h3>
@@ -168,7 +168,7 @@ const HTML_Faq = <div className="faqCard">
         Each group will go out for 15 minute sessions at a time. While this may sound really short, the reality is you will be exhausted!</div>
     <br></br>
     <h4>How fast is green?</h4>
-    <div>This is impossible to really quantify, but chances are, you’re going to be fine. Passing in green is restricted to straights, you won’t be spooked in a corner by someone trying to squeeze in.</div>
+    <div>This is impossible to really quantify, but chances are, you’re going to be fine. Passing is permitted only on straights, you won’t be spooked in a corner by someone trying to squeeze in.</div>
     <br></br>
     <h4>How do I get my bike there?</h4>
     <div>Trailering your bike is ideal; U-haul rents out trailers for $15/day. However, you might not have a hitch on your car. Riding there is an option that some choose to take.

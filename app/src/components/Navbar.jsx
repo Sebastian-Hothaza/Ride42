@@ -36,11 +36,11 @@ const Navbar = () => {
 			</ul>
 			{expandedMenu &&
 				<ul className="menu-button-links" >
-					<Link to="/">Home</Link>
-					<Link to="/dates">Dates</Link>
-					<Link to="/rules">Rules</Link>
-					<Link to="/faq">FAQ</Link>
-					<Link to="/shop">Shop</Link>
+					<Link reloadDocument to="/">Home</Link>
+					<Link reloadDocument to="/dates">Dates</Link>
+					<Link reloadDocument to="/rules">Rules</Link>
+					<Link reloadDocument to="/faq">FAQ</Link>
+					<Link reloadDocument to="/shop">Shop</Link>
 				</ul>
 			}
 

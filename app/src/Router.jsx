@@ -8,6 +8,7 @@ import Rules from "./pages/Rules";
 import Faq from "./pages/Faq";
 import Shop from "./pages/Shop";
 import Dashboard from "./pages/Dashboard";
+import Register from "./pages/Register";
 
 const Router = () => {
 	const router = createBrowserRouter([
@@ -22,6 +23,7 @@ const Router = () => {
 				{ path: "/faq", element: <Faq /> },
 				{ path: "/shop", element: <Shop /> },
 				{ path: "/dashboard", element: <Dashboard /> },
+				{ path: "/register", element: <Register /> },
 			],
 		},
 	]);

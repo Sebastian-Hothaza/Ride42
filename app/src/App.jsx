@@ -5,6 +5,22 @@ import './App.css'
 
 import ScrollToTop from "./components/ScrollToTop";
 
+async function handleLogin(formData) {
+    formData.preventDefault();
+    const response = await fetch('http://localhost:3000/login', {
+        method: 'POST',
+        headers: {
+            'Content-type': 'application/json; charset=UTF-8',
+        },
+        // body: JSON.stringify({email: formData.target.email.value, password: formData.target.password.value})
+        body: JSON.stringify({ email: "sebastianhothaza@gmail.com", password: "Sebi1234" })
+    })
+    const data = await response.json();
+    console.log('response: ', response);
+    console.log('data: ', data)
+}
+
+
 function App() {
     const [allTrackdays, setAllTrackdays] = useState('');
 
@@ -25,7 +41,7 @@ function App() {
     return (
         <>
             <ScrollToTop />
-            <Outlet context={allTrackdays} />
+            <Outlet context={{ allTrackdays, handleLogin, }} />
         </>
     )
 }

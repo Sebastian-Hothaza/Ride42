@@ -82,7 +82,7 @@ function Dates() {
 					</li>
 				))}
 			</ul>
-			<NavLink id="bookBtn" to="/dashboard">Book Your Day</NavLink>
+			<NavLink className="formattedButton" id="bookBtn" to="/dashboard">Book Your Day</NavLink>
 		</>
 
 
