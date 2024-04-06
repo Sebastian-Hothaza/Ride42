@@ -12,6 +12,7 @@ const mailTemplates = require('../mailer_templates')
 
 /*
     --------------------------------------------- TODO ---------------------------------------------
+    add 2 cookie authentication so logout funtion is secured on front end - or API endpoint for logging out
     code cleanup & review
     --------------------------------------------- TODO ---------------------------------------------
 */
@@ -46,7 +47,7 @@ exports.login = [
                 user.refreshToken = refreshToken;
                 await user.save();
                 
-                return res.sendStatus(200);
+                return res.status(200).json({id: user.id, firstName: user.firstName, memberType: user.memberType});
             }else{
                 return res.status(400).json({msg: 'Incorrect Password'});
             }  
