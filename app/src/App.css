@@ -12,7 +12,8 @@ body{
     align-items: center;
     gap: 5rem;
     /* margin-top is required here since navbar technicallly takes up no space due to position being fixed */
-    margin-top: var(--toolbar-thickness);
+    margin-top: calc(1rem + var(--toolbar-thickness));
+    margin-bottom: calc(0.5*var(--toolbar-thickness));
     min-height: calc(100vh - 2 * var(--toolbar-thickness));
 }
 

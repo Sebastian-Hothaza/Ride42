@@ -3,9 +3,8 @@ import { useEffect, useState } from "react";
 
 import Card from "../components/Card"
 
-import pageContent from './Pagecontent'
 
-import './stylesheets/dates.css'
+import styles from './stylesheets/Dates.module.css'
 
 import square from '../assets/square.jpg'
 
@@ -13,19 +12,19 @@ function Dates() {
 	const [allTrackdays, setAllTrackdays] = useState('');
 	const { APIServer } = useOutletContext();
 	async function fetchAPIData() {
-        try {
-            const response = await fetch(APIServer + 'presentTrackdays');
-            if (!response.ok) throw new Error("Failed to get API Data")
-            const data = await response.json();
-            setAllTrackdays(data);
-        } catch (err) {
-            console.log(err.message)
-        }
-    }
+		try {
+			const response = await fetch(APIServer + 'presentTrackdays');
+			if (!response.ok) throw new Error("Failed to get API Data")
+			const data = await response.json();
+			setAllTrackdays(data);
+		} catch (err) {
+			console.log(err.message)
+		}
+	}
 
-    useEffect(() => {
-        fetchAPIData();
-    }, [])
+	useEffect(() => {
+		fetchAPIData();
+	}, [])
 
 
 
@@ -89,27 +88,78 @@ function Dates() {
 
 	const datesBody =
 		<>
-			<ul id="datesUl">
+			<ul id={styles.datesUl}>
 				{datesArray.map((dateInfo) => (
 					<li key={dateInfo.id}>
-						<div className="dateEntry">
+						<div className={styles.dateEntry}>
 							<div>{dateInfo.formattedDate}</div>
-							<div id="layout">{dateInfo.layout}</div>
+							<div id={styles.layout}>{dateInfo.layout}</div>
 						</div>
 					</li>
 				))}
 			</ul>
-			<NavLink className="actionButton" id="bookBtn" to="/dashboard">Book Your Day</NavLink>
+			<NavLink className="actionButton" id={styles.bookBtn} to="/dashboard">Book Your Day</NavLink>
 		</>
 
+	const HTML_PricingInfo = <div id={styles.pricingCard}>
+		<div className={styles.priceEntry}>
+			<div>Pre-Registration (7 days in advance):</div>
+			<div style={{ fontWeight: 'bold' }}>$170</div>
+		</div>
+		<br></br>
+		<div className={styles.priceEntry}>
+			<div>Gate Registration: </div>
+			<div style={{ fontWeight: 'bold' }}>$190</div>
+		</div>
+		<br></br>
+		<br></br>
+		<br></br>
+		<span style={{ fontStyle: 'italic' }}>Gate registrations are space permitting and BBQ lunch is not guaranteed.</span>
+	</div>
 
+const HTML_Schedule = <table>
+    <tbody>
+        <tr>
+            <td>6pm the day before</td>
+            <td>Gates open, camp overnight if you’d like!</td>
+        </tr>
+        <tr>
+            <td>10pm the day before</td>
+            <td>Gates lock</td>
+        </tr>
+        <tr>
+            <td>8am</td>
+            <td>Gates open</td>
+        </tr>
+        <tr>
+            <td>9:30am</td>
+            <td>Mandatory riders meeting</td>
+        </tr>
+        <tr>
+            <td>9:50am</td>
+            <td>Sighting lap - mandatory for new riders</td>
+        </tr>
+        <tr>
+            <td>10am</td>
+            <td>Lapping starts</td>
+        </tr>
+        <tr>
+            <td>1pm</td>
+            <td>Lunch break(1 hour)</td>
+        </tr>
+        <tr>
+            <td>6pm</td>
+            <td>Lapping ends</td>
+        </tr>
+    </tbody>
+</table>
 	return (
 
 
-		<div className="main">
+		<div className="content">
 			<Card heading='Dates & Layout' body={datesBody} img={square} inverted={false} />
-			<Card heading='Schedule' body={pageContent.HTML_Schedule} img={square} inverted={true} />
-			<Card heading='Pricing Info' body={pageContent.HTML_PricingInfo} img={square} inverted={false} />
+			<Card heading='Schedule' body={HTML_Schedule} img={square} inverted={true} />
+			<Card heading='Pricing Info' body={HTML_PricingInfo} img={square} inverted={false} />
 		</div>
 
 
