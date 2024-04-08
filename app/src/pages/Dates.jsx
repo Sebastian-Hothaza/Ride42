@@ -1,5 +1,5 @@
 import { useOutletContext, Link, NavLink } from "react-router-dom";
-
+import { useEffect, useState } from "react";
 
 import Card from "../components/Card"
 
@@ -10,7 +10,25 @@ import './stylesheets/dates.css'
 import square from '../assets/square.jpg'
 
 function Dates() {
-	const { allTrackdays } = useOutletContext();
+	const [allTrackdays, setAllTrackdays] = useState('');
+	const { APIServer } = useOutletContext();
+	async function fetchAPIData() {
+        try {
+            const response = await fetch(APIServer + 'presentTrackdays');
+            if (!response.ok) throw new Error("Failed to get API Data")
+            const data = await response.json();
+            setAllTrackdays(data);
+        } catch (err) {
+            console.log(err.message)
+        }
+    }
+
+    useEffect(() => {
+        fetchAPIData();
+    }, [])
+
+
+
 
 	// Sort all trackdays as order may not be correct when received from back end
 	if (allTrackdays) allTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
