@@ -3,6 +3,8 @@ const router = express.Router();
 const userController = require('../controllers/userController')
 const trackdayController = require('../controllers/trackdayController')
 
+router.get('/', (req,res,next)=>res.sendStatus(200)) // Used to ping API and wake up FLY machines
+
 // Users
 router.post('/login', userController.login)
 router.get('/verify/:userID/:trackdayID/:bikeID', userController.verify)
