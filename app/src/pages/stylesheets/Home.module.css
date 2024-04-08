@@ -1,0 +1,36 @@
+.heroImage{
+    background-image: linear-gradient(rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15)),  url('../../assets/cover.jpg');
+    height: 600px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    margin-top: var(--toolbar-thickness);
+
+}
+
+.imageContainer{
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 1500px;
+}
+
+/* Required to allow images to shrink in imageContainer */
+img{
+    min-width: 0;
+}
+
+@media (max-width: 1200px) {
+    .heroImage{
+        height: 300px;
+    }
+}
+
+@media (max-width: 750px) {
+    .imageContainer{
+        flex-direction: column;
+    }
+    img{
+        width: 100%;
+    }
+}

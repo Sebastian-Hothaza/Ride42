@@ -39,7 +39,7 @@ function App() {
             headers: {
                 'Content-type': 'application/json; charset=UTF-8',
             },
-            body: JSON.stringify({email: formData.target.email.value, password: formData.target.password.value})
+            body: JSON.stringify({ email: formData.target.email.value, password: formData.target.password.value })
         })
         if (!response.ok) {
             // Set some error message in state variable similar to how we did the comment post error message
@@ -64,8 +64,12 @@ function App() {
         <>
             <Navbar />
             <ScrollToTop />
-            <Outlet context={{APIServer, handleLogin, loggedIn, handleLogout}} />
-            <Footer />
+            <div className='main'>
+                <Outlet context={{ APIServer, handleLogin, loggedIn, handleLogout }} />
+                <Footer />
+            </div>
+
+
         </>
     )
 }

@@ -3,44 +3,29 @@ body{
 }
 
 .main{
+    
+}
+
+.content{
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 10rem 4rem;
     gap: 5rem;
-}
-
-.imageContainer{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    max-width: 1500px;
-    height: 100%;
-}
-
-img{
-    min-width: 0;
+    /* margin-top is required here since navbar technicallly takes up no space due to position being fixed */
+    margin-top: var(--toolbar-thickness);
+    min-height: calc(100vh - 2 * var(--toolbar-thickness));
 }
 
 
-.formattedButton{
+
+.actionButton{
     background-color: black;
     color: white;
+    border-radius: .5rem;
     font-size: 1.5rem;
 }
 
-
-@media (max-width: 750px) {
-    .main{
-        padding: 6rem 0;
-        gap: 1rem;
-    }
-    .imageContainer{
-        flex-direction: column;
-    }
-
-    img{
-        width: 100%;
-    }
+.active {
+	background-color: black;
+	font-weight: bolder;
 }

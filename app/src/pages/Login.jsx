@@ -28,7 +28,7 @@ const Login = () => {
                                 <li>One time waiver</li>
                             </ul>
                             <div id="registerBtnContainer">
-                                <NavLink id="registerBtn" className="formattedButton" to="/register">Register Now!</NavLink>
+                                <NavLink id="registerBtn" className="actionButton" to="/register">Register Now!</NavLink>
                             </div>
 
                         </div>

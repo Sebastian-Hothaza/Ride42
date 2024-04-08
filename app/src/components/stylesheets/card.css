@@ -6,6 +6,8 @@
     width: 100%;
 }
 
+
+
 .cardContent{
     display: flex;
     flex-direction: column;
@@ -36,7 +38,7 @@
 }
 
 
-@media (max-width: 750px) {
+@media (max-width: 850px) {
     .card{
         flex-direction: column;
         width: 100%;

@@ -1,31 +1,45 @@
+a{
+    text-decoration: none;
+    color: inherit;
+}
+
 .footer{
     display: flex;
     justify-content: space-between;
     align-items: center;
     background-color: var(--dark-gray);
     color: white;
-    padding: 1rem 2rem;
+    height: var(--toolbar-thickness);
+    width: 100%;
 }
 
-#desktop-contact>a{
+.footer>*{
+    padding: 0 2rem;
+}
+
+.footer img{
+    height: 2rem;
+}
+
+#desktopContact>a{
     text-decoration: underline;
 }
 
-#mobile-contact{
+#mobileContact{
     display: none
 }
 
 
 @media (max-width: 700px) {
-    #desktop-contact{
+    #desktopContact{
         display: none;
     }
-    #mobile-contact{
+    #mobileContact{
         font-size: 3rem;
         margin-bottom: 8px;
         display: inline;
     }
-    #footer-logo{
+    #footerLogo{
         display: none;
     }
 }
