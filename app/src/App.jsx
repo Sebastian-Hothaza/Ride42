@@ -7,30 +7,27 @@ import ScrollToTop from "./components/ScrollToTop";
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
-// NOTE: Dates API data is fetched here before we even need it just to wake up backend (fly takes 2-3 seconds to wake up)
-// TODO: Invalid ping just to wake up, and move out fetching dates to Dates.jsx
 
 function App() {
     const APIServer = (process.env.NODE_ENV === 'production') ? 'https://api.ride42.ca/' : 'http://localhost:3000/'
-    const [allTrackdays, setAllTrackdays] = useState('');
     const [loggedIn, setLoggedIn] = useState(false);
 
     // Deal with user redreshing the page which would reset logged in status
     if (!loggedIn && localStorage.getItem('user')) setLoggedIn(true)
 
-    async function fetchAPIData() {
+    // Ping API to wake it up, FLY machine can take 2-3 seconds to wake
+    async function wakeAPI() {
         try {
-            const response = await fetch(APIServer + 'presentTrackdays');
-            if (!response.ok) throw new Error("Failed to get API Data")
-            const data = await response.json();
-            setAllTrackdays(data);
+            await fetch(APIServer);
         } catch (err) {
-            console.log(err.message)
+            console.log('Could not contact API')
         }
     }
 
+
+
     useEffect(() => {
-        fetchAPIData();
+        wakeAPI();
     }, [])
 
 
@@ -63,17 +60,12 @@ function App() {
         setLoggedIn(false);
     }
 
-
-
-
-
-
     return (
         <>
-            {/* <Navbar /> */}
+            <Navbar />
             <ScrollToTop />
-            <Outlet context={{ allTrackdays, handleLogin, loggedIn, handleLogout, APIServer }} />
-            {/* <Footer /> */}
+            <Outlet context={{APIServer, handleLogin, loggedIn, handleLogout}} />
+            <Footer />
         </>
     )
 }
