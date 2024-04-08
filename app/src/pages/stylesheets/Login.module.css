@@ -1,3 +1,9 @@
+.inverted{
+    flex-direction: row;
+    justify-content: center;
+    composes: content from global;
+}
+
 #registerCard{
     display: flex;
     box-shadow: 0 12px 24px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);

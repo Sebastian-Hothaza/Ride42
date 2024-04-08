@@ -1,11 +1,10 @@
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { useOutletContext, useNavigate } from "react-router-dom";
-import './stylesheets/rules.css'
+
+import styles from './stylesheets/Register.module.css'
 
 import Card from "../components/Card"
-
-
 
 const Register = () => {
 
@@ -83,7 +82,7 @@ const Register = () => {
 	return (
 		<>
 
-			<div className="main">
+			<div className="content">
 				<Card heading='Register' body={registerForm} inverted={false} />
 			</div>
 

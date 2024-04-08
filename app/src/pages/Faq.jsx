@@ -1,10 +1,10 @@
 
 import Card from "../components/Card"
-import './stylesheets/faq.css'
+import styles from './stylesheets/Faq.module.css'
 
 
 const Faq = () => {
-	const HTML_Faq = <div className="faqCard">
+	const HTML_Faq = <div className={styles.faqCard}>
 		<h2>For those new to track...</h2>
 		<br></br>
 		<h4>What do I need to do to my bike?</h4>
@@ -54,7 +54,7 @@ const Faq = () => {
 
 	</div>
 	return (
-		<div className="main">
+		<div className="content">
 			<Card heading='FAQ' body={HTML_Faq} inverted={false} />
 		</div>
 	);

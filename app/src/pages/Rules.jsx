@@ -1,12 +1,12 @@
 
 
 import Card from "../components/Card"
-import './stylesheets/rules.css'
+import styles from './stylesheets/Rules.module.css'
 import square from '../assets/square.jpg'
 
 const Rules = () => {
 
-	const HTML_BikeRules = <div className='rulesCard'>
+	const HTML_BikeRules = <div className={styles.rulesCard}>
 		In order to keep our trackday safe for you and our community, please make sure your bike meets our standards. Upon arriving, you will need to submit
 		your bike for tech inspection.
 		<br></br><br></br>
@@ -22,7 +22,7 @@ const Rules = () => {
 		</ul>
 	</div>
 
-	const HTML_GearRules = <div className='rulesCard'>
+	const HTML_GearRules = <div className={styles.rulesCard}>
 		Nobody wants to think about crashing, but having the right gear can make all the difference. We take safety seriously and require your gear to meet our standards.
 		<br></br><br></br>
 		<ul>
@@ -33,7 +33,7 @@ const Rules = () => {
 		</ul>
 	</div>
 
-	const HTML_OurPolicies = <div className='rulesCard'>
+	const HTML_OurPolicies = <div className={styles.rulesCard}>
 		Please familiarize yourself with our policies. If you have any questions, please email us at <a href="mailto: info@ride42.ca">info@ride42.ca</a>
 		<br></br><br></br>
 
@@ -71,7 +71,7 @@ const Rules = () => {
 
 
 	return (
-		<div className="main">
+		<div className="content">
 			<Card heading='Your Bike' body={HTML_BikeRules} img={square} inverted={false} />
 			<Card heading='Your Gear' body={HTML_GearRules} img={square} inverted={true} />
 			<Card heading='Our Policies' body={HTML_OurPolicies} img={square} inverted={false} />

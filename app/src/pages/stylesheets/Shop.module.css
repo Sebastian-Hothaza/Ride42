@@ -1,9 +1,10 @@
-.main.inverted{
+.inverted{
     flex-direction: row;
     justify-content: center;
+    composes: content from global;
 }
 
-.main.inverted img{
+.inverted img{
     width: 100%;
 }
 
@@ -21,7 +22,7 @@
 }
 
 @media (max-width: 1200px) {
-    .main.inverted{
+    .inverted{
         flex-direction: column;
         justify-content: center;
     }
