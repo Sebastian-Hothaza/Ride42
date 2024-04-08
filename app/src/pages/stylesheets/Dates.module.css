@@ -2,6 +2,7 @@
     font-size: 1.5rem;
     columns: 2;
     margin-bottom: 3rem;
+    list-style: none;
 }
 
 #datesUl li{
@@ -41,6 +42,10 @@ tr{
 }
 tr:nth-child(odd){
     background-color: lightgray;
+}
+
+td{
+    padding: .5rem;
 }
 
 #pricingCard{

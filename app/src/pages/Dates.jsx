@@ -86,20 +86,19 @@ function Dates() {
 
 
 
-	const datesBody =
-		<>
-			<ul id={styles.datesUl}>
-				{datesArray.map((dateInfo) => (
-					<li key={dateInfo.id}>
-						<div className={styles.dateEntry}>
-							<div>{dateInfo.formattedDate}</div>
-							<div id={styles.layout}>{dateInfo.layout}</div>
-						</div>
-					</li>
-				))}
-			</ul>
-			<NavLink className="actionButton" id={styles.bookBtn} to="/dashboard">Book Your Day</NavLink>
-		</>
+	const HTML_Dates = <>
+		<ul id={styles.datesUl}>
+			{datesArray.map((dateInfo) => (
+				<li key={dateInfo.id}>
+					<div className={styles.dateEntry}>
+						<div>{dateInfo.formattedDate}</div>
+						<div id={styles.layout}>{dateInfo.layout}</div>
+					</div>
+				</li>
+			))}
+		</ul>
+		<NavLink className="actionButton" id={styles.bookBtn} to="/dashboard">Book Your Day</NavLink>
+	</>
 
 	const HTML_PricingInfo = <div id={styles.pricingCard}>
 		<div className={styles.priceEntry}>
@@ -117,54 +116,49 @@ function Dates() {
 		<span style={{ fontStyle: 'italic' }}>Gate registrations are space permitting and BBQ lunch is not guaranteed.</span>
 	</div>
 
-const HTML_Schedule = <table>
-    <tbody>
-        <tr>
-            <td>6pm the day before</td>
-            <td>Gates open, camp overnight if you’d like!</td>
-        </tr>
-        <tr>
-            <td>10pm the day before</td>
-            <td>Gates lock</td>
-        </tr>
-        <tr>
-            <td>8am</td>
-            <td>Gates open</td>
-        </tr>
-        <tr>
-            <td>9:30am</td>
-            <td>Mandatory riders meeting</td>
-        </tr>
-        <tr>
-            <td>9:50am</td>
-            <td>Sighting lap - mandatory for new riders</td>
-        </tr>
-        <tr>
-            <td>10am</td>
-            <td>Lapping starts</td>
-        </tr>
-        <tr>
-            <td>1pm</td>
-            <td>Lunch break(1 hour)</td>
-        </tr>
-        <tr>
-            <td>6pm</td>
-            <td>Lapping ends</td>
-        </tr>
-    </tbody>
-</table>
+	const HTML_Schedule = <table>
+		<tbody>
+			<tr>
+				<td>6pm the day before</td>
+				<td>Gates open, camp overnight if you’d like!</td>
+			</tr>
+			<tr>
+				<td>10pm the day before</td>
+				<td>Gates lock</td>
+			</tr>
+			<tr>
+				<td>8am</td>
+				<td>Gates open</td>
+			</tr>
+			<tr>
+				<td>9:30am</td>
+				<td>Mandatory riders meeting</td>
+			</tr>
+			<tr>
+				<td>9:50am</td>
+				<td>Sighting lap - mandatory for new riders</td>
+			</tr>
+			<tr>
+				<td>10am</td>
+				<td>Lapping starts</td>
+			</tr>
+			<tr>
+				<td>1pm</td>
+				<td>Lunch break(1 hour)</td>
+			</tr>
+			<tr>
+				<td>6pm</td>
+				<td>Lapping ends</td>
+			</tr>
+		</tbody>
+	</table>
+
 	return (
-
-
 		<div className="content">
-			<Card heading='Dates & Layout' body={datesBody} img={square} inverted={false} />
+			<Card heading='Dates & Layout' body={HTML_Dates} img={square} inverted={false} />
 			<Card heading='Schedule' body={HTML_Schedule} img={square} inverted={true} />
 			<Card heading='Pricing Info' body={HTML_PricingInfo} img={square} inverted={false} />
 		</div>
-
-
-
-
 	);
 };
 
