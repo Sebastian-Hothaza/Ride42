@@ -18,7 +18,7 @@ a{
 }
 
 .footer img{
-    height: 2rem;
+    height: calc(0.5*var(--toolbar-thickness));
 }
 
 #desktopContact>a{
