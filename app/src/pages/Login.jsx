@@ -8,9 +8,9 @@ const Login = () => {
 
     const { handleLogin } = useOutletContext();
 
-    function handleLoginSubmit(formData) {
-        formData.preventDefault();
-        handleLogin(formData);
+    function handleLoginSubmit(e) {
+        e.preventDefault();
+        handleLogin(e);
     }
 
     return (
@@ -29,7 +29,7 @@ const Login = () => {
                                     <li>One time waiver</li>
                                 </ul>
                                 <div id={styles.registerBtnContainer}>
-                                    <NavLink className={styles.registerBtn}  to="/register">Register Now!</NavLink>
+                                    <NavLink className={styles.registerBtn} to="/register">Register Now!</NavLink>
                                 </div>
 
                             </div>
@@ -37,7 +37,7 @@ const Login = () => {
                     </div>
                     <div id={styles.loginCard}>
                         <h1>Member Log-In</h1>
-                        <form onSubmit={(formData) => handleLoginSubmit(formData)} >
+                        <form onSubmit={(e) => handleLoginSubmit(e)} >
                             <input type="text" name="email" placeholder="email" />
                             <input type="password" name="password" placeholder="password" />
                             <button id={styles.logInBtn} type="submit">Log In</button>
