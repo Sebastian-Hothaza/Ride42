@@ -1,0 +1,135 @@
+.controlPanel {
+    display: flex;
+    gap: 3rem;
+    max-width: 1800px;
+    /*navbar technically takes up no space due to position being fixed */
+    margin-top: calc(2*var(--toolbar-thickness));
+    margin-bottom: var(--toolbar-thickness);
+    /* Subtract the height of the header and footer */
+    min-height: calc(100vh - 4* var(--toolbar-thickness));
+    /* border: 3px solid yellow; */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.CPMenu {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    gap: 1rem;
+    min-width: 250px;
+    /* border: 1px solid blue;; */
+    border-right: solid 6px var(--accent-color);
+
+}
+
+#greeting {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-bottom: 2rem;
+}
+
+.CPMenu button {
+    color: white;
+    background-color: var(--dark-gray);
+    border: none;
+    padding: .75rem 0;
+    border-radius: .5rem;
+    font-size: 1.1rem;
+}
+
+.CPMenu button.selected {
+    border: solid 2px var(--accent-color);
+    font-weight: bold;
+    transition:
+        scale .4s,
+        color .3s,
+        background-color .3s;
+
+    scale: 1.05;
+    background-color: white;
+    color: black;
+}
+
+.mainControls {
+    display: flex;
+    flex-direction: column;
+    gap: inherit;
+
+}
+
+#logOutBtn {
+    background-color: var(--accent-color);
+}
+
+.CPDash {
+    border: 1px solid red;
+    flex-grow: 1;
+}
+
+button:hover {
+    cursor: pointer;
+}
+
+.CPMenuMobile {
+    display: none;
+}
+
+
+@media (max-width: 1200px) {
+    .controlPanel {
+        flex-direction: column;
+        /* we are hiding the footer by doing this */
+        margin-top: calc(2*var(--toolbar-thickness));
+    }
+
+
+
+    .CPMenu {
+        display: none;
+    }
+
+    .CPMenuMobile {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        height: var(--toolbar-thickness);
+        width: 100%;
+        background-color: var(--dark-gray);
+  
+        
+    }
+
+    .CPMenuMobile button {
+        color: white;
+        background-color: inherit;
+        border: none;
+        /* padding: 0 1.25rem; */
+ 
+        flex-grow: 1;
+    
+    }
+
+    .CPMenuMobile button.selected{
+        background-color: black;
+        
+    }
+
+    .CPMenuMobile span.selected{
+        color: var(--accent-color);
+    }
+
+   
+
+}
+
+
+.mobileToolbarIcons {
+    font-size: 40px;
+    font-variation-settings:
+        'FILL' 0,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24;
+}

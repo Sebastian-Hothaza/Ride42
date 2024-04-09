@@ -1,8 +1,0 @@
-#controlPanel{
-    display: flex;
-}
-
-.CPMenu{
-    display: flex;
-    flex-direction: column;
-}
