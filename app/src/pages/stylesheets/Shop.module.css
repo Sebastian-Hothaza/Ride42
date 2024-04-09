@@ -1,7 +1,9 @@
-.inverted{
-    flex-direction: row;
-    justify-content: center;
-    composes: content from global;
+.invertedContent{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1500px;
 }
 
 .inverted img{
@@ -21,9 +23,10 @@
     font-weight: bold;
 }
 
-@media (max-width: 1200px) {
-    .inverted{
+@media (max-width: 1000px) {
+    .invertedContent{
         flex-direction: column;
         justify-content: center;
+        gap: 5rem;
     }
 }

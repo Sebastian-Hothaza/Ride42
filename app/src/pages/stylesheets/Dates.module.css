@@ -15,9 +15,9 @@
     margin-right: 4rem;
 }
 
-#bookBtn{
+.bookBtn{
     margin: auto;
-    padding: 1rem 2rem;
+    composes: actionButton from global;
 }
 
 #layout{

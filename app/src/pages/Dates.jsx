@@ -97,7 +97,7 @@ function Dates() {
 				</li>
 			))}
 		</ul>
-		<NavLink className="actionButton" id={styles.bookBtn} to="/dashboard">Book Your Day</NavLink>
+		<NavLink className={styles.bookBtn} to="/dashboard">Book Your Day</NavLink>
 	</>
 
 	const HTML_PricingInfo = <div id={styles.pricingCard}>
