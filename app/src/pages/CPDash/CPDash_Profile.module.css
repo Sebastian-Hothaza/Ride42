@@ -1,0 +1,109 @@
+.content {
+    display: flex;
+    flex-direction: column;
+    padding: 3rem;
+    gap: 2rem;
+}
+
+.inputSection:last-child{
+    border-bottom: none;
+}
+
+.inputSection {
+    display: grid;
+    align-items: center;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    padding-bottom: 30px;
+    border-bottom: dashed 1px black;
+}
+
+.inputPairing {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.inputPairing input{
+    min-width: 250px;
+}
+
+#groupContainer{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.confirmContainer{
+    display: flex;
+    gap: 1rem;
+}
+
+.confirmContainer select{
+    min-width: 100px;
+}
+
+.content button {
+    background-color: black;
+    color: white;
+    border: none;
+    font-size: inherit;
+    border-radius: .2rem;
+    padding: .2rem 1rem;
+    min-width: 120px;
+}
+
+.confirmBtn{
+    background-color: var(--accent-color) !important;
+    font-weight: bold !important;
+}
+
+.btnContainer{
+    grid-column: span 2;
+    margin: auto;
+}
+
+#changePswBtn{
+    display: flex;
+    justify-content: flex-end;
+}
+
+@media (max-width: 850px) {
+    .inputSection {
+        grid-template-columns: 1fr;
+    }
+
+    .inputPairing {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .inputPairing input{
+        width: 100%;
+    }
+
+    .btnContainer{
+        grid-column: span 1;
+        margin: auto;
+    }
+  
+
+    .confirmContainer{
+        flex-direction: column;
+        gap: .5rem;
+    }
+
+
+    #groupContainer{
+        align-items: flex-start;
+    }
+    #groupContainer div{
+        margin-top: 3px;
+    }
+    #changePswBtn{
+
+        justify-content: center;
+    }
+
+}

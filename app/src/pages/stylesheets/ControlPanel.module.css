@@ -64,7 +64,8 @@
 }
 
 .CPDash {
-    border: 1px solid red;
+    box-shadow: 0 12px 24px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    background-color: white;
     flex-grow: 1;
 }
 

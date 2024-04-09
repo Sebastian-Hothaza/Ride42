@@ -11,7 +11,7 @@ const ControlPanel = ({ APIServer }) => {
     const { handleLogout } = useOutletContext();
     const loggedInUser = JSON.parse(localStorage.getItem("user"))
 
-    const [activeTab, setActiveTab] = useState('trackdays')
+    const [activeTab, setActiveTab] = useState('profile')
 
     return (
         <div className={styles.controlPanel}>

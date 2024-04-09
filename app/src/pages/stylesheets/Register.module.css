@@ -26,11 +26,9 @@
 .inputSection {
     display: grid;
     grid-template-columns: 1fr 1fr;
-
     gap: 1.5rem;
     padding-bottom: 30px;
     border-bottom: dashed 1px black;
-
 }
 
 
@@ -51,11 +49,21 @@
 
     #registerForm {
         font-size: 1rem;
-        padding: 0 1rem;
+        padding: 0 2rem;
     }
 
     #registerForm select {
         font-size: inherit;
-        width: 188px;
+  
+    }
+
+    .inputPairing {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .inputPairing input{
+        width: 100%;
     }
 }

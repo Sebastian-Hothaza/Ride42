@@ -97,7 +97,7 @@ const Register = () => {
 			</div>
 
 
-			<button className={styles.registerBtn} type="submit">Submit</button>
+			<button className={styles.registerBtn} type="submit">Submit Registration</button>
 
 
 
