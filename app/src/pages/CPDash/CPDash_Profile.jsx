@@ -101,6 +101,7 @@ const Profile = ({ loggedInUser, APIServer }) => {
 		<>
 			{!userInfo ? <div>...</div> :
 				<div className={styles.content}>
+					<h1>My Profile</h1>
 					<div className={styles.inputSection}>
 						<div id={styles.groupContainer}>
 							<div>Group: {userInfo.group[0].toUpperCase() + userInfo.group.slice(1)}</div>
