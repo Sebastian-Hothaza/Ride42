@@ -32,21 +32,24 @@ function App() {
 
 
 
-    async function handleLogin(formData) {
+    async function handleLogin(e) {
+        const formData = new FormData(e.target);
         const response = await fetch(APIServer + 'login', {
             method: 'POST',
             credentials: "include",
             headers: {
                 'Content-type': 'application/json; charset=UTF-8',
             },
-            body: JSON.stringify({ email: formData.target.email.value, password: formData.target.password.value })
+            body: JSON.stringify(Object.fromEntries(formData))
         })
         if (!response.ok) {
             // Set some error message in state variable similar to how we did the comment post error message
             // Incorrect password or user does not exist
             // TODO
             console.log("BAD LOGIN")
-            formData.target.password.value = '';
+            e.target.password.value = '';
+            const data = await response.json();
+            console.log(data);
             return;
         }
         const data = await response.json();
