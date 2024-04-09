@@ -1,0 +1,183 @@
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.content form {
+    display: flex;
+    flex-direction: column;
+}
+
+
+
+.inputPairing {
+    display: flex;
+    /* justify-content: space-between; */
+    align-items: center;
+    font-size: 1.25rem;
+    gap: .5rem;
+
+}
+
+
+
+.bookDetails {
+    display: flex;
+    justify-content: space-between;
+    /* background-color: orange; */
+    padding-bottom: 2rem;
+}
+
+.bookDetails .inputPairing:first-child select {
+    width: 13rem;
+}
+
+.bookDetails input,
+.bookDetails select {
+    font-size: inherit;
+    text-align: center;
+    width: 22rem;
+}
+
+.bookDetails .inputPairing:last-child input {
+    width: 3rem;
+}
+
+
+
+.layoutVote {
+    font-size: 1.25rem;
+}
+
+
+/* CHECKBOXES */
+
+.checkboxes {
+    display: grid;
+    margin: 2rem 0;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    white-space: nowrap;
+    gap: 1rem;
+}
+
+.checkboxPairing{
+    display: flex;
+    align-items: center;
+    font-size: inherit;
+    gap: .5rem;
+}
+
+
+.checkboxes input[type="checkbox"] {
+    height: 1.5rem;
+    width: 1.5rem;
+}
+
+
+#registerBtn {
+    margin-top: 2rem;
+    align-self: center;
+    font-size: 2rem;
+    padding: .5rem 5rem;
+}
+
+
+.content button {
+    background-color: black;
+    color: white;
+    border: none;
+    font-size: inherit;
+    border-radius: .2rem;
+    padding: .5rem 1rem;
+    min-width: 150px;
+}
+
+.confirmBtn {
+    background-color: var(--accent-color) !important;
+    font-weight: bold !important;
+}
+
+
+/* My Trackdays */
+.tdEntry {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    /* justify-items: right; */
+    align-items: center;
+    background-color: whitesmoke;
+    padding: 1rem;
+    gap: 1rem;
+}
+
+.tdControls:last-child {
+    justify-self: right;
+}
+
+.tdControls {
+    display: flex;
+    gap: 1rem;
+
+}
+
+.tdControls form {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+}
+
+
+.tdEntry:nth-child(odd) {
+    background-color: lightgray;
+}
+
+
+
+@media (max-width: 1000px) {
+    .bookDetails {
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .inputPairing {
+        flex-direction: column;
+        align-items: center;
+        /* gap: 1rem; */
+    }
+
+
+    .bookDetails input,
+    .bookDetails select {
+        font-size: 1rem;
+        text-align: center;
+        width: 15rem;
+    }
+
+
+}
+
+/* My Trackdays */
+
+@media (max-width: 700px) {
+    .tdEntry {
+        grid-template-columns: 1fr 1fr;
+        justify-items: center;
+    }
+    .tdControls:last-child {
+        grid-column: span 2;
+        justify-self: center;
+    }
+    .tdControls form {
+        flex-direction: column;
+    }
+
+}
+
+@media (max-width: 450px) {
+    .tdControls {
+        flex-direction: column;
+
+    }
+   
+
+}
