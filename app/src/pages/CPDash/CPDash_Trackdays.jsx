@@ -2,7 +2,7 @@ import { useEffect, useState, } from "react";
 import { useOutletContext } from "react-router-dom";
 const Trackdays = ({ loggedInUser, APIServer }) => {
 
-	const { allTrackdays } = useOutletContext();
+	const [allTrackdays, setAllTrackdays] = useState('');
 
 	// Sort all trackdays as order may not be correct when received from back end
 	if (allTrackdays) allTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
@@ -15,6 +15,17 @@ const Trackdays = ({ loggedInUser, APIServer }) => {
 	const [showReschedule, setShowReschedule] = useState([]); // tracks for which trackday ID's should we show the reschedule box for
 
 	async function fetchAPIData() {
+
+		try {
+			const response = await fetch(APIServer + 'presentTrackdays');
+			if (!response.ok) throw new Error("Failed to get API Data")
+			const data = await response.json();
+			setAllTrackdays(data);
+		} catch (err) {
+			console.log(err.message)
+		}
+
+
 		try {
 			const response = await fetch(APIServer + 'presentTrackdays/' + loggedInUser.id);
 			if (!response.ok) throw new Error("Failed to get API Data")
@@ -84,7 +95,7 @@ const Trackdays = ({ loggedInUser, APIServer }) => {
 			headers: {
 				'Content-type': 'application/json; charset=UTF-8',
 			},
-			body: JSON.stringify(formData)
+			body: JSON.stringify(Object.fromEntries(formData))
 		})
 		if (response.status == 400) {
 			const data = await response.json()
