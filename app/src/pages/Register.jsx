@@ -39,11 +39,15 @@ const Register = () => {
 			<div className={styles.inputSection}>
 				<div className={styles.inputPairing}>
 					<label htmlFor="email">Email:</label>
-					<input type="text" id="email" name="email"></input>
+					<input type="email" id="email" name="email"></input>
+				</div>
+				<div className={styles.inputPairing}>
+					<label htmlFor="emailConfirm">Confirm Email:</label>
+					<input type="text" id="emailConfirm" name="emailConfirm"></input>
 				</div>
 				<div className={styles.inputPairing}>
 					<label htmlFor="phone">Phone:</label>
-					<input type="text" id="phone" name="phone"></input>
+					<input type="tel" id="phone" name="phone"></input>
 				</div>
 				<div className={styles.inputPairing}>
 					<label htmlFor="address">Street Address:</label>
