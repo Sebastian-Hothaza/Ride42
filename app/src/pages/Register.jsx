@@ -12,55 +12,97 @@ const Register = () => {
 	const navigate = useNavigate();
 
 	const registerForm =
-		<form id="registerForm" onSubmit={(e) => handleRegisterSubmit(e)} >
-			<label htmlFor="firstName">First Name:</label>
-			<input type="text" id="firstName" name="firstName"></input>
-			<label htmlFor="lastName">Last Name:</label>
-			<input type="text" id="lastName" name="lastName"></input>
+		<form id={styles.registerForm} onSubmit={(e) => handleRegisterSubmit(e)} >
+			<div className={styles.inputSection}>
+				<div className={styles.inputPairing}>
+					<label htmlFor="firstName">First Name:</label>
+					<input type="text" id="firstName" name="firstName"></input>
+				</div>
 
-			<label htmlFor="email">Email:</label>
-			<input type="text" id="email" name="email"></input>
-			<label htmlFor="phone">Phone:</label>
-			<input type="text" id="phone" name="phone"></input>
-			<label htmlFor="address">Address:</label>
-			<input type="text" id="address" name="address"></input>
-			<label htmlFor="city">City:</label>
-			<input type="text" id="city" name="city"></input>
-			<label htmlFor="province">Province:</label>
-			<input type="text" id="province" name="province"></input>
+				<div className={styles.inputPairing}>
+					<label htmlFor="lastName">Last Name:</label>
+					<input type="text" id="lastName" name="lastName"></input>
+				</div>
 
-			<label htmlFor="EmergencyName_firstName">Emergency Contact - First Name:</label>
-			<input type="text" id="EmergencyName_firstName" name="EmergencyName_firstName"></input>
-			<label htmlFor="EmergencyName_lastName">Emergency Contact - Last Name:</label>
-			<input type="text" id="EmergencyName_lastName" name="EmergencyName_lastName"></input>
-			<label htmlFor="EmergencyPhone">Emergency Contact - Phone:</label>
-			<input type="text" id="EmergencyPhone" name="EmergencyPhone"></input>
-			<label htmlFor="EmergencyRelationship">Emergency Contact - Relationship:</label>
-			<input type="text" id="EmergencyRelationship" name="EmergencyRelationship"></input>
+				<div className={styles.inputPairing}>
+					<label htmlFor="group">Group:</label>
+					<select name="group" id="group" form={styles.registerForm}>
+						<option key="groupNone" value="">---Choose Group---</option>
+						<option key="green" value="green">Green (Novice)</option>
+						<option key="yellow" value="yellow">Yellow (Intermediate)</option>
+						<option key="red" value="red">Red (Advanced)</option>
+					</select>
+				</div>
+
+			</div>
+
+			<div className={styles.inputSection}>
+				<div className={styles.inputPairing}>
+					<label htmlFor="email">Email:</label>
+					<input type="text" id="email" name="email"></input>
+				</div>
+				<div className={styles.inputPairing}>
+					<label htmlFor="phone">Phone:</label>
+					<input type="text" id="phone" name="phone"></input>
+				</div>
+				<div className={styles.inputPairing}>
+					<label htmlFor="address">Street Address:</label>
+					<input type="text" id="address" name="address"></input>
+				</div>
+				<div className={styles.inputPairing}>
+					<label htmlFor="city">City:</label>
+					<input type="text" id="city" name="city"></input>
+				</div>
+				<div className={styles.inputPairing}>
+					<label htmlFor="province">Province:</label>
+					<select name="province" id="province" form={styles.registerForm}>
+						<option key="ontario" value="ontario">Ontario</option>
+						<option key="quebec" value="quebec">Quebec</option>
+						<option key="other" value="other">Other</option>
+					</select>
+				</div>
+			</div>
+			<div className={styles.inputSection}>
+				<div className={styles.inputPairing}>
+					<label htmlFor="EmergencyName_firstName">Emergency Contact - First Name:</label>
+					<input type="text" id="EmergencyName_firstName" name="EmergencyName_firstName"></input>
+				</div>
+				<div className={styles.inputPairing}>
+					<label htmlFor="EmergencyName_lastName">Emergency Contact - Last Name:</label>
+					<input type="text" id="EmergencyName_lastName" name="EmergencyName_lastName"></input>
+				</div>
+				<div className={styles.inputPairing}>
+					<label htmlFor="EmergencyPhone">Emergency Contact - Phone:</label>
+					<input type="text" id="EmergencyPhone" name="EmergencyPhone"></input>
+				</div>
+				<div className={styles.inputPairing}>
+					<label htmlFor="EmergencyRelationship">Emergency Contact - Relationship:</label>
+					<input type="text" id="EmergencyRelationship" name="EmergencyRelationship"></input>
+				</div>
+
+			</div>
+			<div className={styles.inputSection}>
+				<div className={styles.inputPairing}>
+					<label htmlFor="password">Password:</label>
+					<input type="password" id="password" name="password"></input>
+				</div>
+				<div className={styles.inputPairing}>
+					<label htmlFor="passwordConfirm">Confirm Password:</label>
+					<input type="password" id="passwordConfirm" name="passwordConfirm"></input>
+				</div>
+			</div>
 
 
-			<label htmlFor="password">Password:</label>
-			<input type="password" id="password" name="password"></input>
-			<label htmlFor="passwordConfirm">Confirm New Password:</label>
-			<input type="password" id="passwordConfirm" name="passwordConfirm"></input>
-
-			<select name="group" id="group" form="registerForm">
-				<option key="green" value="green">Green</option>
-				<option key="yellow" value="yellow">Yellow</option>
-				<option key="red" value="red">Red</option>
-			</select>
-
-			<button type="submit">Submit</button>
+			<button className={styles.registerBtn} type="submit">Submit</button>
 
 
 
-		</form>
+		</form >
 
 
 	async function handleRegisterSubmit(e) {
 		e.preventDefault();
 		const formData = new FormData(e.target);
-
 		const response = await fetch(APIServer + 'users/', {
 			method: 'POST',
 			headers: {
@@ -81,11 +123,9 @@ const Register = () => {
 
 	return (
 		<>
-
 			<div className="content">
 				<Card heading='Register' body={registerForm} inverted={false} />
 			</div>
-
 		</>
 	);
 };

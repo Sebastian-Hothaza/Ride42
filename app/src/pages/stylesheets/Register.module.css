@@ -1,4 +1,61 @@
-form{
+#registerForm {
     display: flex;
     flex-direction: column;
+    padding: 0 3rem;
+    gap: 2rem;
+    font-size: 1.25rem;
+}
+
+#registerForm input {
+    font-size: inherit;
+}
+
+#registerForm select {
+    font-size: inherit;
+    width: 233px;
+}
+
+
+.inputPairing {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.inputSection {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    gap: 1.5rem;
+    padding-bottom: 30px;
+    border-bottom: dashed 1px black;
+
+}
+
+
+
+.registerBtn {
+    margin: auto;
+    composes: actionButton from global;
+}
+
+.registerBtn:hover {
+    cursor: pointer;
+}
+
+@media (max-width: 850px) {
+    .inputSection {
+        grid-template-columns: 1fr;
+    }
+
+    #registerForm {
+        font-size: 1rem;
+        padding: 0 1rem;
+    }
+
+    #registerForm select {
+        font-size: inherit;
+        width: 188px;
+    }
 }

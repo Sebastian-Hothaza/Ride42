@@ -52,7 +52,7 @@
     width: 20rem;
 }
 
-input {
+#loginCard input {
     font-size: 1.1rem;
     padding: 1rem .5rem;
 }
