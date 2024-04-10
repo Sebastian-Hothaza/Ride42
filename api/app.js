@@ -6,10 +6,9 @@ const app = express();
 
 // cors setup
 const cors = require('cors')
-// app.use(cors()); // Enable ALL CORS requests
 
 app.use(cors({
-  origin: "http://localhost:5173",  credentials: true,
+  origin: "https://ride42.netlify.app",  credentials: true,
 }));
 
 if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
