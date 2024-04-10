@@ -6,7 +6,8 @@ import styles from './stylesheets/Login.module.css'
 
 const Login = () => {
 
-    const { handleLogin } = useOutletContext();
+    const { handleLogin, loginErrorMsg } = useOutletContext();
+
 
     function handleLoginSubmit(e) {
         e.preventDefault();
@@ -38,8 +39,9 @@ const Login = () => {
                     <div id={styles.loginCard}>
                         <h1>Member Log-In</h1>
                         <form onSubmit={(e) => handleLoginSubmit(e)} >
-                            <input type="text" name="email" placeholder="email" />
-                            <input type="password" name="password" placeholder="password" />
+                            <input type="email" name="email" placeholder="email" required />
+                            <input type="password" name="password" placeholder="password" required />
+                            { loginErrorMsg && <div className="errorText">{loginErrorMsg}</div> }
                             <button id={styles.logInBtn} type="submit">Log In</button>
                         </form>
                     </div>

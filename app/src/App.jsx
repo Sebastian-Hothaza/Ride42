@@ -11,6 +11,7 @@ import Footer from './components/Footer';
 function App() {
     const APIServer = (process.env.NODE_ENV === 'production') ? 'https://api.ride42.ca/' : 'http://localhost:3000/'
     const [loggedIn, setLoggedIn] = useState(false);
+    const [loginErrorMsg, setLoginErrorMsg] = useState();
 
     // Deal with user redreshing the page which would reset logged in status
     if (!loggedIn && localStorage.getItem('user')) setLoggedIn(true)
@@ -43,18 +44,16 @@ function App() {
             body: JSON.stringify(Object.fromEntries(formData))
         })
         if (!response.ok) {
-            // Set some error message in state variable similar to how we did the comment post error message
-            // Incorrect password or user does not exist
-            // TODO
-            console.log("BAD LOGIN")
             e.target.password.value = '';
             const data = await response.json();
-            console.log(data);
-            return;
+            setLoginErrorMsg(data.msg)
+        }else{
+            const data = await response.json();
+            localStorage.setItem("user", JSON.stringify(data)); // Store user in localStorage
+            setLoginErrorMsg('')
+            setLoggedIn(true);
         }
-        const data = await response.json();
-        localStorage.setItem("user", JSON.stringify(data)); // Store user in localStorage
-        setLoggedIn(true);
+
     }
 
     function handleLogout() {
@@ -68,7 +67,7 @@ function App() {
             <Navbar />
             <ScrollToTop />
             <div className='main'>
-                <Outlet context={{ APIServer, handleLogin, loggedIn, handleLogout }} />
+                <Outlet context={{ APIServer, handleLogin, loginErrorMsg, loggedIn, handleLogout }} />
                 <Footer />
             </div>
 
