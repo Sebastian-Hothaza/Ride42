@@ -13,6 +13,7 @@ const mailTemplates = require('../mailer_templates')
 /*
     --------------------------------------------- TODO ---------------------------------------------
     add 2 cookie authentication so logout funtion is secured on front end - or API endpoint for logging out
+    edit so error messages get sent out as array ALWAYS (Ie. msg: ['errormsg'])
     code cleanup & review
     --------------------------------------------- TODO ---------------------------------------------
 */
@@ -80,7 +81,7 @@ exports.updatePassword = [
                     await sendEmail(user.contact.email, "Your Password has been updated", mailTemplates.passwordChange, {name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1)})
                     res.sendStatus(200);
                 }else{
-                    res.status(403).send({msg: "old password is incorrect"});
+                    res.status(403).send({msg: "Old password is incorrect"});
                 }
             })
             return // This return returns from the async handler fn
