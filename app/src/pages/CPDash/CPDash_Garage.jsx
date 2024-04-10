@@ -1,25 +1,12 @@
-import { useEffect, useState } from "react";
-
 import styles from './CPDash_Garage.module.css'
 
-const Garage = ({ loggedInUser, APIServer }) => {
-	const [userGarage, setUserGarage] = useState('');
+const Garage = ({   APIServer, userInfo, fetchAPIData  }) => {
 
-	async function fetchAPIData() {
-		try {
-			const response = await fetch(APIServer + 'users/' + loggedInUser.id, {
-				credentials: "include",
-			});
-			if (!response.ok) throw new Error("Failed to get API Data")
-			const data = await response.json();
-			setUserGarage(data.garage);
-		} catch (err) {
-			console.log(err.message)
-		}
-	}
+
+
 
 	async function handleRequestQR(bikeID) {
-		const response = await fetch(APIServer + 'qrcode/' + loggedInUser.id + '/' + bikeID, {
+		const response = await fetch(APIServer + 'qrcode/' + userInfo._id + '/' + bikeID, {
 			method: 'POST',
 			credentials: 'include',
 			headers: {
@@ -29,7 +16,7 @@ const Garage = ({ loggedInUser, APIServer }) => {
 	}
 
 	async function handleRemoveBike(bikeID) {
-		const response = await fetch(APIServer + 'garage/' + loggedInUser.id + '/' + bikeID, {
+		const response = await fetch(APIServer + 'garage/' + userInfo._id + '/' + bikeID, {
 			method: 'DELETE',
 			credentials: 'include',
 			headers: {
@@ -42,7 +29,7 @@ const Garage = ({ loggedInUser, APIServer }) => {
 	async function handleAddBike(e) {
 		e.preventDefault();
 		const formData = new FormData(e.target);
-		const response = await fetch(APIServer + 'garage/' + loggedInUser.id, {
+		const response = await fetch(APIServer + 'garage/' + userInfo._id, {
 			method: 'POST',
 			credentials: 'include',
 			headers: {
@@ -53,9 +40,6 @@ const Garage = ({ loggedInUser, APIServer }) => {
 		fetchAPIData();
 	}
 
-	useEffect(() => {
-		fetchAPIData();
-	}, [])
 
 	return (
 		<div className={styles.content}>
@@ -63,7 +47,7 @@ const Garage = ({ loggedInUser, APIServer }) => {
 
 
 			<div className={styles.allBikes}>
-				{userGarage && userGarage.map((garageItem) => {
+				{userInfo.garage && userInfo.garage.map((garageItem) => {
 					return (
 						<div key={garageItem._id} className={styles.bikeEntry}>
 							<div>{garageItem.year} {garageItem.make} {garageItem.model}</div>

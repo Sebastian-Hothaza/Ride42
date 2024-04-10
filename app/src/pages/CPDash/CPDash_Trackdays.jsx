@@ -1,11 +1,10 @@
-import { useEffect, useState, } from "react";
-import { useOutletContext } from "react-router-dom";
+import {useState} from "react";
+
 
 import styles from './CPDash_Trackdays.module.css'
 
-const Trackdays = ({ loggedInUser, APIServer }) => {
+const Trackdays = ({  APIServer, userInfo, allTrackdays, userTrackdays, fetchAPIData  }) => {
 
-	const [allTrackdays, setAllTrackdays] = useState('');
 
 	// Sort all trackdays as order may not be correct when received from back end
 	if (allTrackdays) allTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
@@ -13,42 +12,11 @@ const Trackdays = ({ loggedInUser, APIServer }) => {
 	// TODO: trim all Trackdays removing trackdays in past and trackdays user is already a part of
 	const allEligibleTrackdays = allTrackdays;
 
-	const [userTrackdays, setUserTrackdays] = useState('');
-	const [userInfo, setUserInfo] = useState('');
+	
+
 	const [showReschedule, setShowReschedule] = useState([]); // tracks for which trackday ID's should we show the reschedule box for
 
-	async function fetchAPIData() {
 
-		try {
-			const response = await fetch(APIServer + 'presentTrackdays');
-			if (!response.ok) throw new Error("Failed to get API Data")
-			const data = await response.json();
-			setAllTrackdays(data);
-		} catch (err) {
-			console.log(err.message)
-		}
-
-
-		try {
-			const response = await fetch(APIServer + 'presentTrackdays/' + loggedInUser.id);
-			if (!response.ok) throw new Error("Failed to get API Data")
-			const data = await response.json();
-			setUserTrackdays(data);
-		} catch (err) {
-			console.log(err.message)
-		}
-
-		try {
-			const response = await fetch(APIServer + 'users/' + loggedInUser.id, {
-				credentials: "include",
-			});
-			if (!response.ok) throw new Error("Failed to get API Data")
-			const data = await response.json();
-			setUserInfo(data);
-		} catch (err) {
-			console.log(err.message)
-		}
-	}
 
 	async function handleBookTrackdaySubmit(e) {
 		e.preventDefault();
@@ -62,7 +30,7 @@ const Trackdays = ({ loggedInUser, APIServer }) => {
 		let formDataFinal = Object.fromEntries(formData)
 		formDataFinal.layoutVote = layoutVoteArray.length ? layoutVoteArray : 'none'
 
-		const response = await fetch(APIServer + 'register/' + loggedInUser.id + '/' + formData.get('date'), {
+		const response = await fetch(APIServer + 'register/' + userInfo._id + '/' + formData.get('date'), {
 			method: 'POST',
 			credentials: 'include',
 			headers: {
@@ -78,7 +46,7 @@ const Trackdays = ({ loggedInUser, APIServer }) => {
 	}
 
 	async function handleCancelTrackdaySubmit(trackdayID) {
-		const response = await fetch(APIServer + 'register/' + loggedInUser.id + '/' + trackdayID, {
+		const response = await fetch(APIServer + 'register/' + userInfo._id + '/' + trackdayID, {
 			method: 'DELETE',
 			credentials: 'include',
 			headers: {
@@ -92,7 +60,7 @@ const Trackdays = ({ loggedInUser, APIServer }) => {
 		e.preventDefault();
 		const formData = new FormData(e.target);
 
-		const response = await fetch(APIServer + 'register/' + loggedInUser.id + '/' + trackdayID_OLD + '/' + formData.get('date'), {
+		const response = await fetch(APIServer + 'register/' + userInfo._id + '/' + trackdayID_OLD + '/' + formData.get('date'), {
 			method: 'PUT',
 			credentials: 'include',
 			headers: {
@@ -127,9 +95,7 @@ const Trackdays = ({ loggedInUser, APIServer }) => {
 		}
 	}
 
-	useEffect(() => {
-		fetchAPIData();
-	}, [])
+
 
 	return (
 		<div className={styles.content}>

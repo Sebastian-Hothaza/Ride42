@@ -1,34 +1,19 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import styles from './CPDash_Profile.module.css'
 
-const Profile = ({ loggedInUser, APIServer }) => {
+const Profile = ({ APIServer, userInfo,fetchAPIData }) => {
 
-
-	const [userInfo, setUserInfo] = useState('');
 	const [editUserInfo, setEditUserInfo] = useState(false);
 	const [editUserInfoErrors, setEditUserInfoErrors] = useState();
 	const [editUserGroup, setEditUserGroup] = useState(false);
 
-	async function fetchAPIData() {
-		try {
-			const response = await fetch(APIServer + 'users/' + loggedInUser.id, {
-				credentials: "include",
-			});
-			if (!response.ok) throw new Error("Failed to get API Data")
-			const data = await response.json();
-			setUserInfo(data);
-		} catch (err) {
-			console.log(err.message)
-		}
-
-	}
 
 	async function handleEditUserInfoSubmit(e) {
 		e.preventDefault();
 		const formData = new FormData(e.target);
 		formData.append("group", userInfo.group);
-		const response = await fetch(APIServer + 'users/' + loggedInUser.id, {
+		const response = await fetch(APIServer + 'users/' + userInfo._id, {
 			method: 'PUT',
 			credentials: 'include',
 			headers: {
@@ -49,7 +34,7 @@ const Profile = ({ loggedInUser, APIServer }) => {
 	async function handleChangePasswordSubmit(e) {
 		e.preventDefault();
 		const formData = new FormData(e.target);
-		const response = await fetch(APIServer + 'password/' + loggedInUser.id, {
+		const response = await fetch(APIServer + 'password/' + userInfo._id, {
 			method: 'PUT',
 			credentials: 'include',
 			headers: {
@@ -65,7 +50,7 @@ const Profile = ({ loggedInUser, APIServer }) => {
 
 	async function handleUserGroupSubmit(e) {
 		e.preventDefault();
-		const response = await fetch(APIServer + 'users/' + loggedInUser.id, {
+		const response = await fetch(APIServer + 'users/' + userInfo._id, {
 			method: 'PUT',
 			credentials: 'include',
 			headers: {
@@ -93,9 +78,7 @@ const Profile = ({ loggedInUser, APIServer }) => {
 		fetchAPIData();
 	}
 
-	useEffect(() => {
-		fetchAPIData();
-	}, [])
+	
 
 	return (
 		<>
