@@ -26,6 +26,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 			if (response.ok) {
 				setEditUserInfo(false)
 				setEditUserInfoErrors('');
+				// TODO: Do we need to fetchapidata here?
 			} else if (response.status === 400) {
 				const data = await response.json();
 				setEditUserInfoErrors(data.msg)
@@ -201,7 +202,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 								<div className={styles.confirmContainer}>
 									<button type="button" onClick={() => {
 										setEditUserInfo(false);
-										setEditUserInfoErrors([]);
+										setEditUserInfoErrors('');
 									}}>Cancel</button>
 									<button className={styles.confirmBtn} type="submit">Confirm</button>
 								</div>
