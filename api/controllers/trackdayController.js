@@ -15,6 +15,7 @@ gate always marked as paid
 
 /*
     --------------------------------------------- TODO ---------------------------------------------
+    dont allow negative gueses
     code cleanup & review - use methods where possible 
     --------------------------------------------- TODO ---------------------------------------------
 */
@@ -95,7 +96,7 @@ function getRegDetails(trackday) {
 exports.register = [
     body("paymentMethod", "PaymentMethod must be one of: [etransfer, credit, creditCard, gate]").trim().isIn(["etransfer", "credit", "creditCard", "gate"]).escape(),
     body("layoutVote", "Layout vote must be provided and each value must be one of: [none, technical, Rtechnical, alien, Ralien, modified, Rmodified, long]").trim().isIn(["none", "technical", "Rtechnical", "alien", "Ralien", "modified", "Rmodified", "long"]).escape(),
-    body("guests", "Guests must be numeric").trim().isNumeric().escape(),
+    body("guests", "Guests must be numeric and greater than 0").trim().isNumeric({min: 0}).escape(),
 
     controllerUtils.verifyJWT,
     controllerUtils.validateForm,
@@ -119,7 +120,7 @@ exports.register = [
             // Deny if user attempt to register for trackday < lockout period(7 default) away
             if (await controllerUtils.isInLockoutPeriod(req.params.trackdayID) &&
                 req.body.paymentMethod !== 'credit' && req.body.paymentMethod !== 'gate' && req.user.memberType !== 'admin') {
-                return res.status(401).send({ msg: 'Cannot register for trackday <' + process.env.DAYS_LOCKOUT + ' days away.' })
+                return res.status(401).send({ msg: 'Cannot register for trackday <' + process.env.DAYS_LOCKOUT + ' days away unless payment method is trackday credit.' })
             }
 
 
@@ -136,7 +137,7 @@ exports.register = [
             }
             
 
-            // Deny if trackday is in the past (if time difference is negative)
+            // Deny if trackday registration is closed
             if (req.user.memberType !== 'admin' && trackday.status !== 'regOpen') return res.status(401).send({ msg: 'registration closed' })
 
             // Deny is user garage is empty
@@ -374,7 +375,7 @@ exports.presentTrackdays = async (req, res, next) => {
     return res.status(200).send(result)
 }
 
-// Returns an array of trackday dates that user is registered for in format [{id: x, date: x, status: x, layout: x, green: x, yellow: x, red: x, guests: x, groupCapacity: x,  votes: x, paid: x}] PUBLIC.
+// Returns an array of trackday dates that user is registered for in format [{id: x, date: x, status: x, layout: x, green: x, yellow: x, red: x, guests: x, groupCapacity: x,  votes: x, paid: x, paymentMethod: x}] PUBLIC.
 exports.presentTrackdaysForUser = [
     controllerUtils.validateUserID,
 
@@ -396,7 +397,8 @@ exports.presentTrackdaysForUser = [
                 groupCapacity: process.env.GROUP_CAPACITY,
                 votes: getRegDetails(trackday).votes,
                 // trackday members array currently has ALL members for that particular trackday. Fetch specific member entry so we can check payment status
-                paid: trackday.members.find((member) => member.user.equals(req.params.userID)).paid
+                paid: trackday.members.find((member) => member.user.equals(req.params.userID)).paid,
+                paymentMethod: trackday.members.find((member) => member.user.equals(req.params.userID)).paymentMethod
             })
         })
         return res.status(200).send(result)
