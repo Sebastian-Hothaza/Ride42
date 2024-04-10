@@ -52,7 +52,7 @@ exports.login = [
                 return res.status(400).json({msg: 'Incorrect Password'});
             }  
         }else{
-            return res.status(400).json({msg: 'User not in DB'});
+            return res.status(400).json({msg: 'No user exists with this email'});
         }
     }),
 ]
