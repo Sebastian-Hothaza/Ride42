@@ -8,7 +8,7 @@ const app = express();
 const cors = require('cors')
 
 app.use(cors({
-  origin: "https://ride42.netlify.app",  credentials: true,
+  origin: (process.env.NODE_ENV === 'production') ? "https://ride42.netlify.app" : "http://localhost:5173",  credentials: true,
 }));
 
 if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
