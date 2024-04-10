@@ -29,3 +29,10 @@ body{
 	background-color: black;
 	font-weight: bolder;
 }
+
+/* Should be applied to the ul representing error messages */
+.errorText{
+    color: red;
+    line-height: 2rem;
+    font-weight: bold;
+}
