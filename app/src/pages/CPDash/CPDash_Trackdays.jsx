@@ -5,11 +5,11 @@ import ScrollToTop from "../../components/ScrollToTop";
 import styles from './CPDash_Trackdays.module.css'
 
 // TODO; remove hardcoded 7 days restriction
+// TODO: make reschdule also a modal
 
 const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPIData, setActiveTab }) => {
 	const [bookErrors, setBookErrors] = useState(); // Array corresponding to error messages received from API
 	const [showReschedule, setShowReschedule] = useState([]); // tracks for which trackday ID's should we show the reschedule box for
-	const [showCancellation, setShowCancellation] = useState([]); // tracks for which trackday ID's should we show the cancellation box for
 	const [pendingSubmit, setPendingSubmit] = useState('');
 	const [showCancelModal, setShowCancelModal] = useState({ show: false, trackday: null })
 
@@ -33,8 +33,9 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 		})
 	}
 
-	// Sort all trackdays as order may not be correct when received from back end (?) TODO: Check on this
+	// Sort trackdays as order may not be correct when received from back end. (Ie. backend can add trackdays out of order - no guarantee)
 	if (allTrackdays) allTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
+	if (userTrackdays) userTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
 
 
 	async function handleBookTrackdaySubmit(e) {
@@ -143,15 +144,6 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 		}
 	}
 
-	function toggleCancellation(targetTrackday) {
-		// Check if our targetTrackday is already in the array of showCancellation
-		if (showCancellation.find(trackday => trackday.id === targetTrackday.id)) {
-			setShowCancellation(showCancellation.filter(trackday => trackday.id !== targetTrackday.id)); //remove
-		} else {
-			setShowCancellation(showCancellation.concat(targetTrackday)); //add
-		}
-	}
-
 
 	function canModify(trackday) {
 		// Date in past
@@ -176,7 +168,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 		</>
 	}
 
-	// TODO: user trackdays, are they guaranteed in order? NO! "my trackdays"(userTrackdays) should be sorted
+
 	return (
 		<>
 			<ScrollToTop />
