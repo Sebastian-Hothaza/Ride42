@@ -37,7 +37,6 @@ const Register = () => {
 				</div>
 
 			</div>
-
 			<div className={styles.inputSection}>
 				<div className={styles.inputPairing}>
 					<label htmlFor="email">Email:</label>
@@ -49,7 +48,7 @@ const Register = () => {
 				</div>
 				<div className={styles.inputPairing}>
 					<label htmlFor="phone">Phone:</label>
-					<input type="tel" id="phone" name="phone" required minLength={10} maxLength={10}></input>
+					<input type="tel" id="phone" name="phone" required onInput={checkPhoneFormat}></input>
 				</div>
 				<div className={styles.inputPairing}>
 					<label htmlFor="address">Street Address:</label>
@@ -79,7 +78,7 @@ const Register = () => {
 				</div>
 				<div className={styles.inputPairing}>
 					<label htmlFor="EmergencyPhone">Emergency Contact - Phone:</label>
-					<input type="tel" id="EmergencyPhone" name="EmergencyPhone" required minLength={10} maxLength={10}></input>
+					<input type="tel" id="EmergencyPhone" name="EmergencyPhone" required onInput={checkPhoneFormat}></input>
 				</div>
 				<div className={styles.inputPairing}>
 					<label htmlFor="EmergencyRelationship">Emergency Contact - Relationship:</label>
@@ -87,7 +86,6 @@ const Register = () => {
 				</div>
 
 			</div>
-
 			<div className={styles.inputSection}>
 				<div className={styles.inputPairing}>
 					<label htmlFor="password">Password:</label>
@@ -130,6 +128,15 @@ const Register = () => {
 			input.setCustomValidity('Password must contain minimum 8 characters and be a combination of letters and numbers');
 		}
 	}
+	function checkPhoneFormat() {
+		let input = document.getElementById('phone');
+		const phoneStr = input.value.replace(/[^0-9]/g, '');
+		if (phoneStr.length === 10) {
+			input.setCustomValidity(''); // input is valid -- reset the error message
+		} else {
+			input.setCustomValidity('Phone must contain 10 digits');
+		}
+	}
 	function checkPswMatches() {
 		let input = document.getElementById('passwordConfirm');
 		if (input.value == document.getElementById('password').value) {
@@ -142,6 +149,8 @@ const Register = () => {
 
 	async function handleRegisterSubmit(e) {
 		e.preventDefault();
+		e.target.phone.value = e.target.phone.value.replace(/[^0-9]/g, '');
+		e.target.EmergencyPhone.value = e.target.EmergencyPhone.value.replace(/[^0-9]/g, '');
 		setPendingSubmit({show: true, msg: 'Submitting Your Registration...'});
 		const formData = new FormData(e.target);
 		try {

@@ -13,6 +13,8 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 
 	async function handleEditUserInfoSubmit(e) {
 		e.preventDefault();
+		e.target.phone.value = e.target.phone.value.replace(/[^0-9]/g, '');
+		e.target.EmergencyPhone.value = e.target.EmergencyPhone.value.replace(/[^0-9]/g, '');
 		setPendingSubmit({ show: true, msg: 'Updating your profile' });
 		const formData = new FormData(e.target);
 		formData.append("group", userInfo.group);
@@ -44,6 +46,16 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 		setPendingSubmit('');
 	}
 
+	function checkPhoneFormat() {
+		let input = document.getElementById('phone');
+		const phoneStr = input.value.replace(/[^0-9]/g, '');
+		if (phoneStr.length === 10) {
+			input.setCustomValidity(''); // input is valid -- reset the error message
+		} else {
+			input.setCustomValidity('Phone must contain 10 digits');
+		}
+	}
+	
 	function checkPswFormat() {
 		let input = document.getElementById('newPassword');
 		if ((/^(?=.*[0-9])(?=.*[a-z])(?!.* ).{8,50}$/).test(input.value) && input.value.length >= 8 && input.value.length <= 50) {
@@ -165,7 +177,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 						</div>
 						<div className={styles.inputPairing}>
 							<label htmlFor="phone">Phone:</label>
-							<input type="text" id="phone" name="phone" disabled={!editUserInfo} defaultValue={userInfo.contact.phone} required minLength={10} maxLength={10}></input>
+							<input type="tel" id="phone" name="phone" disabled={!editUserInfo} defaultValue={userInfo.contact.phone} required onInput={checkPhoneFormat}></input>
 						</div>
 
 						<div className={styles.inputPairing}>
@@ -197,7 +209,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 						</div>
 						<div className={styles.inputPairing}>
 							<label htmlFor="EmergencyPhone">Emergency Contact - Phone:</label>
-							<input type="text" id="EmergencyPhone" name="EmergencyPhone" disabled={!editUserInfo} defaultValue={userInfo.emergencyContact.phone} required minLength={10} maxLength={10}></input>
+							<input type="tel" id="EmergencyPhone" name="EmergencyPhone" disabled={!editUserInfo} defaultValue={userInfo.emergencyContact.phone} required onInput={checkPhoneFormat}></input>
 						</div>
 						<div className={styles.inputPairing}>
 							<label htmlFor="EmergencyRelationship">Emergency Contact - Relationship:</label>
