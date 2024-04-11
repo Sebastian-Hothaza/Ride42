@@ -155,7 +155,7 @@ function Dates() {
 
 	return (
 		<div className="content">
-			<Card heading='Dates & Layout' body={HTML_Dates} img={square} inverted={false} />
+			<Card heading='Dates & Layout' body={allTrackdays? HTML_Dates: <h2 style={{margin: 'auto'}}>One moment...</h2>} img={square} inverted={false} />
 			<Card heading='Schedule' body={HTML_Schedule} img={square} inverted={true} />
 			<Card heading='Pricing Info' body={HTML_PricingInfo} img={square} inverted={false} />
 		</div>
