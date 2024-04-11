@@ -1,5 +1,6 @@
 import { useState } from "react";
 import ScrollToTop from "../../components/ScrollToTop";
+import Modal_Loading from "../../components/Modal_Loading";
 import styles from './CPDash_Profile.module.css'
 
 const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
@@ -8,10 +9,11 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 	const [editUserInfoErrors, setEditUserInfoErrors] = useState(); // Array corresponding to error messages received from API
 	const [changePswErrorMsg, setChangePswErrorMsg] = useState(); // Array corresponding to error messages received from API
 	const [editUserGroup, setEditUserGroup] = useState(false); // Tracks if we are changing groups
-
+	const [pendingSubmit, setPendingSubmit] = useState('');
 
 	async function handleEditUserInfoSubmit(e) {
 		e.preventDefault();
+		setPendingSubmit({ show: true, msg: 'Updating your profile' });
 		const formData = new FormData(e.target);
 		formData.append("group", userInfo.group);
 		try {
@@ -39,15 +41,15 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 		} catch (err) {
 			console.log(err)
 		}
-
+		setPendingSubmit('');
 	}
 
 	function checkPswFormat() {
 		let input = document.getElementById('newPassword');
-		if ((/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?!.* ).{8,50}$/).test(input.value) && input.value.length >= 8 && input.value.length <= 50) {
+		if ((/^(?=.*[0-9])(?=.*[a-z])(?!.* ).{8,50}$/).test(input.value) && input.value.length >= 8 && input.value.length <= 50) {
 			input.setCustomValidity(''); // input is valid -- reset the error message
 		} else {
-			input.setCustomValidity('Password must contain minimum 8 characters and be a combination of letters and numbers');
+			input.setCustomValidity('Password must contain minimum 8 characters be a combination of letters and numbers');
 		}
 	}
 
@@ -62,6 +64,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 
 	async function handleChangePasswordSubmit(e) {
 		e.preventDefault();
+		setPendingSubmit({ show: true, msg: 'Updating your password' });
 		const formData = new FormData(e.target);
 		try {
 			const response = await fetch(APIServer + 'password/' + userInfo._id, {
@@ -74,19 +77,20 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 			})
 			if (response.ok) {
 				setChangePswErrorMsg('');
-				e.target.reset();
 			} else {
 				const data = await response.json();
 				setChangePswErrorMsg(data.msg)
-				e.target.reset();
 			}
 		} catch (err) {
 			console.log(err)
 		}
+		e.target.reset();
+		setPendingSubmit('');
 	}
 
 	async function handleUserGroupSubmit(e) {
 		e.preventDefault();
+		setPendingSubmit({ show: true, msg: 'Updating your group' });
 		try {
 			const response = await fetch(APIServer + 'users/' + userInfo._id, {
 				method: 'PUT',
@@ -108,8 +112,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 				})
 			})
 			if (response.ok) {
-				setEditUserGroup(false)
-				fetchAPIData();
+				await fetchAPIData();
 			} else if (response.status === 400) {
 				const data = await response.json();
 				console.log('Change group failed: ', data)
@@ -119,6 +122,8 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 		} catch (err) {
 			console.log(err)
 		}
+		setEditUserGroup(false)
+		setPendingSubmit('');
 	}
 
 
@@ -235,6 +240,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 					</form>
 				</div>
 			}
+			<Modal_Loading open={pendingSubmit.show} text={pendingSubmit.msg}></Modal_Loading>
 		</>
 	);
 };
