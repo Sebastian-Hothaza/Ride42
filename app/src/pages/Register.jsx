@@ -124,7 +124,7 @@ const Register = () => {
 	}
 	function checkPswFormat() {
 		let input = document.getElementById('password');
-		if ((/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?!.* ).{8,50}$/).test(input.value) && input.value.length>=8 && input.value.length<=50) {
+		if ((/^(?=.*[0-9])(?=.*[a-z])(?!.* ).{8,50}$/).test(input.value) && input.value.length>=8 && input.value.length<=50) {
 			input.setCustomValidity(''); // input is valid -- reset the error message
 		} else {
 			input.setCustomValidity('Password must contain minimum 8 characters and be a combination of letters and numbers');

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Modal_Loading from "../../components/Modal_Loading";
+import Modal from "../../components/Modal";
 import ScrollToTop from "../../components/ScrollToTop";
 import styles from './CPDash_Trackdays.module.css'
 
@@ -10,6 +11,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 	const [showReschedule, setShowReschedule] = useState([]); // tracks for which trackday ID's should we show the reschedule box for
 	const [showCancellation, setShowCancellation] = useState([]); // tracks for which trackday ID's should we show the cancellation box for
 	const [pendingSubmit, setPendingSubmit] = useState('');
+	const [showCancelModal, setShowCancelModal] = useState({ show: false, trackday: null })
 
 	// Returns true if a user is registered for a specified trackday ID
 	function userRegistered(trackdayID) {
@@ -77,6 +79,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 	}
 
 	async function handleCancelTrackdaySubmit(trackdayID) {
+		setShowCancelModal('')
 		setPendingSubmit({ show: true, msg: 'Cancelling your trackday' });
 		try {
 			const response = await fetch(APIServer + 'register/' + userInfo._id + '/' + trackdayID, {
@@ -92,7 +95,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			console.log(err)
 		}
 		setPendingSubmit('');
-
+		
 	}
 
 	async function handleRescheduleSubmit(e, trackdayID_OLD) {
@@ -280,7 +283,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 											<>
 												{/* These buttons should not be shown if trackday is in past */}
 												{canModify(trackday) && <> <button onClick={() => toggleReschedule(trackday)}>Reschedule</button>
-													<button onClick={() => toggleCancellation(trackday)}>Cancel Trackday</button> </>}
+													<button onClick={() => setShowCancelModal({ show: true, trackday: trackday })}>Cancel Trackday</button> </>}
 											</>
 										}
 									</div>
@@ -292,6 +295,9 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 			</div>
 			<Modal_Loading open={pendingSubmit.show} text={pendingSubmit.msg}></Modal_Loading>
+			<Modal open={showCancelModal.show} onClose={() => setShowCancelModal({ show: false, trackday: null })}
+				text='Are you sure you want to cancel this trackday?' okText="Yes, cancel it" closeText="No, keep it" fn={() => handleCancelTrackdaySubmit(showCancelModal.trackday.id)}></Modal>
+
 		</>
 	);
 };

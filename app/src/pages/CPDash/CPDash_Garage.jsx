@@ -1,11 +1,20 @@
 import styles from './CPDash_Garage.module.css'
 import ScrollToTop from "../../components/ScrollToTop";
-const Garage = ({ APIServer, userInfo, fetchAPIData }) => {
+import { useState } from "react";
+import Modal_Loading from "../../components/Modal_Loading";
+import Modal from "../../components/Modal";
 
 
+const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
+
+	const [pendingSubmit, setPendingSubmit] = useState('');
+	const [addBikeConfirm, setAddBikeConfirm] = useState(false);
+	const [QRConfirm, setQRConfirm] = useState(false);
+	const [addBikeErrors, setAddBikeErrors] = useState('');
 
 
 	async function handleRequestQR(bikeID) {
+		setPendingSubmit({ show: true, msg: 'Requesting your QR Code' });
 		try {
 			const response = await fetch(APIServer + 'qrcode/' + userInfo._id + '/' + bikeID, {
 				method: 'POST',
@@ -15,12 +24,15 @@ const Garage = ({ APIServer, userInfo, fetchAPIData }) => {
 				},
 			})
 			if (!response.ok) throw new Error('API Failure')
+			setQRConfirm(true);
 		} catch (err) {
 			console.log(err)
 		}
+		setPendingSubmit('');
 	}
 
 	async function handleRemoveBike(bikeID) {
+		setPendingSubmit({ show: true, msg: 'Selling your bike' });
 		try {
 			const response = await fetch(APIServer + 'garage/' + userInfo._id + '/' + bikeID, {
 				method: 'DELETE',
@@ -30,15 +42,17 @@ const Garage = ({ APIServer, userInfo, fetchAPIData }) => {
 				},
 			})
 			if (!response.ok) throw new Error('API Failure')
-			fetchAPIData();
+
 		} catch (err) {
 			console.log(err)
 		}
-
+		await fetchAPIData();
+		setPendingSubmit('')
 	}
 
 	async function handleAddBike(e) {
 		e.preventDefault();
+		setPendingSubmit({ show: true, msg: 'Parking your bike' });
 		const formData = new FormData(e.target);
 		try {
 			const response = await fetch(APIServer + 'garage/' + userInfo._id, {
@@ -49,11 +63,31 @@ const Garage = ({ APIServer, userInfo, fetchAPIData }) => {
 				},
 				body: JSON.stringify(Object.fromEntries(formData))
 			})
-			if (!response.ok) throw new Error('API Failure')
-			fetchAPIData();
+
+			if (response.ok) {
+				await fetchAPIData();
+				setPendingSubmit('');
+				setAddBikeConfirm(true);
+				setAddBikeErrors('');
+				e.target.reset();
+			} else if (response.status === 400) {
+				const data = await response.json();
+				setAddBikeErrors(data.msg);
+			} else if (response.status === 409) {
+				const data = await response.json();
+				setAddBikeErrors([data.msg]);
+			} else {
+				throw new Error('API Failure')
+			}
+			setPendingSubmit('');
+
+
 		} catch (err) {
 			console.log(err)
 		}
+
+
+
 	}
 
 
@@ -101,7 +135,20 @@ const Garage = ({ APIServer, userInfo, fetchAPIData }) => {
 					<button className={styles.confirmBtn} type="submit">Add Bike</button>
 				</form>
 
+				{addBikeErrors && addBikeErrors.length > 0 &&
+					<ul className="errorText">Encountered the following errors:
+						{addBikeErrors.map((errorItem) => <li key={errorItem}>{errorItem}</li>)}
+					</ul>}
+
 			</div>
+
+			<Modal_Loading open={pendingSubmit.show} text={pendingSubmit.msg}></Modal_Loading>
+			<Modal open={addBikeConfirm} onClose={() => setAddBikeConfirm(false)}
+				text='Your bike has been added to your garage. We have created a QR code for you which will be available for pickup at the next trackday.' okText="Go to trackdays" closeText="Stay in garage"
+				fn={() => setActiveTab('trackdays')}></Modal>
+			<Modal open={QRConfirm} onClose={() => setQRConfirm(false)}
+				text='We have created a QR code for you which will be available for pickup at the next trackday.' okText="" closeText="Ok"></Modal>
+
 		</>
 
 
