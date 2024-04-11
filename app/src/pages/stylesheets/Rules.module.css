@@ -1,8 +1,10 @@
-.rulesCard{
+.rulesCard ul{
     padding: 0 2rem;
 }
 
 h3{
     margin-top: 1.25rem;
     margin-bottom: .5rem;
+    padding-left: 2rem;
 }
+

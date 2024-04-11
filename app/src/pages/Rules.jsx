@@ -7,8 +7,9 @@ import square from '../assets/square.jpg'
 const Rules = () => {
 
 	const HTML_BikeRules = <div className={styles.rulesCard}>
-		In order to keep our trackday safe for you and our community, please make sure your bike meets our standards. Upon arriving, you will need to submit
-		your bike for tech inspection.
+		<p>In order to keep our trackday safe for you and our community, please make sure your bike meets our standards. Upon arriving, you will need to submit
+			your bike for tech inspection.</p>
+
 		<br></br><br></br>
 		<ul>
 			<li>Coolant MUST be replaced with either distilled water or a mix of distilled water & water wetter</li>
@@ -23,7 +24,7 @@ const Rules = () => {
 	</div>
 
 	const HTML_GearRules = <div className={styles.rulesCard}>
-		Nobody wants to think about crashing, but having the right gear can make all the difference. We take safety seriously and require your gear to meet our standards.
+		<p>Nobody wants to think about crashing, but having the right gear can make all the difference. We take safety seriously and require your gear to meet our standards.</p>
 		<br></br><br></br>
 		<ul>
 			<li>Leather jacket and pants; either 1-piece or 2-piece with zipper attaching torso to pant. Leather gear has a lifespan! Over many years of sweat and UV damage, leather begins to break down. Gear must be in good condition.</li>
@@ -34,7 +35,9 @@ const Rules = () => {
 	</div>
 
 	const HTML_OurPolicies = <div className={styles.rulesCard}>
+		<p>
 		Please familiarize yourself with our policies. If you have any questions, please email us at <a href="mailto: info@ride42.ca">info@ride42.ca</a>
+		</p>
 		<br></br><br></br>
 
 		<h3>Passing Rules</h3>
