@@ -50,10 +50,10 @@ exports.login = [
                 
                 return res.status(200).json({id: user.id, firstName: user.firstName, memberType: user.memberType});
             }else{
-                return res.status(400).json({msg: 'Incorrect Password'});
+                return res.status(403).json({msg: 'Incorrect Password'});
             }  
         }else{
-            return res.status(400).json({msg: 'No user exists with this email'});
+            return res.status(403).json({msg: 'No user exists with this email'});
         }
     }),
 ]
@@ -341,7 +341,7 @@ exports.user_put = [
             
             // If user attempt to change group and has a trackday booked < lockout period(7 default) away, fail update entirely
             if (req.body.group !== oldUser.group && req.user.memberType !== 'admin' && await controllerUtils.hasTrackdayWithinLockout(req.params.userID)){
-                return res.status(401).send({msg: 'Cannot change group when registered for trackday <'+process.env.DAYS_LOCKOUT+' days away.'})
+                return res.status(403).send({msg: 'Cannot change group when registered for trackday <'+process.env.DAYS_LOCKOUT+' days away.'})
             }
             
             const user = new User({

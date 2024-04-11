@@ -95,7 +95,7 @@ async function verifyJWT(req, res, next){
 
             // Pull the candidate user and check the refresh token is in DB. 
             const user = await User.findById(JWTRefreshPayload.id).exec();
-            if (user.refreshToken !== req.cookies.JWT_REFRESH_TOKEN) return res.sendStatus(403)
+            if (user.refreshToken !== req.cookies.JWT_REFRESH_TOKEN) return res.sendStatus(401)
 
             // JWT_REFRESH is valid! Create new JWT_ACCESS. 
             const accessToken = jwt.sign({id: user._id, memberType: user.memberType, name: user.firstName}, 

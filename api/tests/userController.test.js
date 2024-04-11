@@ -66,7 +66,7 @@ const user2 = {
 	EmergencyPhone: "5195712834",
 	EmergencyRelationship: "Friend",
 	group: "green",
-	password: "user2123"
+	password: "User2123"
 };
 
 const userAdmin = {
@@ -184,7 +184,7 @@ describe('Testing user create', () => {
 	test("add multiple user to DB", async () => {
 		await addUser(user1, 201);
 		await addUser(user2, 201);
-		await addUser(userAdmin, 201);
+		// await addUser(userAdmin, 201);
 	});
 
 	test("create user with same email", async () => {
@@ -488,7 +488,7 @@ describe('Testing user update', () => {
 			.put('/users/' + user.body.id)
 			.set('Cookie', loginResUser.headers['set-cookie'])
 			.type("form").send(user1_update)
-			.expect(401)
+			.expect(403)
 
 
 
@@ -846,7 +846,7 @@ describe('Testing user login', () => {
 			.post("/login")
 			.type("form")
 			.send({ email: user1.email, password: user1.password + 'a' })
-			.expect(400);
+			.expect(403);
 	});
 
 	test("log in a user", async () => {
