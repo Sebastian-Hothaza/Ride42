@@ -9,7 +9,7 @@ import Modal_Loading from "../components/Modal_Loading";
 
 const Register = () => {
 	const [registerErrors, setRegisterErrors] = useState();
-    const [pendingSubmit, setPendingSubmit] = useState(false);
+    const [pendingSubmit, setPendingSubmit] = useState('');
 	const { APIServer } = useOutletContext();
 	const navigate = useNavigate();
 
@@ -142,7 +142,7 @@ const Register = () => {
 
 	async function handleRegisterSubmit(e) {
 		e.preventDefault();
-		setPendingSubmit(true);
+		setPendingSubmit({show: true, msg: 'Submitting Your Registration...'});
 		const formData = new FormData(e.target);
 		try {
 			const response = await fetch(APIServer + 'users/', {
@@ -152,7 +152,7 @@ const Register = () => {
 				},
 				body: JSON.stringify(Object.fromEntries(formData))
 			})
-			setPendingSubmit(false);
+			
 			if (response.ok) {
 				navigate("/dashboard");
 			} else if (response.status === 400) {
@@ -167,6 +167,7 @@ const Register = () => {
 		} catch (err) {
 			console.log(err)
 		}
+		setPendingSubmit('');
 	}
 
 
@@ -176,7 +177,7 @@ const Register = () => {
 			<div className="content">
 				<Card heading='Register' body={registerForm} inverted={false} />
 			</div>
-			<Modal_Loading open={pendingSubmit} text={'Submitting Your Registration...'}>  </Modal_Loading>
+			<Modal_Loading open={pendingSubmit.show} text={pendingSubmit.msg}>  </Modal_Loading>
 		</>
 	);
 };

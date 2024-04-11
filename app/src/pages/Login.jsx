@@ -9,14 +9,14 @@ import Modal_Loading from "../components/Modal_Loading";
 const Login = () => {
 
     const {  handleLogin, loginErrorMsg } = useOutletContext();
-    const [pendingSubmit, setPendingSubmit] = useState(false);
+    const [pendingSubmit, setPendingSubmit] = useState('');
 
 
     async function handleLoginSubmit(e) {
         e.preventDefault();
-        setPendingSubmit(true);
+        setPendingSubmit({show: true, msg: 'Logging you in...'});
         await handleLogin(e);
-        setPendingSubmit(false);
+        setPendingSubmit('');
     }
 
     return (
@@ -54,7 +54,7 @@ const Login = () => {
 
                 </div>
             </div>
-            <Modal_Loading open={pendingSubmit} text={'Logging you in...'}>  </Modal_Loading>
+            <Modal_Loading open={pendingSubmit.show} text={pendingSubmit.msg}>  </Modal_Loading>
         </>
     );
 };
