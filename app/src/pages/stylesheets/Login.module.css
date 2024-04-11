@@ -78,6 +78,17 @@
     margin-bottom: 1rem;
 }
 
+#loginPendingCard{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    padding: 5rem;
+    background-color: var(--accent-color);
+
+}
+
 @media (max-width: 1100px) {
     .invertedContent{
         gap: 5rem;
@@ -103,7 +114,8 @@
         gap: 5rem;
     }
     #loginCard{
-        order: 1
+        order: 1;
+        gap: 2rem;
     }
     #registerCard{
         order: 2
@@ -116,9 +128,6 @@
         display: block;
     }
 
-    #loginCard{
-        gap: 2rem;
-    }
     
     #loginCard h1{
         padding-top: 2rem;

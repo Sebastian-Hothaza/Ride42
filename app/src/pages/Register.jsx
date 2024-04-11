@@ -5,9 +5,11 @@ import { useState } from "react";
 import styles from './stylesheets/Register.module.css'
 
 import Card from "../components/Card"
+import Modal_Loading from "../components/Modal_Loading";
 
 const Register = () => {
 	const [registerErrors, setRegisterErrors] = useState();
+    const [pendingSubmit, setPendingSubmit] = useState(false);
 	const { APIServer } = useOutletContext();
 	const navigate = useNavigate();
 
@@ -140,7 +142,7 @@ const Register = () => {
 
 	async function handleRegisterSubmit(e) {
 		e.preventDefault();
-		
+		setPendingSubmit(true);
 		const formData = new FormData(e.target);
 		try {
 			const response = await fetch(APIServer + 'users/', {
@@ -150,6 +152,7 @@ const Register = () => {
 				},
 				body: JSON.stringify(Object.fromEntries(formData))
 			})
+			setPendingSubmit(false);
 			if (response.ok) {
 				navigate("/dashboard");
 			} else if (response.status === 400) {
@@ -173,6 +176,7 @@ const Register = () => {
 			<div className="content">
 				<Card heading='Register' body={registerForm} inverted={false} />
 			</div>
+			<Modal_Loading open={pendingSubmit} text={'Submitting Your Registration...'}>  </Modal_Loading>
 		</>
 	);
 };

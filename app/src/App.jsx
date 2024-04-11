@@ -46,7 +46,8 @@ function App() {
         if (!response.ok) {
             e.target.password.value = '';
             const data = await response.json();
-            setLoginErrorMsg(data.msg)
+            setLoginErrorMsg(data.msg);
+            setLoggedIn(false);
         }else{
             const data = await response.json();
             localStorage.setItem("user", JSON.stringify(data)); // Store user in localStorage
@@ -67,7 +68,7 @@ function App() {
             <Navbar />
             <ScrollToTop />
             <div className='main'>
-                <Outlet context={{ APIServer, handleLogin, loginErrorMsg, loggedIn, handleLogout }} />
+                <Outlet context={{ APIServer, handleLogin, loginErrorMsg, loggedIn, setLoggedIn, handleLogout }} />
                 <Footer />
             </div>
 

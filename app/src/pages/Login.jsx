@@ -1,17 +1,22 @@
 import { NavLink, useOutletContext } from "react-router-dom";
-
+import { useState } from "react";
 
 import styles from './stylesheets/Login.module.css'
+
+import Modal_Loading from "../components/Modal_Loading";
 
 
 const Login = () => {
 
-    const { handleLogin, loginErrorMsg } = useOutletContext();
+    const {  handleLogin, loginErrorMsg } = useOutletContext();
+    const [pendingSubmit, setPendingSubmit] = useState(false);
 
 
-    function handleLoginSubmit(e) {
+    async function handleLoginSubmit(e) {
         e.preventDefault();
-        handleLogin(e);
+        setPendingSubmit(true);
+        await handleLogin(e);
+        setPendingSubmit(false);
     }
 
     return (
@@ -20,7 +25,7 @@ const Login = () => {
                 <div className={styles.invertedContent}>
                     <div id={styles.registerCard} >
                         <div className="cardContent" id="loginCard">
-                            <h1>Why Register?</h1>
+                            <h1>Why Become a Member?</h1>
                             <div>
                                 <ul id={styles.whyRegisterUl}>
                                     <li>Access to pre-register for trackdays</li>
@@ -30,7 +35,7 @@ const Login = () => {
                                     <li>One time waiver</li>
                                 </ul>
                                 <div id={styles.registerBtnContainer}>
-                                    <NavLink className={styles.registerBtn} to="/register">Register Now!</NavLink>
+                                    <NavLink className={styles.registerBtn} to="/register">Join Now!</NavLink>
                                 </div>
 
                             </div>
@@ -41,15 +46,15 @@ const Login = () => {
                         <form onSubmit={(e) => handleLoginSubmit(e)} >
                             <input type="email" name="email" placeholder="email" required />
                             <input type="password" name="password" placeholder="password" required />
-                            { loginErrorMsg && <div className="errorText">{loginErrorMsg}</div> }
+                            {loginErrorMsg && <div className="errorText">{loginErrorMsg}</div>}
                             <button id={styles.logInBtn} type="submit">Log In</button>
-                            <button id={styles.scrollBtn} type="button" className="actionButton" onClick={()=> document.getElementById('loginCard').scrollIntoView()}>Not yet a member?</button>
+                            <button id={styles.scrollBtn} type="button" className="actionButton" onClick={() => document.getElementById('loginCard').scrollIntoView()}>Not yet a member?</button>
                         </form>
-                        
-
                     </div>
+
                 </div>
             </div>
+            <Modal_Loading open={pendingSubmit} text={'Logging you in...'}>  </Modal_Loading>
         </>
     );
 };
