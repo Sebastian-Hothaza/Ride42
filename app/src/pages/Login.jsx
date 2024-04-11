@@ -19,7 +19,7 @@ const Login = () => {
             <div className="content">
                 <div className={styles.invertedContent}>
                     <div id={styles.registerCard} >
-                        <div className="cardContent">
+                        <div className="cardContent" id="loginCard">
                             <h1>Why Register?</h1>
                             <div>
                                 <ul id={styles.whyRegisterUl}>
@@ -43,7 +43,10 @@ const Login = () => {
                             <input type="password" name="password" placeholder="password" required />
                             { loginErrorMsg && <div className="errorText">{loginErrorMsg}</div> }
                             <button id={styles.logInBtn} type="submit">Log In</button>
+                            <button id={styles.scrollBtn} type="button" className="actionButton" onClick={()=> document.getElementById('loginCard').scrollIntoView()}>Not yet a member?</button>
                         </form>
+                        
+
                     </div>
                 </div>
             </div>

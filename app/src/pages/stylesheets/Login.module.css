@@ -73,6 +73,11 @@
     cursor: pointer;
 }
 
+#scrollBtn{
+    display: none;
+    margin-bottom: 1rem;
+}
+
 @media (max-width: 1100px) {
     .invertedContent{
         gap: 5rem;
@@ -82,6 +87,12 @@
     }
     #loginCard{
         padding: 0 2rem;
+    }
+    #registerBtnContainer{
+        justify-content: center;
+    }
+    .registerBtn{
+        margin-right: 0;
     }
 }
 
@@ -96,5 +107,20 @@
     }
     #registerCard{
         order: 2
+    }
+
+    #logInBtn{
+        margin: 0;
+    }
+    #scrollBtn{
+        display: block;
+    }
+
+    #loginCard{
+        gap: 2rem;
+    }
+    
+    #loginCard h1{
+        padding-top: 2rem;
     }
 }
