@@ -937,7 +937,7 @@ describe('Testing password update', () => {
 			.type("form")
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.send({ oldPassword: 'WrongPassword123', newPassword: 'ValidPassword1' })
-			.expect(403, { msg: "old password is incorrect" });
+			.expect(403, { msg: "Old password is incorrect" });
 	});
 
 	test("update password for a user - incorrect old password - as admin", async () => {

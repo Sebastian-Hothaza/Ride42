@@ -665,7 +665,7 @@ describe('Testing registering', () => {
 			.post('/register/' + user1.body.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
-			.expect(401, { msg: 'Cannot register for trackday <' + process.env.DAYS_LOCKOUT + ' days away.' })
+			.expect(401, { msg: 'Cannot register for trackday <' + process.env.DAYS_LOCKOUT + ' days away unless payment method is trackday credit.' })
 		// Register as user with credit
 		await request(app)
 			.post('/register/' + user1.body.id + '/' + trackday.body.id)
@@ -769,7 +769,8 @@ describe('Testing registering', () => {
 					Rmodified: 0,
 					long: 0
 				},
-				paid: true
+				paid: true,
+				paymentMethod: 'gate'
 			},])
 	});
 
@@ -822,7 +823,8 @@ describe('Testing registering', () => {
 					Rmodified: 0,
 					long: 0
 				},
-				paid: true
+				paid: true,
+				paymentMethod: 'credit'
 			},])
 
 		// Check that users credit was used up
@@ -910,7 +912,8 @@ describe('Testing registering', () => {
 					Rmodified: 0,
 					long: 0
 				},
-				paid: false
+				paid: false,
+				paymentMethod: 'etransfer'
 			},])
 
 
@@ -957,7 +960,8 @@ describe('Testing registering', () => {
 					Rmodified: 0,
 					long: 0
 				},
-				paid: false
+				paid: false,
+				paymentMethod: 'etransfer'
 			},])
 
 
@@ -1124,7 +1128,7 @@ describe('Testing un-registering', () => {
 	});
 
 	test("un-registration - using credit", async () => {
-		const trackday = await addTrackday('2024-04-09T14:00Z')
+		const trackday = await addTrackday('2500-04-09T14:00Z')
 
 		// Add bike to garage
 		await request(app)
@@ -2175,7 +2179,8 @@ describe('Testing presentTrackdaysForUser', () => {
 					Rmodified: 0,
 					long: 0
 				},
-				paid: false
+				paid: false,
+				paymentMethod: 'etransfer'
 			}])
 	});
 
@@ -2228,7 +2233,8 @@ describe('Testing presentTrackdaysForUser', () => {
 					Rmodified: 0,
 					long: 0
 				},
-				paid: false
+				paid: false,
+				paymentMethod: 'etransfer'
 			},
 			{
 				id: trackday2.body.id,
@@ -2249,7 +2255,8 @@ describe('Testing presentTrackdaysForUser', () => {
 					Rmodified: 0,
 					long: 0
 				},
-				paid: false
+				paid: false,
+				paymentMethod: 'etransfer'
 			}])
 	});
 
@@ -2482,7 +2489,8 @@ describe('Testing updatePaid', () => {
 					Rmodified: 0,
 					long: 1
 				},
-				paid: true
+				paid: true,
+				paymentMethod: 'etransfer'
 			}])
 	});
 })
