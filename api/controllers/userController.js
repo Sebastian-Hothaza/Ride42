@@ -248,14 +248,14 @@ exports.user_post = [
     body("lastName", "Last Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
 
     body("email", "Email must be in format of samplename@sampledomain.com").trim().isEmail().escape(), 
-    body("phone", "Phone must contain 10 digits").trim().isLength({ min: 10, max: 10}).escape(), 
+    body("phone", "Phone must contain 10 digits").trim().isNumeric().bail().isLength({ min: 10, max: 10}).escape(), 
     body("address", "Address must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
     body("city", "City must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
     body("province", "Province must be either ontario, quebec or other").trim().isIn(['ontario', 'quebec', 'other']).escape(),
 
     body("EmergencyName_firstName", "Emergency Contact First Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
     body("EmergencyName_lastName", "Emergency Contact Last Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
-    body("EmergencyPhone", "Emergency Phone must contain 10 digits").trim().isLength({ min: 10, max: 10}).escape(),
+    body("EmergencyPhone", "Emergency Phone must contain 10 digits").trim().isNumeric().bail().isLength({ min: 10, max: 10}).escape(),
     body("EmergencyRelationship", "Emergency Contact relationship definition must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
 
     body("group", "Group must be either green, yellow or red").trim().isIn(['green', 'yellow', 'red']).escape(),
@@ -309,14 +309,14 @@ exports.user_post = [
 */
 exports.user_put = [
     body("email", "Email must be in format of samplename@sampledomain.com").trim().isEmail().escape(), 
-    body("phone", "Phone must contain 10 digits").trim().isLength({ min: 10, max: 10}).escape(), 
+    body("phone", "Phone must contain 10 digits").trim().isNumeric().bail().isLength({ min: 10, max: 10}).escape(), 
     body("address", "Address must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
     body("city", "City must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
     body("province", "Province must be either ontario, quebec or other").trim().isIn(['ontario', 'quebec', 'other']).escape(),
 
     body("EmergencyName_firstName", "Emergency Contact First Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
     body("EmergencyName_lastName", "Emergency Contact Last Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
-    body("EmergencyPhone", "Emergency Phone must contain 10 digits").trim().isLength({ min: 10, max: 10}).escape(),
+    body("EmergencyPhone", "Emergency Phone must contain 10 digits").isNumeric().bail().trim().isLength({ min: 10, max: 10}).escape(),
     body("EmergencyRelationship", "Emergency Contact relationship definition must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
 
     body("group", "Group must be either green, yellow or red").trim().isIn(['green', 'yellow', 'red']).escape(),
