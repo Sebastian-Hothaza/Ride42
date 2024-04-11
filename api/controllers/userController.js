@@ -157,13 +157,13 @@ exports.garage_delete = [
 
             // Verify the bikeID is actually in the users garage
             const hasBike = user.garage.some((bikeID)=>bikeID.equals(req.params.bikeID))
-            if (!hasBike) res.status(404).send({msg: "this bike does not exist in your garage"})
+            if (!hasBike) res.status(403).send({msg: "this bike does not exist in your garage"})
 
             const numBikesOriginally = user.garage.length;
             user.garage = user.garage.filter((bikeID)=>(!bikeID.equals(req.params.bikeID)))
 
             await user.save()
-            return (numBikesOriginally>user.garage.length)? res.sendStatus(200) : res.sendStatus(404)
+            return (numBikesOriginally>user.garage.length)? res.sendStatus(200) : res.sendStatus(403)
         }
         return res.sendStatus(403)
     }),
@@ -181,7 +181,7 @@ exports.requestQRCode = [
 
             // Verify the bikeID is actually in the users garage
             const hasBike = user.garage.some((bikeID)=>bikeID.equals(req.params.bikeID))
-            if (!hasBike) res.status(404).send({msg: "this bike does not exist in your garage"})
+            if (!hasBike) res.status(403).send({msg: "this bike does not exist in your garage"})
 
             await sendEmail(process.env.ADMIN_EMAIL, "QR CODE REQUEST", mailTemplates.QRCodeRequest,
                             {name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), userID: req.params.userID, bikeID: req.params.bikeID})

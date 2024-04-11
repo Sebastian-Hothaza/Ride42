@@ -206,7 +206,7 @@ describe('Testing user read', () => {
 		await request(app)
 			.get('/users/invalid')
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(404, { msg: 'userID is not a valid ObjectID' })
+			.expect(403, { msg: 'userID is not a valid ObjectID' })
 	});
 	test("get invalid userID user", async () => {
 		const user = await addUser(user2, 201)
@@ -215,7 +215,7 @@ describe('Testing user read', () => {
 		await request(app)
 			.get('/users/' + '1' + user.body.id.slice(1, user.body.id.length - 1) + '1')
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(404, { msg: 'User does not exist' })
+			.expect(403, { msg: 'User does not exist' })
 	});
 
 	test("get specific user - no JWT", async () => {
@@ -299,7 +299,7 @@ describe('Testing user update', () => {
 			.put("/users/invalid")
 			.type("form").send(user1) // We are "over-sending" form params here; but its fine for sake of this test
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(404, { msg: 'userID is not a valid ObjectID' })
+			.expect(403, { msg: 'userID is not a valid ObjectID' })
 	});
 	test("Update invalid userID user", async () => {
 		const user = await addUser(user1, 201)
@@ -309,7 +309,7 @@ describe('Testing user update', () => {
 			.put('/users/' + '1' + user.body.id.slice(1, user.body.id.length - 1) + '1')
 			.type("form").send(user1) // We are "over-sending" form params here; but its fine for sake of this test
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(404, { msg: 'User does not exist' })
+			.expect(403, { msg: 'User does not exist' })
 	});
 
 	test("Update specific user - missing fields", async () => {
@@ -774,7 +774,7 @@ describe('Testing user delete', () => {
 		await request(app)
 			.delete("/users/invalid")
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(404, { msg: 'userID is not a valid ObjectID' })
+			.expect(403, { msg: 'userID is not a valid ObjectID' })
 	});
 	test("Delete invalid userID user", async () => {
 		const user = await addUser(user1, 201)
@@ -783,7 +783,7 @@ describe('Testing user delete', () => {
 		await request(app)
 			.delete('/users/' + '1' + user.body.id.slice(1, user.body.id.length - 1) + '1')
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(404, { msg: 'User does not exist' })
+			.expect(403, { msg: 'User does not exist' })
 	});
 
 	test("Update specific user - no JWT", async () => {
@@ -814,7 +814,7 @@ describe('Testing user delete', () => {
 		await request(app)
 			.get('/users/' + user.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(404)
+			.expect(403)
 	});
 })
 
@@ -863,7 +863,7 @@ describe('Testing password update', () => {
 			.put("/password/invalid")
 			.type("form").send({ oldPassword: user1.password, newPassword: 'ValidPsw1' })
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(404, { msg: 'userID is not a valid ObjectID' })
+			.expect(403, { msg: 'userID is not a valid ObjectID' })
 	});
 	test("update password - invalid userID user", async () => {
 		const user = await addUser(user1, 201)
@@ -873,7 +873,7 @@ describe('Testing password update', () => {
 			.put('/password/' + '1' + user.body.id.slice(1, user.body.id.length - 1) + '1')
 			.type("form").send({ oldPassword: user1.password, newPassword: 'ValidPsw1' })
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(404, { msg: 'User does not exist' })
+			.expect(403, { msg: 'User does not exist' })
 	});
 
 	test("update password - missing fields", async () => {
@@ -970,19 +970,19 @@ describe('Testing verify', () => {
 	test("verify for invalid objectID user", async () => {
 		await request(app)
 			.get("/verify/invalid/sometrackdayID/somebikeID")
-			.expect(404, { msg: 'userID is not a valid ObjectID' })
+			.expect(403, { msg: 'userID is not a valid ObjectID' })
 	});
 	test("verify for invalid userID user", async () => {
 		const user = await addUser(user1, 201);
 		await request(app)
 			.get('/verify/' + '1' + user.body.id.slice(1, user.body.id.length - 1) + '1' + '/sometrackdayID/somebikeID')
-			.expect(404, { msg: 'User does not exist' })
+			.expect(403, { msg: 'User does not exist' })
 	});
 	test("verify for invalid objectID trackday", async () => {
 		const user = await addUser(user1, 201);
 		await request(app)
 			.get("/verify/" + user.body.id + "/invalid/somebikeID")
-			.expect(404, { msg: 'trackdayID is not a valid ObjectID' })
+			.expect(403, { msg: 'trackdayID is not a valid ObjectID' })
 	});
 	test("verify for invalid trackdayID trackday", async () => {
 		const user = await addUser(user1, 201);
@@ -992,7 +992,7 @@ describe('Testing verify', () => {
 		const trackday = await addTrackday(getFormattedDate(3), loginRes.headers['set-cookie'])
 		await request(app)
 			.get("/verify/" + user.body.id + '/' + '1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1' + '/somebikeID')
-			.expect(404, { msg: 'Trackday does not exist' })
+			.expect(403, { msg: 'Trackday does not exist' })
 	});
 	test("verify for invalid objectID bike", async () => {
 		const user = await addUser(user1, 201);
@@ -1003,7 +1003,7 @@ describe('Testing verify', () => {
 
 		await request(app)
 			.get("/verify/" + user.body.id + '/' + trackday.body.id + '/invalid')
-			.expect(404, { msg: 'bikeID is not a valid ObjectID' })
+			.expect(403, { msg: 'bikeID is not a valid ObjectID' })
 	});
 	test("verify for invalid bikeID bike", async () => {
 		const user = await addUser(user1, 201);
@@ -1023,7 +1023,7 @@ describe('Testing verify', () => {
 		await request(app)
 			.get("/verify/" + user.body.id + '/' + trackday.body.id + '/' + '1' + bike.body.id.slice(1, bike.body.id.length - 1) + '1')
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(404, { msg: 'Bike does not exist' });
+			.expect(403, { msg: 'Bike does not exist' });
 	});
 
 	test("verify for user - not registered for trackday", async () => {
@@ -1128,7 +1128,7 @@ describe('Testing adding bikes to a user garage', () => {
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(404, { msg: 'userID is not a valid ObjectID' })
+			.expect(403, { msg: 'userID is not a valid ObjectID' })
 	});
 	test("add bike to garage - invalid userID user", async () => {
 		const user = await addUser(user1, 201)
@@ -1139,7 +1139,7 @@ describe('Testing adding bikes to a user garage', () => {
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(404, { msg: 'User does not exist' })
+			.expect(403, { msg: 'User does not exist' })
 	});
 
 	test("add bike to garage - missing fields", async () => {
@@ -1257,7 +1257,7 @@ describe('Delete bikes from a user garage', () => {
 		await request(app)
 			.delete("/garage/invalid/someBikeID")
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(404, { msg: 'userID is not a valid ObjectID' })
+			.expect(403, { msg: 'userID is not a valid ObjectID' })
 	});
 	test("remove bike from garage - invalid userID user", async () => {
 		const user = await addUser(user1, 201)
@@ -1266,7 +1266,7 @@ describe('Delete bikes from a user garage', () => {
 		await request(app)
 			.delete('/garage/' + '1' + user.body.id.slice(1, user.body.id.length - 1) + '1' + '/someBikeID')
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(404, { msg: 'User does not exist' })
+			.expect(403, { msg: 'User does not exist' })
 	});
 	test("remove bike from garage - invalid objectID bike", async () => {
 		const user = await addUser(user1, 201)
@@ -1274,7 +1274,7 @@ describe('Delete bikes from a user garage', () => {
 		await request(app)
 			.delete("/garage/" + user.body.id + '/invalid')
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(404, { msg: 'bikeID is not a valid ObjectID' })
+			.expect(403, { msg: 'bikeID is not a valid ObjectID' })
 	});
 	test("remove bike from garage - invalid bikeID bike", async () => {
 		let user = await addUser(user1, 201);
@@ -1287,7 +1287,7 @@ describe('Delete bikes from a user garage', () => {
 		await request(app)
 			.delete("/garage/" + user.body.id + '/' + '1' + bike.body.id.slice(1, bike.body.id.length - 1) + '1')
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(404, { msg: 'Bike does not exist' });
+			.expect(403, { msg: 'Bike does not exist' });
 	});
 
 
@@ -1341,7 +1341,7 @@ describe('Delete bikes from a user garage', () => {
 		await request(app)
 			.delete("/garage/" + user.body.id + '/' + bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(404, { msg: "this bike does not exist in your garage" });
+			.expect(403, { msg: "this bike does not exist in your garage" });
 	});
 
 	test("remove bike from garage", async () => {
@@ -1369,7 +1369,7 @@ describe('Request QR code', () => {
 		await request(app)
 			.post("/qrcode/invalid/someBikeID")
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(404, { msg: 'userID is not a valid ObjectID' })
+			.expect(403, { msg: 'userID is not a valid ObjectID' })
 	});
 	test("request code - invalid userID user", async () => {
 		const user = await addUser(user1, 201)
@@ -1378,7 +1378,7 @@ describe('Request QR code', () => {
 		await request(app)
 			.post('/qrcode/' + '1' + user.body.id.slice(1, user.body.id.length - 1) + '1' + '/someBikeID')
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(404, { msg: 'User does not exist' })
+			.expect(403, { msg: 'User does not exist' })
 	});
 	test("request code - invalid objectID bike", async () => {
 		const user = await addUser(user1, 201)
@@ -1386,7 +1386,7 @@ describe('Request QR code', () => {
 		await request(app)
 			.post("/qrcode/" + user.body.id + '/invalid')
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(404, { msg: 'bikeID is not a valid ObjectID' })
+			.expect(403, { msg: 'bikeID is not a valid ObjectID' })
 	});
 	test("request code - invalid bikeID bike", async () => {
 		let user = await addUser(user1, 201);
@@ -1399,7 +1399,7 @@ describe('Request QR code', () => {
 		await request(app)
 			.post("/qrcode/" + user.body.id + '/' + '1' + bike.body.id.slice(1, bike.body.id.length - 1) + '1')
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(404, { msg: 'Bike does not exist' });
+			.expect(403, { msg: 'Bike does not exist' });
 	});
 
 	test("request code - no JWT", async () => {
@@ -1452,7 +1452,7 @@ describe('Request QR code', () => {
 		await request(app)
 			.post("/qrcode/" + user.body.id + '/' + bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(404, { msg: "this bike does not exist in your garage" });
+			.expect(403, { msg: "this bike does not exist in your garage" });
 	});
 
 	test("request code", async () => {
@@ -1477,7 +1477,7 @@ describe('Mark user as having waiver signed', () => {
 		await request(app)
 			.post("/waiver/invalid")
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(404, { msg: 'userID is not a valid ObjectID' })
+			.expect(403, { msg: 'userID is not a valid ObjectID' })
 	});
 	test("mark waiver - invalid userID user", async () => {
 		const user = await addUser(user1, 201)
@@ -1486,7 +1486,7 @@ describe('Mark user as having waiver signed', () => {
 		await request(app)
 			.post('/waiver/' + '1' + user.body.id.slice(1, user.body.id.length - 1) + '1')
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(404, { msg: 'User does not exist' })
+			.expect(403, { msg: 'User does not exist' })
 	});
 
 	test("mark waiver - no JWT", async () => {
