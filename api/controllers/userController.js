@@ -43,14 +43,14 @@ exports.login = [
                 // Generate tokens and attach as cookies
                 const accessToken = jwt.sign({id: user._id, memberType: user.memberType, name: user.firstName}, process.env.JWT_ACCESS_CODE, {expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION}) 
                 const refreshToken = jwt.sign({id: user._id}, process.env.JWT_REFRESH_CODE, {expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRATION}) 
-                res.cookie([`JWT_ACCESS_TOKEN=${accessToken}; secure; httponly; samesite=None;`])
-                res.cookie([`JWT_REFRESH_TOKEN=${refreshToken}; secure; httponly; samesite=None;`])
+                // res.cookie([`JWT_ACCESS_TOKEN=${accessToken}; secure; httponly; samesite=None;`])
+                // res.cookie([`JWT_REFRESH_TOKEN=${refreshToken}; secure; httponly; samesite=None;`])
 
                 // Store user specific refresh token in DB
                 user.refreshToken = refreshToken;
                 await user.save();
                 
-                return res.status(200).json({id: user.id, firstName: user.firstName, memberType: user.memberType});
+                return res.status(200).json({id: user.id, firstName: user.firstName, memberType: user.memberType, accessToken:accessToken, refreshToken:refreshToken});
             }else{
                 return res.status(403).json({msg: 'Incorrect Password'});
             }  
