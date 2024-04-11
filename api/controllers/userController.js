@@ -60,8 +60,8 @@ exports.login = [
 
 // Updates a users password. Requires JWT with matching userID OR admin
 exports.updatePassword = [
-    body("oldPassword", "Old password not provided or not a valid password type").trim().isLength({ min: 8, max: 50}).bail().matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
-    body("newPassword", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().isLength({ min: 8, max: 50}).bail().matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
+    body("oldPassword", "Old password not provided or not a valid password type").trim().matches(/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?!.* ).{8,50}$/).escape(),
+    body("newPassword", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().matches(/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?!.* ).{8,50}$/).escape(),
     
     controllerUtils.verifyJWT,
     controllerUtils.validateForm,
@@ -257,7 +257,7 @@ exports.user_post = [
     body("EmergencyRelationship", "Emergency Contact relationship definition must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
 
     body("group", "Group must be either green, yellow or red").trim().isIn(['green', 'yellow', 'red']).escape(),
-    body("password", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().isLength({ min: 8, max: 50}).bail().matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
+    body("password", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().matches(/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?!.* ).{8,50}$/).escape(),
 
     controllerUtils.validateForm,
 
@@ -408,7 +408,7 @@ exports.admin = [
     body("EmergencyRelationship", "Emergency Contact relationship definition must contain 2-50 characters").trim().isLength({ min: 2, max: 50}).escape(),
 
     body("group", "Group must be either green, yellow or red").trim().isIn(['green', 'yellow', 'red']).escape(),
-    body("password", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().isLength({ min: 8, max: 50}).bail().matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/).escape(),
+    body("password", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().matches(/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?!.* ).{8,50}$/).escape(),
 
     controllerUtils.validateForm,
 
