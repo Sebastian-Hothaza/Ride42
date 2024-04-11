@@ -74,7 +74,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 	async function handleCancelTrackdaySubmit(trackdayID) {
 		try {
-			const response = await fetch(APIServer + 'registers/' + userInfo._id + '/' + trackdayID, {
+			const response = await fetch(APIServer + 'register/' + userInfo._id + '/' + trackdayID, {
 				method: 'DELETE',
 				credentials: 'include',
 				headers: {
