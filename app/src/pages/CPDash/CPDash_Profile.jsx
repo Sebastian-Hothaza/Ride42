@@ -164,12 +164,12 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 
 						<div className={styles.inputPairing}>
 							<label htmlFor="address">Address:</label>
-							<input type="text" id="address" name="address" disabled={!editUserInfo} defaultValue={userInfo.contact.address} minLength={2} maxLength={50}></input>
+							<input type="text" id="address" name="address" disabled={!editUserInfo} defaultValue={userInfo.contact.address} required minLength={2} maxLength={50}></input>
 						</div>
 
 						<div className={styles.inputPairing}>
 							<label htmlFor="city">City:</label>
-							<input type="text" id="city" name="city" disabled={!editUserInfo} defaultValue={userInfo.contact.city} minLength={2} maxLength={50}></input>
+							<input type="text" id="city" name="city" disabled={!editUserInfo} defaultValue={userInfo.contact.city} required minLength={2} maxLength={50}></input>
 						</div>
 
 						<div className={styles.inputPairing}>
