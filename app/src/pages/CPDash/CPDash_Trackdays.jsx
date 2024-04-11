@@ -73,34 +73,45 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 	}
 
 	async function handleCancelTrackdaySubmit(trackdayID) {
-		const response = await fetch(APIServer + 'register/' + userInfo._id + '/' + trackdayID, {
-			method: 'DELETE',
-			credentials: 'include',
-			headers: {
-				'Content-type': 'application/json; charset=UTF-8',
-			},
-		})
-		fetchAPIData();
+		try {
+			const response = await fetch(APIServer + 'registers/' + userInfo._id + '/' + trackdayID, {
+				method: 'DELETE',
+				credentials: 'include',
+				headers: {
+					'Content-type': 'application/json; charset=UTF-8',
+				},
+			})
+			if (!response.ok) throw new Error('API Failure')
+			fetchAPIData();
+		} catch (err) {
+			console.log(err)
+		}
+
 	}
 
 	async function handleRescheduleSubmit(e, trackdayID_OLD) {
 		e.preventDefault();
 		const formData = new FormData(e.target);
-
-		const response = await fetch(APIServer + 'register/' + userInfo._id + '/' + trackdayID_OLD + '/' + formData.get('date'), {
-			method: 'PUT',
-			credentials: 'include',
-			headers: {
-				'Content-type': 'application/json; charset=UTF-8',
-			},
-			body: JSON.stringify(Object.fromEntries(formData))
-		})
-		if (response.status == 400) {
-			const data = await response.json()
-			console.log(data.msg)
+		try {
+			const response = await fetch(APIServer + 'register/' + userInfo._id + '/' + trackdayID_OLD + '/' + formData.get('date'), {
+				method: 'PUT',
+				credentials: 'include',
+				headers: {
+					'Content-type': 'application/json; charset=UTF-8',
+				},
+				body: JSON.stringify(Object.fromEntries(formData))
+			})
+			if (response.status == 400) {
+				const data = await response.json()
+				console.log(data.msg)
+			}
+			if (!response.ok) throw new Error('API Failure')
+			setShowReschedule([])
+			fetchAPIData();
+		} catch (err) {
+			console.log(err)
 		}
-		setShowReschedule([])
-		fetchAPIData();
+
 	}
 
 	// Converts server format date to nice user legible date
@@ -136,7 +147,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 	}
 
 	// If user has no bikes in garage, don't allow any trackday management
-	if (!userInfo.garage.length) {
+	if (userInfo && !userInfo.garage.length) {
 		return <>
 			<h1>Your Garage is Empty!</h1>
 			<br></br><br></br>
