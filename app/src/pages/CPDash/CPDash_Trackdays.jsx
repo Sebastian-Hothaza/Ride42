@@ -1,6 +1,6 @@
 import { useState } from "react";
-
-
+import Modal_Loading from "../../components/Modal_Loading";
+import ScrollToTop from "../../components/ScrollToTop";
 import styles from './CPDash_Trackdays.module.css'
 
 // TODO; remove hardcoded 7 days restriction
@@ -8,6 +8,8 @@ import styles from './CPDash_Trackdays.module.css'
 const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPIData, setActiveTab }) => {
 	const [bookErrors, setBookErrors] = useState(); // Array corresponding to error messages received from API
 	const [showReschedule, setShowReschedule] = useState([]); // tracks for which trackday ID's should we show the reschedule box for
+	const [showCancellation, setShowCancellation] = useState([]); // tracks for which trackday ID's should we show the cancellation box for
+	const [pendingSubmit, setPendingSubmit] = useState('');
 
 	// Returns true if a user is registered for a specified trackday ID
 	function userRegistered(trackdayID) {
@@ -35,6 +37,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 	async function handleBookTrackdaySubmit(e) {
 		e.preventDefault();
+		setPendingSubmit({ show: true, msg: 'Booking your trackday' });
 		const formData = new FormData(e.target);
 
 		// Build layout vote array
@@ -56,7 +59,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			})
 			if (response.ok) {
 				setBookErrors('');
-				fetchAPIData();
+				await fetchAPIData(); // Wait for fetch to complete so the spinner stays on screen
 			} else if (response.status === 400) {
 				const data = await response.json();
 				setBookErrors(data.msg)
@@ -66,13 +69,15 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			} else {
 				throw new Error('API Failure')
 			}
+
 		} catch (err) {
 			console.log(err)
 		}
-
+		setPendingSubmit('');
 	}
 
 	async function handleCancelTrackdaySubmit(trackdayID) {
+		setPendingSubmit({ show: true, msg: 'Cancelling your trackday' });
 		try {
 			const response = await fetch(APIServer + 'register/' + userInfo._id + '/' + trackdayID, {
 				method: 'DELETE',
@@ -82,15 +87,17 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 				},
 			})
 			if (!response.ok) throw new Error('API Failure')
-			fetchAPIData();
+			await fetchAPIData();
 		} catch (err) {
 			console.log(err)
 		}
+		setPendingSubmit('');
 
 	}
 
 	async function handleRescheduleSubmit(e, trackdayID_OLD) {
 		e.preventDefault();
+		setPendingSubmit({ show: true, msg: 'Rescheduling your trackday' });
 		const formData = new FormData(e.target);
 		try {
 			const response = await fetch(APIServer + 'register/' + userInfo._id + '/' + trackdayID_OLD + '/' + formData.get('date'), {
@@ -106,12 +113,12 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 				console.log(data.msg)
 			}
 			if (!response.ok) throw new Error('API Failure')
-			setShowReschedule([])
-			fetchAPIData();
+			await fetchAPIData();
 		} catch (err) {
 			console.log(err)
 		}
-
+		setShowReschedule([])
+		setPendingSubmit('');
 	}
 
 	// Converts server format date to nice user legible date
@@ -130,6 +137,15 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			setShowReschedule(showReschedule.filter(trackday => trackday.id !== targetTrackday.id)); //remove
 		} else {
 			setShowReschedule(showReschedule.concat(targetTrackday)); //add
+		}
+	}
+
+	function toggleCancellation(targetTrackday) {
+		// Check if our targetTrackday is already in the array of showCancellation
+		if (showCancellation.find(trackday => trackday.id === targetTrackday.id)) {
+			setShowCancellation(showCancellation.filter(trackday => trackday.id !== targetTrackday.id)); //remove
+		} else {
+			setShowCancellation(showCancellation.concat(targetTrackday)); //add
 		}
 	}
 
@@ -159,120 +175,124 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 	// TODO: user trackdays, are they guaranteed in order? NO! "my trackdays"(userTrackdays) should be sorted
 	return (
-		<div className={styles.content}>
-			<h1>Book a Trackday</h1>
-			<form id="CPDash_Trackdays_bookTrackday" onSubmit={(e) => handleBookTrackdaySubmit(e)}>
+		<>
+			<ScrollToTop />
+			<div className={styles.content}>
+				<h1>Book a Trackday</h1>
+				<form id="CPDash_Trackdays_bookTrackday" onSubmit={(e) => handleBookTrackdaySubmit(e)}>
 
 
-				<div className={styles.bookDetails}>
-					<div className={styles.inputPairing}>
-						<label htmlFor="date">Date:</label>
-						<select name="date" id="date" form="CPDash_Trackdays_bookTrackday" required>
-							<option key="dateNone" value="">---Choose date---</option>
-							{allTrackdays && allTrackdays.map((trackday) => <option key={trackday.id} value={trackday.id}>{prettyPrintDate(trackday.date)}</option>)}
-						</select>
-					</div>
-					<div className={styles.inputPairing}>
-						<label htmlFor="paymentMethod">Payment Method:</label>
-						<select name="paymentMethod" id="paymentMethod" form="CPDash_Trackdays_bookTrackday" required>
-							<option key="paymentNone" value="">---Choose Payment Method---</option>
-							{userInfo.credits && <option key="credit" value="credit">Use trackday credit (Remaining: {userInfo.credits})</option>}
-							<option key="etransfer" value="etransfer">Interac E-Transfer</option>
-							<option key="creditCard" value="creditCard">Credit Card</option>
-
-						</select>
-					</div>
-					<div className={styles.inputPairing}>
-						<label htmlFor="guests" >Guests:</label>
-						<input type="number" id="guests" name="guests" defaultValue={1} required min={0}></input>
-					</div>
-				</div>
-
-
-				<div className={styles.layoutVote}>
-					<legend><h3>Which layouts would you like to vote for?</h3></legend>
-
-					<div className={styles.checkboxes}>
-						<div className={styles.checkboxPairing}>
-							<input type="checkbox" id="technical" name="layoutVote" value="technical"></input>
-							<label htmlFor="technical">Technical</label>
+					<div className={styles.bookDetails}>
+						<div className={styles.inputPairing}>
+							<label htmlFor="date">Date:</label>
+							<select name="date" id="date" form="CPDash_Trackdays_bookTrackday" required>
+								<option key="dateNone" value="">---Choose date---</option>
+								{allTrackdays && allTrackdays.map((trackday) => <option key={trackday.id} value={trackday.id}>{prettyPrintDate(trackday.date)}</option>)}
+							</select>
 						</div>
+						<div className={styles.inputPairing}>
+							<label htmlFor="paymentMethod">Payment Method:</label>
+							<select name="paymentMethod" id="paymentMethod" form="CPDash_Trackdays_bookTrackday" required>
+								<option key="paymentNone" value="">---Choose Payment Method---</option>
+								{userInfo.credits && <option key="credit" value="credit">Use trackday credit (Remaining: {userInfo.credits})</option>}
+								<option key="etransfer" value="etransfer">Interac E-Transfer</option>
+								<option key="creditCard" value="creditCard">Credit Card</option>
 
-						<div className={styles.checkboxPairing}>
-							<input type="checkbox" id="Rtechnical" name="layoutVote" value="Rtechnical"></input>
-							<label htmlFor="Rtechnical">Reverse Technical</label>
+							</select>
 						</div>
-						<div className={styles.checkboxPairing}>
-							<input type="checkbox" id="alien" name="layoutVote" value="alien"></input>
-							<label htmlFor="alien">Alien</label>
-						</div>
-						<div className={styles.checkboxPairing}>
-							<input type="checkbox" id="Ralien" name="layoutVote" value="Ralien"></input>
-							<label htmlFor="Ralien">Reverse Alien</label>
-						</div>
-						<div className={styles.checkboxPairing}>
-							<input type="checkbox" id="modified" name="layoutVote" value="modified"></input>
-							<label htmlFor="modified">Modified</label>
-						</div>
-						<div className={styles.checkboxPairing}>
-							<input type="checkbox" id="long" name="layoutVote" value="long"></input>
-							<label htmlFor="long">Long Track</label>
+						<div className={styles.inputPairing}>
+							<label htmlFor="guests" >Guests:</label>
+							<input type="number" id="guests" name="guests" defaultValue={1} required min={0}></input>
 						</div>
 					</div>
 
-				</div>
 
+					<div className={styles.layoutVote}>
+						<legend><h3>Which layouts would you like to vote for?</h3></legend>
 
-				<button className={styles.confirmBtn} id={styles.registerBtn} type="submit">Register</button>
-
-				{bookErrors && bookErrors.length > 0 &&
-					<ul className="errorText">Encountered the following errors:
-						{bookErrors.map((errorItem) => <li key={errorItem}>{errorItem}</li>)}
-					</ul>}
-			</form>
-
-
-
-			<h1>My Trackdays</h1>
-			{!userTrackdays ? <div>...</div> :
-				<div>
-					{userTrackdays.map((trackday) => {
-						return (
-							<div key={trackday.id} className={styles.tdEntry}>
-								{/* INFO */}
-								<div>{prettyPrintDate(trackday.date)}</div>
-								{/* Paid Status */}
-								{trackday.paid ? <div>PAID</div> : <div>UNPAID</div>}
-
-								{/* Reschedule/Cancel controls */}
-								<div className={styles.tdControls}>
-									{/* Conditionally show reschedule form */}
-									{showReschedule.find((p) => p.id === trackday.id) ?
-										<>
-											<form id="CPDash_Trackdays_reschedule" onSubmit={(e) => handleRescheduleSubmit(e, trackday.id)}>
-												<select name="date" id="date" form="CPDash_Trackdays_reschedule" defaultValue={userInfo.group}>
-													<option key="dateNone" value="">--Choose date--</option>
-													{allTrackdays && allTrackdays.map((trackday) => <option key={trackday.id} value={trackday.id}>{prettyPrintDate(trackday.date)}</option>)}
-												</select>
-												<button className={styles.confirmBtn} type="submit">Confirm</button>
-												<button type="button" onClick={() => toggleReschedule(trackday)}>Cancel</button>
-											</form>
-										</>
-										:
-										<>
-											{/* These buttons should not be shown if trackday is in past */}
-											{canModify(trackday) && <> <button onClick={() => toggleReschedule(trackday)}>Reschedule</button>
-												<button onClick={() => handleCancelTrackdaySubmit(trackday.id)}>Cancel Trackday</button> </>}
-										</>
-									}
-								</div>
+						<div className={styles.checkboxes}>
+							<div className={styles.checkboxPairing}>
+								<input type="checkbox" id="technical" name="layoutVote" value="technical"></input>
+								<label htmlFor="technical">Technical</label>
 							</div>
-						)
-					})}
-				</div>}
+
+							<div className={styles.checkboxPairing}>
+								<input type="checkbox" id="Rtechnical" name="layoutVote" value="Rtechnical"></input>
+								<label htmlFor="Rtechnical">Reverse Technical</label>
+							</div>
+							<div className={styles.checkboxPairing}>
+								<input type="checkbox" id="alien" name="layoutVote" value="alien"></input>
+								<label htmlFor="alien">Alien</label>
+							</div>
+							<div className={styles.checkboxPairing}>
+								<input type="checkbox" id="Ralien" name="layoutVote" value="Ralien"></input>
+								<label htmlFor="Ralien">Reverse Alien</label>
+							</div>
+							<div className={styles.checkboxPairing}>
+								<input type="checkbox" id="modified" name="layoutVote" value="modified"></input>
+								<label htmlFor="modified">Modified</label>
+							</div>
+							<div className={styles.checkboxPairing}>
+								<input type="checkbox" id="long" name="layoutVote" value="long"></input>
+								<label htmlFor="long">Long Track</label>
+							</div>
+						</div>
+
+					</div>
 
 
-		</div>
+					<button className={styles.confirmBtn} id={styles.registerBtn} type="submit">Register</button>
+
+					{bookErrors && bookErrors.length > 0 &&
+						<ul className="errorText">Encountered the following errors:
+							{bookErrors.map((errorItem) => <li key={errorItem}>{errorItem}</li>)}
+						</ul>}
+				</form>
+
+
+
+				<h1>My Trackdays</h1>
+				{userTrackdays &&
+					<div>
+						{userTrackdays.map((trackday) => {
+							return (
+								<div key={trackday.id} className={styles.tdEntry}>
+									{/* INFO */}
+									<div>{prettyPrintDate(trackday.date)}</div>
+									{/* Paid Status */}
+									{trackday.paid ? <div>PAID</div> : <div>UNPAID</div>}
+
+									{/* Reschedule/Cancel controls */}
+									<div className={styles.tdControls}>
+										{/* Conditionally show reschedule form */}
+										{showReschedule.find((p) => p.id === trackday.id) ?
+											<>
+												<form id="CPDash_Trackdays_reschedule" onSubmit={(e) => handleRescheduleSubmit(e, trackday.id)}>
+													<select name="date" id="date" form="CPDash_Trackdays_reschedule" required>
+														<option key="dateNone" value="">--Choose date--</option>
+														{allTrackdays && allTrackdays.map((trackday) => <option key={trackday.id} value={trackday.id}>{prettyPrintDate(trackday.date)}</option>)}
+													</select>
+													<button className={styles.confirmBtn} type="submit">Confirm</button>
+													<button type="button" onClick={() => toggleReschedule(trackday)}>Cancel</button>
+												</form>
+											</>
+											:
+											<>
+												{/* These buttons should not be shown if trackday is in past */}
+												{canModify(trackday) && <> <button onClick={() => toggleReschedule(trackday)}>Reschedule</button>
+													<button onClick={() => toggleCancellation(trackday)}>Cancel Trackday</button> </>}
+											</>
+										}
+									</div>
+								</div>
+							)
+						})}
+					</div>}
+
+
+			</div>
+			<Modal_Loading open={pendingSubmit.show} text={pendingSubmit.msg}></Modal_Loading>
+		</>
 	);
 };
 
