@@ -1,5 +1,5 @@
 .rulesCard ul{
-    padding: 0 2rem;
+    padding: 0 4rem;
 }
 
 h3{
@@ -8,3 +8,8 @@ h3{
     padding-left: 2rem;
 }
 
+@media (max-width: 850px) {
+    .rulesCard ul{
+        padding: 0 2rem;
+    }
+}
