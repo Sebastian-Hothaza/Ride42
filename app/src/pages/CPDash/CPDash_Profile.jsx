@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import ScrollToTop from "../../components/ScrollToTop";
 import styles from './CPDash_Profile.module.css'
 
 const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
@@ -44,7 +44,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 
 	function checkPswFormat() {
 		let input = document.getElementById('newPassword');
-		if ((/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?!.* ).{8,50}$/).test(input.value) && input.value.length>=8 && input.value.length<=50) {
+		if ((/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?!.* ).{8,50}$/).test(input.value) && input.value.length >= 8 && input.value.length <= 50) {
 			input.setCustomValidity(''); // input is valid -- reset the error message
 		} else {
 			input.setCustomValidity('Password must contain minimum 8 characters and be a combination of letters and numbers');
@@ -72,10 +72,10 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 				},
 				body: JSON.stringify(Object.fromEntries(formData))
 			})
-			if (response.ok){
+			if (response.ok) {
 				setChangePswErrorMsg('');
 				e.target.reset();
-			}else{
+			} else {
 				const data = await response.json();
 				setChangePswErrorMsg(data.msg)
 				e.target.reset();
@@ -125,6 +125,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 
 	return (
 		<>
+			<ScrollToTop />
 			{!userInfo ? <div>...</div> :
 				<div className={styles.content}>
 					<h1>My Profile</h1>
@@ -230,7 +231,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 						<div id={styles.changePswBtn} >
 							<button className={styles.confirmBtn} type="submit">Change Password</button>
 						</div>
-						{ changePswErrorMsg && <div className="errorText">{changePswErrorMsg}</div> }
+						{changePswErrorMsg && <div className="errorText">{changePswErrorMsg}</div>}
 					</form>
 				</div>
 			}
