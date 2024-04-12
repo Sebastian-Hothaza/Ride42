@@ -55,12 +55,17 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			const response = await fetch(APIServer + 'register/' + userInfo._id + '/' + formData.get('date'), {
 				method: 'POST',
 				headers: {
-                    'Content-type': 'application/json; charset=UTF-8',
-                    'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
-                },
+					'Content-type': 'application/json; charset=UTF-8',
+					'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
+				},
 				body: JSON.stringify(formDataFinal)
 			})
 			if (response.ok) {
+
+				// Updating accessToken in LS
+				const data = await response.json();
+				if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
+
 				setBookErrors('');
 				await fetchAPIData(); // Wait for fetch to complete so the spinner stays on screen
 			} else if (response.status === 400) {
@@ -74,7 +79,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			}
 
 		} catch (err) {
-			console.log(err)
+			console.log(err.message)
 		}
 		setPendingSubmit('');
 	}
@@ -86,17 +91,22 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			const response = await fetch(APIServer + 'register/' + userInfo._id + '/' + trackdayID, {
 				method: 'DELETE',
 				headers: {
-                    'Content-type': 'application/json; charset=UTF-8',
-                    'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
-                },
+					'Content-type': 'application/json; charset=UTF-8',
+					'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
+				},
 			})
 			if (!response.ok) throw new Error('API Failure')
+
+			// Updating accessToken in LS
+			const data = await response.json();
+			if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
+
 			await fetchAPIData();
 		} catch (err) {
-			console.log(err)
+			console.log(err.message)
 		}
 		setPendingSubmit('');
-		
+
 	}
 
 	async function handleRescheduleSubmit(e, trackdayID_OLD) {
@@ -107,11 +117,17 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			const response = await fetch(APIServer + 'register/' + userInfo._id + '/' + trackdayID_OLD + '/' + formData.get('date'), {
 				method: 'PUT',
 				headers: {
-                    'Content-type': 'application/json; charset=UTF-8',
-                    'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
-                },
+					'Content-type': 'application/json; charset=UTF-8',
+					'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
+				},
 				body: JSON.stringify(Object.fromEntries(formData))
 			})
+
+
+			// Updating accessToken in LS
+			const data = await response.json();
+			if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
+
 			if (response.status == 400) {
 				const data = await response.json()
 				console.log(data.msg)
@@ -119,7 +135,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			if (!response.ok) throw new Error('API Failure')
 			await fetchAPIData();
 		} catch (err) {
-			console.log(err)
+			console.log(err.message)
 		}
 		setShowReschedule([])
 		setPendingSubmit('');

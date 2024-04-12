@@ -35,30 +35,36 @@ function App() {
 
     async function handleLogin(e) {
         const formData = new FormData(e.target);
-        const response = await fetch(APIServer + 'login', {
-            // TODO: Do we need to include any kind of credentials here?
-            method: 'POST',
-            headers: {
-                'Content-type': 'application/json; charset=UTF-8',
-            },
-            body: JSON.stringify(Object.fromEntries(formData))
-        })
-        if (!response.ok) {
-            e.target.password.value = '';
-            const data = await response.json();
-            setLoginErrorMsg(data.msg);
-            setLoggedIn(false);
-        }else{
-            const data = await response.json();
-            localStorage.setItem("user", JSON.stringify(data)); // Store user in localStorage
-            // Store JWT's in localStorage
-            localStorage.setItem('accessToken', data.accessToken);
-            localStorage.setItem('refreshToken', data.refreshToken);
-            
-            setLoginErrorMsg('')
-            setLoggedIn(true);
-        }
+        try {
+            const response = await fetch(APIServer + 'login', {
+                method: 'POST',
+                headers: {
+                    'Content-type': 'application/json; charset=UTF-8',
+                },
+                body: JSON.stringify(Object.fromEntries(formData))
+            })
+            if (response.ok) {
+                const data = await response.json();
+                localStorage.setItem("user", JSON.stringify(data)); // Store user in localStorage
+                // Store JWT's in localStorage
+                localStorage.setItem('accessToken', data.accessToken);
+                localStorage.setItem('refreshToken', data.refreshToken);
 
+                setLoginErrorMsg('')
+                setLoggedIn(true);
+
+            } else if (response.status === 403) {
+                const data = await response.json();
+                e.target.password.value = '';
+                
+                setLoginErrorMsg(data.msg);
+                setLoggedIn(false);
+            } else {
+                throw new Error('API Failure')
+            }
+        } catch (err) {
+            console.log(err.message)
+        }
     }
 
     function handleLogout() {

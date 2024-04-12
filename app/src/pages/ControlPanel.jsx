@@ -1,13 +1,15 @@
-import { useOutletContext } from "react-router-dom";
+
 import { useEffect, useState } from "react";
 import styles from './stylesheets/ControlPanel.module.css'
+
+import { useOutletContext } from "react-router-dom";
 
 import Modal_Loading from "../components/Modal_Loading";
 import CPDash_Trackdays from './CPDash/CPDash_Trackdays'
 import CPDash_Profile from './CPDash/CPDash_Profile'
 import CPDash_Garage from './CPDash/CPDash_Garage'
 
-const ControlPanel = ({ APIServer }) => {
+const ControlPanel = ({ APIServer, setLoggedIn }) => {
 
 
     const { handleLogout } = useOutletContext();
@@ -19,28 +21,36 @@ const ControlPanel = ({ APIServer }) => {
 
     const [activeTab, setActiveTab] = useState('trackdays')
 
+
     async function fetchAPIData() {
         let userInfoData, allTrackdaysData, userTrackdaysData = []
         try {
-            const [userInfoResponse, allTrackdaysResponse, userTrackdaysResponse] = await Promise.all([fetch(APIServer + 'users/' + loggedInUser.id, {
-                headers: {
-                    'Content-type': 'application/json; charset=UTF-8',
-                    'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
-                }
-            }),
-            fetch(APIServer + 'presentTrackdays'),
-            fetch(APIServer + 'presentTrackdays/' + loggedInUser.id)]);
+            const [userInfoResponse, allTrackdaysResponse, userTrackdaysResponse] = await Promise.all([
+                fetch(APIServer + 'users/' + loggedInUser.id, {
+                    headers: {
+                        'Content-type': 'application/json; charset=UTF-8',
+                        'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
+                    }
+                }),
+                fetch(APIServer + 'presentTrackdays'),
+                fetch(APIServer + 'presentTrackdays/' + loggedInUser.id)]);
             if (!userInfoResponse.ok) throw new Error('Failed to build API Data for userInfo');
             if (!allTrackdaysResponse.ok) throw new Error('Failed to build API Data for allTrackdays');
             if (!userTrackdaysResponse.ok) throw new Error('Failed to build API Data for userTrackdays');
 
             [userInfoData, allTrackdaysData, userTrackdaysData] = await Promise.all([userInfoResponse.json(), allTrackdaysResponse.json(), userTrackdaysResponse.json()])
+
+            // Updating accessToken in LS
+            if (userInfoData.accessToken_FRESH) localStorage.setItem('accessToken', userInfoData.accessToken_FRESH);
+
+            setUserInfo(userInfoData);
+            setAllTrackdays(allTrackdaysData);
+            setUserTrackdays(userTrackdaysData);
+
         } catch (err) {
-            console.log(err)
+            console.log(err.message)
+            handleLogout(); // If any of the above API calls failed, there is a serious issue and we do not permit user access
         }
-        setUserInfo(userInfoData);
-        setAllTrackdays(allTrackdaysData);
-        setUserTrackdays(userTrackdaysData);
     }
 
 

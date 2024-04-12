@@ -149,8 +149,10 @@ const Register = () => {
 
 	async function handleRegisterSubmit(e) {
 		e.preventDefault();
+		// Strip out non-numerical values from phone and emergency phone
 		e.target.phone.value = e.target.phone.value.replace(/[^0-9]/g, '');
 		e.target.EmergencyPhone.value = e.target.EmergencyPhone.value.replace(/[^0-9]/g, '');
+
 		setPendingSubmit({show: true, msg: 'Submitting Your Registration...'});
 		const formData = new FormData(e.target);
 		try {
@@ -163,6 +165,7 @@ const Register = () => {
 			})
 			
 			if (response.ok) {
+				// TODO: Should we login user before?
 				navigate("/dashboard");
 			} else if (response.status === 400) {
 				const data = await response.json();
@@ -174,7 +177,7 @@ const Register = () => {
 				throw new Error('API Failure')
 			}
 		} catch (err) {
-			console.log(err)
+			console.log(err.message)
 		}
 		setPendingSubmit('');
 	}

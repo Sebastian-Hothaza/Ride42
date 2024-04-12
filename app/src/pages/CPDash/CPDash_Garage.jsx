@@ -19,14 +19,19 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 			const response = await fetch(APIServer + 'qrcode/' + userInfo._id + '/' + bikeID, {
 				method: 'POST',
 				headers: {
-                    'Content-type': 'application/json; charset=UTF-8',
-                    'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
-                }
+					'Content-type': 'application/json; charset=UTF-8',
+					'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
+				}
 			})
 			if (!response.ok) throw new Error('API Failure')
+
+			// Updating accessToken in LS
+			const data = await response.json();
+			if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
+
 			setQRConfirm(true);
 		} catch (err) {
-			console.log(err)
+			console.log(err.message)
 		}
 		setPendingSubmit('');
 	}
@@ -37,14 +42,18 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 			const response = await fetch(APIServer + 'garage/' + userInfo._id + '/' + bikeID, {
 				method: 'DELETE',
 				headers: {
-                    'Content-type': 'application/json; charset=UTF-8',
-                    'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
-                }
+					'Content-type': 'application/json; charset=UTF-8',
+					'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
+				}
 			})
 			if (!response.ok) throw new Error('API Failure')
 
+			// Updating accessToken in LS
+			const data = await response.json();
+			if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
+
 		} catch (err) {
-			console.log(err)
+			console.log(err.message)
 		}
 		await fetchAPIData();
 		setPendingSubmit('')
@@ -58,13 +67,17 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 			const response = await fetch(APIServer + 'garage/' + userInfo._id, {
 				method: 'POST',
 				headers: {
-                    'Content-type': 'application/json; charset=UTF-8',
-                    'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
-                },
+					'Content-type': 'application/json; charset=UTF-8',
+					'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
+				},
 				body: JSON.stringify(Object.fromEntries(formData))
 			})
 
 			if (response.ok) {
+				// Updating accessToken in LS
+				const data = await response.json();
+				if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
+
 				await fetchAPIData();
 				setPendingSubmit('');
 				setAddBikeConfirm(true);
@@ -83,7 +96,7 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 
 
 		} catch (err) {
-			console.log(err)
+			console.log(err.message)
 		}
 
 

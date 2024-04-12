@@ -9,9 +9,12 @@ import ControlPanel from "./ControlPanel";
 const Dashboard = () => {
 	const { loggedIn } = useOutletContext();
 	const { APIServer } = useOutletContext();
+	const { setLoggedIn } = useOutletContext();
+	const { handleLogout } = useOutletContext();
+	
 	return (
 		<>
-			{loggedIn ? <ControlPanel APIServer={APIServer} /> : <Login />} 
+			{loggedIn ? <ControlPanel APIServer={APIServer} setLoggedIn={setLoggedIn} handleLogout={handleLogout}/> : <Login />} 
 		</>
 	);
 };

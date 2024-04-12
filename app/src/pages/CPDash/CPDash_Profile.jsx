@@ -22,15 +22,19 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 			const response = await fetch(APIServer + 'users/' + userInfo._id, {
 				method: 'PUT',
 				headers: {
-                    'Content-type': 'application/json; charset=UTF-8',
-                    'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
-                },
+					'Content-type': 'application/json; charset=UTF-8',
+					'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
+				},
 				body: JSON.stringify(Object.fromEntries(formData))
 			})
 			if (response.ok) {
+				// Updating accessToken in LS
+				const data = await response.json();
+				if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
+
 				setEditUserInfo(false)
 				setEditUserInfoErrors('');
-				// TODO: Do we need to fetchapidata here?
+				// TODO: Do we need to fetchapidata here? Maybe add it in before clearing out pending submit
 			} else if (response.status === 400) {
 				const data = await response.json();
 				setEditUserInfoErrors(data.msg)
@@ -41,7 +45,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 				throw new Error('API Failure')
 			}
 		} catch (err) {
-			console.log(err)
+			console.log(err.message)
 		}
 		setPendingSubmit('');
 	}
@@ -55,7 +59,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 			input.setCustomValidity('Phone must contain 10 digits');
 		}
 	}
-	
+
 	function checkPswFormat() {
 		let input = document.getElementById('newPassword');
 		if ((/^(?=.*[0-9])(?=.*[a-z])(?!.* ).{8,50}$/).test(input.value) && input.value.length >= 8 && input.value.length <= 50) {
@@ -82,19 +86,24 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 			const response = await fetch(APIServer + 'password/' + userInfo._id, {
 				method: 'PUT',
 				headers: {
-                    'Content-type': 'application/json; charset=UTF-8',
-                    'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
-                },
+					'Content-type': 'application/json; charset=UTF-8',
+					'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
+				},
 				body: JSON.stringify(Object.fromEntries(formData))
 			})
 			if (response.ok) {
+
+				// Updating accessToken in LS
+				const data = await response.json();
+				if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
+
 				setChangePswErrorMsg('');
 			} else {
 				const data = await response.json();
 				setChangePswErrorMsg(data.msg)
 			}
 		} catch (err) {
-			console.log(err)
+			console.log(err.message)
 		}
 		e.target.reset();
 		setPendingSubmit('');
@@ -107,9 +116,9 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 			const response = await fetch(APIServer + 'users/' + userInfo._id, {
 				method: 'PUT',
 				headers: {
-                    'Content-type': 'application/json; charset=UTF-8',
-                    'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
-                },
+					'Content-type': 'application/json; charset=UTF-8',
+					'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
+				},
 				body: JSON.stringify({
 					email: userInfo.contact.email,
 					phone: userInfo.contact.phone,
@@ -124,6 +133,11 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 				})
 			})
 			if (response.ok) {
+
+				// Updating accessToken in LS
+				const data = await response.json();
+				if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
+
 				await fetchAPIData();
 			} else if (response.status === 400) {
 				const data = await response.json();
@@ -132,7 +146,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 				throw new Error('API Failure')
 			}
 		} catch (err) {
-			console.log(err)
+			console.log(err.message)
 		}
 		setEditUserGroup(false)
 		setPendingSubmit('');
