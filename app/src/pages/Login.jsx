@@ -4,6 +4,7 @@ import { useState } from "react";
 import styles from './stylesheets/Login.module.css'
 
 import Modal_Loading from "../components/Modal_Loading";
+import ScrollToTop from "../components/ScrollToTop";
 
 
 const Login = () => {
@@ -21,6 +22,7 @@ const Login = () => {
 
     return (
         <>
+        <ScrollToTop/>
             <div className="content">
                 <div className={styles.invertedContent}>
                     <div id={styles.registerCard} >
