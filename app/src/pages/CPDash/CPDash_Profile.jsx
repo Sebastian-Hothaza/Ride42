@@ -21,10 +21,10 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 		try {
 			const response = await fetch(APIServer + 'users/' + userInfo._id, {
 				method: 'PUT',
-				credentials: 'include',
 				headers: {
-					'Content-type': 'application/json; charset=UTF-8',
-				},
+                    'Content-type': 'application/json; charset=UTF-8',
+                    'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
+                },
 				body: JSON.stringify(Object.fromEntries(formData))
 			})
 			if (response.ok) {
@@ -81,10 +81,10 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 		try {
 			const response = await fetch(APIServer + 'password/' + userInfo._id, {
 				method: 'PUT',
-				credentials: 'include',
 				headers: {
-					'Content-type': 'application/json; charset=UTF-8',
-				},
+                    'Content-type': 'application/json; charset=UTF-8',
+                    'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
+                },
 				body: JSON.stringify(Object.fromEntries(formData))
 			})
 			if (response.ok) {
@@ -106,10 +106,10 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 		try {
 			const response = await fetch(APIServer + 'users/' + userInfo._id, {
 				method: 'PUT',
-				credentials: 'include',
 				headers: {
-					'Content-type': 'application/json; charset=UTF-8',
-				},
+                    'Content-type': 'application/json; charset=UTF-8',
+                    'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
+                },
 				body: JSON.stringify({
 					email: userInfo.contact.email,
 					phone: userInfo.contact.phone,

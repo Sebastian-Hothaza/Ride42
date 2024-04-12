@@ -54,10 +54,10 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 		try {
 			const response = await fetch(APIServer + 'register/' + userInfo._id + '/' + formData.get('date'), {
 				method: 'POST',
-				credentials: 'include',
 				headers: {
-					'Content-type': 'application/json; charset=UTF-8',
-				},
+                    'Content-type': 'application/json; charset=UTF-8',
+                    'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
+                },
 				body: JSON.stringify(formDataFinal)
 			})
 			if (response.ok) {
@@ -85,10 +85,10 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 		try {
 			const response = await fetch(APIServer + 'register/' + userInfo._id + '/' + trackdayID, {
 				method: 'DELETE',
-				credentials: 'include',
 				headers: {
-					'Content-type': 'application/json; charset=UTF-8',
-				},
+                    'Content-type': 'application/json; charset=UTF-8',
+                    'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
+                },
 			})
 			if (!response.ok) throw new Error('API Failure')
 			await fetchAPIData();
@@ -106,10 +106,10 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 		try {
 			const response = await fetch(APIServer + 'register/' + userInfo._id + '/' + trackdayID_OLD + '/' + formData.get('date'), {
 				method: 'PUT',
-				credentials: 'include',
 				headers: {
-					'Content-type': 'application/json; charset=UTF-8',
-				},
+                    'Content-type': 'application/json; charset=UTF-8',
+                    'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
+                },
 				body: JSON.stringify(Object.fromEntries(formData))
 			})
 			if (response.status == 400) {

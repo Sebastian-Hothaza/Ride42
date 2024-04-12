@@ -36,8 +36,8 @@ function App() {
     async function handleLogin(e) {
         const formData = new FormData(e.target);
         const response = await fetch(APIServer + 'login', {
+            // TODO: Do we need to include any kind of credentials here?
             method: 'POST',
-            credentials: "include",
             headers: {
                 'Content-type': 'application/json; charset=UTF-8',
             },
@@ -51,6 +51,10 @@ function App() {
         }else{
             const data = await response.json();
             localStorage.setItem("user", JSON.stringify(data)); // Store user in localStorage
+            // Store JWT's in localStorage
+            localStorage.setItem('accessToken', data.accessToken);
+            localStorage.setItem('refreshToken', data.refreshToken);
+            
             setLoginErrorMsg('')
             setLoggedIn(true);
         }
@@ -58,7 +62,7 @@ function App() {
     }
 
     function handleLogout() {
-        // TODO: API call to logout
+        // TODO: API call to logout to wipe refresh token out?
         localStorage.clear();
         setLoggedIn(false);
     }

@@ -18,10 +18,10 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 		try {
 			const response = await fetch(APIServer + 'qrcode/' + userInfo._id + '/' + bikeID, {
 				method: 'POST',
-				credentials: 'include',
 				headers: {
-					'Content-type': 'application/json; charset=UTF-8',
-				},
+                    'Content-type': 'application/json; charset=UTF-8',
+                    'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
+                }
 			})
 			if (!response.ok) throw new Error('API Failure')
 			setQRConfirm(true);
@@ -36,10 +36,10 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 		try {
 			const response = await fetch(APIServer + 'garage/' + userInfo._id + '/' + bikeID, {
 				method: 'DELETE',
-				credentials: 'include',
 				headers: {
-					'Content-type': 'application/json; charset=UTF-8',
-				},
+                    'Content-type': 'application/json; charset=UTF-8',
+                    'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
+                }
 			})
 			if (!response.ok) throw new Error('API Failure')
 
@@ -57,10 +57,10 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 		try {
 			const response = await fetch(APIServer + 'garage/' + userInfo._id, {
 				method: 'POST',
-				credentials: 'include',
 				headers: {
-					'Content-type': 'application/json; charset=UTF-8',
-				},
+                    'Content-type': 'application/json; charset=UTF-8',
+                    'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
+                },
 				body: JSON.stringify(Object.fromEntries(formData))
 			})
 

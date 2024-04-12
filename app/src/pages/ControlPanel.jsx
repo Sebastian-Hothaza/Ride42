@@ -22,7 +22,12 @@ const ControlPanel = ({ APIServer }) => {
     async function fetchAPIData() {
         let userInfoData, allTrackdaysData, userTrackdaysData = []
         try {
-            const [userInfoResponse, allTrackdaysResponse, userTrackdaysResponse] = await Promise.all([fetch(APIServer + 'users/' + loggedInUser.id, { credentials: "include", }),
+            const [userInfoResponse, allTrackdaysResponse, userTrackdaysResponse] = await Promise.all([fetch(APIServer + 'users/' + loggedInUser.id, {
+                headers: {
+                    'Content-type': 'application/json; charset=UTF-8',
+                    'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
+                }
+            }),
             fetch(APIServer + 'presentTrackdays'),
             fetch(APIServer + 'presentTrackdays/' + loggedInUser.id)]);
             if (!userInfoResponse.ok) throw new Error('Failed to build API Data for userInfo');
@@ -64,7 +69,7 @@ const ControlPanel = ({ APIServer }) => {
                     {/* CPDash rendered based on active tab */}
                     {activeTab == 'profile' && <CPDash_Profile APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} />}
                     {activeTab == 'trackdays' && <CPDash_Trackdays APIServer={APIServer} userInfo={userInfo} allTrackdays={allTrackdays} userTrackdays={userTrackdays} fetchAPIData={fetchAPIData} setActiveTab={setActiveTab} />}
-                    {activeTab == 'garage' && <CPDash_Garage APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} setActiveTab={setActiveTab}/>}
+                    {activeTab == 'garage' && <CPDash_Garage APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} setActiveTab={setActiveTab} />}
                 </div>
 
                 {/* MOBILE */}
@@ -83,7 +88,7 @@ const ControlPanel = ({ APIServer }) => {
                 </div>
 
             </div>
-            <Modal_Loading open={ !userInfo || !allTrackdays || !userTrackdays } text={'Fetching your data...'}>  </Modal_Loading>
+            <Modal_Loading open={!userInfo || !allTrackdays || !userTrackdays} text={'Fetching your data...'}>  </Modal_Loading>
         </>
     );
 };
