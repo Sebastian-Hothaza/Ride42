@@ -41,7 +41,7 @@ const ControlPanel = ({ APIServer, setLoggedIn }) => {
             [userInfoData, allTrackdaysData, userTrackdaysData] = await Promise.all([userInfoResponse.json(), allTrackdaysResponse.json(), userTrackdaysResponse.json()])
 
             // Updating accessToken in LS
-            if (userInfoData.accessToken_FRESH) localStorage.setItem('accessToken', userInfoData.accessToken_FRESH);
+            // if (userInfoData.accessToken_FRESH) localStorage.setItem('accessToken', userInfoData.accessToken_FRESH);
 
             setUserInfo(userInfoData);
             setAllTrackdays(allTrackdaysData);

@@ -29,8 +29,8 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 			})
 			if (response.ok) {
 				// Updating accessToken in LS
-				const data = await response.json();
-				if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
+				// const data = await response.json();
+				// if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
 
 				setEditUserInfo(false)
 				setEditUserInfoErrors('');
@@ -94,8 +94,8 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 			if (response.ok) {
 
 				// Updating accessToken in LS
-				const data = await response.json();
-				if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
+				// const data = await response.json();
+				// if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
 
 				setChangePswErrorMsg('');
 			} else {
@@ -135,8 +135,8 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 			if (response.ok) {
 
 				// Updating accessToken in LS
-				const data = await response.json();
-				if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
+				// const data = await response.json();
+				// if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
 
 				await fetchAPIData();
 			} else if (response.status === 400) {

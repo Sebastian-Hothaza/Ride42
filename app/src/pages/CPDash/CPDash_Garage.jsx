@@ -26,8 +26,8 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 			if (!response.ok) throw new Error('API Failure')
 
 			// Updating accessToken in LS
-			const data = await response.json();
-			if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
+			// const data = await response.json();
+			// if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
 
 			setQRConfirm(true);
 		} catch (err) {
@@ -49,8 +49,8 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 			if (!response.ok) throw new Error('API Failure')
 
 			// Updating accessToken in LS
-			const data = await response.json();
-			if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
+			// const data = await response.json();
+			// if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
 
 		} catch (err) {
 			console.log(err.message)
@@ -75,8 +75,8 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 
 			if (response.ok) {
 				// Updating accessToken in LS
-				const data = await response.json();
-				if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
+				// const data = await response.json();
+				// if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
 
 				await fetchAPIData();
 				setPendingSubmit('');

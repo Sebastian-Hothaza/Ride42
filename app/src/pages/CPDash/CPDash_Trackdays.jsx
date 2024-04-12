@@ -63,8 +63,8 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			if (response.ok) {
 
 				// Updating accessToken in LS
-				const data = await response.json();
-				if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
+				// const data = await response.json();
+				// if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
 
 				setBookErrors('');
 				await fetchAPIData(); // Wait for fetch to complete so the spinner stays on screen
@@ -98,8 +98,8 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			if (!response.ok) throw new Error('API Failure')
 
 			// Updating accessToken in LS
-			const data = await response.json();
-			if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
+			// const data = await response.json();
+			// if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
 
 			await fetchAPIData();
 		} catch (err) {
@@ -125,8 +125,8 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 
 			// Updating accessToken in LS
-			const data = await response.json();
-			if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
+			// const data = await response.json();
+			// if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
 
 			if (response.status == 400) {
 				const data = await response.json()
