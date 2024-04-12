@@ -251,6 +251,18 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 					</div>
 
+					<div className={styles.layoutVote}>
+						<legend><h3>Do you understand our rules and policies?</h3></legend>
+						<div className={styles.checkboxes}>
+							<div className={styles.checkboxPairing} style={{justifySelf: 'center'}}>
+								<input type="checkbox" id="ruleAgree" name="ruleAgree" required></input>
+								<label htmlFor="ruleAgree">Yes, I have read and agree to them</label>
+							</div>
+						</div>
+
+					</div>
+
+
 
 					<button className={styles.confirmBtn} id={styles.registerBtn} type="submit">Register</button>
 
