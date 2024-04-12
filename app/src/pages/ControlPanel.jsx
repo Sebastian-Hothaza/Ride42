@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import styles from './stylesheets/ControlPanel.module.css'
 
 import { useOutletContext } from "react-router-dom";
-
+import Modal from "../components/Modal";
 import Modal_Loading from "../components/Modal_Loading";
 import CPDash_Trackdays from './CPDash/CPDash_Trackdays'
 import CPDash_Profile from './CPDash/CPDash_Profile'
@@ -20,7 +20,7 @@ const ControlPanel = ({ APIServer, setLoggedIn }) => {
     const [allTrackdays, setAllTrackdays] = useState('');
 
     const [activeTab, setActiveTab] = useState('trackdays')
-
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
 
     async function fetchAPIData() {
         let userInfoData, allTrackdaysData, userTrackdaysData = []
@@ -72,7 +72,7 @@ const ControlPanel = ({ APIServer, setLoggedIn }) => {
                     </div>
 
 
-                    <button id={styles.logOutBtn} onClick={handleLogout}>LOG OUT</button>
+                    <button id={styles.logOutBtn} onClick={() => setShowLogoutModal(true)}>LOG OUT</button>
                 </div>
 
                 <div className={styles.CPDash}>
@@ -90,7 +90,7 @@ const ControlPanel = ({ APIServer, setLoggedIn }) => {
                     <button className={activeTab == 'trackdays' ? styles.selected : undefined} onClick={() => setActiveTab('trackdays')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined ${activeTab == 'trackdays' ? styles.selected : undefined}`}> calendar_month </span></button>
                     <button className={activeTab == 'garage' ? styles.selected : undefined} onClick={() => setActiveTab('garage')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined ${activeTab == 'garage' ? styles.selected : undefined}`}> garage_home </span></button>
                     {/* {loggedInUser.memberType=='admin' && <button onClick={()=>setActiveTab('xxx')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined`}> menu </span></button>} */}
-                    <button onClick={handleLogout}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined`}> logout </span></button>
+                    <button onClick={() => setShowLogoutModal(true)}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined`}> logout </span></button>
 
 
 
@@ -99,6 +99,8 @@ const ControlPanel = ({ APIServer, setLoggedIn }) => {
 
             </div>
             <Modal_Loading open={!userInfo || !allTrackdays || !userTrackdays} text={'Fetching your data...'}>  </Modal_Loading>
+            <Modal open={showLogoutModal} onClose={() => setShowLogoutModal(false)}
+                text='Are you sure you want to log out?' okText="Yes" closeText="No" fn={() => handleLogout()}></Modal>
         </>
     );
 };
