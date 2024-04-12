@@ -2,7 +2,10 @@
 
 import Card from "../components/Card"
 import styles from './stylesheets/Rules.module.css'
-import square from '../assets/square.jpg'
+
+import yourBike from '../assets/yourBike.jpg'
+import yourGear from '../assets/yourGear.jpg'
+import ourPolicies from '../assets/ourPolicies.jpg'
 
 const Rules = () => {
 
@@ -75,9 +78,9 @@ const Rules = () => {
 
 	return (
 		<div className="content">
-			<Card heading='Your Bike' body={HTML_BikeRules} img={square} inverted={false} />
-			<Card heading='Your Gear' body={HTML_GearRules} img={square} inverted={true} />
-			<Card heading='Our Policies' body={HTML_OurPolicies} img={square} inverted={false} />
+			<Card heading='Your Bike' body={HTML_BikeRules} img={yourBike} inverted={false} />
+			<Card heading='Your Gear' body={HTML_GearRules} img={yourGear} inverted={true} />
+			<Card heading='Our Policies' body={HTML_OurPolicies} img={ourPolicies} inverted={false} />
 		</div>
 	);
 };

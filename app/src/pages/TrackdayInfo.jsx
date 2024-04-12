@@ -6,7 +6,11 @@ import Card from "../components/Card"
 
 import styles from './stylesheets/TrackdayInfo.module.css'
 
-import square from '../assets/square.jpg'
+import dates from '../assets/dates.jpg'
+import schedule from '../assets/schedule.jpg'
+import price from '../assets/price.jpg'
+import readyToRide from '../assets/readyToRide.jpg'
+
 
 function TrackdayInfo() {
 	const [allTrackdays, setAllTrackdays] = useState('');
@@ -171,10 +175,10 @@ function TrackdayInfo() {
 
 	return (
 		<div className="content">
-			<Card heading='Dates & Layout' body={allTrackdays ? HTML_Dates : <h2 style={{ margin: 'auto' }}>One moment...</h2>} img={square} inverted={false} />
-			<Card heading='Schedule' body={HTML_Schedule} img={square} inverted={true} />
-			<Card heading='Pricing Info' body={HTML_PricingInfo} img={square} inverted={false} />
-			<Card heading='Ready to Ride?' body={HTML_OurTrackdays} img={square} inverted={true} />
+			<Card heading='Dates & Layout' body={allTrackdays ? HTML_Dates : <h2 style={{ margin: 'auto' }}>One moment...</h2>} img={dates} inverted={false} />
+			<Card heading='Schedule' body={HTML_Schedule} img={schedule} inverted={true} />
+			<Card heading='Pricing Info' body={HTML_PricingInfo} img={price} inverted={false} />
+			<Card heading='Ready to Ride?' body={HTML_OurTrackdays} img={readyToRide} inverted={true} />
 		</div>
 	);
 };

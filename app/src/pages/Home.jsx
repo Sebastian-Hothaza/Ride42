@@ -2,7 +2,8 @@ import { Link } from "react-router-dom";
 
 import Card from "../components/Card"
 
-import square from '../assets/square.jpg'
+import about from '../assets/about.png'
+import offer from '../assets/offer.jpg'
 
 import raceway from '../assets/raceway.png'
 import partners from '../assets/partners.png'
@@ -53,8 +54,8 @@ const Home = () => {
 				</div>
 			</div>
 			<div className="content">
-				<Card heading='About Us' body={HTML_AboutUs} img={square} inverted={false} />
-				<Card heading='What We Offer' body={HTML_Offer} img={square} inverted={true} />
+				<Card heading='About Us' body={HTML_AboutUs} img={about} inverted={false} />
+				<Card heading='What We Offer' body={HTML_Offer} img={offer} inverted={true} />
 				<div className={styles.imageContainer}>
 					<img src={partners} alt="Picture of our partners" />
 					<img src={raceway} alt="Picture of Grand Bend Track" />
