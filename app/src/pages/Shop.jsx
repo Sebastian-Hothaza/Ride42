@@ -1,21 +1,23 @@
 import styles from './stylesheets/Shop.module.css'
 
-import square from '../assets/square.jpg'
+import pirelli from '../assets/pirelli.png'
+import plus from '../assets/plus.png'
+import kyt from '../assets/kyt.png'
 
 const Shop = () => {
 	return (
 		<div className="content">
 			<div className={styles.invertedContent}>
-				<a href="http://google.ca" target="_blank" className={styles.shopCard}>
-					<img src={square} alt="Pirelli Tire Photo" />
+				<a href="https://docs.google.com/forms/d/e/1FAIpQLScMWJdjsgDFigjbJutJtFg7zzrUBpboBkEmTTWQEkjJyWtPPg/viewform?usp=sf_link" target="_blank" className={styles.shopCard}>
+					<img src={pirelli} alt="Pirelli Tire Photo" />
 					<div>Tires</div>
 				</a>
-				<a href="http://google.ca" target="_blank" className={styles.shopCard}>
-					<img src={square} alt="PLUS Racing Gear Suit Photo" />
+				<a href="https://docs.google.com/forms/d/e/1FAIpQLScGL_Dlr5OdkSkfqasaE85daJwk4oNZ_lyWVmWqHjWWEElHiQ/viewform?usp=sf_link" target="_blank" className={styles.shopCard}>
+					<img src={plus} alt="PLUS Racing Gear Suit Photo" />
 					<div>Gear</div>
 				</a>
-				<a href="http://google.ca" target="_blank" className={styles.shopCard}>
-					<img src={square} alt="KYT Helmet Photo" />
+				<a href="https://www.eurorace.ca/kyt" target="_blank" className={styles.shopCard}>
+					<img src={kyt} alt="KYT Helmet Photo" />
 					<div>Helmets</div>
 				</a>
 			</div>
