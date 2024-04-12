@@ -50,6 +50,18 @@
     font-size: 1.25rem;
 }
 
+.guestControl{
+    display: flex;
+    gap: 1rem;
+}
+
+#guestsBtn{
+    color: white;
+    background-color: red;
+    min-width: 0;
+    border-radius: 50%;
+}
+
 
 /* CHECKBOXES */
 

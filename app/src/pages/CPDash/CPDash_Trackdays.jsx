@@ -213,7 +213,12 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 						</div>
 						<div className={styles.inputPairing}>
 							<label htmlFor="guests" >Guests:</label>
-							<input type="number" id="guests" name="guests" defaultValue={1} required min={0}></input>
+							<div className={styles.guestControl}>
+								<button type="button" id={styles.guestsBtn} onClick={() => { if (guests.value > 0) guests.value-- }}>-</button>
+								<input type="number" id="guests" name="guests" defaultValue={1} required readOnly></input>
+								<button type="button" id={styles.guestsBtn} onClick={() => guests.value++}>+</button>
+							</div>
+
 						</div>
 					</div>
 
@@ -254,7 +259,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 					<div className={styles.layoutVote}>
 						<legend><h3>Do you understand our rules and policies?</h3></legend>
 						<div className={styles.checkboxes}>
-							<div className={styles.checkboxPairing} style={{justifySelf: 'center'}}>
+							<div className={styles.checkboxPairing} style={{ justifySelf: 'center' }}>
 								<input type="checkbox" id="ruleAgree" name="ruleAgree" required></input>
 								<label htmlFor="ruleAgree">Yes, I have read and agree to them</label>
 							</div>
