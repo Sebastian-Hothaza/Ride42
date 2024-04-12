@@ -53,7 +53,7 @@ const Home = () => {
 					{/* ADD HERO TEXT NOTE HERE */}
 				</div>
 			</div>
-			<div className="content">
+			<div className="content" id={styles.firstCard}>
 				<Card heading='About Us' body={HTML_AboutUs} img={about} inverted={false} />
 				<Card heading='What We Offer' body={HTML_Offer} img={offer} inverted={true} />
 				<div className={styles.imageContainer}>
