@@ -100,21 +100,7 @@ function TrackdayInfo() {
 		<NavLink className={styles.bookBtn} to="/dashboard">Book Your Day</NavLink>
 	</>
 
-	const HTML_PricingInfo = <div id={styles.pricingCard}>
-		<div className={styles.priceEntry}>
-			<div>Pre-Registration (7 days in advance):</div>
-			<div style={{ fontWeight: 'bold' }}>$170</div>
-		</div>
-		<br></br>
-		<div className={styles.priceEntry}>
-			<div>Gate Registration: </div>
-			<div style={{ fontWeight: 'bold' }}>$190</div>
-		</div>
-		<br></br>
-		<br></br>
-		<br></br>
-		<span style={{ fontStyle: 'italic' }}>Gate registrations are space permitting and BBQ lunch is not guaranteed.</span>
-	</div>
+
 
 	const HTML_Schedule = <table>
 		<tbody>
@@ -153,11 +139,42 @@ function TrackdayInfo() {
 		</tbody>
 	</table>
 
+	const HTML_PricingInfo = <div id={styles.pricingCard}>
+		<div className={styles.priceEntry}>
+			<div>Pre-Registration (7 days ahead):</div>
+			<div style={{ fontWeight: 'bold' }}>$170</div>
+		</div>
+		<br></br>
+		<div className={styles.priceEntry}>
+			<div>Gate Registration: </div>
+			<div style={{ fontWeight: 'bold' }}>$190</div>
+		</div>
+		<br></br>
+		<br></br>
+		<br></br>
+		<span style={{ fontStyle: 'italic' }}>Gate registrations are space permitting and BBQ lunch is not guaranteed.</span>
+	</div>
+
+	const HTML_OurTrackdays = <><p>
+		Ride42 is proud to offer unique benefits to our riders. We feature a fully integrated trackday management system which has you, the rider, at the center. To book a trackday online, you must first sign up as a member. If you’d prefer to just show up and ride, that’s fine too! Gate registrations are always space permitting however, and you won’t have access to all the neat member features. Once signed up as a member, you will have access to the three main tabs from your dashboard.
+		<br></br><br></br>
+		<span style={{ fontWeight: 'bold' }}>My Profile –</span> View and edit your account information as well as your current group. It is important you keep this information accurate (Ie. Your emergency contact info)
+		<br></br>
+		<span style={{ fontWeight: 'bold' }}>My Trackdays –</span> Book, view, reschedule and cancel your trackdays from one convenient spot
+		<br></br>
+		<span style={{ fontWeight: 'bold' }}>My Garage –</span> Manage your bikes and request QR code stickers to replace damaged/lost stickers.
+
+		<br></br><br></br>
+	</p>
+		<NavLink className={styles.bookBtn} to="/dashboard">Join Now!</NavLink>
+	</>
+
 	return (
 		<div className="content">
-			<Card heading='Dates & Layout' body={allTrackdays? HTML_Dates: <h2 style={{margin: 'auto'}}>One moment...</h2>} img={square} inverted={false} />
+			<Card heading='Dates & Layout' body={allTrackdays ? HTML_Dates : <h2 style={{ margin: 'auto' }}>One moment...</h2>} img={square} inverted={false} />
 			<Card heading='Schedule' body={HTML_Schedule} img={square} inverted={true} />
 			<Card heading='Pricing Info' body={HTML_PricingInfo} img={square} inverted={false} />
+			<Card heading='Ready to Ride?' body={HTML_OurTrackdays} img={square} inverted={true} />
 		</div>
 	);
 };
