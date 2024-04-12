@@ -75,14 +75,11 @@
 
 @media (max-width: 850px) {
 
-    .allBikes{
-        gap: 3rem;
-    }
+ 
 
     .bikeEntry{
         flex-direction: column;
         gap: .5rem;
-        font-size: 1rem;
     }
 
     #addBikeForm{
