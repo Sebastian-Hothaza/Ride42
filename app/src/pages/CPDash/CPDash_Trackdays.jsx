@@ -212,7 +212,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 							</select>
 						</div>
 						<div className={styles.inputPairing}>
-							<label htmlFor="guests" >Guests:</label>
+							<label style={{textAlign:'center'}} htmlFor="guests" >Guests for BBQ<br></br><span style={{fontStyle:'italic'}}>(including you)</span></label>
 							<div className={styles.guestControl}>
 								<button type="button" id={styles.guestsBtn} onClick={() => { if (guests.value > 0) guests.value-- }}>-</button>
 								<input type="number" id="guests" name="guests" defaultValue={1} required readOnly></input>
