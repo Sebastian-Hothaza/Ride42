@@ -16,7 +16,7 @@ const Navbar = () => {
 				{/* DESKTOP */}
 				<ul className={styles.navbarMain}>
 					<Link to="/"><img src={r42} id={styles.headerImg}></img></Link>
-					<NavLink to="/dates">Dates</NavLink>
+					<NavLink to="/info">Trackday Info</NavLink>
 					<NavLink to="/rules">Rules</NavLink>
 					<NavLink to="/faq">FAQ</NavLink>
 					<NavLink to="/shop">Shop</NavLink>
@@ -37,7 +37,7 @@ const Navbar = () => {
 				{expandedMenu &&
 					<ul className={styles.menuButtonLinks} >
 						<NavLink onClick={()=>{setExpandedMenu(false)}} to="/">Home</NavLink>
-						<NavLink onClick={()=>{setExpandedMenu(false)}} to="/dates">Dates</NavLink>
+						<NavLink onClick={()=>{setExpandedMenu(false)}} to="/info">Trackday Info</NavLink>
 						<NavLink onClick={()=>{setExpandedMenu(false)}} to="/rules">Rules</NavLink>
 						<NavLink onClick={()=>{setExpandedMenu(false)}} to="/faq">FAQ</NavLink>
 						<NavLink onClick={()=>{setExpandedMenu(false)}} to="/shop">Shop</NavLink>

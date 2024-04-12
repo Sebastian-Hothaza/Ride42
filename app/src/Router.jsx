@@ -3,7 +3,7 @@ import App from "./App";
 import ErrorPage from "./pages/ErrorPage";
 
 import Home from "./pages/Home";
-import Dates from "./pages/Dates";
+import TrackdayInfo from "./pages/TrackdayInfo";
 import Rules from "./pages/Rules";
 import Faq from "./pages/Faq";
 import Shop from "./pages/Shop";
@@ -18,7 +18,7 @@ const Router = () => {
 			errorElement: <ErrorPage />,
 			children: [
 				{ index: true, element: <Home /> },
-				{ path: "/dates", element: <Dates /> },
+				{ path: "/info", element: <TrackdayInfo /> },
 				{ path: "/rules", element: <Rules /> },
 				{ path: "/faq", element: <Faq /> },
 				{ path: "/shop", element: <Shop /> },

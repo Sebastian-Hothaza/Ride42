@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import Card from "../components/Card"
 
 
-import styles from './stylesheets/Dates.module.css'
+import styles from './stylesheets/TrackdayInfo.module.css'
 
 import square from '../assets/square.jpg'
 
-function Dates() {
+function TrackdayInfo() {
 	const [allTrackdays, setAllTrackdays] = useState('');
 	const { APIServer } = useOutletContext();
 	async function fetchAPIData() {
@@ -162,4 +162,4 @@ function Dates() {
 	);
 };
 
-export default Dates;
+export default TrackdayInfo;
