@@ -112,27 +112,27 @@ async function verifyJWT_READ_COOKIE(req, res, next) {
     next();
 }
 
-// Verifies access % refresh token received in Authorization header and attaches payload to request body.
+// Verifies access & refresh token received in Authorization header and attaches payload to request body.
 // TODO: How give client fresh access code if expired?
 async function verifyJWT(req, res, next) {
     // Get auth header value
-    const bearerHeader = req.headers['authorization'];
+    const authHeader = req.headers['authorization'];
     // Check if bearer is undefined
-    if (typeof (bearerHeader) !== 'undefined') {
+    if (typeof (authHeader) !== 'undefined') {
         // Split at the space
-        const bearer = bearerHeader.split(' '); // Turning into array
+        const bearer = authHeader.split(' '); // Turning into array
         // Get tokens from array
         const accessToken = bearer[1];
         const refreshToken = bearer[2];
-
+        if (!accessToken || !refreshToken) return res.status(401).send({ msg: 'JWT Tokens missing' });
+ 
         // Try to verify JWT_ACCESS
         let payload // Represents the object in the JWT_ACCESS
         try {
             payload = jwt.verify(accessToken, process.env.JWT_ACCESS_CODE);
-        } catch (err) {
-            console.log('failed to authenticate access_jwt')
-            res.sendStatus(401);
+        } catch {
             try {
+                console.log('accessToken verification failed. attempt to verify refreshToken')
                 // Check the refresh token is not expired
                 const JWTRefreshPayload = jwt.verify(refreshToken, process.env.JWT_REFRESH_CODE);
 
@@ -144,14 +144,15 @@ async function verifyJWT(req, res, next) {
                 const accessToken_FRESH = jwt.sign({ id: user._id, memberType: user.memberType, name: user.firstName },
                     process.env.JWT_ACCESS_CODE, { expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION })
 
-                    // TODO: How do we handle this? We gotta give the client the new access token somehow
-                // res.cookie([`JWT_ACCESS_TOKEN=${accessToken_FRESH}; secure; httponly; samesite=None;`])
-
+                // Attach the fresh token to the request body so 
+                req.accessToken_FRESH = accessToken_FRESH;
+                
                 payload = jwt.verify(accessToken_FRESH, process.env.JWT_ACCESS_CODE);
 
 
-            } catch (err2) {
+            } catch {
                 // JWT_REFRESH verification failed.
+                console.log('refreshToken verification failed.')
                 return res.sendStatus(401)
             }
         }
