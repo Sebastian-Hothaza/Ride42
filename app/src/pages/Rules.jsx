@@ -41,7 +41,7 @@ const Rules = () => {
 		<p>
 		Please familiarize yourself with our policies. If you have any questions, please email us at <a href="mailto: info@ride42.ca">info@ride42.ca</a>
 		</p>
-		<br></br><br></br>
+	
 
 		<h3>Passing Rules</h3>
 		<ul>
