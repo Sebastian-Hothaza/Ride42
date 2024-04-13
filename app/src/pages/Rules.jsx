@@ -45,9 +45,9 @@ const Rules = () => {
 
 		<h3>Passing Rules</h3>
 		<ul>
-			<li>Green(Novice): New-to-track riders. Passing permitted only on straights</li>
-			<li>Yellow(Intermediate): Developing track riders. Once bike in front of you has initiated their turn in, inside passing is restricted until after the apex. Outside passing permitted.</li>
-			<li>Red(Advanced): Experienced track riders and racers. Passing permitted anywhere; however this is a track day, not a race. Be respectful.</li>
+			<li>Green (Novice): New-to-track riders. Passing permitted only on straights</li>
+			<li>Yellow (Intermediate): Developing track riders. Once bike in front of you has initiated their turn in, inside passing is restricted until after the apex. Outside passing permitted.</li>
+			<li>Red (Advanced): Experienced track riders and racers. Passing permitted anywhere; however this is a track day, not a race. Be respectful.</li>
 		</ul>
 
 		<h3>Pre-Registrations</h3>
