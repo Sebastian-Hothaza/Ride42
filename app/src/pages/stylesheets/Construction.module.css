@@ -1,0 +1,38 @@
+#main{
+
+
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: fixed;
+    top:0;
+    z-index: 1000;
+    height: 1000vh;
+    width: 100%;
+    gap: 4em;
+}
+
+
+
+.banner{
+    background-color: yellow;
+    font-size: 2em;
+    font-weight: bold;
+    width: 100%;
+    text-align: center;
+    padding: .2em;
+}
+
+i{
+    font-size: .5em;
+}
+
+
+
+
+#email{
+    font-size: 2rem;
+    margin-bottom: 1em;
+}
+
