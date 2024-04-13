@@ -41,6 +41,9 @@ body {
 
 @media (max-width: 850px) {
     .content {
+        margin-top: calc(1.5*var(--toolbar-thickness));
+        margin-bottom: calc(1.5*var(--toolbar-thickness));
+
         padding: 0px;
         gap: 2rem;
     }

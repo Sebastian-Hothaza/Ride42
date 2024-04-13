@@ -1,9 +1,8 @@
-.invertedContent{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    max-width: 2000px;
+.content {
+    composes: content from global;
+    flex-direction: row;
+    justify-content: center;
+    gap: 4rem;
 }
 
 .inverted img{
@@ -13,7 +12,7 @@
 .shopCard{ 
     display: flex;
     flex-direction: column;
-    width: 500px;
+    width: 400px;
     background-color: white;
     box-shadow: 0 12px 24px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     text-align: center;
@@ -23,10 +22,15 @@
     font-weight: bold;
 }
 
-@media (max-width: 1500px) {
-    .invertedContent{
+@media (max-width: 1400px) {
+    .content{
         flex-direction: column;
         justify-content: center;
         gap: 5rem;
     }
+
+    .shopCard{ 
+        width: 350px;
+    }
 }
+
