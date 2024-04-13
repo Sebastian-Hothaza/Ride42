@@ -3,7 +3,7 @@
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    max-width: 1500px;
+    max-width: 2000px;
 }
 
 .inverted img{
@@ -13,7 +13,7 @@
 .shopCard{ 
     display: flex;
     flex-direction: column;
-    width: 300px;
+    width: 500px;
     background-color: white;
     box-shadow: 0 12px 24px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     text-align: center;
@@ -23,7 +23,7 @@
     font-weight: bold;
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 1500px) {
     .invertedContent{
         flex-direction: column;
         justify-content: center;
