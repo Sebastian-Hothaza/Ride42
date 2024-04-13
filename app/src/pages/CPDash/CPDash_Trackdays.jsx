@@ -11,6 +11,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 	const [showReschedule, setShowReschedule] = useState([]); // tracks for which trackday ID's should we show the reschedule box for
 	const [pendingSubmit, setPendingSubmit] = useState('');
 	const [showCancelModal, setShowCancelModal] = useState({ show: false, trackday: null })
+	const [showNotificationModal, setShowNotificationModal] = useState(false);
 
 	// Returns true if a user is registered for a specified trackday ID
 	function userRegistered(trackdayID) {
@@ -81,6 +82,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			console.log(err.message)
 		}
 		setPendingSubmit('');
+		setShowNotificationModal(true);
 	}
 
 	async function handleCancelTrackdaySubmit(trackdayID) {
@@ -319,6 +321,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 			</div>
 			<Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}></Modal>
+			<Modal open={showNotificationModal} type='notification' text='Registration Confirmed' onClose={()=> setShowNotificationModal(false)}></Modal>
 			<Modal open={showCancelModal.show} type='confirmation' text='Are you sure you want to cancel this trackday?' onClose={() => setShowCancelModal({ show: false, trackday: null })}
 				onOK={() => handleCancelTrackdaySubmit(showCancelModal.trackday.id)} okText="Yes, cancel it" closeText="No, keep it" ></Modal>
 
