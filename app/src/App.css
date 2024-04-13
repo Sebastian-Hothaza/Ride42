@@ -11,8 +11,8 @@ body {
     /*navbar technically takes up no space due to position being fixed */
     margin-top: calc(2*var(--toolbar-thickness));
     margin-bottom: var(--toolbar-thickness);
-    /* Subtract the height of the header and footer */
-    min-height: calc(100vh - 4* var(--toolbar-thickness));
+    /* Subtract the height of the header and footer and the padding*/
+    min-height: calc(100vh - 4* var(--toolbar-thickness) - 2rem - 2rem  );
 
     padding: 2rem;
 }
