@@ -1,18 +1,16 @@
 #datesUl{
     font-size: 1.5rem;
     columns: 2;
-    margin-bottom: 3rem;
     list-style: none;
+    /* Undo default ul padding */
+    padding: 0;
+    margin-bottom: 2rem;
 }
 
-#datesUl li{
-    margin-bottom: 10px;
-}
 
 .dateEntry{
     display: flex;
     justify-content: space-between;
-    margin-right: 4rem;
 }
 
 .bookBtn{
@@ -22,7 +20,7 @@
 
 #layout{
     font-style: italic;
-    color: rgb(80, 80, 80);
+    color: rgb(100, 100, 100);
     text-align: right;
 }
 
@@ -32,7 +30,6 @@
 
 table{
     font-size: 1.25rem;
-    margin: 1rem 2rem;
     border-spacing: 0;
 }
 
@@ -43,13 +40,8 @@ tr{
 tr:nth-child(odd){
     background-color: lightgray;
 }
-
 td{
     padding: .5rem;
-}
-
-#pricingCard{
-    padding: 1rem 3rem;
 }
 
 .priceEntry{
@@ -67,5 +59,11 @@ td{
     }
     .dateEntry{
         margin-right: 1rem;
+    }
+}
+
+@media (max-width: 450px) {
+    #datesUl{
+        font-size: 1.1rem;
     }
 }
