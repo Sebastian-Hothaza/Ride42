@@ -10,6 +10,9 @@ import Shop from "./pages/Shop";
 import Dashboard from "./pages/Dashboard";
 import Register from "./pages/Register";
 
+import Construction from "./pages/Construction";
+const underConstruction = false; // Used to hide website content, routes accessible unless commented out
+
 const Router = () => {
 	const router = createBrowserRouter([
 		{
@@ -17,7 +20,8 @@ const Router = () => {
 			element: <App />,
 			errorElement: <ErrorPage />,
 			children: [
-				{ index: true, element: <Home /> },
+				{ index: true, element: underConstruction? <Construction /> : <Home/> },
+				{ path: "/home", element: <Home /> },
 				{ path: "/info", element: <TrackdayInfo /> },
 				{ path: "/rules", element: <Rules /> },
 				{ path: "/faq", element: <Faq /> },
