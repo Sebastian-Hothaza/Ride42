@@ -50,6 +50,7 @@ const Faq = () => {
 		</ul>
 		<br></br>
 		<h2>Still have questions?</h2>
+		<br></br>
 		<div>Please reach out to us, we are more than happy to help!</div>
 
 	</div>
