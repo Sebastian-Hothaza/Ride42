@@ -4,7 +4,6 @@ import styles from './stylesheets/ControlPanel.module.css'
 
 import { useOutletContext } from "react-router-dom";
 import Modal from "../components/Modal";
-import Modal_Loading from "../components/Modal_Loading";
 import CPDash_Trackdays from './CPDash/CPDash_Trackdays'
 import CPDash_Profile from './CPDash/CPDash_Profile'
 import CPDash_Garage from './CPDash/CPDash_Garage'
@@ -98,9 +97,8 @@ const ControlPanel = ({ APIServer, setLoggedIn }) => {
                 </div>
 
             </div>
-            <Modal_Loading open={!userInfo || !allTrackdays || !userTrackdays} text={'Fetching your data...'}>  </Modal_Loading>
-            <Modal open={showLogoutModal} onClose={() => setShowLogoutModal(false)}
-                text='Are you sure you want to log out?' okText="Yes" closeText="No" fn={() => handleLogout()}></Modal>
+            <Modal open={!userInfo || !allTrackdays || !userTrackdays}  type='loading' text={'Fetching your data...'}>  </Modal>
+            <Modal open={showLogoutModal}  type='confirmation' text='Are you sure you want to log out?' onClose={() => setShowLogoutModal(false)} onOK={() => handleLogout()} okText="Yes" closeText="No" ></Modal>
         </>
     );
 };

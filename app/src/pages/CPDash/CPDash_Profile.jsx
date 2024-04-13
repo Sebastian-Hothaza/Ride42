@@ -1,6 +1,6 @@
 import { useState } from "react";
 import ScrollToTop from "../../components/ScrollToTop";
-import Modal_Loading from "../../components/Modal_Loading";
+import Modal from "../../components/Modal";
 import styles from './CPDash_Profile.module.css'
 
 const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
@@ -266,7 +266,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 					</form>
 				</div>
 			}
-			<Modal_Loading open={pendingSubmit.show} text={pendingSubmit.msg}></Modal_Loading>
+			<Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}></Modal>
 		</>
 	);
 };

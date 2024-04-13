@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import styles from './stylesheets/Login.module.css'
 
-import Modal_Loading from "../components/Modal_Loading";
+import Modal from "../components/Modal";
 import ScrollToTop from "../components/ScrollToTop";
 
 
@@ -56,7 +56,7 @@ const Login = () => {
 
                 </div>
             </div>
-            <Modal_Loading open={pendingSubmit.show} text={pendingSubmit.msg}>  </Modal_Loading>
+            <Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}>  </Modal>
         </>
     );
 };

@@ -5,7 +5,7 @@ import { useState } from "react";
 import styles from './stylesheets/Register.module.css'
 
 import Card from "../components/Card"
-import Modal_Loading from "../components/Modal_Loading";
+import Modal from "../components/Modal";
 
 const Register = () => {
 	const [registerErrors, setRegisterErrors] = useState();
@@ -189,7 +189,7 @@ const Register = () => {
 			<div className="content">
 				<Card heading='Register' body={registerForm} inverted={false} />
 			</div>
-			<Modal_Loading open={pendingSubmit.show} text={pendingSubmit.msg}>  </Modal_Loading>
+			<Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}>  </Modal>
 		</>
 	);
 };

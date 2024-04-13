@@ -1,7 +1,6 @@
 import styles from './CPDash_Garage.module.css'
 import ScrollToTop from "../../components/ScrollToTop";
 import { useState } from "react";
-import Modal_Loading from "../../components/Modal_Loading";
 import Modal from "../../components/Modal";
 
 
@@ -155,13 +154,10 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 
 			</div>
 
-			<Modal_Loading open={pendingSubmit.show} text={pendingSubmit.msg}></Modal_Loading>
-			<Modal open={addBikeConfirm} onClose={() => setAddBikeConfirm(false)}
-				text='Your bike has been added to your garage. We have created a QR code for you which will be available for pickup at the next trackday.' okText="Go to trackdays" closeText="Stay in garage"
-				fn={() => setActiveTab('trackdays')}></Modal>
-			<Modal open={QRConfirm} onClose={() => setQRConfirm(false)}
-				text='We have created a QR code for you which will be available for pickup at the next trackday.' okText="" closeText="Ok"></Modal>
-
+			<Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}></Modal>
+			<Modal open={addBikeConfirm} type='confirmation' text='Your bike has been added to your garage. We have created a QR code for you which will be available for pickup at the next trackday.'
+				onClose={() => setAddBikeConfirm(false)} onOK={() => setActiveTab('trackdays')} okText="Go to trackdays" closeText="Stay in garage"></Modal>
+			<Modal open={QRConfirm} type='confirmation' text='We have created a QR code for you which will be available for pickup at the next trackday.' onClose={() => setQRConfirm(false)} okText="" closeText="Ok"></Modal>
 		</>
 
 

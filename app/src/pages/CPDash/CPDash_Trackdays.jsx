@@ -1,5 +1,4 @@
 import { useState } from "react";
-import Modal_Loading from "../../components/Modal_Loading";
 import Modal from "../../components/Modal";
 import ScrollToTop from "../../components/ScrollToTop";
 import styles from './CPDash_Trackdays.module.css'
@@ -212,7 +211,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 							</select>
 						</div>
 						<div className={styles.inputPairing}>
-							<label style={{textAlign:'center'}} htmlFor="guests" >Guests for BBQ<br></br><span style={{fontStyle:'italic'}}>(including you)</span></label>
+							<label style={{ textAlign: 'center' }} htmlFor="guests" >Guests for BBQ<br></br><span style={{ fontStyle: 'italic' }}>(including you)</span></label>
 							<div className={styles.guestControl}>
 								<button type="button" id={styles.guestsBtn} onClick={() => { if (guests.value > 0) guests.value-- }}>-</button>
 								<input type="number" id="guests" name="guests" defaultValue={1} required readOnly></input>
@@ -319,9 +318,10 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 
 			</div>
-			<Modal_Loading open={pendingSubmit.show} text={pendingSubmit.msg}></Modal_Loading>
-			<Modal open={showCancelModal.show} onClose={() => setShowCancelModal({ show: false, trackday: null })}
-				text='Are you sure you want to cancel this trackday?' okText="Yes, cancel it" closeText="No, keep it" fn={() => handleCancelTrackdaySubmit(showCancelModal.trackday.id)}></Modal>
+			<Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}></Modal>
+			<Modal open={showCancelModal.show} type='confirmation' text='Are you sure you want to cancel this trackday?' onClose={() => setShowCancelModal({ show: false, trackday: null })}
+				onOK={() => handleCancelTrackdaySubmit(showCancelModal.trackday.id)} okText="Yes, cancel it" closeText="No, keep it" ></Modal>
+
 
 		</>
 	);
