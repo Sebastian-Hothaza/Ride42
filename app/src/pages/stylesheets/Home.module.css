@@ -19,13 +19,13 @@ img {
     min-width: 0;
 }
 
-@media (max-width: 1200px) {
+
+
+@media (max-width: 850px) {
+
     .heroImage {
         height: 300px;
     }
-}
-
-@media (max-width: 750px) {
     .imageContainer {
         flex-direction: column;
     }
@@ -34,6 +34,7 @@ img {
         width: 100%;
     }
 
+    /* This is required since content adds margin to account for Navbar. On home page, navbar has already been accounted for */
     #firstCard {
         margin-top: calc(0.5*var(--toolbar-thickness));
     }

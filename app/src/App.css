@@ -1,23 +1,25 @@
-body{
+body {
     background-color: ghostwhite;
 }
 
 
-.content{
+.content {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10rem;
+    gap: 8rem;
     /*navbar technically takes up no space due to position being fixed */
     margin-top: calc(2*var(--toolbar-thickness));
     margin-bottom: var(--toolbar-thickness);
     /* Subtract the height of the header and footer */
     min-height: calc(100vh - 4* var(--toolbar-thickness));
+
+    padding: 2rem;
 }
 
 
 
-.actionButton{
+.actionButton {
     background-color: black;
     color: white;
     border-radius: .5rem;
@@ -26,13 +28,20 @@ body{
 }
 
 .active {
-	background-color: black;
-	font-weight: bolder;
+    background-color: black;
+    font-weight: bolder;
 }
 
 /* Should be applied to the ul representing error messages */
-.errorText{
+.errorText {
     color: red;
     line-height: 2rem;
     font-weight: bold;
+}
+
+@media (max-width: 850px) {
+    .content {
+        padding: 0px;
+        gap: 2rem;
+    }
 }

@@ -11,23 +11,26 @@
 .cardContent{
     display: flex;
     flex-direction: column;
-    padding: 2rem 0;
+    padding: 2rem;
+    /* width 100% makes it take up as much space as possible (eventually restricted by max width of card*/
     width: 100%;
 }
 
 
-.cardContent h1{
+#mainLabel{
+    text-align: center;
     background-color: var(--accent-color);
     color: white;
     padding: 10px 0;
-    width: 20rem;
-    text-align: center;
-    align-self: flex;
+
+    width: 22rem;
+
+    margin-left: -2rem;
+    margin-right: -2rem;
     margin-bottom: 2rem;
 }
 
 .cardContent p{
-    padding: 0 2rem;
     text-align: justify;
 }
 
@@ -37,7 +40,6 @@
     object-fit: cover;
 }
 
-
 @media (max-width: 850px) {
     .card{
         flex-direction: column;
@@ -46,6 +48,7 @@
 
     .cardContent{
         order: 1;
+        width: auto;
     }
 
     .card img{
@@ -53,7 +56,8 @@
         order: 2;
     }
 
-    .cardContent h1{
-        width: 100%;
+    #mainLabel{
+        /* Take fill width and add 2 rem on left/right side to account for card padding */
+        width: calc(100% + 4rem);
     }
 }
