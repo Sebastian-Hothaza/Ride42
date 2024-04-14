@@ -11,7 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import Register from "./pages/Register";
 
 import Construction from "./pages/Construction";
-const underConstruction = false; // Used to hide website content, routes accessible unless commented out
+const underConstruction = true; // Used to hide website content, routes accessible unless commented out
 
 const Router = () => {
 	const router = createBrowserRouter([
