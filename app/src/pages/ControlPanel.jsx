@@ -25,12 +25,7 @@ const ControlPanel = ({ APIServer, setLoggedIn }) => {
         let userInfoData, allTrackdaysData, userTrackdaysData = []
         try {
             const [userInfoResponse, allTrackdaysResponse, userTrackdaysResponse] = await Promise.all([
-                fetch(APIServer + 'users/' + loggedInUser.id, {
-                    headers: {
-                        'Content-type': 'application/json; charset=UTF-8',
-                        'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
-                    }
-                }),
+                fetch(APIServer + 'users/' + loggedInUser.id, { credentials: "include", }),
                 fetch(APIServer + 'presentTrackdays'),
                 fetch(APIServer + 'presentTrackdays/' + loggedInUser.id)]);
             if (!userInfoResponse.ok) throw new Error('Failed to build API Data for userInfo');
