@@ -773,6 +773,7 @@ describe('Testing registering', () => {
 				paymentMethod: 'gate'
 			},])
 	});
+	test.todo("gate registration without waiver")
 
 
 	test('registration - using credit', async () => {
