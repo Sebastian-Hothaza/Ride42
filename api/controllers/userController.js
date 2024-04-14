@@ -151,7 +151,7 @@ exports.garage_post = [
 
             await user.save();
             await sendEmail(process.env.ADMIN_EMAIL, "QR CODE REQUEST", mailTemplates.QRCodeRequest,
-                { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), userID: req.params.userID, bikeID: bike.id })
+                { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), userID: req.params.userID, bike: 'TODO', bikeID: bike.id })
             return res.status(201).json({ id: bike.id });;
         }
         return res.sendStatus(403)
