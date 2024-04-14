@@ -8,9 +8,9 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 
 	const [pendingSubmit, setPendingSubmit] = useState('');
 	const [addBikeConfirm, setAddBikeConfirm] = useState(false);
-	const [QRConfirm, setQRConfirm] = useState(false);
+	const [QRConfirmModal, setQRConfirmModal] = useState(false);
 	const [addBikeErrors, setAddBikeErrors] = useState('');
-
+	const [showNotificationModal, setShowNotificationModal] = useState('');
 
 	async function handleRequestQR(bikeID) {
 		setPendingSubmit({ show: true, msg: 'Requesting your QR Code' });
@@ -28,7 +28,7 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 			// const data = await response.json();
 			// if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
 
-			setQRConfirm(true);
+			setQRConfirmModal(true);
 		} catch (err) {
 			console.log(err.message)
 		}
@@ -50,7 +50,7 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 			// Updating accessToken in LS
 			// const data = await response.json();
 			// if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
-
+			setShowNotificationModal({ show: true, msg: 'Bike sold!' });
 		} catch (err) {
 			console.log(err.message)
 		}
@@ -155,9 +155,10 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 			</div>
 
 			<Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}></Modal>
+			<Modal open={showNotificationModal.show} type='notification' text={showNotificationModal.msg} onClose={() => setShowNotificationModal('')}></Modal>
 			<Modal open={addBikeConfirm} type='confirmation' text='Your bike has been added to your garage. We have created a QR code for you which will be available for pickup at the next trackday.'
 				onClose={() => setAddBikeConfirm(false)} onOK={() => setActiveTab('trackdays')} okText="Go to trackdays" closeText="Stay in garage"></Modal>
-			<Modal open={QRConfirm} type='confirmation' text='We have created a QR code for you which will be available for pickup at the next trackday.' onClose={() => setQRConfirm(false)} okText="" closeText="Ok"></Modal>
+			<Modal open={QRConfirmModal} type='confirmation' text='We have created a QR code for you which will be available for pickup at the next trackday.' onClose={() => setQRConfirmModal(false)} okText="" closeText="Ok"></Modal>
 		</>
 
 
