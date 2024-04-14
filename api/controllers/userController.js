@@ -46,22 +46,34 @@ exports.login = [
             if (passwordMatch) {
                 // Generate tokens, assume refreshToken exists and is valid
                 const accessToken = jwt.sign({ id: user._id, memberType: user.memberType, name: user.firstName }, process.env.JWT_ACCESS_CODE, { expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION })
-                let refreshToken = user.refreshToken; 
+                let refreshToken = user.refreshToken;
 
                 // Check for valid refresh token.
                 try {
                     jwt.verify(refreshToken, process.env.JWT_REFRESH_CODE);
                 } catch {
+                    // Refresh token either does not exist OR is invalid. Create one and update the DB
                     refreshToken = jwt.sign({ id: user._id }, process.env.JWT_REFRESH_CODE, { expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRATION })
                     user.refreshToken = refreshToken; // Update user refresh token in DB
                     await user.save();
                 }
 
                 // Attach JWT's to httpOnly cookie
-                // res.cookie([`JWT_ACCESS_TOKEN=${accessToken}; secure; httponly; samesite=None;`])
-                // res.cookie([`JWT_REFRESH_TOKEN=${refreshToken}; secure; httponly; samesite=None;`])
-
-                return res.status(200).json({ id: user.id, firstName: user.firstName, memberType: user.memberType, accessToken: accessToken, refreshToken: refreshToken });
+                res.cookie('JWT_ACCESS_TOKEN', accessToken, {
+                    secure: true,
+                    httpOnly: true,
+                    sameSite: 'strict',
+                    maxAge: process.env.JWT_ACCESS_TOKEN_EXPIRATION
+                })
+                res.cookie('JWT_REFRESH_TOKEN', refreshToken, {
+                    secure: true,
+                    httpOnly: true,
+                    sameSite: 'strict',
+                    maxAge: process.env.JWT_REFRESH_TOKEN_EXPIRATION
+                })
+               
+                // Attach JWT in response body
+                return res.status(200).json({ id: user.id, firstName: user.firstName, memberType: user.memberType });
             } else {
                 return res.status(403).json({ msg: 'Incorrect Password' });
             }
@@ -232,9 +244,6 @@ exports.user_get = [
         // JWT is valid. Verify user is allowed to access this resource and return the information
         if (req.user.memberType === 'admin' || req.user.memberType === 'staff' || req.user.id === req.params.userID) {
             let user = await User.findById(req.params.userID).populate("garage", '-__v').select('-password -refreshToken -__v')
-            // Convert mongoose object to regular JS object so we can augment it to include accessToken
-            // user = user.toObject(); 
-            // user.accessToken_FRESH = req.accessToken_FRESH;
             return res.status(200).json(user);
         }
         return res.sendStatus(403)
