@@ -35,6 +35,9 @@
     text-align: center;
 }
 
+form label{
+    white-space: wrap;
+}
 
 .guests {
     display: flex;

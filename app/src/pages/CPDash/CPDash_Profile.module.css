@@ -22,6 +22,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1rem;
 }
 
 .inputPairing input{
@@ -86,7 +87,13 @@
     }
 
     .inputPairing input{
+        min-width: 200px;
         width: 100%;
+    }
+
+    .inputPairing select{
+        min-width: 208px;
+        width: calc(100% + 8px);
     }
 
     .btnContainer{
@@ -115,5 +122,9 @@
     .content h1{
         text-align: center;
     }
+
+  
+    
+  
 
 }

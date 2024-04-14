@@ -22,7 +22,7 @@
 
 .bikeControls {
     display: flex;
-    gap: 2rem;
+    gap: 1rem;
 }
 
 .content button {
@@ -38,9 +38,8 @@
 
 .content form {
     display: flex;
-    justify-content: space-between;
     gap: 2rem;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
 }
 
 
@@ -79,6 +78,7 @@
 
     .content form {
         flex-direction: column;
+        gap: 0;
     }
 
     /* RESET Year field to be short */
@@ -100,9 +100,13 @@
         text-align: center;
     }
 
+    form .confirmBtn {
+        margin-top: 2rem;
+    }
+
 }
 
-@media (max-width: 400px) {
+@media (max-width: 450px) {
     .content button {
         font-size: 1rem;
 
