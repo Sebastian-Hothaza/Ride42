@@ -17,7 +17,7 @@ a{
     padding: 0 2rem;
 }
 
-.footer img{
+#headerImg{
     height: calc(0.5*var(--toolbar-thickness));
 }
 
@@ -29,17 +29,41 @@ a{
     display: none
 }
 
+.footerIcon{
+    height: 40px;
+    width: 40px;
+    vertical-align: bottom;
+}
+
+.leftItems{
+    display: flex;
+    align-items: center;
+   
+    gap: 1rem;
+    /* background-color: orange; */
+}
+
+#copyright{
+    text-align: right;
+}
+
 
 @media (max-width: 700px) {
     #desktopContact{
         display: none;
     }
-    #mobileContact{
-        font-size: 3rem;
-        margin-bottom: 8px;
-        display: inline;
-    }
     #footerLogo{
         display: none;
+    }
+    #mobileContact{
+        display: flex;
+        align-items: center;
+    }
+    .mobileToolbarIcons {
+        font-size: 40px;
+        vertical-align: bottom;
+    }
+    .footer>*{
+        padding: 0 .5rem;
     }
 }
