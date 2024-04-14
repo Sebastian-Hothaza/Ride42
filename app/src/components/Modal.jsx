@@ -9,12 +9,7 @@ import checkmark from './../assets/checkmark.png'
 // onOK: Modal calls this function when OK button is pressed
 // okText: Text that appears on the OK button of the modal. If empty, then OK button is not shown
 // closeText: Text that appears on the close button of the modal
-// selection: Array of items to appear in the select
-
-
-
-
-
+// selection: Array of items to appear in the select. !!! Items must have a displayValue and value property !!!
 
 const Modal = ({ open, type, text, onClose, onOK, okText, closeText, selection }) => {
 
@@ -62,10 +57,10 @@ const Modal = ({ open, type, text, onClose, onOK, okText, closeText, selection }
                     <div className={styles.overlay} ></div>
                     <div className={styles.modal}>
                         {text}
-                        <form onSubmit={(e) => onOK(e, e.target.date.value)}>
-                            <select name="date" id="date" required>
-                                <option key="dateNone" value="">---Select---</option>
-                                {selection.map((trackday) => <option key={trackday.id} value={trackday.id}>{trackday.prettyDate}</option>)}
+                        <form onSubmit={(e) => onOK(e, e.target.result.value)}>
+                            <select name="result" id="result" required>
+                                <option key="none" value="">--- Select ---</option>
+                                {selection.map((item) => <option key={item.value} value={item.value}>{item.displayValue}</option>)}
                             </select>
                             <button className={`actionButton ${styles.confirmBtn}`} type="submit">{okText}</button>
                             <button type="button" className='actionButton' onClick={onClose}>{closeText}</button>

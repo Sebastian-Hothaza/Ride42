@@ -33,7 +33,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 		return true;
 	}
 
-	// Pre-process allTrackdays (remove invalid, sort, format date)
+	// Pre-process allTrackdays (remove invalid, sort, format date, prepare for modal)
 	if (allTrackdays && userTrackdays) {
 		// Remove trackdays in the past, trackdays for which reg is not open and trackdays that user is already registered for
 		allTrackdays = allTrackdays.filter((trackday) => {
@@ -64,6 +64,12 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			const numericDay = date.toLocaleString('default', { day: 'numeric' })
 			const formattedDate = weekday + ' ' + month + ' ' + numericDay;
 			trackday.prettyDate = formattedDate;
+		})
+
+		// Reschedule modal requires objects in selection to have a key and value property, so we add those in
+		allTrackdays.forEach((trackday)=>{
+			trackday.value = trackday.id;
+			trackday.displayValue = trackday.prettyDate;
 		})
 	}
 
