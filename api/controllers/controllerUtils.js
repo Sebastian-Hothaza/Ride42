@@ -82,12 +82,12 @@ async function hasTrackdayWithinLockout(userID) {
 // Verifies access token and attaches payload to request body.
 // Sets cookie if access token is expired but refresh token is valid
 // Returns appropriate code if both tokens are invalid
-async function verifyJWT_READ_COOKIE(req, res, next) {
+async function verifyJWT(req, res, next) {
     // Try to verify JWT_ACCESS
     let payload // Represents the object in the JWT_ACCESS
     try {
         payload = jwt.verify(req.cookies.JWT_ACCESS_TOKEN, process.env.JWT_ACCESS_CODE);
-    } catch (err) {
+    } catch {
         // JWT_ACCESS verification failed. Try to verify the JWT_REFRESH
         try {
             // Check the refresh token is not expired
@@ -97,12 +97,20 @@ async function verifyJWT_READ_COOKIE(req, res, next) {
             const user = await User.findById(JWTRefreshPayload.id).exec();
             if (user.refreshToken !== req.cookies.JWT_REFRESH_TOKEN) return res.sendStatus(401)
 
-            // JWT_REFRESH is valid! Create new JWT_ACCESS. 
+            // JWT_REFRESH is valid! Create new accessToken. 
             const accessToken = jwt.sign({ id: user._id, memberType: user.memberType, name: user.firstName },
                 process.env.JWT_ACCESS_CODE, { expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION })
-            res.cookie([`JWT_ACCESS_TOKEN=${accessToken}; secure; httponly; samesite=None;`])
+
+            // Attach newly created accessToken to httpOnly cookie
+            res.cookie('JWT_ACCESS_TOKEN', accessToken, {
+                secure: true,
+                httpOnly: true,
+                sameSite: 'strict',
+                maxAge: process.env.JWT_ACCESS_TOKEN_EXPIRATION
+            })
+
             payload = jwt.verify(accessToken, process.env.JWT_ACCESS_CODE);
-        } catch (err2) {
+        } catch {
             // JWT_REFRESH verification failed.
             return res.sendStatus(401)
         }
@@ -114,7 +122,7 @@ async function verifyJWT_READ_COOKIE(req, res, next) {
 
 // Verifies access & refresh token received in Authorization header and attaches payload to request body.
 // TODO: How give client fresh access code if expired?
-async function verifyJWT(req, res, next) {
+async function verifyJWT_LS(req, res, next) {
     // Get auth header value
     const authHeader = req.headers['authorization'];
     // Check if bearer is undefined
@@ -125,7 +133,7 @@ async function verifyJWT(req, res, next) {
         const accessToken = bearer[1];
         const refreshToken = bearer[2];
         if (!accessToken || !refreshToken) return res.status(401).send({ msg: 'JWT Tokens missing' });
- 
+
         // Try to verify JWT_ACCESS
         let payload // Represents the object in the JWT_ACCESS
         try {
@@ -146,7 +154,7 @@ async function verifyJWT(req, res, next) {
 
                 // Attach the fresh token to the request body so 
                 req.accessToken_FRESH = accessToken_FRESH;
-                
+
                 payload = jwt.verify(accessToken_FRESH, process.env.JWT_ACCESS_CODE);
 
 
