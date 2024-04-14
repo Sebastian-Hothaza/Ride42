@@ -167,7 +167,9 @@ function TrackdayInfo() {
 		<span style={{ fontWeight: 'bold' }}>My Trackdays –</span> Book, view, reschedule and cancel your trackdays from one convenient spot
 		<br></br>
 		<span style={{ fontWeight: 'bold' }}>My Garage –</span> Manage your bikes and request QR code stickers to replace damaged/lost stickers.
-
+		<br></br>
+		<br></br>
+		<a style={{textDecoration: 'reset', color: 'blue'}} target="_blank" href="https://drive.google.com/file/d/1FkyTbPXo9x5K6xtGztmjMHLd0B5iSsva/view?usp=sharing">Waiver Link</a>
 		<br></br><br></br>
 	</p>
 		<NavLink className={styles.bookBtn} to="/dashboard">Join Now!</NavLink>
