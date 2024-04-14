@@ -25,7 +25,7 @@ const welcomeUser =
 	`<body>
 	<div class="default-style">
 	<h3>Hello {name},</h3>
-	I wanted to take a moment to welcome you to Ride42, tell you a bit about myself and explain a little bit more about how our trackdays are run!
+	I wanted to take a moment to welcome you to Ride42, tell you a bit about myself and explain how our trackdays are run!
 
 
 	<h3>Welcome to Ride42!</h3>
@@ -35,7 +35,7 @@ const welcomeUser =
 	We also welcome you to join our <a href="https://www.facebook.com/groups/ride42">Facebook page</a> and to follow us on Instagram <a href="https://www.instagram.com/ride42_official">@ride42_official</a>
 
 	<h3>A little about me</h3>
-	Most of you likely already know me, Sebastian. I started riding motorcycles back in 2013 on a Kawasaki Ninja 250R and in 2015, I moved up to a Yamaha R6. I accumulated many, MANY kilometers in the first few years on the R6 but quickly realized public 
+	I started riding motorcycles back in 2013 on a Kawasaki Ninja 250R and in 2015, I moved up to a Yamaha R6. I accumulated many, MANY kilometers in the first few years on the R6 but quickly realized public 
 	roads were not the place to be riding a bike like that! I started doing trackdays in 2016 and fell in love with the sport. However, I found the trackdays to be very impersonal; you show up, ride, go home. I wanted something more, I wanted a community 
 	atmosphere where everyone feels welcome, engaged and valued. This is the experience that Ride42 strives to deliver. <br></br>
 	Outside of running trackdays, I enjoy racing in our national series (CSBK) as well as our regional series (SOAR & RACE) in the Pro Supersport category. I couldn't stop myself with just road bikes! I spend quite a bit of time riding trails with my KTM 
@@ -89,7 +89,7 @@ const registerTrackday =
 		<br />
 		Your payment must be received at least 7 days prior to your trackday. E-transfers should be sent to payments@ride42.ca. If you selected credit card, you will receive a payment link by the end of April. Payments may take up to 5 days to be reflected in your dashboard.<br />
 		<br />
-		If you have not completed a waiver yet, you can print one out <a href="XXX"><strong>here</strong></a> to make your morning check in process faster.<br />
+		If you have not completed a waiver yet, you can print one out <a href="https://drive.google.com/file/d/1FkyTbPXo9x5K6xtGztmjMHLd0B5iSsva/view?usp=sharing"><strong>here</strong></a> to make your morning check in process faster.<br />
 		<br />
 		We look forward to seeing you on track soon!
 	</div>
