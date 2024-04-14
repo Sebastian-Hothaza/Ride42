@@ -8,8 +8,16 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 	const [editUserInfo, setEditUserInfo] = useState(false); // Tracks if we are editing fields
 	const [editUserInfoErrors, setEditUserInfoErrors] = useState(); // Array corresponding to error messages received from API
 	const [changePswErrorMsg, setChangePswErrorMsg] = useState(); // Array corresponding to error messages received from API
-	const [editUserGroup, setEditUserGroup] = useState(false); // Tracks if we are changing groups
 	const [pendingSubmit, setPendingSubmit] = useState('');
+	const [showChangeGroupModal, setShowChangeGroupModal] = useState(false);
+	const [showNotificationModal, setShowNotificationModal] = useState('');
+
+	// Build array of groups user can switch into
+	let groupChange = [{ value: 'green', displayValue: 'Green (Novice)' }, { value: 'yellow', displayValue: 'Yellow (Intermediate)' }, { value: 'red', displayValue: 'Red (Advanced)' }]
+	// Remove group user is currently in from the array
+	groupChange = groupChange.filter((group)=>group.value !== userInfo.group)
+
+	
 
 	async function handleEditUserInfoSubmit(e) {
 		e.preventDefault();
@@ -35,6 +43,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 				setEditUserInfo(false)
 				setEditUserInfoErrors('');
 				// TODO: Do we need to fetchapidata here? Maybe add it in before clearing out pending submit
+				setShowNotificationModal({ show: true, msg: 'Profile updated' });
 			} else if (response.status === 400) {
 				const data = await response.json();
 				setEditUserInfoErrors(data.msg)
@@ -98,6 +107,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 				// if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
 
 				setChangePswErrorMsg('');
+				setShowNotificationModal({ show: true, msg: 'Password updated' });
 			} else {
 				const data = await response.json();
 				setChangePswErrorMsg(data.msg)
@@ -109,8 +119,9 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 		setPendingSubmit('');
 	}
 
-	async function handleUserGroupSubmit(e) {
+	async function handleUserGroupSubmit(e, newGroup) {
 		e.preventDefault();
+		setShowChangeGroupModal(false)
 		setPendingSubmit({ show: true, msg: 'Updating your group' });
 		try {
 			const response = await fetch(APIServer + 'users/' + userInfo._id, {
@@ -129,7 +140,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 					EmergencyName_lastName: userInfo.emergencyContact.lastName,
 					EmergencyPhone: userInfo.emergencyContact.phone,
 					EmergencyRelationship: userInfo.emergencyContact.relationship,
-					group: e.target.group.value
+					group: newGroup
 				})
 			})
 			if (response.ok) {
@@ -139,6 +150,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 				// if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
 
 				await fetchAPIData();
+				setShowNotificationModal({ show: true, msg: 'Group updated' });
 			} else if (response.status === 400) {
 				const data = await response.json();
 				console.log('Change group failed: ', data)
@@ -148,7 +160,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 		} catch (err) {
 			console.log(err.message)
 		}
-		setEditUserGroup(false)
+		
 		setPendingSubmit('');
 	}
 
@@ -163,22 +175,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 					<div className={styles.inputSection}>
 						<div id={styles.groupContainer}>
 							<div>Group: {userInfo.group[0].toUpperCase() + userInfo.group.slice(1)}</div>
-							{editUserGroup ?
-								<div >
-									<form className={styles.confirmContainer} onSubmit={(e) => handleUserGroupSubmit(e)}>
-										<select name="group" id="group" defaultValue={userInfo.group}>
-											<option key="green" value="green">Green</option>
-											<option key="yellow" value="yellow">Yellow</option>
-											<option key="red" value="red">Red</option>
-										</select>
-
-										<button type="button" onClick={() => setEditUserGroup(false)}>Cancel</button>
-										<button className={styles.confirmBtn} type="submit">Confirm</button>
-									</form>
-
-								</div>
-								:
-								<button onClick={() => setEditUserGroup(true)}>Change Group</button>}
+							<button onClick={() => setShowChangeGroupModal(true)}>Change Group</button>
 						</div>
 
 						<div>Days on Credit: {userInfo.credits}</div>
@@ -267,6 +264,11 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 				</div>
 			}
 			<Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}></Modal>
+			<Modal open={showNotificationModal.show} type='notification' text={showNotificationModal.msg} onClose={() => setShowNotificationModal('')}></Modal>
+
+			<Modal open={showChangeGroupModal} type='select' text='Which group?'
+				onClose={() => setShowChangeGroupModal(false)} onOK={handleUserGroupSubmit}
+				okText={'Confirm'} closeText={'Cancel'} selection={groupChange} ></Modal>
 		</>
 	);
 };
