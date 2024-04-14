@@ -19,6 +19,7 @@ const mailTemplates = require('../mailer_templates')
     edit so error messages get sent out as array ALWAYS (Ie. msg: ['errormsg'])
     add checks for deleting users, refuse deletion if users are registered for trackday
     add checks for deleting bikes, refuse deletion if bikes are existing in peoples garages
+    make back end handle case where user is deleted but still a member of some td
     code cleanup & review
     --------------------------------------------- TODO ---------------------------------------------
 */
