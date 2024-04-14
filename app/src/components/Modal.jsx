@@ -62,9 +62,9 @@ const Modal = ({ open, type, text, onClose, onOK, okText, closeText, selection }
                     <div className={styles.overlay} ></div>
                     <div className={styles.modal}>
                         {text}
-                        <form  onSubmit={(e) => onOK(e)}>
+                        <form onSubmit={(e) => onOK(e, e.target.date.value)}>
                             <select name="date" id="date" required>
-                                <option key="dateNone" value="">--Choose date--</option>
+                                <option key="dateNone" value="">---Select---</option>
                                 {selection.map((trackday) => <option key={trackday.id} value={trackday.id}>{trackday.prettyDate}</option>)}
                             </select>
                             <button className={`actionButton ${styles.confirmBtn}`} type="submit">{okText}</button>

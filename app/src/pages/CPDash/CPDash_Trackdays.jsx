@@ -142,19 +142,18 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 	}
 
-	async function handleRescheduleSubmit(e, trackdayID_OLD) {
+	async function handleRescheduleSubmit(e, trackdayID_OLD, trackdayID_NEW) {
 		e.preventDefault();
 		setShowRescheduleModal('');
 		setPendingSubmit({ show: true, msg: 'Rescheduling your trackday' });
 		const formData = new FormData(e.target);
 		try {
-			const response = await fetch(APIServer + 'register/' + userInfo._id + '/' + trackdayID_OLD + '/' + formData.get('date'), {
+			const response = await fetch(APIServer + 'register/' + userInfo._id + '/' + trackdayID_OLD + '/' + trackdayID_NEW, {
 				method: 'PUT',
 				headers: {
 					'Content-type': 'application/json; charset=UTF-8',
 					'Authorization': 'bearer ' + localStorage.getItem('accessToken') + ' ' + localStorage.getItem('refreshToken'),
 				},
-				body: JSON.stringify(Object.fromEntries(formData))
 			})
 
 
@@ -324,8 +323,8 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 
 			<Modal open={showRescheduleModal.show} type='select' text='Which day do you want to reschedule to?'
-				onClose={() => setShowRescheduleModal('')} onOK={(e) => handleRescheduleSubmit(e, showRescheduleModal.trackday.id)}
-				okText={'Confirm'} closeText={'Cancel'} selection={allTrackdays} target={showRescheduleModal.trackday}></Modal>
+				onClose={() => setShowRescheduleModal('')} onOK={(e, trackdayID_NEW) => handleRescheduleSubmit(e, showRescheduleModal.trackday.id, trackdayID_NEW)}
+				okText={'Confirm'} closeText={'Cancel'} selection={allTrackdays}></Modal>
 
 
 
