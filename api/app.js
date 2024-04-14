@@ -17,13 +17,14 @@ if (simulateSlowNetowrk) {
 }
 
 
-// Setup CORS in non production environment
-if (process.env.NODE_ENV !== 'production') {
-  const cors = require('cors')
-  app.use(cors({
-    origin: "http://localhost:5173", credentials: true,
-  }));
-}
+// cors setup
+const cors = require('cors')
+
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' ? "https://ride42.ca" : "http://localhost:5173", credentials: true,
+}));
+
+
 
 if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
 app.use(express.json());
