@@ -38,6 +38,7 @@ function App() {
         try {
             const response = await fetch(APIServer + 'login', {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-type': 'application/json; charset=UTF-8',
                 },
@@ -47,8 +48,8 @@ function App() {
                 const data = await response.json();
                 localStorage.setItem("user", JSON.stringify(data)); // Store user in localStorage
                 // Store JWT's in localStorage
-                localStorage.setItem('accessToken', data.accessToken);
-                localStorage.setItem('refreshToken', data.refreshToken);
+                // localStorage.setItem('accessToken', data.accessToken);
+                // localStorage.setItem('refreshToken', data.refreshToken);
 
                 setLoginErrorMsg('')
                 setLoggedIn(true);
