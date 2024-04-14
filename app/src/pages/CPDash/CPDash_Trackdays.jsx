@@ -8,10 +8,10 @@ import styles from './CPDash_Trackdays.module.css'
 
 const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPIData, setActiveTab }) => {
 	const [bookErrors, setBookErrors] = useState(); // Array corresponding to error messages received from API
-	const [showReschedule, setShowReschedule] = useState([]); // tracks for which trackday ID's should we show the reschedule box for
 	const [pendingSubmit, setPendingSubmit] = useState('');
-	const [showCancelModal, setShowCancelModal] = useState({ show: false, trackday: null })
-	const [showNotificationModal, setShowNotificationModal] = useState(false);
+	const [showCancelModal, setShowCancelModal] = useState('')
+	const [showRescheduleModal, setShowRescheduleModal] = useState('');
+	const [showNotificationModal, setShowNotificationModal] = useState('');
 
 	// Returns true if a user is registered for a specified trackday ID
 	function userRegistered(trackdayID) {
@@ -21,9 +21,21 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 		return false
 	}
 
-	// Filter allTrackdays to only days user can actually register for
-	if (allTrackdays) {
-		// Remove trackdays in the past
+	// Checks if a user is eligible to reschedule/cancel a trackday
+	function canModify(trackday) {
+		// Date in past
+		if (new Date(trackday.date).getTime() - Date.now() < 0) return false
+
+		// In lockout period and payment method was not credit
+		const timeLockout = 7 * (1000 * 60 * 60 * 24);
+		const timeDifference = new Date(trackday.date).getTime() - Date.now()
+		if (trackday.paymentMethod !== 'credit' && timeDifference < timeLockout) return false;
+		return true;
+	}
+
+	// Pre-process allTrackdays (remove invalid, sort, format date)
+	if (allTrackdays && userTrackdays) {
+		// Remove trackdays in the past, trackdays for which reg is not open and trackdays that user is already registered for
 		allTrackdays = allTrackdays.filter((trackday) => {
 			return (
 				new Date(trackday.date).getTime() - Date.now() >= 0 && // Trackday is in future
@@ -31,11 +43,35 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 				!userRegistered(trackday.id)
 			)
 		})
+
+		// Sort trackdays as order may not be correct when received from back end. (Ie. backend can add trackdays out of order - no guarantee)
+		allTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
+		userTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
+
+		// Modify date of allTrackdays to be a nice format
+		allTrackdays.forEach((trackday) => {
+			const date = new Date(trackday.date)
+			const weekday = date.toLocaleString('default', { weekday: 'short' })
+			const month = date.toLocaleString('default', { month: 'long' })
+			const numericDay = date.toLocaleString('default', { day: 'numeric' })
+			const formattedDate = weekday + ' ' + month + ' ' + numericDay;
+			trackday.prettyDate = formattedDate;
+		})
+		userTrackdays.forEach((trackday) => {
+			const date = new Date(trackday.date)
+			const weekday = date.toLocaleString('default', { weekday: 'short' })
+			const month = date.toLocaleString('default', { month: 'long' })
+			const numericDay = date.toLocaleString('default', { day: 'numeric' })
+			const formattedDate = weekday + ' ' + month + ' ' + numericDay;
+			trackday.prettyDate = formattedDate;
+		})
 	}
 
-	// Sort trackdays as order may not be correct when received from back end. (Ie. backend can add trackdays out of order - no guarantee)
-	if (allTrackdays) allTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
-	if (userTrackdays) userTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
+
+
+
+
+
 
 
 	async function handleBookTrackdaySubmit(e) {
@@ -61,13 +97,9 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 				body: JSON.stringify(formDataFinal)
 			})
 			if (response.ok) {
-
-				// Updating accessToken in LS
-				// const data = await response.json();
-				// if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
-
-				setBookErrors('');
 				await fetchAPIData(); // Wait for fetch to complete so the spinner stays on screen
+				setBookErrors('');
+				setShowNotificationModal({ show: true, msg: 'Trackday booked' });
 			} else if (response.status === 400) {
 				const data = await response.json();
 				setBookErrors(data.msg)
@@ -77,12 +109,11 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			} else {
 				throw new Error('API Failure')
 			}
-
+			
 		} catch (err) {
 			console.log(err.message)
 		}
 		setPendingSubmit('');
-		setShowNotificationModal(true);
 	}
 
 	async function handleCancelTrackdaySubmit(trackdayID) {
@@ -103,6 +134,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			// if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
 
 			await fetchAPIData();
+			setShowNotificationModal({ show: true, msg: 'Trackday cancelled' });
 		} catch (err) {
 			console.log(err.message)
 		}
@@ -112,6 +144,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 	async function handleRescheduleSubmit(e, trackdayID_OLD) {
 		e.preventDefault();
+		setShowRescheduleModal('');
 		setPendingSubmit({ show: true, msg: 'Rescheduling your trackday' });
 		const formData = new FormData(e.target);
 		try {
@@ -129,50 +162,24 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			// const data = await response.json();
 			// if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
 
-			if (response.status == 400) {
+			if (response.status == 403) {
 				const data = await response.json()
 				console.log(data.msg)
 			}
 			if (!response.ok) throw new Error('API Failure')
 			await fetchAPIData();
+			setShowNotificationModal({ show: true, msg: 'Trackday rescheduled' });
 		} catch (err) {
 			console.log(err.message)
 		}
-		setShowReschedule([])
 		setPendingSubmit('');
 	}
 
-	// Converts server format date to nice user legible date
-	function prettyPrintDate(APIDate) {
-		const date = new Date(APIDate)
-		const weekday = date.toLocaleString('default', { weekday: 'short' })
-		const month = date.toLocaleString('default', { month: 'long' })
-		const numericDay = date.toLocaleString('default', { day: 'numeric' })
-		const formattedDate = weekday + ' ' + month + ' ' + numericDay;
-		return formattedDate;
-	}
-
-	function toggleReschedule(targetTrackday) {
-		// Check if our targetTrackday is already in the array of showReschedule
-		if (showReschedule.find(trackday => trackday.id === targetTrackday.id)) {
-			setShowReschedule(showReschedule.filter(trackday => trackday.id !== targetTrackday.id)); //remove
-		} else {
-			setShowReschedule(showReschedule.concat(targetTrackday)); //add
-		}
-	}
 
 
-	function canModify(trackday) {
-		// Date in past
-		if (new Date(trackday.date).getTime() - Date.now() < 0) return false
 
-		// In lockout period and payment method was not credit
-		const timeLockout = 7 * (1000 * 60 * 60 * 24);
-		const timeDifference = new Date(trackday.date).getTime() - Date.now()
-		if (trackday.paymentMethod !== 'credit' && timeDifference < timeLockout) return false;
 
-		return true;
-	}
+
 
 	// If user has no bikes in garage, don't allow any trackday management
 	if (userInfo && !userInfo.garage.length) {
@@ -184,7 +191,6 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			<button className="actionButton" onClick={() => setActiveTab('garage')}>Go to My Garage</button>
 		</>
 	}
-
 
 	return (
 		<>
@@ -199,7 +205,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 							<label htmlFor="date">Date:</label>
 							<select name="date" id="date" form="CPDash_Trackdays_bookTrackday" required>
 								<option key="dateNone" value="">---Choose date---</option>
-								{allTrackdays && allTrackdays.map((trackday) => <option key={trackday.id} value={trackday.id}>{prettyPrintDate(trackday.date)}</option>)}
+								{allTrackdays && allTrackdays.map((trackday) => <option key={trackday.id} value={trackday.id}>{trackday.prettyDate}</option>)}
 							</select>
 						</div>
 						<div className={styles.inputPairing}>
@@ -287,31 +293,16 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 							return (
 								<div key={trackday.id} className={styles.tdEntry}>
 									{/* INFO */}
-									<div>{prettyPrintDate(trackday.date)}</div>
+									<div>{trackday.prettyDate}</div>
 									{/* Paid Status */}
 									{trackday.paid ? <div>PAID</div> : <div>UNPAID</div>}
-
 									{/* Reschedule/Cancel controls */}
 									<div className={styles.tdControls}>
-										{/* Conditionally show reschedule form */}
-										{showReschedule.find((p) => p.id === trackday.id) ?
-											<>
-												<form id="CPDash_Trackdays_reschedule" onSubmit={(e) => handleRescheduleSubmit(e, trackday.id)}>
-													<select name="date" id="date" form="CPDash_Trackdays_reschedule" required>
-														<option key="dateNone" value="">--Choose date--</option>
-														{allTrackdays && allTrackdays.map((trackday) => <option key={trackday.id} value={trackday.id}>{prettyPrintDate(trackday.date)}</option>)}
-													</select>
-													<button className={styles.confirmBtn} type="submit">Confirm</button>
-													<button type="button" onClick={() => toggleReschedule(trackday)}>Cancel</button>
-												</form>
-											</>
-											:
-											<>
-												{/* These buttons should not be shown if trackday is in past */}
-												{canModify(trackday) && <> <button onClick={() => toggleReschedule(trackday)}>Reschedule</button>
-													<button onClick={() => setShowCancelModal({ show: true, trackday: trackday })}>Cancel Trackday</button> </>}
-											</>
-										}
+										{/* These buttons should not be shown if trackday is in past */}
+										{canModify(trackday) && <>
+											<button onClick={() => setShowRescheduleModal({ show: true, trackday: trackday })}>Reschedule</button>
+											<button onClick={() => setShowCancelModal({ show: true, trackday: trackday })}>Cancel Trackday</button>
+										</>}
 									</div>
 								</div>
 							)
@@ -321,9 +312,25 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 			</div>
 			<Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}></Modal>
-			<Modal open={showNotificationModal} type='notification' text='Registration Confirmed' onClose={()=> setShowNotificationModal(false)}></Modal>
-			<Modal open={showCancelModal.show} type='confirmation' text='Are you sure you want to cancel this trackday?' onClose={() => setShowCancelModal({ show: false, trackday: null })}
+			<Modal open={showNotificationModal.show} type='notification' text={showNotificationModal.msg} onClose={() => setShowNotificationModal('')}></Modal>
+			<Modal open={showCancelModal.show} type='confirmation' text='Are you sure you want to cancel this trackday?' onClose={() => setShowCancelModal('')}
 				onOK={() => handleCancelTrackdaySubmit(showCancelModal.trackday.id)} okText="Yes, cancel it" closeText="No, keep it" ></Modal>
+
+
+
+
+
+
+
+
+			<Modal open={showRescheduleModal.show} type='select' text='Which day do you want to reschedule to?'
+				onClose={() => setShowRescheduleModal('')} onOK={(e) => handleRescheduleSubmit(e, showRescheduleModal.trackday.id)}
+				okText={'Confirm'} closeText={'Cancel'} selection={allTrackdays} target={showRescheduleModal.trackday}></Modal>
+
+
+
+
+
 
 
 		</>

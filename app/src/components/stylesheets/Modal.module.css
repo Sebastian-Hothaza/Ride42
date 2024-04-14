@@ -58,9 +58,21 @@
     justify-content: center;
     align-items: center;
     gap: 1rem;
-    
 }
 
+.modal form{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+}
+
+.modal form select{
+    font-size: inherit;
+    width: 100%;
+    text-align: center;
+}
 
 .confirmBtn{
     background-color: var(--accent-color) !important;
@@ -73,6 +85,7 @@
 #modalCheckmark{
     color: white;
     background-color: transparent;
+    font-size: 2rem;
 }
 
 #modalCheckmarkIMG{
