@@ -174,7 +174,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 					<h1>My Profile</h1>
 					<div className={styles.inputSection}>
 						<div id={styles.groupContainer}>
-							<div>Group: {userInfo.group[0].toUpperCase() + userInfo.group.slice(1)}</div>
+							<div className='capitalizeEach'>Group: {userInfo.group}</div>
 							<button onClick={() => setShowChangeGroupModal(true)}>Change Group</button>
 						</div>
 
@@ -193,12 +193,12 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 
 						<div className={styles.inputPairing}>
 							<label htmlFor="address">Address:</label>
-							<input type="text" id="address" name="address" disabled={!editUserInfo} defaultValue={userInfo.contact.address} required minLength={2} maxLength={50}></input>
+							<input className='capitalizeEach' type="text" id="address" name="address" disabled={!editUserInfo} defaultValue={userInfo.contact.address} required minLength={2} maxLength={50}></input>
 						</div>
 
 						<div className={styles.inputPairing}>
 							<label htmlFor="city">City:</label>
-							<input type="text" id="city" name="city" disabled={!editUserInfo} defaultValue={userInfo.contact.city} required minLength={2} maxLength={50}></input>
+							<input className='capitalizeEach' type="text" id="city" name="city" disabled={!editUserInfo} defaultValue={userInfo.contact.city} required minLength={2} maxLength={50}></input>
 						</div>
 
 						<div className={styles.inputPairing}>
@@ -212,11 +212,11 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 
 						<div className={styles.inputPairing}>
 							<label htmlFor="EmergencyName_firstName">Emergency Contact - First Name:</label>
-							<input type="text" id="EmergencyName_firstName" name="EmergencyName_firstName" disabled={!editUserInfo} defaultValue={userInfo.emergencyContact.firstName} required minLength={2} maxLength={50}></input>
+							<input className='capitalizeEach' type="text" id="EmergencyName_firstName" name="EmergencyName_firstName" disabled={!editUserInfo} defaultValue={userInfo.emergencyContact.firstName} required minLength={2} maxLength={50}></input>
 						</div>
 						<div className={styles.inputPairing}>
 							<label htmlFor="EmergencyName_lastName">Emergency Contact - Last Name:</label>
-							<input type="text" id="EmergencyName_lastName" name="EmergencyName_lastName" disabled={!editUserInfo} defaultValue={userInfo.emergencyContact.lastName} required minLength={2} maxLength={50}></input>
+							<input className='capitalizeEach' type="text" id="EmergencyName_lastName" name="EmergencyName_lastName" disabled={!editUserInfo} defaultValue={userInfo.emergencyContact.lastName} required minLength={2} maxLength={50}></input>
 						</div>
 						<div className={styles.inputPairing}>
 							<label htmlFor="EmergencyPhone">Emergency Contact - Phone:</label>
@@ -224,7 +224,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 						</div>
 						<div className={styles.inputPairing}>
 							<label htmlFor="EmergencyRelationship">Emergency Contact - Relationship:</label>
-							<input type="text" id="EmergencyRelationship" name="EmergencyRelationship" disabled={!editUserInfo} defaultValue={userInfo.emergencyContact.relationship} required minLength={2} maxLength={50}></input>
+							<input className='capitalizeEach' type="text" id="EmergencyRelationship" name="EmergencyRelationship" disabled={!editUserInfo} defaultValue={userInfo.emergencyContact.relationship} required minLength={2} maxLength={50}></input>
 						</div>
 						<div className={styles.btnContainer} >
 							{editUserInfo ?
