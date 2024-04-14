@@ -10,7 +10,7 @@ const Navbar = () => {
       return (
             <div className={styles.footer}>
                   <div id={styles.desktopContact}>Contact Us:<br></br> <a href="mailto:info@ride42.ca">info@ride42.ca</a></div>
-                  <div id={styles.mobileContact}><a href="mailto:info@ride42.ca">✉</a></div>
+                  <div id={styles.mobileContact}><a href="mailto:info@ride42.ca"><span className='material-symbols-outlined'>email</span></a></div>
                   <Link to="/" id={styles.footerLogo}><img src={r42_small} id={styles.headerImg}></img></Link>
                   <div>© Sebastian Hothaza</div>
             </div>
@@ -18,3 +18,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
