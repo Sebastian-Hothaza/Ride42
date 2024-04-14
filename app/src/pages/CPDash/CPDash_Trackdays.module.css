@@ -2,6 +2,7 @@
     display: flex;
     flex-direction: column;
     gap: 2rem;
+    font-size: 1.25rem;
 }
 
 .content form {
@@ -9,53 +10,56 @@
     flex-direction: column;
 }
 
-
-
 .inputPairing {
     display: flex;
-    /* justify-content: space-between; */
     align-items: center;
-    font-size: 1.25rem;
+    font-size: inherit;
     gap: .5rem;
+}
 
+.inputPairing select {
+    min-width: 360px;
 }
 
 
-
-.bookDetails {
+.dateAndPayment {
     display: flex;
-    justify-content: space-between;
-    /* background-color: orange; */
-    padding-bottom: 2rem;
+    align-items: center;
+    justify-content: space-evenly;
+    gap: 3rem;
+    padding: 1rem 0;
 }
 
-.bookDetails .inputPairing:first-child select {
-    width: 13rem;
-}
-
-.bookDetails input,
-.bookDetails select {
+.dateAndPayment select {
     font-size: inherit;
     text-align: center;
-    width: 22rem;
-}
-
-.bookDetails .inputPairing:last-child input {
-    width: 3rem;
 }
 
 
-
-.layoutVote {
-    font-size: 1.25rem;
-}
-
-.guestControl{
+.guests {
     display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 0;
+}
+
+.guests .inputPairing {
     gap: 1rem;
 }
 
-#guestsBtn{
+.guests input {
+    width: 2rem;
+    text-align: center;
+    font-size: inherit;
+}
+
+
+.guestControl {
+    display: flex;
+    gap: 2rem;
+}
+
+#guestsBtn {
     color: white;
     background-color: red;
     min-width: 0;
@@ -63,7 +67,7 @@
     border-radius: 50%;
     height: 40px;
     width: 40px;
-    
+
 }
 
 
@@ -77,7 +81,7 @@
     gap: 1rem;
 }
 
-.checkboxPairing{
+.checkboxPairing {
     display: flex;
     align-items: center;
     font-size: inherit;
@@ -149,8 +153,8 @@
 
 
 
-@media (max-width: 1000px) {
-    .bookDetails {
+@media (max-width: 1400px) {
+    .dateAndPayment {
         flex-direction: column;
         gap: 2rem;
     }
@@ -158,18 +162,19 @@
     .inputPairing {
         flex-direction: column;
         align-items: center;
-        /* gap: 1rem; */
     }
 
 
-    .bookDetails input,
-    .bookDetails select {
+    .dateAndPayment input,
+    .dateAndPayment select {
         font-size: 1rem;
         text-align: center;
         width: 15rem;
     }
 
-
+    .content h1 {
+        text-align: center;
+    }
 }
 
 /* My Trackdays */
@@ -179,21 +184,27 @@
         grid-template-columns: 1fr 1fr;
         justify-items: center;
     }
+
     .tdControls:last-child {
         grid-column: span 2;
         justify-self: center;
     }
+
     .tdControls form {
         flex-direction: column;
     }
+
+    .inputPairing select {
+        min-width: 280px;
+    }
+    
 
 }
 
 @media (max-width: 450px) {
     .tdControls {
         flex-direction: column;
-
     }
-   
+
 
 }

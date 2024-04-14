@@ -127,21 +127,21 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 
 
 
-				<form id={styles.addBikeForm} onSubmit={(e) => handleAddBike(e)}>
-					<div id={styles.formFields}>
-						<div className={styles.inputPairing}>
-							<label htmlFor="year">Year:</label>
-							<input type="number" id="year" name="year" required min={1900} max={2100}></input>
-						</div>
-						<div className={styles.inputPairing}>
-							<label htmlFor="make">Make:</label>
-							<input type="text" id="make" name="make" required minLength={2} maxLength={50}></input>
-						</div>
-						<div className={styles.inputPairing}>
-							<label htmlFor="model">Model:</label>
-							<input type="text" id="model" name="model" required minLength={2} maxLength={50}></input>
-						</div>
+				<form onSubmit={(e) => handleAddBike(e)}>
+
+					<div className={styles.inputPairing}>
+						<label htmlFor="year">Year:</label>
+						<input type="number" id="year" name="year" required min={1900} max={2100}></input>
 					</div>
+					<div className={styles.inputPairing}>
+						<label htmlFor="make">Make:</label>
+						<input type="text" id="make" name="make" required minLength={2} maxLength={50}></input>
+					</div>
+					<div className={styles.inputPairing}>
+						<label htmlFor="model">Model:</label>
+						<input type="text" id="model" name="model" required minLength={2} maxLength={50}></input>
+					</div>
+
 
 
 					<button className={styles.confirmBtn} type="submit">Add Bike</button>

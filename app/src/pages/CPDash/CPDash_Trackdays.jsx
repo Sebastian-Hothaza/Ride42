@@ -67,7 +67,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 		})
 
 		// Reschedule modal requires objects in selection to have a key and value property, so we add those in
-		allTrackdays.forEach((trackday)=>{
+		allTrackdays.forEach((trackday) => {
 			trackday.value = trackday.id;
 			trackday.displayValue = trackday.prettyDate;
 		})
@@ -115,7 +115,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			} else {
 				throw new Error('API Failure')
 			}
-			
+
 		} catch (err) {
 			console.log(err.message)
 		}
@@ -205,39 +205,42 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 				<form id="CPDash_Trackdays_bookTrackday" onSubmit={(e) => handleBookTrackdaySubmit(e)}>
 
 
-					<div className={styles.bookDetails}>
+					<div className={styles.dateAndPayment}>
 						<div className={styles.inputPairing}>
 							<label htmlFor="date">Date:</label>
 							<select name="date" id="date" form="CPDash_Trackdays_bookTrackday" required>
-								<option key="dateNone" value="">---Choose date---</option>
+								<option key="dateNone" value="">----- Choose date -----</option>
 								{allTrackdays && allTrackdays.map((trackday) => <option key={trackday.id} value={trackday.id}>{trackday.prettyDate}</option>)}
 							</select>
 						</div>
 						<div className={styles.inputPairing}>
 							<label htmlFor="paymentMethod">Payment Method:</label>
 							<select name="paymentMethod" id="paymentMethod" form="CPDash_Trackdays_bookTrackday" required>
-								<option key="paymentNone" value="">---Choose Payment Method---</option>
+								<option key="paymentNone" value="">--- Choose Payment Method ---</option>
 								{userInfo.credits && <option key="credit" value="credit">Use trackday credit (Remaining: {userInfo.credits})</option>}
 								<option key="etransfer" value="etransfer">Interac E-Transfer</option>
 								<option key="creditCard" value="creditCard">Credit Card</option>
 
 							</select>
 						</div>
+					</div>
+
+
+					<div className={styles.guests}>
 						<div className={styles.inputPairing}>
-							<label style={{ textAlign: 'center' }} htmlFor="guests" >Guests for BBQ<br></br><span style={{ fontStyle: 'italic' }}>(including you)</span></label>
+							<label style={{ textAlign: 'center' }} htmlFor="guests" >Guests for BBQ <span style={{ fontStyle: 'italic' }}>(including you)</span></label>
 							<div className={styles.guestControl}>
 								<button type="button" id={styles.guestsBtn} onClick={() => { if (guests.value > 0) guests.value-- }}>-</button>
 								<input type="number" id="guests" name="guests" defaultValue={1} required readOnly></input>
 								<button type="button" id={styles.guestsBtn} onClick={() => guests.value++}>+</button>
 							</div>
-
 						</div>
 					</div>
 
 
+
 					<div className={styles.layoutVote}>
 						<legend><h3>Which layouts would you like to vote for?</h3></legend>
-
 						<div className={styles.checkboxes}>
 							<div className={styles.checkboxPairing}>
 								<input type="checkbox" id="technical" name="layoutVote" value="technical"></input>
@@ -265,7 +268,6 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 								<label htmlFor="long">Long Track</label>
 							</div>
 						</div>
-
 					</div>
 
 					<div className={styles.layoutVote}>
