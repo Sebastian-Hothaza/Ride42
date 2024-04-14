@@ -81,8 +81,12 @@ button:hover {
 @media (max-width: 1300px) {
     .controlPanel {
         flex-direction: column;
-        /* we are hiding the footer by doing this */
-        margin-top: calc(2*var(--toolbar-thickness));
+
+        margin-top: calc(1.5*var(--toolbar-thickness));
+        margin-bottom: calc(.5*var(--toolbar-thickness));
+
+        /* Subtract the height of the header and footer */
+        min-height: calc(100vh - 3* var(--toolbar-thickness));
     }
 
 
@@ -98,8 +102,8 @@ button:hover {
         height: var(--toolbar-thickness);
         width: 100%;
         background-color: var(--dark-gray);
-  
-        
+
+
     }
 
     .CPMenuMobile button {
@@ -107,21 +111,21 @@ button:hover {
         background-color: inherit;
         border: none;
         /* padding: 0 1.25rem; */
- 
+
         flex-grow: 1;
-    
+
     }
 
-    .CPMenuMobile button.selected{
+    .CPMenuMobile button.selected {
         background-color: black;
-        
+
     }
 
-    .CPMenuMobile span.selected{
+    .CPMenuMobile span.selected {
         color: var(--accent-color);
     }
 
-   
+
 
 }
 
