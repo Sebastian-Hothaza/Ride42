@@ -230,9 +230,9 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 						<div className={styles.inputPairing}>
 							<label style={{ textAlign: 'center' }} htmlFor="guests" >Guests for BBQ <span style={{ fontStyle: 'italic' }}>(including you)</span></label>
 							<div className={styles.guestControl}>
-								<button type="button" id={styles.guestsBtn} onClick={() => { if (guests.value > 0) guests.value-- }}>-</button>
+								<button type="button" id={styles.guestsBtn} onClick={() => { if (guests.value > 0) guests.value-- }}><span className='material-symbols-outlined'>remove</span></button>
 								<input type="number" id="guests" name="guests" defaultValue={1} required readOnly></input>
-								<button type="button" id={styles.guestsBtn} onClick={() => guests.value++}>+</button>
+								<button type="button" id={styles.guestsBtn} onClick={() => guests.value++}><span className='material-symbols-outlined'>add</span></button>
 							</div>
 						</div>
 					</div>
