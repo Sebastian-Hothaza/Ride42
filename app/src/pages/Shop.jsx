@@ -8,7 +8,7 @@ const Shop = () => {
 	return (
 		<div className={styles.content}>
 
-			<a href="https://docs.google.com/forms/d/e/1FAIpQLScMWJdjsgDFigjbJutJtFg7zzrUBpboBkEmTTWQEkjJyWtPPg/viewform?usp=sf_link" target="_blank" className={styles.shopCard}>
+			<a href="https://docs.google.com/forms/d/e/1FAIpQLSedERHrr-2ouj_Hn6JomVSXdawlV1wKG7t2F4ZrLKqpxELFhQ/viewform?usp=sf_link" target="_blank" className={styles.shopCard}>
 				<img src={pirelli} alt="Pirelli Tire Photo" />
 				<div>Tires</div>
 			</a>
