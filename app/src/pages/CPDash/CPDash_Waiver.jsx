@@ -58,8 +58,8 @@ const Waiver = ({ APIServer, fetchAPIData, allUsers }) => {
                 <h1>Waiver Submission</h1>
                 <form onSubmit={(e) => {
                     e.preventDefault();
-                    e.target.reset();
                     setShowConfirmModal({ show: true, userID: e.target.user.value });
+                    e.target.reset();
                 }}>
 
                     <label htmlFor="year">Search members by last 4 digits of phone number:</label>

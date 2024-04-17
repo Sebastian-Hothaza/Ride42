@@ -99,15 +99,14 @@ const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
                 <h1>Gate Registration for Existing Members ({nextTrackday.date})</h1>
                 <form onSubmit={(e) => {
                     e.preventDefault();
-                    e.target.reset();
-
                     // If user has no waiver completed, show modal. Else proceed directly with gate reg
                     if (allUsers.find((user) => user._id === e.target.user.value && user.waiver === false)) {
                         setWaiverModal({ show: true, userID: e.target.user.value });
                     } else {
                         handleRegistrationSubmit(e.target.user.value)
                     }
-
+                    e.target.reset();
+                    setEligibleUsers(allUsers);
                 }}>
 
                     <label htmlFor="year">Search members by last 4 digits of phone number:</label>
