@@ -7,6 +7,11 @@ import Modal from "../components/Modal";
 import CPDash_Trackdays from './CPDash/CPDash_Trackdays'
 import CPDash_Profile from './CPDash/CPDash_Profile'
 import CPDash_Garage from './CPDash/CPDash_Garage'
+import CPDash_Waiver from './CPDash/CPDash_Waiver'
+import CPDash_GateRegister from './CPDash/CPDash_GateRegister' 
+import CPDash_WalkOn from './CPDash/CPDash_WalkOn'
+import CPDash_CheckIn from './CPDash/CPDash_CheckIn'
+import CPDash_Verify from './CPDash/CPDash_Verify'
 
 const ControlPanel = ({ APIServer, setLoggedIn }) => {
 
@@ -62,7 +67,17 @@ const ControlPanel = ({ APIServer, setLoggedIn }) => {
                         <button className={activeTab == 'profile' ? styles.selected : undefined} onClick={() => setActiveTab('profile')}>My Profile</button>
                         <button className={activeTab == 'trackdays' ? styles.selected : undefined} onClick={() => setActiveTab('trackdays')}>My Trackdays</button>
                         <button className={activeTab == 'garage' ? styles.selected : undefined} onClick={() => setActiveTab('garage')}>My Garage</button>
-                        {/* {loggedInUser.memberType=='admin' && <button onClick={()=>setActiveTab('manageUsers')}>Manage Users</button>} */}
+                        {/* STAFF */}
+                        {(loggedInUser.memberType == 'staff' || loggedInUser.memberType == 'admin') &&
+                            <>
+                                <button className={activeTab == 'waiver' ? styles.selected : undefined} onClick={() => setActiveTab('waiver')}>Waiver</button>
+                                <button className={activeTab == 'gateRegister' ? styles.selected : undefined} onClick={() => setActiveTab('gateRegister')}>Gate Register</button>
+                                <button className={activeTab == 'walkOn' ? styles.selected : undefined} onClick={() => setActiveTab('walkOn')}>Walk On</button>
+                                <button className={activeTab == 'checkIn' ? styles.selected : undefined} onClick={() => setActiveTab('checkIn')}>Check In</button>
+                                <button className={activeTab == 'verify' ? styles.selected : undefined} onClick={() => setActiveTab('verify')}>Verify</button>
+                            </>
+                        }
+
                     </div>
 
 
@@ -74,6 +89,12 @@ const ControlPanel = ({ APIServer, setLoggedIn }) => {
                     {activeTab == 'profile' && <CPDash_Profile APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} />}
                     {activeTab == 'trackdays' && <CPDash_Trackdays APIServer={APIServer} userInfo={userInfo} allTrackdays={allTrackdays} userTrackdays={userTrackdays} fetchAPIData={fetchAPIData} setActiveTab={setActiveTab} />}
                     {activeTab == 'garage' && <CPDash_Garage APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} setActiveTab={setActiveTab} />}
+
+                    {activeTab == 'waiver' && <CPDash_Waiver APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} />}
+                    {activeTab == 'gateRegister' && <CPDash_GateRegister APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} />}
+                    {activeTab == 'walkOn' && <CPDash_WalkOn APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} />}
+                    {activeTab == 'checkIn' && <CPDash_CheckIn APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} />}
+                    {activeTab == 'verify' && <CPDash_Verify APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} />}
                 </div>
 
                 {/* MOBILE */}
@@ -92,8 +113,8 @@ const ControlPanel = ({ APIServer, setLoggedIn }) => {
                 </div>
 
             </div>
-            <Modal open={!userInfo || !allTrackdays || !userTrackdays}  type='loading' text={'Fetching your data...'}>  </Modal>
-            <Modal open={showLogoutModal}  type='confirmation' text='Are you sure you want to log out?' onClose={() => setShowLogoutModal(false)} onOK={() => handleLogout()} okText="Yes" closeText="No" ></Modal>
+            <Modal open={!userInfo || !allTrackdays || !userTrackdays} type='loading' text={'Fetching your data...'}>  </Modal>
+            <Modal open={showLogoutModal} type='confirmation' text='Are you sure you want to log out?' onClose={() => setShowLogoutModal(false)} onOK={() => handleLogout()} okText="Yes" closeText="No" ></Modal>
         </>
     );
 };

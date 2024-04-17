@@ -1,7 +1,7 @@
 import { useState } from "react";
 import ScrollToTop from "../../components/ScrollToTop";
 import Modal from "../../components/Modal";
-import styles from './CPDash_Profile.module.css'
+import styles from './stylesheets/CPDash_Profile.module.css'
 
 const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 

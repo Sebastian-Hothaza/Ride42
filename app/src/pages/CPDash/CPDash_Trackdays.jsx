@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Modal from "../../components/Modal";
 import ScrollToTop from "../../components/ScrollToTop";
-import styles from './CPDash_Trackdays.module.css'
+import styles from './stylesheets/CPDash_Trackdays.module.css'
 
 // TODO; remove hardcoded 7 days restriction
 // TODO: make reschdule also a modal

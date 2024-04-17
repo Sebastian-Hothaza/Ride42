@@ -1,4 +1,4 @@
-import styles from './CPDash_Garage.module.css'
+import styles from './stylesheets/CPDash_Garage.module.css'
 import ScrollToTop from "../../components/ScrollToTop";
 import { useState } from "react";
 import Modal from "../../components/Modal";

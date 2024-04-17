@@ -40,7 +40,7 @@ const Register = () => {
 			<div className={styles.inputSection}>
 				<div className={styles.inputPairing}>
 					<label htmlFor="email">Email:</label>
-					<input type="email" id="email" name="email" required></input>
+					<input type="email" id="email" name="email" required onInput={checkEmailMatches}></input>
 				</div>
 				<div className={styles.inputPairing}>
 					<label htmlFor="emailConfirm">Confirm Email:</label>
@@ -89,7 +89,7 @@ const Register = () => {
 			<div className={styles.inputSection}>
 				<div className={styles.inputPairing}>
 					<label htmlFor="password">Password:</label>
-					<input type="password" id="password" name="password" required onInput={checkPswFormat}></input>
+					<input type="password" id="password" name="password" required onInput={checkPswFormat} ></input>
 				</div>
 				<div className={styles.inputPairing}>
 					<label htmlFor="passwordConfirm">Confirm Password:</label>
