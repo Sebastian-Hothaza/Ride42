@@ -24,7 +24,7 @@ const ControlPanel = ({ APIServer, setLoggedIn }) => {
     const [userTrackdays, setUserTrackdays] = useState('');
     const [allTrackdays, setAllTrackdays] = useState('');
 
-    const [activeTab, setActiveTab] = useState('waiver')
+    const [activeTab, setActiveTab] = useState('trackdays')
     const [showLogoutModal, setShowLogoutModal] = useState(false);
 
     async function fetchAPIData() {
