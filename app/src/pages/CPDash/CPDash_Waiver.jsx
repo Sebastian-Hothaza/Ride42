@@ -62,8 +62,7 @@ const Waiver = ({ APIServer, fetchAPIData, allUsers }) => {
                     setShowConfirmModal({ show: true, userID: e.target.user.value });
                 }}>
 
-
-                    <label htmlFor="year">Last 4 digits of phone number:</label>
+                    <label htmlFor="year">Search members by last 4 digits of phone number:</label>
                     <input type="number" id="phoneEnd" name="phoneEnd" onInput={filterEligibleUsers}></input>
 
 
