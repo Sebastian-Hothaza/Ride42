@@ -13,8 +13,9 @@ import CPDash_WalkOn from './CPDash/CPDash_WalkOn'
 import CPDash_CheckIn from './CPDash/CPDash_CheckIn'
 import CPDash_Verify from './CPDash/CPDash_Verify'
 
-const ControlPanel = ({ APIServer, setLoggedIn }) => {
+import CPDash_AdminSelect from './CPDash/CPDash_AdminSelect'
 
+const ControlPanel = ({ APIServer }) => {
 
     const { handleLogout } = useOutletContext();
     const loggedInUser = JSON.parse(localStorage.getItem("user"))
@@ -26,6 +27,7 @@ const ControlPanel = ({ APIServer, setLoggedIn }) => {
 
     const [activeTab, setActiveTab] = useState('trackdays')
     const [showLogoutModal, setShowLogoutModal] = useState(false);
+
 
     async function fetchAPIData() {
         let userInfoData, allTrackdaysData, userTrackdaysData = []
@@ -71,7 +73,7 @@ const ControlPanel = ({ APIServer, setLoggedIn }) => {
                 console.log(err.message)
                 handleLogout(); // If any of the above API calls failed, there is a serious issue and we do not permit user access
             }
-       
+
         }
     }
 
@@ -102,41 +104,29 @@ const ControlPanel = ({ APIServer, setLoggedIn }) => {
                                 <button className={activeTab == 'verify' ? styles.selected : undefined} onClick={() => setActiveTab('verify')}>Verify</button>
                             </>
                         }
-
                     </div>
-
-
                     <button id={styles.logOutBtn} onClick={() => setShowLogoutModal(true)}>LOG OUT</button>
                 </div>
-
                 <div className={styles.CPDash}>
                     {/* CPDash rendered based on active tab */}
                     {activeTab == 'profile' && <CPDash_Profile APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} />}
                     {activeTab == 'trackdays' && <CPDash_Trackdays APIServer={APIServer} userInfo={userInfo} allTrackdays={allTrackdays} userTrackdays={userTrackdays} fetchAPIData={fetchAPIData} setActiveTab={setActiveTab} />}
                     {activeTab == 'garage' && <CPDash_Garage APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} setActiveTab={setActiveTab} />}
-
-                    {activeTab == 'waiver' && <CPDash_Waiver APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers}/>}
+                    {activeTab == 'adminSelect' && <CPDash_AdminSelect setActiveTab={setActiveTab}/>}
+                    {activeTab == 'waiver' && <CPDash_Waiver APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} />}
                     {activeTab == 'gateRegister' && <CPDash_GateRegister APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdays={allTrackdays} />}
                     {activeTab == 'walkOn' && <CPDash_WalkOn APIServer={APIServer} fetchAPIData={fetchAPIData} allTrackdays={allTrackdays} />}
                     {activeTab == 'checkIn' && <CPDash_CheckIn APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} />}
                     {activeTab == 'verify' && <CPDash_Verify APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} />}
                 </div>
-
-                {/* MOBILE */}
+                {/* MOBILE TOOLBAR*/}
                 <div className={styles.CPMenuMobile}>
-                    {/* Menu items rendered on memberType */}
-
                     <button className={activeTab == 'profile' ? styles.selected : undefined} onClick={() => setActiveTab('profile')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined ${activeTab == 'profile' ? styles.selected : undefined}`}> person </span></button>
                     <button className={activeTab == 'trackdays' ? styles.selected : undefined} onClick={() => setActiveTab('trackdays')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined ${activeTab == 'trackdays' ? styles.selected : undefined}`}> calendar_month </span></button>
+                    {(loggedInUser.memberType == 'staff' || loggedInUser.memberType == 'admin') && <button className={activeTab == 'adminSelect' ? styles.selected : undefined} onClick={() => setActiveTab('adminSelect') }><span className={`${styles.mobileToolbarIcons} material-symbols-outlined ${activeTab == 'adminSelect' ? styles.selected : undefined}`}> shield_person </span></button>}
                     <button className={activeTab == 'garage' ? styles.selected : undefined} onClick={() => setActiveTab('garage')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined ${activeTab == 'garage' ? styles.selected : undefined}`}> garage_home </span></button>
-                    {/* {loggedInUser.memberType=='admin' && <button onClick={()=>setActiveTab('xxx')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined`}> menu </span></button>} */}
                     <button onClick={() => setShowLogoutModal(true)}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined`}> logout </span></button>
-
-
-
-
                 </div>
-
             </div>
             <Modal open={!userInfo || !allTrackdays || !userTrackdays} type='loading' text={'Fetching your data...'}>  </Modal>
             <Modal open={(userInfo && allTrackdays && userTrackdays) && !allUsers && (userInfo.memberType === 'admin' || userInfo.memberType === 'staff')} type='loading' text={'Fetching staff data...'}>  </Modal>

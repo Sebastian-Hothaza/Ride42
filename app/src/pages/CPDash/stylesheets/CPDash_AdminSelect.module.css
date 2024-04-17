@@ -1,0 +1,23 @@
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    font-size: 1.25rem;
+    align-items: center;
+}
+
+.content button {
+    background-color: black;
+    color: white;
+    border: none;
+    font-size: inherit;
+    border-radius: .2rem;
+    padding: 1rem .75rem;
+    width: 100%;
+}
+
+.importantButton {
+    background-color: var(--accent-color) !important;
+    font-weight: bold !important;
+    white-space: nowrap;
+}
