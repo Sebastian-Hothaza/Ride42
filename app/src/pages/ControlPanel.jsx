@@ -8,7 +8,7 @@ import CPDash_Trackdays from './CPDash/CPDash_Trackdays'
 import CPDash_Profile from './CPDash/CPDash_Profile'
 import CPDash_Garage from './CPDash/CPDash_Garage'
 import CPDash_Waiver from './CPDash/CPDash_Waiver'
-import CPDash_GateRegister from './CPDash/CPDash_GateRegister' 
+import CPDash_GateRegister from './CPDash/CPDash_GateRegister'
 import CPDash_WalkOn from './CPDash/CPDash_WalkOn'
 import CPDash_CheckIn from './CPDash/CPDash_CheckIn'
 import CPDash_Verify from './CPDash/CPDash_Verify'
@@ -19,11 +19,12 @@ const ControlPanel = ({ APIServer, setLoggedIn }) => {
     const { handleLogout } = useOutletContext();
     const loggedInUser = JSON.parse(localStorage.getItem("user"))
     const [userInfo, setUserInfo] = useState('');
+    const [allUsers, setAllUsers] = useState('');
 
     const [userTrackdays, setUserTrackdays] = useState('');
     const [allTrackdays, setAllTrackdays] = useState('');
 
-    const [activeTab, setActiveTab] = useState('trackdays')
+    const [activeTab, setActiveTab] = useState('waiver')
     const [showLogoutModal, setShowLogoutModal] = useState(false);
 
     async function fetchAPIData() {
@@ -39,8 +40,6 @@ const ControlPanel = ({ APIServer, setLoggedIn }) => {
 
             [userInfoData, allTrackdaysData, userTrackdaysData] = await Promise.all([userInfoResponse.json(), allTrackdaysResponse.json(), userTrackdaysResponse.json()])
 
-            // Updating accessToken in LS
-            // if (userInfoData.accessToken_FRESH) localStorage.setItem('accessToken', userInfoData.accessToken_FRESH);
 
             setUserInfo(userInfoData);
             setAllTrackdays(allTrackdaysData);
@@ -50,7 +49,33 @@ const ControlPanel = ({ APIServer, setLoggedIn }) => {
             console.log(err.message)
             handleLogout(); // If any of the above API calls failed, there is a serious issue and we do not permit user access
         }
+
+
+
+        // Fetch staff API Data
+        if (userInfoData.memberType === 'staff' || userInfoData.memberType === 'admin') {
+            let allUsersData = []
+            try {
+                const [allUsers] = await Promise.all([
+                    fetch(APIServer + 'users', { credentials: "include", }),
+                ]);
+                if (!allUsers.ok) throw new Error('Failed to build API Data for userInfo');
+
+
+                [allUsersData] = await Promise.all([allUsers.json()])
+
+                setAllUsers(allUsersData)
+
+
+            } catch (err) {
+                console.log(err.message)
+                handleLogout(); // If any of the above API calls failed, there is a serious issue and we do not permit user access
+            }
+       
+        }
     }
+
+
 
 
     useEffect(() => {
@@ -90,7 +115,7 @@ const ControlPanel = ({ APIServer, setLoggedIn }) => {
                     {activeTab == 'trackdays' && <CPDash_Trackdays APIServer={APIServer} userInfo={userInfo} allTrackdays={allTrackdays} userTrackdays={userTrackdays} fetchAPIData={fetchAPIData} setActiveTab={setActiveTab} />}
                     {activeTab == 'garage' && <CPDash_Garage APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} setActiveTab={setActiveTab} />}
 
-                    {activeTab == 'waiver' && <CPDash_Waiver APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} />}
+                    {activeTab == 'waiver' && <CPDash_Waiver APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers}/>}
                     {activeTab == 'gateRegister' && <CPDash_GateRegister APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} />}
                     {activeTab == 'walkOn' && <CPDash_WalkOn APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} />}
                     {activeTab == 'checkIn' && <CPDash_CheckIn APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} />}
@@ -114,6 +139,7 @@ const ControlPanel = ({ APIServer, setLoggedIn }) => {
 
             </div>
             <Modal open={!userInfo || !allTrackdays || !userTrackdays} type='loading' text={'Fetching your data...'}>  </Modal>
+            <Modal open={(userInfo && allTrackdays && userTrackdays) && !allUsers && (userInfo.memberType === 'admin' || userInfo.memberType === 'staff')} type='loading' text={'Fetching staff data...'}>  </Modal>
             <Modal open={showLogoutModal} type='confirmation' text='Are you sure you want to log out?' onClose={() => setShowLogoutModal(false)} onOK={() => handleLogout()} okText="Yes" closeText="No" ></Modal>
         </>
     );
