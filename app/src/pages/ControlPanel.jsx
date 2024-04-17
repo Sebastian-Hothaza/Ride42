@@ -117,7 +117,7 @@ const ControlPanel = ({ APIServer, setLoggedIn }) => {
 
                     {activeTab == 'waiver' && <CPDash_Waiver APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers}/>}
                     {activeTab == 'gateRegister' && <CPDash_GateRegister APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdays={allTrackdays} />}
-                    {activeTab == 'walkOn' && <CPDash_WalkOn APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} />}
+                    {activeTab == 'walkOn' && <CPDash_WalkOn APIServer={APIServer} fetchAPIData={fetchAPIData} allTrackdays={allTrackdays} />}
                     {activeTab == 'checkIn' && <CPDash_CheckIn APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} />}
                     {activeTab == 'verify' && <CPDash_Verify APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} />}
                 </div>
