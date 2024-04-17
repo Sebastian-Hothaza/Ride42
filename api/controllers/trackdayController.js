@@ -140,8 +140,8 @@ exports.register = [
             // Deny if trackday registration is closed
             if (req.user.memberType !== 'admin' && trackday.status !== 'regOpen') return res.status(403).send({ msg: 'registration closed' })
 
-            // Deny is user garage is empty
-            if (req.user.memberType !== 'admin' && !user.garage.length) return res.status(403).send({ msg: 'cannot register with empty user garage' })
+            // Deny if user garage is empty UNLESS it is a gate registration
+            if (req.user.memberType !== 'admin' && !user.garage.length && req.body.paymentMethod !== 'gate') return res.status(403).send({ msg: 'cannot register with empty user garage' })
 
             // If paying with credit, check balance is available and deduct
             if (req.body.paymentMethod === 'credit') {
