@@ -67,7 +67,7 @@ function getRegDetails(trackday) {
         }
 
         // Updates votes
-        trackday.members[i].layoutVote.forEach((vote)=>{
+        trackday.members[i].layoutVote.forEach((vote) => {
             if (vote !== 'none') votes[vote]++;
         })
 
@@ -96,7 +96,7 @@ function getRegDetails(trackday) {
 exports.register = [
     body("paymentMethod", "PaymentMethod must be one of: [etransfer, credit, creditCard, gate]").trim().isIn(["etransfer", "credit", "creditCard", "gate"]).escape(),
     body("layoutVote", "Layout vote must be provided and each value must be one of: [none, technical, Rtechnical, alien, Ralien, modified, Rmodified, long]").trim().isIn(["none", "technical", "Rtechnical", "alien", "Ralien", "modified", "Rmodified", "long"]).escape(),
-    body("guests", "Guests must be numeric and greater than 0").trim().isNumeric({min: 0}).escape(),
+    body("guests", "Guests must be numeric and greater than 0").trim().isNumeric({ min: 0 }).escape(),
 
     controllerUtils.verifyJWT,
     controllerUtils.validateForm,
@@ -135,7 +135,7 @@ exports.register = [
                     return res.status(403).send({ msg: 'trackday has reached capacity' })
                 }
             }
-            
+
 
             // Deny if trackday registration is closed
             if (req.user.memberType !== 'admin' && trackday.status !== 'regOpen') return res.status(403).send({ msg: 'registration closed' })
@@ -160,11 +160,14 @@ exports.register = [
                 checkedIn: []
             })
 
-           
+
 
             await trackday.save();
-            await sendEmail(user.contact.email, "Ride42 Trackday Registration Confirmation", mailTemplates.registerTrackday,
-                { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) })
+            if (req.body.paymentMethod !== 'gate') { //We do not send email on gate registrations
+                await sendEmail(user.contact.email, "Ride42 Trackday Registration Confirmation", mailTemplates.registerTrackday,
+                    { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) })
+            }
+
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
