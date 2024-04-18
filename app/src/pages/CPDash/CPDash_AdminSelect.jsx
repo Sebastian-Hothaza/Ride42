@@ -1,7 +1,7 @@
 import styles from './stylesheets/CPDash_AdminSelect.module.css'
 import ScrollToTop from "../../components/ScrollToTop";
 
-const AdminSelect = ({ setActiveTab }) => {
+const AdminSelect = ({ setActiveTab, memberType }) => {
     return (
         <>
             <ScrollToTop />
@@ -12,6 +12,15 @@ const AdminSelect = ({ setActiveTab }) => {
                 <button onClick={() => setActiveTab('walkOn')}>Walk On</button>
                 <button onClick={() => setActiveTab('checkIn')}>Check In</button>
                 <button onClick={() => setActiveTab('verify')}>Verify</button>
+
+                {/* ADMIN */}
+                {memberType === 'admin' &&
+                    <>
+                        <button onClick={() => setActiveTab('viewQR')}>View QR</button>
+                    </>
+                }
+
+
             </div>
         </>
     );
