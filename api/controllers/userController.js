@@ -164,7 +164,6 @@ exports.garage_post = [
             user.garage.push({ bike: bike, qr: 'temp' });
 
             await user.save();
-            console.log("Here3")
             await sendEmail(process.env.ADMIN_EMAIL, "QR CODE REQUEST", mailTemplates.QRCodeRequest,
                 { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), userID: req.params.userID, bike: 'TODO', bikeID: bike.id })
             return res.status(201).json({ id: bike.id });;
