@@ -26,7 +26,7 @@ const Router = () => {
 				{ path: "/rules", element: <Rules /> },
 				{ path: "/faq", element: <Faq /> },
 				{ path: "/shop", element: <Shop /> },
-				{ path: "/dashboard", element: <Dashboard /> },
+				{ path: "/dashboard/*", element: <Dashboard /> },
 				{ path: "/register", element: <Register /> },
 			],
 		},
