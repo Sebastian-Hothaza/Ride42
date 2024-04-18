@@ -105,7 +105,8 @@ exports.register = [
 
 
     asyncHandler(async (req, res, next) => {
-        if (req.user.memberType === 'admin' || (req.user.id === req.params.userID)) {
+        
+        if (req.user.memberType === 'staff' || req.user.memberType === 'admin' || (req.user.id === req.params.userID)) {
             let [trackday, user] = await Promise.all([Trackday.findById(req.params.trackdayID).populate('members.user', '-password -refreshToken -__v').exec(), User.findById(req.params.userID)]);
 
             // Deny gate registrations unless they come from staff or admin
