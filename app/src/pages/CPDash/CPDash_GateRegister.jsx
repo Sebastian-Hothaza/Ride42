@@ -1,6 +1,6 @@
 import styles from './stylesheets/CPDash_GateRegister.module.css'
 import ScrollToTop from "../../components/ScrollToTop";
-import {  useState } from "react";
+import { useState } from "react";
 import Modal from "../../components/Modal";
 
 
@@ -47,7 +47,21 @@ const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
         setEligibleUsers(allUsers);
     }
 
-
+    // Marks user as having waiver complete when gate registering user without waiver
+    async function updateWaiver(userID) {
+        try {
+            const response = await fetch(APIServer + 'waiver/' + userID, {
+                method: 'POST',
+                credentials: "include",
+                headers: {
+                    'Content-type': 'application/json; charset=UTF-8',
+                },
+            })
+            if (!response.ok) throw new Error('API Failure')
+        } catch (err) {
+            console.log(err.message)
+        }
+    }
 
     async function handleRegistrationSubmit(userID) {
         setWaiverModal('');
@@ -128,7 +142,7 @@ const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
             <Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}></Modal>
             <Modal open={showNotificationModal.show} type='notification' text={showNotificationModal.msg} onClose={() => setShowNotificationModal('')}></Modal>
 
-            <Modal open={waiverModal.show} type='confirmation' text='Waiver not on file! Please make sure to submit a waiver for this user' onClose={() => handleRegistrationSubmit(waiverModal.userID)}
+            <Modal open={waiverModal.show} type='confirmation' text='Waiver not on file! Please make sure to submit a waiver for this user' onClose={() => { updateWaiver(waiverModal.userID); handleRegistrationSubmit(waiverModal.userID) }}
                 okText="" closeText="Ok" ></Modal>
         </>
     );
