@@ -4,6 +4,7 @@ const Bike = require('../models/Bike');
 const { body, validationResult } = require("express-validator");
 const ObjectId = require('mongoose').Types.ObjectId;
 const jwt = require('jsonwebtoken')
+const QRCode = require('qrcode')
 
 /*
     --------------------------------------------- TODO ---------------------------------------------
@@ -174,5 +175,14 @@ async function verifyJWT_LS(req, res, next) {
     }
 }
 
+async function generateQR(text) {
+    try {
+        const b64 = await QRCode.toDataURL(text, { errorCorrectionLevel: 'L' })
+        return b64;
+    } catch (err) {
+        console.error(err)
+    }
+}
 
-module.exports = { validateForm, validateUserID, validateTrackdayID, validateBikeID, isInLockoutPeriod, hasTrackdayWithinLockout, verifyJWT }
+
+module.exports = { validateForm, validateUserID, validateTrackdayID, validateBikeID, isInLockoutPeriod, hasTrackdayWithinLockout, verifyJWT, generateQR }
