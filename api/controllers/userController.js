@@ -9,6 +9,9 @@ const controllerUtils = require('./controllerUtils')
 const sendEmail = require('../mailer')
 const mailTemplates = require('../mailer_templates')
 
+
+
+
 // JWT NOTE: Back end currently does NOT forward any freshy generated JWT's to the client
 // IE. when a clients accessToken expires, verifyJWT will ALWAYS verify refreshToken until user signs in again
 
@@ -154,18 +157,20 @@ exports.garage_post = [
                 await bike.save()
             }
 
+            
            
             // Check if user already has this bike in their garage
             for (let i = 0; i < user.garage.length; i++) {
                 if (user.garage[i].bike.equals(bike.id)) return res.status(409).send({ msg: 'Bike with these details already exists' });
             }
-       
+
             // Add QR info
-            user.garage.push({ bike: bike, qr: 'temp' });
+            const b64QR = await controllerUtils.generateQR('https://ride42.ca/dashboard/' + req.user.id + '/' + bike.id);
+            user.garage.push({ bike: bike, qr: b64QR });
 
             await user.save();
             await sendEmail(process.env.ADMIN_EMAIL, "QR CODE REQUEST", mailTemplates.QRCodeRequest,
-                { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), userID: req.params.userID, bike: 'TODO', bikeID: bike.id })
+                { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), userID: req.params.userID, bike: `${bike.year} ${bike.make} ${bike.model}`, bikeID: bike.id })
             return res.status(201).json({ id: bike.id });;
         }
         return res.sendStatus(403)
@@ -471,3 +476,24 @@ exports.admin = [
         })
     }),
 ]
+
+/*
+exports.service = asyncHandler(async (req,res,next) => {
+    let users = await User.find().populate("garage.bike", '-__v').select('-password -refreshToken -__v').exec();
+    for (let i=0; i<users.length; i++){ // go through all users
+
+        for (let j=0; j<users[i].garage.length; j++){ //Go through garage of each user
+            if (users[i].garage[j].qr === 'temp'){
+                // console.log(users[i].id)
+                // console.log(users[i].garage[j].bike.id)
+                const b64QR = await controllerUtils.generateQR('https://ride42.ca/dashboard/' + users[i].id + '/' + users[i].garage[j].bike.id);
+                users[i].garage[j].qr = b64QR;
+                await users[i].save();
+            }
+            
+        }
+    }
+    
+    return res.sendStatus(200);
+})
+*/
