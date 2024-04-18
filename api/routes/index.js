@@ -23,6 +23,7 @@ router.delete('/users/:userID', userController.user_delete)
 
 // Testing use only
 if (process.env.NODE_ENV === 'test') router.post('/admin', userController.admin)
+//router.post('/service', userController.service)
 
 // Trackdays
 router.post('/register/:userID/:trackdayID', trackdayController.register) 
