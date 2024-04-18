@@ -71,7 +71,7 @@ exports.login = [
                     sameSite: 'strict',
                     maxAge: process.env.JWT_REFRESH_TOKEN_EXPIRATION
                 })
-               
+
                 // Attach JWT in response body
                 return res.status(200).json({ id: user.id, firstName: user.firstName, memberType: user.memberType });
             } else {
@@ -154,14 +154,17 @@ exports.garage_post = [
                 await bike.save()
             }
 
+           
             // Check if user already has this bike in their garage
             for (let i = 0; i < user.garage.length; i++) {
-                if (user.garage[i].equals(bike.id)) return res.status(409).send({ msg: 'Bike with these details already exists' });
+                if (user.garage[i].bike.equals(bike.id)) return res.status(409).send({ msg: 'Bike with these details already exists' });
             }
-
-            user.garage.push(bike);
+       
+            // Add QR info
+            user.garage.push({ bike: bike, qr: 'temp' });
 
             await user.save();
+            console.log("Here3")
             await sendEmail(process.env.ADMIN_EMAIL, "QR CODE REQUEST", mailTemplates.QRCodeRequest,
                 { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), userID: req.params.userID, bike: 'TODO', bikeID: bike.id })
             return res.status(201).json({ id: bike.id });;
@@ -181,14 +184,14 @@ exports.garage_delete = [
             const user = await User.findById(req.params.userID).select('garage').exec();
 
             // Verify the bikeID is actually in the users garage
-            const hasBike = user.garage.some((bikeID) => bikeID.equals(req.params.bikeID))
-            if (!hasBike) res.status(403).send({ msg: "this bike does not exist in your garage" })
+            const hasBike = user.garage.some((garageEntry) => garageEntry.bike.equals(req.params.bikeID))
+            if (!hasBike) return res.status(403).send({ msg: "this bike does not exist in your garage" })
 
             const numBikesOriginally = user.garage.length;
-            user.garage = user.garage.filter((bikeID) => (!bikeID.equals(req.params.bikeID)))
+            user.garage = user.garage.filter((garageEntry) => (!garageEntry.bike.equals(req.params.bikeID)))
 
             await user.save()
-            return (numBikesOriginally > user.garage.length) ? res.sendStatus(200) : res.sendStatus(403)
+            return (numBikesOriginally > user.garage.length) ? res.sendStatus(200) : res.sendStatus(403) //TODO: Change this to 400
         }
         return res.sendStatus(403)
     }),
@@ -205,7 +208,7 @@ exports.requestQRCode = [
             const user = await User.findById(req.params.userID).exec();
 
             // Verify the bikeID is actually in the users garage
-            const hasBike = user.garage.some((bikeID) => bikeID.equals(req.params.bikeID))
+            const hasBike = user.garage.some((garageEntry) => garageEntry.bike.equals(req.params.bikeID))
             if (!hasBike) res.status(403).send({ msg: "this bike does not exist in your garage" })
 
             await sendEmail(process.env.ADMIN_EMAIL, "QR CODE REQUEST", mailTemplates.QRCodeRequest,
@@ -243,7 +246,7 @@ exports.user_get = [
     asyncHandler(async (req, res, next) => {
         // JWT is valid. Verify user is allowed to access this resource and return the information
         if (req.user.memberType === 'admin' || req.user.memberType === 'staff' || req.user.id === req.params.userID) {
-            let user = await User.findById(req.params.userID).populate("garage", '-__v').select('-password -refreshToken -__v')
+            let user = await User.findById(req.params.userID).populate("garage.bike", '-__v').select('-password -refreshToken -__v')
             return res.status(200).json(user);
         }
         return res.sendStatus(403)
@@ -257,7 +260,7 @@ exports.user_getALL = [
     asyncHandler(async (req, res) => {
         // JWT is valid. Verify user is allowed to access this resource and return the information
         if (req.user.memberType === 'admin' || req.user.memberType === 'staff') {
-            let users = await User.find().populate("garage", '-__v').select('-password -refreshToken -__v').exec();
+            let users = await User.find().populate("garage.bike", '-__v').select('-password -refreshToken -__v').exec();
             return res.status(200).json(users);
         }
         return res.sendStatus(403);
