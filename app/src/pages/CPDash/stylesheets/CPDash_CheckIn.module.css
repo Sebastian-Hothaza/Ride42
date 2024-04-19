@@ -3,4 +3,43 @@
     flex-direction: column;
     gap: 2rem;
     font-size: 1.25rem;
+
+}
+
+.content form {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.content form input {
+    font-size: inherit;
+    width: 200px;
+}
+
+.content form select {
+    font-size: inherit;
+    max-width: 400px;
+}
+
+.content button {
+    background-color: black;
+    color: white;
+    border: none;
+    font-size: inherit;
+    border-radius: .2rem;
+    padding: .5rem .75rem;
+    min-width: 180px;
+    max-width: 300px;
+}
+
+.confirmBtn {
+    background-color: var(--accent-color) !important;
+    font-weight: bold !important;
+    white-space: nowrap;
+}
+
+video{
+    border: solid 2px red;
+    height: 300px;
 }
