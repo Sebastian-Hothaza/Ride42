@@ -1,7 +1,7 @@
 import styles from './stylesheets/CPDash_CheckIn.module.css'
 import ScrollToTop from "../../components/ScrollToTop";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Modal from "../../components/Modal";
 import QrScanner from 'qr-scanner'
 
@@ -13,29 +13,7 @@ const CheckIn = ({ APIServer, fetchAPIData, allTrackdays }) => {
     const [nextTrackday, setNextTrackday] = useState(''); // Corresponds to next trackday object
     const [registerErrors, setRegisterErrors] = useState('');
 
-    const [scanData, setScanData]= useState('');
-
-
-    // Setting up QR scanner
-    let scanner;
-    const video = document.getElementById('qrVideo');
-    if (video) {
-        scanner = new QrScanner(
-            video,
-            processScan,
-            {
-                highlightScanRegion: true,
-                highlightCodeOutline: true,
-            },
-        );
-        scanner.start();
-    }
-
-    function processScan(scan) {
-        scanner.stop();
-        const QRData = scan.data.replace('https://ride42.ca/dashboard/', '').split('/');
-        handleCheckIn(QRData[0], QRData[1]);
-    }
+    const [scanData, setScanData] = useState('');
 
     // Load in the nextTrackday
     if (allTrackdays && !nextTrackday) {
@@ -61,6 +39,32 @@ const CheckIn = ({ APIServer, fetchAPIData, allTrackdays }) => {
         setNextTrackday({ date: formattedDate, id: allTrackdays[0].id });
     }
 
+    // Setting up QR scanner
+    let scanner;
+    const videoElem = document.getElementById('qrVideo');
+    useEffect(() => {
+        if (videoElem) {
+            scanner = new QrScanner(
+                videoElem,
+                processScan,
+                {
+                    highlightScanRegion: true,
+                    highlightCodeOutline: true,
+                },
+            );
+            scanner.start();
+            return () => scanner.destroy();
+        }
+        
+    }, [videoElem])
+
+
+
+    function processScan(scan) {
+        scanner.stop();
+        const QRData = scan.data.replace('https://ride42.ca/dashboard/', '').split('/');
+        handleCheckIn(QRData[0], QRData[1]);
+    }
 
 
     async function handleCheckIn(userID, bikeID, trackdayID) {
