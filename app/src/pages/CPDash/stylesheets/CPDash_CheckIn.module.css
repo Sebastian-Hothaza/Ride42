@@ -6,21 +6,7 @@
 
 }
 
-.content form {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-}
 
-.content form input {
-    font-size: inherit;
-    width: 200px;
-}
-
-.content form select {
-    font-size: inherit;
-    max-width: 400px;
-}
 
 .content button {
     background-color: black;
@@ -40,6 +26,20 @@
 }
 
 video{
-    border: solid 2px red;
     height: 300px;
+    width: 300px;
+    object-fit: cover;
+}
+
+@media (max-width: 1300px) {
+    .content h1 {
+        text-align: center;
+        font-size: 2rem;
+    }
+
+    .content {
+        align-items: center;
+    
+    }
+    
 }

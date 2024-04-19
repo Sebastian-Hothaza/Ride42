@@ -1,17 +1,22 @@
 import styles from './stylesheets/CPDash_CheckIn.module.css'
 import ScrollToTop from "../../components/ScrollToTop";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Modal from "../../components/Modal";
 import QrScanner from 'qr-scanner'
 
 
 const CheckIn = ({ APIServer, fetchAPIData, allTrackdays }) => {
+  
     const [pendingSubmit, setPendingSubmit] = useState('');
     const [showNotificationModal, setShowNotificationModal] = useState('');
 
+    const [failModal, setFailModal] = useState('')
+
     const [nextTrackday, setNextTrackday] = useState(''); // Corresponds to next trackday object
-    const [registerErrors, setRegisterErrors] = useState('');
+
+    const videoRef = useRef(null);
+    const scanner = useRef(null)
 
     // Load in the nextTrackday
     if (allTrackdays && !nextTrackday) {
@@ -37,35 +42,34 @@ const CheckIn = ({ APIServer, fetchAPIData, allTrackdays }) => {
         setNextTrackday({ date: formattedDate, id: allTrackdays[0].id });
     }
 
+    
+
     // Setting up QR scanner
-    let scanner;
     useEffect(() => {
-        const videoElem = document.getElementById('qrVideo');
-        scanner = new QrScanner(
-            videoElem,
+        scanner.current = new QrScanner(
+            videoRef.current,
             processScan,
             {
                 highlightScanRegion: true,
-                highlightCodeOutline: true,
+                highlightCodeOutline: false,
             },
         );
-        scanner.start();
-        return () => scanner.destroy();
+        scanner.current.start();
+        return () => scanner.current.destroy();
     }, [])
 
 
+  
 
     function processScan(scan) {
-        scanner.stop();
+        scanner.current.stop();
         const QRData = scan.data.replace('https://ride42.ca/dashboard/', '').split('/');
         handleCheckIn(QRData[0], QRData[1]);
     }
 
 
     async function handleCheckIn(userID, bikeID) {
-
         setPendingSubmit({ show: true, msg: 'Checking user in' });
-        console.log('checking in userID:', userID, 'with bikeID', bikeID, 'for trackdayID', nextTrackday.id)
         try {
             const response = await fetch(APIServer + 'checkin/' + userID + '/' + nextTrackday.id + '/' + bikeID, {
                 method: 'POST',
@@ -79,26 +83,21 @@ const CheckIn = ({ APIServer, fetchAPIData, allTrackdays }) => {
                     trackdayID: nextTrackday.id
                 })
             })
-            setPendingSubmit('');
+            setPendingSubmit(''); // Clear loading screen
             if (response.ok) {
-                await fetchAPIData();
-                setRegisterErrors('');
                 setShowNotificationModal({ show: true, msg: 'Check-In complete' })
-            } else if (response.status === 400) {
+                scanner.current.start();
+            } else if (response.status === 403) {
                 const data = await response.json();
-                setRegisterErrors(data.msg);
-            } else if (response.status === 409) {
-                const data = await response.json();
-                setRegisterErrors([data.msg]);
+                setFailModal({show: true, msg: data.msg})
             } else {
-                const data = await response.json();
-                setRegisterErrors([data.msg]);
-                // throw new Error('API Failure')
+                throw new Error('API Failure')
             }
         } catch (err) {
             console.log(err.message)
         }
-        // scanner.start();
+        await fetchAPIData();
+        
     }
 
 
@@ -112,14 +111,12 @@ const CheckIn = ({ APIServer, fetchAPIData, allTrackdays }) => {
             <ScrollToTop />
             <div className={styles.content}>
                 <h1>{nextTrackday.date} Check In</h1>
-                <video id="qrVideo"></video>
-                {registerErrors && registerErrors.length > 0 &&
-                    <ul className="errorText">Encountered the following errors:
-                        {registerErrors.map((errorItem) => <li key={errorItem}>{errorItem}</li>)}
-                    </ul>}
+                <video ref={videoRef}></video>
             </div>
             <Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}></Modal>
             <Modal open={showNotificationModal.show} type='notification' text={showNotificationModal.msg} onClose={() => setShowNotificationModal('')}></Modal>
+            <Modal open={failModal.show} type='confirmation' text={`Error: \n ${failModal.msg}`} onClose={() => { setFailModal(''); scanner.current.start() }}
+                okText="" closeText="Close" ></Modal>
         </>
     );
 };
