@@ -13,8 +13,6 @@ const CheckIn = ({ APIServer, fetchAPIData, allTrackdays }) => {
     const [nextTrackday, setNextTrackday] = useState(''); // Corresponds to next trackday object
     const [registerErrors, setRegisterErrors] = useState('');
 
-    const [scanData, setScanData] = useState('');
-
     // Load in the nextTrackday
     if (allTrackdays && !nextTrackday) {
         const lateAllowance = 12 * 60 * 60 * 1000; // Time in ms that a trackday will still be considered the next trackday AFTER it has already passed. Default is 12H
@@ -41,22 +39,19 @@ const CheckIn = ({ APIServer, fetchAPIData, allTrackdays }) => {
 
     // Setting up QR scanner
     let scanner;
-    const videoElem = document.getElementById('qrVideo');
     useEffect(() => {
-        if (videoElem) {
-            scanner = new QrScanner(
-                videoElem,
-                processScan,
-                {
-                    highlightScanRegion: true,
-                    highlightCodeOutline: true,
-                },
-            );
-            scanner.start();
-            return () => scanner.destroy();
-        }
-        
-    }, [videoElem])
+        const videoElem = document.getElementById('qrVideo');
+        scanner = new QrScanner(
+            videoElem,
+            processScan,
+            {
+                highlightScanRegion: true,
+                highlightCodeOutline: true,
+            },
+        );
+        scanner.start();
+        return () => scanner.destroy();
+    }, [])
 
 
 
@@ -67,29 +62,28 @@ const CheckIn = ({ APIServer, fetchAPIData, allTrackdays }) => {
     }
 
 
-    async function handleCheckIn(userID, bikeID, trackdayID) {
+    async function handleCheckIn(userID, bikeID) {
 
-        // setPendingSubmit({ show: true, msg: 'Checking user in' });
+        setPendingSubmit({ show: true, msg: 'Checking user in' });
         console.log('checking in userID:', userID, 'with bikeID', bikeID, 'for trackdayID', nextTrackday.id)
-        return;
         try {
-            const response = await fetch(APIServer + 'register/' + userID + '/' + nextTrackday.id, {
+            const response = await fetch(APIServer + 'checkin/' + userID + '/' + nextTrackday.id + '/' + bikeID, {
                 method: 'POST',
                 credentials: "include",
                 headers: {
                     'Content-type': 'application/json; charset=UTF-8',
                 },
                 body: JSON.stringify({
-                    paymentMethod: 'gate',
-                    layoutVote: 'none',
-                    guests: 1
+                    userID: userID,
+                    bikeID: bikeID,
+                    trackdayID: nextTrackday.id
                 })
             })
             setPendingSubmit('');
             if (response.ok) {
                 await fetchAPIData();
                 setRegisterErrors('');
-                setShowNotificationModal({ show: true, msg: 'Gate registration complete' })
+                setShowNotificationModal({ show: true, msg: 'Check-In complete' })
             } else if (response.status === 400) {
                 const data = await response.json();
                 setRegisterErrors(data.msg);
@@ -97,11 +91,14 @@ const CheckIn = ({ APIServer, fetchAPIData, allTrackdays }) => {
                 const data = await response.json();
                 setRegisterErrors([data.msg]);
             } else {
-                throw new Error('API Failure')
+                const data = await response.json();
+                setRegisterErrors([data.msg]);
+                // throw new Error('API Failure')
             }
         } catch (err) {
             console.log(err.message)
         }
+        // scanner.start();
     }
 
 
@@ -116,7 +113,10 @@ const CheckIn = ({ APIServer, fetchAPIData, allTrackdays }) => {
             <div className={styles.content}>
                 <h1>{nextTrackday.date} Check In</h1>
                 <video id="qrVideo"></video>
-
+                {registerErrors && registerErrors.length > 0 &&
+                    <ul className="errorText">Encountered the following errors:
+                        {registerErrors.map((errorItem) => <li key={errorItem}>{errorItem}</li>)}
+                    </ul>}
             </div>
             <Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}></Modal>
             <Modal open={showNotificationModal.show} type='notification' text={showNotificationModal.msg} onClose={() => setShowNotificationModal('')}></Modal>
