@@ -6,7 +6,7 @@ import Modal from "../../components/Modal";
 import QrScanner from 'qr-scanner'
 
 
-const CheckIn = ({ APIServer, fetchAPIData, allTrackdays }) => {
+const CheckIn = ({ APIServer, allTrackdays }) => {
   
     const [pendingSubmit, setPendingSubmit] = useState('');
     const [showNotificationModal, setShowNotificationModal] = useState('');
@@ -76,12 +76,7 @@ const CheckIn = ({ APIServer, fetchAPIData, allTrackdays }) => {
                 credentials: "include",
                 headers: {
                     'Content-type': 'application/json; charset=UTF-8',
-                },
-                body: JSON.stringify({
-                    userID: userID,
-                    bikeID: bikeID,
-                    trackdayID: nextTrackday.id
-                })
+                }
             })
             setPendingSubmit(''); // Clear loading screen
             if (response.ok) {
@@ -96,7 +91,7 @@ const CheckIn = ({ APIServer, fetchAPIData, allTrackdays }) => {
         } catch (err) {
             console.log(err.message)
         }
-        await fetchAPIData();
+    
         
     }
 
