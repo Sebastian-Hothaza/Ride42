@@ -32,6 +32,11 @@ video{
 }
 
 @media (max-width: 1300px) {
+
+    .content {
+        gap: .5rem;
+    }
+    
     .content h1 {
         text-align: center;
         font-size: 2rem;
