@@ -81,7 +81,7 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
             setPendingSubmit(''); // Clear loading screen
             if (response.ok) {
                 setShowNotificationModal({ show: true, msg: 'Check-In complete' })
-                setTimeout(() => scanner.current.start(), 1500)
+                setTimeout(() => scanner.current.start(), 1000)
             } else if (response.status === 403) {
                 const data = await response.json();
                 setFailModal({show: true, msg: data.msg})

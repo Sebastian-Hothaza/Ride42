@@ -15,7 +15,7 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
 
     const [nextTrackday, setNextTrackday] = useState(''); // Corresponds to next trackday object
 
-    const videoRef2 = useRef(null);
+    const videoRef = useRef(null);
     const scanner = useRef(null)
 
     // Load in the nextTrackday
@@ -47,7 +47,7 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
     // Setting up QR scanner
     useEffect(() => {
         scanner.current = new QrScanner(
-            videoRef2.current,
+            videoRef.current,
             processScan,
             {
                 highlightScanRegion: true,
@@ -87,7 +87,7 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
                     setShowNotificationModal({ show: true, msg: 'BAAD BOOOOI' })
                 }
                 
-                setTimeout(() => scanner.current.start(), 1500)
+                setTimeout(() => scanner.current.start(), 1000)
             } else if (response.status === 403) {
                 const data = await response.json();
                 setFailModal({show: true, msg: data.msg})
@@ -112,7 +112,7 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
             <ScrollToTop />
             <div className={styles.content}>
                 <h1>{nextTrackday.date} Verify</h1>
-                <video ref={videoRef2}></video>
+                <video ref={videoRef}></video>
             </div>
             <Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}></Modal>
             <Modal open={showNotificationModal.show} type='notification' text={showNotificationModal.msg} onClose={() => setShowNotificationModal('')}></Modal>
