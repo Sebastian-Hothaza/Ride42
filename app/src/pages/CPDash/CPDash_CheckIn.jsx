@@ -7,7 +7,6 @@ import QrScanner from 'qr-scanner'
 
 
 const CheckIn = ({ APIServer, allTrackdays }) => {
-  
     const [pendingSubmit, setPendingSubmit] = useState('');
     const [showNotificationModal, setShowNotificationModal] = useState('');
 
@@ -15,8 +14,6 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
 
     const [nextTrackday, setNextTrackday] = useState(''); // Corresponds to next trackday object
 
-    const videoRef = useRef(null);
-    const scanner = useRef(null)
 
     // Load in the nextTrackday
     if (allTrackdays && !nextTrackday) {
@@ -42,27 +39,29 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
         setNextTrackday({ date: formattedDate, id: allTrackdays[0].id });
     }
 
-    
 
-    // Setting up QR scanner
+
+    // Setting up QR checkInScanner
+    const checkInVideoRef = useRef(null);
+    const checkInScanner = useRef(null)
     useEffect(() => {
-        scanner.current = new QrScanner(
-            videoRef.current,
+        checkInScanner.current = new QrScanner(
+            checkInVideoRef.current,
             processScan,
             {
                 highlightScanRegion: true,
                 highlightCodeOutline: false,
             },
         );
-        scanner.current.start();
-        return () => scanner.current.destroy();
+        checkInScanner.current.start()
+        return () => checkInScanner.current.destroy();
     }, [])
 
 
-  
+
 
     function processScan(scan) {
-        scanner.current.stop();
+        checkInScanner.current.stop();
         const QRData = scan.data.replace('https://ride42.ca/dashboard/', '').split('/');
         handleCheckIn(QRData[0], QRData[1]);
     }
@@ -81,18 +80,16 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
             setPendingSubmit(''); // Clear loading screen
             if (response.ok) {
                 setShowNotificationModal({ show: true, msg: 'Check-In complete' })
-                setTimeout(() => scanner.current.start(), 1000)
+                setTimeout(() => checkInScanner.current.start(), 1000)
             } else if (response.status === 403) {
                 const data = await response.json();
-                setFailModal({show: true, msg: data.msg})
+                setFailModal({ show: true, msg: data.msg })
             } else {
                 throw new Error('API Failure')
             }
         } catch (err) {
             console.log(err.message)
         }
-    
-        
     }
 
 
@@ -106,11 +103,11 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
             <ScrollToTop />
             <div className={styles.content}>
                 <h1>{nextTrackday.date} Check In</h1>
-                <video ref={videoRef}></video>
+                <video ref={checkInVideoRef}></video>
             </div>
             <Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}></Modal>
             <Modal open={showNotificationModal.show} type='notification' text={showNotificationModal.msg} onClose={() => setShowNotificationModal('')}></Modal>
-            <Modal open={failModal.show} type='confirmation' text={`Error: \n ${failModal.msg}`} onClose={() => { setFailModal(''); scanner.current.start() }}
+            <Modal open={failModal.show} type='confirmation' text={`Error: \n ${failModal.msg}`} onClose={() => { setFailModal(''); checkInScanner.current.start() }}
                 okText="" closeText="Close" ></Modal>
         </>
     );
