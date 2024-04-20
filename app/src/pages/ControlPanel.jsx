@@ -27,7 +27,8 @@ const ControlPanel = ({ APIServer }) => {
     const [userTrackdays, setUserTrackdays] = useState('');
     const [allTrackdays, setAllTrackdays] = useState('');
 
-    const [activeTab, setActiveTab] = useState('trackdays')
+    const [activeTab, setActiveTab] = (loggedInUser.memberType =='staff' || loggedInUser.memberType =='admin')? useState('adminSelect') : useState('trackdays')
+ 
     const [showLogoutModal, setShowLogoutModal] = useState(false);
 
 
