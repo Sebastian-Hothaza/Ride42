@@ -68,7 +68,7 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
                 } else {
                     setShowNotificationModal({ show: true, msg: 'BAD' })
                 }
-                setTimeout(() => setRefreshScanner(!refreshScanner), 2000) // Prompt scanner to start scanning again
+                setTimeout(() => setRefreshScanner(!refreshScanner), 1500) // Prompt scanner to start scanning again
             } else if (response.status === 403) {
                 const data = await response.json();
                 setFailModal({ show: true, msg: data.msg })
