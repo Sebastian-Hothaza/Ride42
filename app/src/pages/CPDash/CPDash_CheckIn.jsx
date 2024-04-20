@@ -54,7 +54,9 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
             },
         );
         checkInScanner.current.start()
-        return () => checkInScanner.current.destroy();
+        return () => {
+            if (!checkInVideoRef.current) checkInScanner.current.destroy()
+        }
     }, [])
 
 
