@@ -12,7 +12,7 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
     const [showNotificationModal, setShowNotificationModal] = useState('');
 
     const [scanData, setScanData] = useState('')
-    const [refreshScanner, setRefreshScanner] = useState(false) // When set to true, re-wakes the scanner
+    const [refreshScanner, setRefreshScanner] = useState(false) // Scanner watches for changes to this which prompts it to start scanning again
     const [failModal, setFailModal] = useState('')
 
     const [nextTrackday, setNextTrackday] = useState(''); // Corresponds to next trackday object
@@ -68,7 +68,7 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
                 } else {
                     setShowNotificationModal({ show: true, msg: 'BAD' })
                 }
-                setTimeout(() => setRefreshScanner(true), 2000)
+                setTimeout(() => setRefreshScanner(!refreshScanner), 2000) // Prompt scanner to start scanning again
             } else if (response.status === 403) {
                 const data = await response.json();
                 setFailModal({ show: true, msg: data.msg })
@@ -92,11 +92,11 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
             
             <div className={styles.content}>
                 <h1>{nextTrackday.date} Verify</h1>
-               <Scanner setScanData={setScanData} refreshScanner={refreshScanner} setRefreshScanner={setRefreshScanner}></Scanner>
+               <Scanner setScanData={setScanData} refreshScanner={refreshScanner}></Scanner>
             </div>
             <Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}></Modal>
             <Modal open={showNotificationModal.show} type='notification' text={showNotificationModal.msg} onClose={() => setShowNotificationModal('')}></Modal>
-            <Modal open={failModal.show} type='confirmation' text={`Error: \n ${failModal.msg}`} onClose={() => { setFailModal(''); setShowScanner(true) }}
+            <Modal open={failModal.show} type='confirmation' text={`Error: \n ${failModal.msg}`} onClose={() => { setFailModal(''); setRefreshScanner(true) }}
                 okText="" closeText="Close" ></Modal>
         </>
     );

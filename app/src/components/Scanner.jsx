@@ -1,14 +1,9 @@
 import { useEffect, useRef } from "react";
 import QrScanner from 'qr-scanner'
 
-const Scanner = ({ setScanData, refreshScanner, setRefreshScanner }) => {
+const Scanner = ({ setScanData, refreshScanner }) => {
     const videoRef = useRef(null);
     const scanner = useRef(null)
-
-    if (refreshScanner){
-        scanner.current.start()
-        setRefreshScanner(false);
-    }
 
     useEffect(() => {
         const initScanner = async () => {
@@ -33,10 +28,14 @@ const Scanner = ({ setScanData, refreshScanner, setRefreshScanner }) => {
         }
     }, [])
 
+    // Watch the parent refreshScanner state to know when it is time to scan again
+    useEffect(()=>{
+        if (scanner.current) scanner.current.start();
+    }, [refreshScanner])
+
     async function processScan(scan) {
         scanner.current.stop(); 
         setScanData(scan.data);
-        // setTimeout(() => scanner.current.start(), 1500)
     }
     return (
         <video ref={videoRef}></video>
