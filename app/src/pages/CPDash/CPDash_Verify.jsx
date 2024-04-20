@@ -3,14 +3,16 @@ import ScrollToTop from "../../components/ScrollToTop";
 
 import { useState, useEffect, useRef } from "react";
 import Modal from "../../components/Modal";
-import QrScanner from 'qr-scanner'
+
+import Scanner from '../../components/Scanner';
 
 
 const CheckIn = ({ APIServer, allTrackdays }) => {
     const [pendingSubmit, setPendingSubmit] = useState('');
     const [showNotificationModal, setShowNotificationModal] = useState('');
-    const [camList, setCamList] = useState('')
 
+    const [scanData, setScanData] = useState('')
+    const [refreshScanner, setRefreshScanner] = useState(false) // When set to true, re-wakes the scanner
     const [failModal, setFailModal] = useState('')
 
     const [nextTrackday, setNextTrackday] = useState(''); // Corresponds to next trackday object
@@ -41,39 +43,9 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
     }
 
 
-    // Setting up QR verifyScanner
-    const verifyVideoRef = useRef(null);
-    const verifyScanner = useRef(null)
-    useEffect(() => {
-        const fetchCameras = async () => {
-            const camList = await QrScanner.listCameras(true);
-            setCamList(camList);
-            verifyScanner.current = new QrScanner(
-                verifyVideoRef.current,
-                processScan,
-                {
-                    highlightScanRegion: true,
-                    highlightCodeOutline: false,
-                    preferredCamera: camList[camList.length-1].id,
-                },
-            );
-            verifyScanner.current.start();
-        }
-        fetchCameras();
-
-
-
-        return () => {
-            if (!verifyVideoRef.current) verifyScanner.current.destroy()
-        }
-    }, [])
-
-
-
-
-    function processScan(scan) {
-        verifyScanner.current.stop();
-        const QRData = scan.data.replace('https://ride42.ca/dashboard/', '').split('/');
+    if (scanData){
+        const QRData = scanData.replace('https://ride42.ca/dashboard/', '').split('/');
+        setScanData('');
         handleVerify(QRData[0], QRData[1]);
     }
 
@@ -94,10 +66,9 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
                 if (data.verified === 'true') {
                     setShowNotificationModal({ show: true, msg: 'OK' })
                 } else {
-                    setShowNotificationModal({ show: true, msg: 'BAAD BOOOOI' })
+                    setShowNotificationModal({ show: true, msg: 'BAD' })
                 }
-
-                setTimeout(() => verifyScanner.current.start(), 1000)
+                setTimeout(() => setRefreshScanner(true), 2000)
             } else if (response.status === 403) {
                 const data = await response.json();
                 setFailModal({ show: true, msg: data.msg })
@@ -107,8 +78,6 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
         } catch (err) {
             console.log(err.message)
         }
-
-
     }
 
 
@@ -120,13 +89,14 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
     return (
         <>
             <ScrollToTop />
+            
             <div className={styles.content}>
                 <h1>{nextTrackday.date} Verify</h1>
-                <video ref={verifyVideoRef}></video>
+               <Scanner setScanData={setScanData} refreshScanner={refreshScanner} setRefreshScanner={setRefreshScanner}></Scanner>
             </div>
             <Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}></Modal>
             <Modal open={showNotificationModal.show} type='notification' text={showNotificationModal.msg} onClose={() => setShowNotificationModal('')}></Modal>
-            <Modal open={failModal.show} type='confirmation' text={`Error: \n ${failModal.msg}`} onClose={() => { setFailModal(''); verifyScanner.current.start() }}
+            <Modal open={failModal.show} type='confirmation' text={`Error: \n ${failModal.msg}`} onClose={() => { setFailModal(''); setShowScanner(true) }}
                 okText="" closeText="Close" ></Modal>
         </>
     );
