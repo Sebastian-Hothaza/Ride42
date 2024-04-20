@@ -10,10 +10,20 @@
     max-width: 400px;
 }
 
-.content img{
+.content .bikeEntry img{
     height: 200px;
     width: 200px;
 }
+
+.content button {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    font-size: inherit;
+    border-radius: .2rem;
+    padding: .5rem 2rem;
+}
+
 
 .allBikes{
     display: grid;
@@ -25,6 +35,39 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+
+}
+
+/* STICKER */
+
+.stickerContainer{
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.sticker{
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background-color: white;
+    padding: 2px;
+}
+
+.sticker img{
+    height: 200px;
+}
+
+.sticker .groupSticker{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 150px;
+    width: 150px;
+    border: solid 3px black;
+    border-radius: 50%;
+    margin-right: 2rem;
 }
 
 @media (max-width: 1000px) {
