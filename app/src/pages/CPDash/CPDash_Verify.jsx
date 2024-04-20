@@ -50,6 +50,7 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
                 {
                     highlightScanRegion: true,
                     highlightCodeOutline: false,
+                    preferredCamera: 'user',
                 },
             );
             verifyScanner.current.start();
