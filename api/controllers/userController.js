@@ -23,6 +23,7 @@ const mailTemplates = require('../mailer_templates')
     add checks for deleting users, refuse deletion if users are registered for trackday
     add checks for deleting bikes, refuse deletion if bikes are existing in peoples garages
     make back end handle case where user is deleted but still a member of some td
+    cookie expiration synchronization. When pulling refresh token from DB and loading to user, the expiration of the cookie mismatches the expiration of the jwt
     code cleanup & review
     --------------------------------------------- TODO ---------------------------------------------
 */
@@ -49,7 +50,7 @@ exports.login = [
             if (passwordMatch) {
                 // Generate tokens, assume refreshToken exists and is valid
                 const accessToken = jwt.sign({ id: user._id, memberType: user.memberType, name: user.firstName }, process.env.JWT_ACCESS_CODE, { expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION })
-                let refreshToken = user.refreshToken;
+                let refreshToken = user.refreshToken; // This value pulled from DB
 
                 // Check for valid refresh token.
                 try {
