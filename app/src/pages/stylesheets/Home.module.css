@@ -30,10 +30,6 @@ img {
         flex-direction: column;
     }
 
-    img {
-        width: 100%;
-    }
-
     /* This is required since content adds margin to account for Navbar. On home page, navbar has already been accounted for */
     #firstCard {
         margin-top: calc(0.5*var(--toolbar-thickness));
