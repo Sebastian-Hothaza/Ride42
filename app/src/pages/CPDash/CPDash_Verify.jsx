@@ -54,7 +54,7 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
                 {
                     highlightScanRegion: true,
                     highlightCodeOutline: false,
-                    // preferredCamera: 'camera2 0, facing back',
+                    preferredCamera: camList[camList.length-1].id,
                 },
             );
             verifyScanner.current.start();
@@ -124,9 +124,6 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
                 <h1>{nextTrackday.date} Verify</h1>
                 <video ref={verifyVideoRef}></video>
             </div>
-            {camList &&
-                <ul>{camList.map((cam)=><li key={cam.id}>{cam.id}---{cam.label}</li>)}</ul>
-            }
             <Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}></Modal>
             <Modal open={showNotificationModal.show} type='notification' text={showNotificationModal.msg} onClose={() => setShowNotificationModal('')}></Modal>
             <Modal open={failModal.show} type='confirmation' text={`Error: \n ${failModal.msg}`} onClose={() => { setFailModal(''); verifyScanner.current.start() }}
