@@ -9,6 +9,7 @@ import QrScanner from 'qr-scanner'
 const CheckIn = ({ APIServer, allTrackdays }) => {
     const [pendingSubmit, setPendingSubmit] = useState('');
     const [showNotificationModal, setShowNotificationModal] = useState('');
+    const [camList, setCamList] = useState('')
 
     const [failModal, setFailModal] = useState('')
 
@@ -44,6 +45,9 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
     const verifyVideoRef = useRef(null);
     const verifyScanner = useRef(null)
     useEffect(() => {
+        const fetchCameras = async () => {
+            const camList = await QrScanner.listCameras(true);
+            setCamList(camList);
             verifyScanner.current = new QrScanner(
                 verifyVideoRef.current,
                 processScan,
@@ -54,9 +58,14 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
                 },
             );
             verifyScanner.current.start();
-            return () => {
-                if (!verifyVideoRef.current) verifyScanner.current.destroy()
-            }
+        }
+        fetchCameras();
+
+
+
+        return () => {
+            if (!verifyVideoRef.current) verifyScanner.current.destroy()
+        }
     }, [])
 
 
@@ -115,6 +124,9 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
                 <h1>{nextTrackday.date} Verify</h1>
                 <video ref={verifyVideoRef}></video>
             </div>
+            {camList &&
+                <ul>{camList.map((cam)=><li key={cam.id}>{cam.id}---{cam.label}</li>)}</ul>
+            }
             <Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}></Modal>
             <Modal open={showNotificationModal.show} type='notification' text={showNotificationModal.msg} onClose={() => setShowNotificationModal('')}></Modal>
             <Modal open={failModal.show} type='confirmation' text={`Error: \n ${failModal.msg}`} onClose={() => { setFailModal(''); verifyScanner.current.start() }}
