@@ -6,7 +6,6 @@ const Scanner = ({ onDecodeEnd }) => {
     const scannerRef = useRef(null);
 
     useEffect(() => {
-        console.log('effect called')
         async function processScan(scanResult) {
             await scannerRef.current.stop();
             onDecodeEnd(scanResult.data, scannerRef.current); // calls handleVerify in parent
