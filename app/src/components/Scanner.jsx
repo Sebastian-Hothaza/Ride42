@@ -1,42 +1,34 @@
 import { useEffect, useRef } from "react";
 import QrScanner from 'qr-scanner'
 
-const Scanner = ({ setScanData, scannerActive }) => {
+const Scanner = ({ onDecodeEnd }) => {
     const videoRef = useRef(null);
-    const scanner = useRef(null);
-
-    if (scanner.current && scannerActive) scanner.current.start(); // This is what allows parent to restart scanner
+    const scannerRef = useRef(null);
 
     useEffect(() => {
-        const initScanner = async () => {
-            const camList = await QrScanner.listCameras(true);
-            scanner.current = new QrScanner(
-                videoRef.current,
-                processScan,
-                {
-                    highlightScanRegion: true,
-                    highlightCodeOutline: false,
-                    preferredCamera: camList[camList.length - 1].id,
-                },
-            );
-            scanner.current.start();
+        console.log('effect called')
+        async function processScan(scanResult) {
+            await scannerRef.current.stop();
+            onDecodeEnd(scanResult.data, scannerRef.current); // calls handleVerify in parent
         }
-        initScanner();
+
+        QrScanner.listCameras(true).then((camList) => {
+            scannerRef.current = new QrScanner(videoRef.current, processScan, {
+                highlightScanRegion: true,
+                highlightCodeOutline: false,
+                preferredCamera: camList.at(-1).id,
+            });
+            scannerRef.current.start();
+        });
 
         return () => {
-            if (!videoRef.current){
-                scanner.current.destroy()
+            if (!videoRef.current) {
+                scannerRef.current.destroy();
             }
-        }
-    }, [])
+        };
+    }, []);
 
-    async function processScan(scan) {
-        scanner.current.stop(); 
-        setScanData(scan.data);
-    }
-    return (
-        <video ref={videoRef}></video>
-    );
+    return <video ref={videoRef}></video>;
 };
 
 export default Scanner;

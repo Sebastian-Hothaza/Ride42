@@ -9,30 +9,23 @@ import Scanner from '../../components/Scanner';
 
 const CheckIn = ({ APIServer, allTrackdays }) => {
     const [pendingSubmit, setPendingSubmit] = useState(''); // Modal showing API loading animation
-    const [showNotificationModal, setShowNotificationModal] = useState(''); 
-
-    const [scanData, setScanData] = useState('')
+    const [showNotificationModal, setShowNotificationModal] = useState(''); //Checkmark modal
     const [failModal, setFailModal] = useState('')
-
-    const [nextTrackday, setNextTrackday] = useState(''); // Corresponds to next trackday object
-
-    const [scannerActive, setScannerActive] = useState(true);
-
-
+    let nextTrackday = { date: 'ERROR: NO UPCOMING DATE'}
+    
     // Load in the nextTrackday
-    if (allTrackdays && !nextTrackday) {
+    if (allTrackdays) {
         const lateAllowance = 12 * 60 * 60 * 1000; // Time in ms that a trackday will still be considered the next trackday AFTER it has already passed. Default is 12H
 
         // Remove trackdays in the past
-        allTrackdays = allTrackdays.filter((trackday) => {
+        const upcomingTrackdays = allTrackdays.filter((trackday) => {
             return new Date(trackday.date).getTime() + lateAllowance >= Date.now() // Trackday is in future
         })
-        if (allTrackdays.length == 0) {
-            setNextTrackday({ date: 'ERROR' })
+        if (upcomingTrackdays.length == 0) {
             return console.error('no more TD')// Protect against no trackdays
         }
 
-        allTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
+        upcomingTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
 
         // Formatting
         const date = new Date(allTrackdays[0].date)
@@ -40,20 +33,13 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
         const numericDay = date.toLocaleString('default', { day: 'numeric' })
         const formattedDate = month + ' ' + numericDay;
 
-        setNextTrackday({ date: formattedDate, id: allTrackdays[0].id });
+        nextTrackday = { date: formattedDate, id: upcomingTrackdays[0].id };
     }
 
+    async function handleVerify(scanData, scanner) {
+        const [userID, bikeID] = scanData.replace("https://ride42.ca/dashboard/", "").split("/");
 
-    if (scanData){
-        const QRData = scanData.replace('https://ride42.ca/dashboard/', '').split('/');
-        setScanData('');
-        setScannerActive(false);
-        handleVerify(QRData[0], QRData[1]);
-    }
-
-
-    async function handleVerify(userID, bikeID) {
-        setPendingSubmit({ show: true, msg: 'Verifying user' });
+        setPendingSubmit({ show: true, msg: 'Verifying user' }); // Show loading modal
         try {
             const response = await fetch(APIServer + 'verify/' + userID + '/' + nextTrackday.id + '/' + bikeID, {
                 method: 'GET',
@@ -62,7 +48,7 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
                     'Content-type': 'application/json; charset=UTF-8',
                 }
             })
-            setPendingSubmit(''); // Clear loading screen
+            setPendingSubmit(''); // Clear loading modal
             if (response.ok) {
                 const data = await response.json();
                 if (data.verified === 'true') {
@@ -70,7 +56,7 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
                 } else {
                     setShowNotificationModal({ show: true, msg: 'BAD' })
                 }
-                setTimeout(() => setScannerActive(true), 2000) // Prompt scanner to start scanning again
+                setTimeout(() => scanner.start(), 2000) // Prompt scanner to start scanning again
             } else if (response.status === 403) {
                 const data = await response.json();
                 setFailModal({ show: true, msg: data.msg })
@@ -82,23 +68,17 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
         }
     }
 
-
-
-
-
-
-
     return (
         <>
             <ScrollToTop />
-            
+
             <div className={styles.content}>
                 <h1>{nextTrackday.date} Verify</h1>
-               <Scanner setScanData={setScanData} scannerActive={scannerActive}></Scanner>
+                <Scanner onDecodeEnd={handleVerify} />
             </div>
             <Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}></Modal>
             <Modal open={showNotificationModal.show} type='notification' text={showNotificationModal.msg} onClose={() => setShowNotificationModal('')}></Modal>
-            <Modal open={failModal.show} type='confirmation' text={`Error: \n ${failModal.msg}`} onClose={() => { setFailModal(''); setScannerActive(true) }}
+            <Modal open={failModal.show} type='confirmation' text={`Error: \n ${failModal.msg}`} onClose={() => { setFailModal('');  }}
                 okText="" closeText="Close" ></Modal>
         </>
     );
