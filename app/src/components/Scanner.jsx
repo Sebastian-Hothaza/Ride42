@@ -1,9 +1,11 @@
 import { useEffect, useRef } from "react";
 import QrScanner from 'qr-scanner'
 
-const Scanner = ({ setScanData, refreshScanner }) => {
+const Scanner = ({ setScanData, scannerActive }) => {
     const videoRef = useRef(null);
-    const scanner = useRef(null)
+    const scanner = useRef(null);
+
+    if (scanner.current && scannerActive) scanner.current.start(); // This is what allows parent to restart scanner
 
     useEffect(() => {
         const initScanner = async () => {
@@ -27,11 +29,6 @@ const Scanner = ({ setScanData, refreshScanner }) => {
             }
         }
     }, [])
-
-    // Watch the parent refreshScanner state to know when it is time to scan again
-    useEffect(()=>{
-        if (scanner.current) scanner.current.start();
-    }, [refreshScanner])
 
     async function processScan(scan) {
         scanner.current.stop(); 

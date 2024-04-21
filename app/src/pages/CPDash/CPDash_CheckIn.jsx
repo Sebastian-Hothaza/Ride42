@@ -1,7 +1,7 @@
 import styles from './stylesheets/CPDash_CheckIn.module.css'
 import ScrollToTop from "../../components/ScrollToTop";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import Modal from "../../components/Modal";
 import Scanner from '../../components/Scanner';
 
@@ -15,6 +15,7 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
     const [nextTrackday, setNextTrackday] = useState(''); // Corresponds to next trackday object
     const [scanData, setScanData] = useState('')
     const [refreshScanner, setRefreshScanner] = useState(false) // Scanner watches for changes to this which prompts it to start scanning again
+    const [scannerActive, setScannerActive] = useState(true);
 
     // Load in the nextTrackday
     if (allTrackdays && !nextTrackday) {
@@ -45,6 +46,7 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
     if (scanData && !failModal){
         const QRData = scanData.replace('https://ride42.ca/dashboard/', '').split('/');
         setScanData('')
+        setScannerActive(false);
         handleCheckIn(QRData[0], QRData[1]);
     }
 
@@ -62,7 +64,7 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
             setPendingSubmit(''); // Clear loading screen
             if (response.ok) {
                 setShowNotificationModal({ show: true, msg: 'Check-In complete' })
-                setTimeout(() => setRefreshScanner(!refreshScanner), 1500) // Prompt scanner to start scanning again
+                setTimeout(() => setScannerActive(true), 2000) // Prompt scanner to start scanning again
             } else if (response.status === 403) {
                 const data = await response.json();
                 setFailModal({ show: true, msg: data.msg })
@@ -85,11 +87,11 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
             <ScrollToTop />
             <div className={styles.content}>
                 <h1>{nextTrackday.date} Check In</h1>
-                <Scanner setScanData={setScanData} refreshScanner={refreshScanner}></Scanner>
+                <Scanner setScanData={setScanData} scannerActive={scannerActive}></Scanner>
             </div>
             <Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}></Modal>
             <Modal open={showNotificationModal.show} type='notification' text={showNotificationModal.msg} onClose={() => setShowNotificationModal('')}></Modal>
-            <Modal open={failModal.show} type='confirmation' text={`Error: \n ${failModal.msg}`} onClose={() =>{ setRefreshScanner(!refreshScanner); setFailModal('')}}
+            <Modal open={failModal.show} type='confirmation' text={`Error: \n ${failModal.msg}`} onClose={() =>{ setScannerActive(true); setFailModal('')}}
                 okText="" closeText="Close" ></Modal>
         </>
     );
