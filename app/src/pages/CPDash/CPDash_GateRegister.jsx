@@ -84,12 +84,9 @@ const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
                 await fetchAPIData();
                 setRegisterErrors('');
                 setShowNotificationModal({ show: true, msg: 'Gate registration complete' })
-            } else if (response.status === 400) {
+            } else if (response.status === 400 || response.status === 403 || response.status === 409) {
                 const data = await response.json();
                 setRegisterErrors(data.msg);
-            } else if (response.status === 409) {
-                const data = await response.json();
-                setRegisterErrors([data.msg]);
             } else {
                 throw new Error('API Failure')
             }

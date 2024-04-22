@@ -18,7 +18,7 @@ function TrackdayInfo() {
 	async function fetchAPIData() {
 		try {
 			const response = await fetch(APIServer + 'presentTrackdays');
-			if (!response.ok) throw new Error("Failed to get API Data")
+			if (!response.ok) throw new Error("Failed to get API Data for presentTrackdays")
 			const data = await response.json();
 			setAllTrackdays(data);
 		} catch (err) {

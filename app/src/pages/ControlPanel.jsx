@@ -61,9 +61,8 @@ const ControlPanel = ({ APIServer }) => {
         if (userInfoData.memberType === 'staff' || userInfoData.memberType === 'admin') {
             let allUsersData = []
             try {
-                const [allUsers] = await Promise.all([
-                    fetch(APIServer + 'users', { credentials: "include", }),
-                ]);
+                const allUsers = await fetch(APIServer + 'users', { credentials: "include"});
+                   
                 if (!allUsers.ok) throw new Error('Failed to build API Data for userInfo');
 
 

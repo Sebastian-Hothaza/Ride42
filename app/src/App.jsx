@@ -54,7 +54,7 @@ function App() {
                 setLoginErrorMsg('')
                 setLoggedIn(true);
 
-            } else if (response.status === 403) {
+            } else if (response.status === 400 || response.status === 403) {
                 const data = await response.json();
                 e.target.password.value = '';
                 

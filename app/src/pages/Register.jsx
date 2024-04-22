@@ -165,14 +165,10 @@ const Register = () => {
 			})
 			
 			if (response.ok) {
-				// TODO: Should we login user before?
 				navigate("/dashboard");
-			} else if (response.status === 400) {
+			} else if (response.status === 400 || response.status === 409) { 
 				const data = await response.json();
 				setRegisterErrors(data.msg);
-			} else if (response.status === 409) {
-				const data = await response.json();
-				setRegisterErrors([data.msg]);
 			} else {
 				throw new Error('API Failure')
 			}

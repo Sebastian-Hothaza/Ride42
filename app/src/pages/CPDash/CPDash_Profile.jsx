@@ -44,12 +44,9 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 				setEditUserInfoErrors('');
 				// TODO: Do we need to fetchapidata here? Maybe add it in before clearing out pending submit
 				setShowNotificationModal({ show: true, msg: 'Profile updated' });
-			} else if (response.status === 400) {
+			} else if (response.status === 400 || response.status === 403 || response.status === 409) {
 				const data = await response.json();
 				setEditUserInfoErrors(data.msg)
-			} else if (response.status === 409) {
-				const data = await response.json();
-				setEditUserInfoErrors([data.msg])
 			} else {
 				throw new Error('API Failure')
 			}
@@ -108,9 +105,11 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 
 				setChangePswErrorMsg('');
 				setShowNotificationModal({ show: true, msg: 'Password updated' });
-			} else {
+			} else if (response.status === 400 || response.status === 403){
 				const data = await response.json();
 				setChangePswErrorMsg(data.msg)
+			} else {
+				throw new Error('API Failure')
 			}
 		} catch (err) {
 			console.log(err.message)
@@ -151,7 +150,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 
 				await fetchAPIData();
 				setShowNotificationModal({ show: true, msg: 'Group updated' });
-			} else if (response.status === 400) {
+			} else if (response.status === 400 || response.status === 403) {
 				const data = await response.json();
 				console.log('Change group failed: ', data)
 			} else {

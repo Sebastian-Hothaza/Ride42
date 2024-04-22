@@ -106,12 +106,9 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 				await fetchAPIData(); // Wait for fetch to complete so the spinner stays on screen
 				setBookErrors('');
 				setShowNotificationModal({ show: true, msg: 'Trackday booked' });
-			} else if (response.status === 400) {
+			} else if (response.status === 400 || response.status === 403 || response.status === 409) {
 				const data = await response.json();
 				setBookErrors(data.msg)
-			} else if (response.status === 409 || response.status === 401) {
-				const data = await response.json();
-				setBookErrors([data.msg])
 			} else {
 				throw new Error('API Failure')
 			}
@@ -135,10 +132,6 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			})
 			if (!response.ok) throw new Error('API Failure')
 
-			// Updating accessToken in LS
-			// const data = await response.json();
-			// if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
-
 			await fetchAPIData();
 			setShowNotificationModal({ show: true, msg: 'Trackday cancelled' });
 		} catch (err) {
@@ -152,7 +145,6 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 		e.preventDefault();
 		setShowRescheduleModal('');
 		setPendingSubmit({ show: true, msg: 'Rescheduling your trackday' });
-		const formData = new FormData(e.target);
 		try {
 			const response = await fetch(APIServer + 'register/' + userInfo._id + '/' + trackdayID_OLD + '/' + trackdayID_NEW, {
 				method: 'PUT',
@@ -163,17 +155,17 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			})
 
 
-			// Updating accessToken in LS
-			// const data = await response.json();
-			// if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
-
-			if (response.status == 403) {
-				const data = await response.json()
-				console.log(data.msg)
+			if (response.ok) {
+				await fetchAPIData();
+				setShowNotificationModal({ show: true, msg: 'Trackday rescheduled' });
+				setBookErrors('');
+			} else if (response.status === 400 || response.status === 403 || response.status === 409) {
+				const data = await response.json();
+				setBookErrors(data.msg)
+			} else {
+				throw new Error('API Failure')
 			}
-			if (!response.ok) throw new Error('API Failure')
-			await fetchAPIData();
-			setShowNotificationModal({ show: true, msg: 'Trackday rescheduled' });
+
 		} catch (err) {
 			console.log(err.message)
 		}

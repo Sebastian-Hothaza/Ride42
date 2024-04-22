@@ -82,12 +82,9 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 				setAddBikeConfirm(true);
 				setAddBikeErrors('');
 				e.target.reset();
-			} else if (response.status === 400) {
+			} else if (response.status === 400 || response.status === 409) {
 				const data = await response.json();
 				setAddBikeErrors(data.msg);
-			} else if (response.status === 409) {
-				const data = await response.json();
-				setAddBikeErrors([data.msg]);
 			} else {
 				throw new Error('API Failure')
 			}
