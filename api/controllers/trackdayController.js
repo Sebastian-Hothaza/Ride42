@@ -124,8 +124,14 @@ exports.register = [
             }
 
 
-            // Deny if trackday is in the past (if time difference is negative)
-            if (req.user.memberType !== 'admin' && trackday.date.getTime() < Date.now()) return res.status(403).send({ msg: ['Cannot register for trackday in the past'] })
+            // If trackday is in the past
+            if (req.user.memberType !== 'admin' && trackday.date.getTime() < Date.now()) { 
+                if (req.body.paymentMethod === 'gate' || req.body.paymentMethod === 'credit') { // Allow for late allowance for gate and credit registrations
+                    if (trackday.date.getTime() + (process.env.LATE_ALLOWANCE_HOURS * 60 * 60 * 1000) < Date.now()) return res.status(403).send({ msg: ['Cannot register for trackday in the past'] })
+                } else {
+                    return res.status(403).send({ msg: ['Cannot register for trackday in the past'] })
+                }
+            }
 
             // Deny if trackday is full
             if (req.user.memberType !== 'admin' && req.user.memberType !== 'staff') {
@@ -200,8 +206,11 @@ exports.unregister = [
                 return res.status(403).send({ msg: ['Cannot unregister for trackday <' + process.env.DAYS_LOCKOUT + ' days away.'] })
             }
 
-            // Check if trackday is in the past (if time difference is negative)
-            if (req.user.memberType !== 'admin' && trackday.date.getTime() - Date.now() < 0) return res.status(403).send({ msg: ['Cannot un-register for trackday in the past'] })
+            // Check if trackday is in the past 
+            if (req.user.memberType !== 'admin' && trackday.date.getTime() < Date.now()) return res.status(403).send({ msg: ['Cannot un-register for trackday in the past'] })
+
+            // Deny if user has already checked in
+            if (req.user.memberType !== 'admin' && memberEntry.checkedIn.length) return res.status(403).send({ msg: ['Cannot un-register for trackday you are already checked in at'] })
 
             // Remove user from trackday
             trackday.members = trackday.members.filter((member) => !member.user.equals(req.params.userID))
@@ -259,6 +268,9 @@ exports.reschedule = [
             // Check if trackday is in the past (if time difference is negative)
             if (req.user.memberType !== 'admin' && trackdayNEW.date.getTime() - Date.now() < 0) return res.status(403).send({ msg: ['Cannot register to a trackday in the past'] })
             if (req.user.memberType !== 'admin' && trackdayOLD.date.getTime() - Date.now() < 0) return res.status(403).send({ msg: ['Cannot register from a trackday in the past'] })
+
+            // Deny if user has already checked in
+            if (req.user.memberType !== 'admin' && memberEntryOLD.checkedIn.length) return res.status(403).send({ msg: ['Cannot reschedule a trackday you are already checked in at'] })
 
             // Check if trackday is full
             if (req.user.memberType !== 'admin') {
