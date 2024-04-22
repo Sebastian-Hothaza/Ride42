@@ -464,7 +464,7 @@ exports.trackday_get = [
 
     asyncHandler(async (req, res, next) => {
         if (req.user.memberType === 'admin') {
-            const trackday = await Trackday.findById(req.params.trackdayID).populate('members.user', '-password -refreshToken -__v').select('-__v').exec();
+            const trackday = await Trackday.findById(req.params.trackdayID).populate('members.user', '-password -refreshToken -garage -__v').select('-__v').exec();
             return res.status(200).send({ ...trackday._doc, guests: getRegDetails(trackday).guests });
         }
         return res.sendStatus(403)
@@ -476,7 +476,7 @@ exports.trackday_getALL = [
     controllerUtils.verifyJWT,
     asyncHandler(async (req, res, next) => {
         if (req.user.memberType === 'admin') {
-            const trackdays = await Trackday.find().populate('members.user', '-password -refreshToken -__v').select('-__v').exec();
+            const trackdays = await Trackday.find().populate('members.user', '-password -refreshToken -garage -__v').select('-__v').exec();
             trackdays.forEach((trackday) => trackday._doc = { ...trackday._doc, guests: getRegDetails(trackday).guests })
             return res.status(200).json(trackdays);
         }
