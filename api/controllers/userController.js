@@ -132,7 +132,7 @@ exports.verify = [
         const memberEntry = trackday.members.find((member) => member.user.equals(req.params.userID));
 
 
-        memberEntry && memberEntry.checkedIn.includes(req.params.bikeID) ? res.status(200).json({ 'verified': 'true' }) : res.status(200).json({ 'verified': 'false' })
+        memberEntry && memberEntry.checkedIn.includes(req.params.bikeID) ? res.status(200).json({verified: true }) : res.status(200).json({verified: false})
     })
 ]
 

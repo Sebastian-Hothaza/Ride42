@@ -1043,7 +1043,7 @@ describe('Testing verify', () => {
 
 		await request(app)
 			.get("/verify/" + user.body.id + '/' + trackday.body.id + '/' + bike.body.id)
-			.expect(200, { verified: 'false' })
+			.expect(200, {verified: false})
 	});
 
 	test("verify for user - not checkedin for trackday", async () => {
@@ -1069,7 +1069,7 @@ describe('Testing verify', () => {
 
 		await request(app)
 			.get("/verify/" + user.body.id + '/' + trackday.body.id + '/' + bike.body.id)
-			.expect(200, { verified: 'false' })
+			.expect(200, { verified:false})
 	});
 
 	test("verify for user", async () => {
@@ -1115,7 +1115,7 @@ describe('Testing verify', () => {
 
 		await request(app)
 			.get("/verify/" + user.body.id + '/' + trackday.body.id + '/' + bike.body.id)
-			.expect(200, { verified: 'true' })
+			.expect(200, { verified:true})
 	});
 })
 
