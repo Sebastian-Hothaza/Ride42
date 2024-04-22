@@ -82,7 +82,7 @@ exports.login = [
                 return res.status(403).json({ msg: ['Incorrect Password'] });
             }
         } else {
-            return res.status(403).json({ msg: 'No user exists with this email' });
+            return res.status(403).json({ msg: ['No user exists with this email'] });
         }
     }),
 ]
@@ -299,7 +299,7 @@ exports.user_post = [
     asyncHandler(async (req, res, next) => {
         // Check if a user already exists with same email
         const duplicateUser = await User.find({ 'contact.email': { $regex: req.body.email, $options: 'i' } })
-        if (duplicateUser.length) return res.status(409).send({ msg: 'User with this email already exists' });
+        if (duplicateUser.length) return res.status(409).send({ msg: ['User with this email already exists'] });
 
         bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
             // Create the user and insert into the DB
@@ -370,11 +370,11 @@ exports.user_put = [
 
             // Check if a user already exists with same email
             const duplicateUser = await User.findOne({ 'contact.email': { $regex: req.body.email, $options: 'i' } })
-            if (duplicateUser && oldUser.contact.email !== req.body.email.toLowerCase()) return res.status(409).send({ msg: 'User with this email already exists' });
+            if (duplicateUser && oldUser.contact.email !== req.body.email.toLowerCase()) return res.status(409).send({ msg: ['User with this email already exists'] });
 
             // If user attempt to change group and has a trackday booked < lockout period(7 default) away, fail update entirely
             if (req.body.group !== oldUser.group && req.user.memberType !== 'admin' && await controllerUtils.hasTrackdayWithinLockout(req.params.userID)) {
-                return res.status(403).send({ msg: 'Cannot change group when registered for trackday <' + process.env.DAYS_LOCKOUT + ' days away.' })
+                return res.status(403).send({ msg: ['Cannot change group when registered for trackday <' + process.env.DAYS_LOCKOUT + ' days away.'] })
             }
 
             const user = new User({

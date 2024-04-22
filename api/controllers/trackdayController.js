@@ -104,48 +104,48 @@ exports.register = [
 
 
     asyncHandler(async (req, res, next) => {
-        
+
         if (req.user.memberType === 'staff' || req.user.memberType === 'admin' || (req.user.id === req.params.userID)) {
             let [trackday, user] = await Promise.all([Trackday.findById(req.params.trackdayID).populate('members.user', '-password -refreshToken -__v').exec(), User.findById(req.params.userID)]);
 
             // Deny gate registrations unless they come from staff or admin
             if (req.body.paymentMethod === 'gate' && req.user.memberType !== 'admin' && req.user.memberType !== 'staff') {
-                return res.status(403).send({ msg: ['only staff or admins can process gate registrations'] })
+                return res.status(403).send({ msg: ['Only staff or admins can process gate registrations'] })
             }
 
             // Deny if user is already registered to trackday
             const memberEntry = trackday.members.find((member) => member.user.equals(req.params.userID));
-            if (memberEntry) return res.status(409).send({ msg: "user already registered for this trackday" })
+            if (memberEntry) return res.status(409).send({ msg: ['Already registered for this trackday'] })
 
             // Deny if user attempt to register for trackday < lockout period(7 default) away
             if (await controllerUtils.isInLockoutPeriod(req.params.trackdayID) &&
                 req.body.paymentMethod !== 'credit' && req.body.paymentMethod !== 'gate' && req.user.memberType !== 'admin') {
-                return res.status(403).send({ msg: 'Cannot register for trackday <' + process.env.DAYS_LOCKOUT + ' days away unless payment method is trackday credit.' })
+                return res.status(403).send({ msg: ['Cannot register for trackday <' + process.env.DAYS_LOCKOUT + ' days away unless payment method is trackday credit.'] })
             }
 
 
             // Deny if trackday is in the past (if time difference is negative)
-            if (req.user.memberType !== 'admin' && trackday.date.getTime() - Date.now() < 0) return res.status(403).send({ msg: 'Cannot register for trackday in the past' })
+            if (req.user.memberType !== 'admin' && trackday.date.getTime() < Date.now()) return res.status(403).send({ msg: ['Cannot register for trackday in the past'] })
 
             // Deny if trackday is full
             if (req.user.memberType !== 'admin' && req.user.memberType !== 'staff') {
                 if ((user.group == 'green' && getRegDetails(trackday).green === parseInt(process.env.GROUP_CAPACITY)) ||
                     (user.group == 'yellow' && getRegDetails(trackday).yellow === parseInt(process.env.GROUP_CAPACITY)) ||
                     (user.group == 'red' && getRegDetails(trackday).red === parseInt(process.env.GROUP_CAPACITY))) {
-                    return res.status(403).send({ msg: 'trackday has reached capacity' })
+                    return res.status(403).send({ msg: ['Trackday has reached capacity'] })
                 }
             }
 
 
             // Deny if trackday registration is closed
-            if (req.user.memberType !== 'admin' && trackday.status !== 'regOpen') return res.status(403).send({ msg: 'registration closed' })
+            if (req.user.memberType !== 'admin' && trackday.status !== 'regOpen') return res.status(403).send({ msg: ['Registration closed'] })
 
             // Deny if user garage is empty UNLESS it is a gate registration
-            if (req.user.memberType !== 'admin' && !user.garage.length && req.body.paymentMethod !== 'gate') return res.status(403).send({ msg: 'cannot register with empty user garage' })
+            if (req.user.memberType !== 'admin' && !user.garage.length && req.body.paymentMethod !== 'gate') return res.status(403).send({ msg: ['Cannot register with empty user garage'] })
 
             // If paying with credit, check balance is available and deduct
             if (req.body.paymentMethod === 'credit') {
-                if (!user.credits) return res.status(403).send({ msg: 'insufficient credits' })
+                if (!user.credits) return res.status(403).send({ msg: ['Insufficient credits'] })
                 user.credits--;
                 await user.save();
             }
@@ -188,20 +188,20 @@ exports.unregister = [
 
             // Check user is actually registered for that trackday
             const memberEntry = trackday.members.find((member) => member.user.equals(req.params.userID));
-            if (!memberEntry) return res.status(403).send({ msg: 'Cannot unregister; member is not registered for that trackday' });
+            if (!memberEntry) return res.status(403).send({ msg: ['Cannot unregister; member is not registered for that trackday'] });
 
             // Deny if trying to unregister a gate entry
-            if (memberEntry.paymentMethod === 'gate' && req.user.memberType !== 'admin') return res.status(403).send({ msg: 'cannot unregister a gate registration' })
+            if (memberEntry.paymentMethod === 'gate' && req.user.memberType !== 'admin') return res.status(403).send({ msg: ['cannot unregister a gate registration'] })
 
 
             // If user attempt to unregister for trackday < lockout period(7 default) away, deny unregistration
             if (await controllerUtils.isInLockoutPeriod(req.params.trackdayID) &&
                 memberEntry.paymentMethod !== 'credit' && req.body.paymentMethod !== 'gate' && req.user.memberType !== 'admin') {
-                return res.status(403).send({ msg: 'Cannot unregister for trackday <' + process.env.DAYS_LOCKOUT + ' days away.' })
+                return res.status(403).send({ msg: ['Cannot unregister for trackday <' + process.env.DAYS_LOCKOUT + ' days away.'] })
             }
 
             // Check if trackday is in the past (if time difference is negative)
-            if (req.user.memberType !== 'admin' && trackday.date.getTime() - Date.now() < 0) return res.status(403).send({ msg: 'Cannot un-register for trackday in the past' })
+            if (req.user.memberType !== 'admin' && trackday.date.getTime() - Date.now() < 0) return res.status(403).send({ msg: ['Cannot un-register for trackday in the past'] })
 
             // Remove user from trackday
             trackday.members = trackday.members.filter((member) => !member.user.equals(req.params.userID))
@@ -242,35 +242,35 @@ exports.reschedule = [
 
             // Check that the member we want to reschedule is registered in old trackday
             const memberEntryOLD = trackdayOLD.members.find((member) => member.user.equals(req.params.userID));
-            if (!memberEntryOLD) return res.status(403).send({ msg: 'Member is not registered for that trackday' });
+            if (!memberEntryOLD) return res.status(403).send({ msg: ['Not registered for original trackday'] });
 
             // Check if user is already registered for trackday they want to reschedule to
             const memberEntryNEW = trackdayNEW.members.find((member) => member.user.equals(req.params.userID));
-            if (memberEntryNEW) return res.status(409).send({ msg: 'Member is already scheduled for trackday you want to reschedule to' })
+            if (memberEntryNEW) return res.status(409).send({ msg: ['Member is already scheduled for trackday you want to reschedule to'] })
 
             // Deny if trying to reschedule a gate entry
-            if (memberEntryOLD.paymentMethod === 'gate' && req.user.memberType !== 'admin') return res.status(403).send({ msg: 'cannot reschedule a gate registration' })
+            if (memberEntryOLD.paymentMethod === 'gate' && req.user.memberType !== 'admin') return res.status(403).send({ msg: ['Cannot reschedule a gate registration'] })
 
             // If user attempt to reschdule for trackday < lockout period(7 default) away, deny reschedule
             if (memberEntryOLD.paymentMethod !== 'credit' && req.user.memberType !== 'admin' && await controllerUtils.isInLockoutPeriod(req.params.trackdayID_NEW)) {
-                return res.status(403).send({ msg: 'Cannot reschedule to a trackday <' + process.env.DAYS_LOCKOUT + ' days away.' })
+                return res.status(403).send({ msg: ['Cannot reschedule to a trackday <' + process.env.DAYS_LOCKOUT + ' days away.'] })
             }
 
             // Check if trackday is in the past (if time difference is negative)
-            if (req.user.memberType !== 'admin' && trackdayNEW.date.getTime() - Date.now() < 0) return res.status(403).send({ msg: 'Cannot register to a trackday in the past' })
-            if (req.user.memberType !== 'admin' && trackdayOLD.date.getTime() - Date.now() < 0) return res.status(403).send({ msg: 'Cannot register from a trackday in the past' })
+            if (req.user.memberType !== 'admin' && trackdayNEW.date.getTime() - Date.now() < 0) return res.status(403).send({ msg: ['Cannot register to a trackday in the past'] })
+            if (req.user.memberType !== 'admin' && trackdayOLD.date.getTime() - Date.now() < 0) return res.status(403).send({ msg: ['Cannot register from a trackday in the past'] })
 
             // Check if trackday is full
             if (req.user.memberType !== 'admin') {
                 if ((user.group == 'green' && getRegDetails(trackdayNEW).green === parseInt(process.env.GROUP_CAPACITY)) ||
                     (user.group == 'yellow' && getRegDetails(trackdayNEW).yellow === parseInt(process.env.GROUP_CAPACITY)) ||
                     (user.group == 'red' && getRegDetails(trackdayNEW).red === parseInt(process.env.GROUP_CAPACITY))) {
-                    return res.status(403).send({ msg: 'trackday has reached capacity' })
+                    return res.status(403).send({ msg: ['Trackday has reached capacity'] })
                 }
             }
 
             // Deny if trackday is in the past (if time difference is negative)
-            if (req.user.memberType !== 'admin' && trackdayNEW.status !== 'regOpen') return res.status(403).send({ msg: 'registration closed' })
+            if (req.user.memberType !== 'admin' && trackdayNEW.status !== 'regOpen') return res.status(403).send({ msg: ['Registration closed'] })
 
             // Add user to new trackday
             trackdayNEW.members.push({
@@ -335,17 +335,19 @@ exports.checkin = [
 
             // Check that the member we want to check in for trackday actually exists
             const memberEntry = trackday.members.find((member) => member.user.equals(req.params.userID));
-            if (!memberEntry) return res.status(403).send({ msg: 'Member is not registered for that trackday' });
+            if (!memberEntry) return res.status(403).send({ msg: ['Not registered for trackday'] });
 
             // Check that member is not already checked in with that same bike
-            if (memberEntry.checkedIn.includes(req.params.bikeID)) return res.status(403).json({ msg: 'member already checked in with this bike' })
+            if (memberEntry.checkedIn.includes(req.params.bikeID)) return res.status(403).json({ msg: ['Already checked in with this bike'] })
 
-            // Do not allow checkin if unpaid
-            if (!memberEntry.paid) return res.status(403).json({ msg: 'member is not paid' })
 
-            // Do not allow checkin if user does not have a waiver signed
-            if (!memberEntry.user.waiver) return res.status(403).json({ msg: 'member has not signed waiver' })
+            // Do not allow checkin if unpaid or waiver is not signed
+            let failCauses = []
+            if (!memberEntry.paid) failCauses.push('Not paid')
+            if (!memberEntry.user.waiver) failCauses.push('Missing waiver')
+            if (failCauses.length) return res.status(403).json({ msg: failCauses })
 
+            // Process the check in
             memberEntry.checkedIn.push(req.params.bikeID);
             await trackday.save();
             return res.sendStatus(200);
@@ -422,15 +424,15 @@ exports.updatePaid = [
             const trackday = await Trackday.findById(req.params.trackdayID).populate('members.user', '-password -refreshToken -__v').exec();
             const memberEntry = trackday.members.find((member) => member.user.equals(req.params.userID));
             // Check that user we want to mark as paid is actually registerd for the trackday
-            if (!memberEntry) return res.status(403).send({ msg: 'Member is not registered for that trackday' });
+            if (!memberEntry) return res.status(403).send({ msg: ['Member is not registered for that trackday'] });
 
             // Block changing paid status for credit and gate paymentMethods
-            if (memberEntry.paymentMethod === 'credit' || memberEntry.paymentMethod === 'gate') return res.status(403).send({ msg: 'Cannot change paid status on gate or credit registrations' });
+            if (memberEntry.paymentMethod === 'credit' || memberEntry.paymentMethod === 'gate') return res.status(403).send({ msg: ['Cannot change paid status on gate or credit registrations'] });
 
 
             // Prevent setting paid status to what it was already set to
-            if (memberEntry.paid && req.body.setPaid == 'true') return res.status(403).send({ msg: "user already marked as paid" })
-            if (!memberEntry.paid && req.body.setPaid == 'false') return res.status(403).send({ msg: "user already marked as unpaid" })
+            if (memberEntry.paid && req.body.setPaid == 'true') return res.status(403).send({ msg: ['user already marked as paid'] })
+            if (!memberEntry.paid && req.body.setPaid == 'false') return res.status(403).send({ msg: ['user already marked as unpaid'] })
 
             // Update paid status
             memberEntry.paid = memberEntry.paid ? false : true

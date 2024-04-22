@@ -665,7 +665,7 @@ describe('Testing registering', () => {
 			.post('/register/' + user1.body.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
-			.expect(403, { msg: 'Cannot register for trackday <' + process.env.DAYS_LOCKOUT + ' days away unless payment method is trackday credit.' })
+			.expect(403, { msg: ['Cannot register for trackday <' + process.env.DAYS_LOCKOUT + ' days away unless payment method is trackday credit.'] })
 		// Register as user with credit
 		await request(app)
 			.post('/register/' + user1.body.id + '/' + trackday.body.id)
@@ -696,7 +696,7 @@ describe('Testing registering', () => {
 			.post('/register/' + user1.body.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
-			.expect(403, { msg: 'trackday has reached capacity' })
+			.expect(403, { msg: ['Trackday has reached capacity'] })
 		// As admin
 		await request(app)
 			.post('/register/' + user1.body.id + '/' + trackday.body.id)
@@ -712,7 +712,7 @@ describe('Testing registering', () => {
 			.post('/register/' + user1.body.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
-			.expect(403, { msg: 'cannot register with empty user garage' })
+			.expect(403, { msg: ['Cannot register with empty user garage'] })
 		// As admin
 		await request(app)
 			.post('/register/' + user1.body.id + '/' + trackday.body.id)
@@ -851,7 +851,7 @@ describe('Testing registering', () => {
 			.post('/register/' + user1.body.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'credit', guests: 3, layoutVote: 'none' })
-			.expect(403, { msg: 'insufficient credits' })
+			.expect(403, { msg: ['Insufficient credits'] })
 
 
 		// Check registration was processed correctly 
@@ -1036,7 +1036,7 @@ describe('Testing un-registering', () => {
 		await request(app)
 			.delete('/register/' + user1.body.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
-			.expect(403, { msg: 'Cannot unregister; member is not registered for that trackday' })
+			.expect(403, { msg: ['Cannot unregister; member is not registered for that trackday'] })
 	});
 
 	test("old trackday past", async () => {
@@ -1089,7 +1089,7 @@ describe('Testing un-registering', () => {
 		await request(app)
 			.delete('/register/' + user1.body.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
-			.expect(403, { msg: 'Cannot unregister for trackday <' + process.env.DAYS_LOCKOUT + ' days away.' })
+			.expect(403, { msg: ['Cannot unregister for trackday <' + process.env.DAYS_LOCKOUT + ' days away.'] })
 		// As admin
 		await request(app)
 			.delete('/register/' + user1.body.id + '/' + trackday.body.id)
@@ -1310,7 +1310,7 @@ describe('Testing rescheduling', () => {
 		await request(app)
 			.put('/register/' + user1.body.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
 			.set('Cookie', user1Cookie)
-			.expect(403, { msg: 'Member is not registered for that trackday' })
+			.expect(403, { msg: ['Not registered for original trackday'] })
 	});
 
 	test("duplicate registration", async () => {
@@ -1343,7 +1343,7 @@ describe('Testing rescheduling', () => {
 		await request(app)
 			.put('/register/' + user1.body.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
 			.set('Cookie', user1Cookie)
-			.expect(409, { msg: 'Member is already scheduled for trackday you want to reschedule to' })
+			.expect(409, { msg: ['Member is already scheduled for trackday you want to reschedule to'] })
 	});
 
 	test("reschedule for trackday in past", async () => {
@@ -1473,7 +1473,7 @@ describe('Testing rescheduling', () => {
 		await request(app)
 			.put('/register/' + user1.body.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
 			.set('Cookie', user1Cookie)
-			.expect(403, { msg: 'Cannot reschedule to a trackday <' + process.env.DAYS_LOCKOUT + ' days away.' })
+			.expect(403, { msg: ['Cannot reschedule to a trackday <' + process.env.DAYS_LOCKOUT + ' days away.'] })
 		// As admin
 		await request(app)
 			.put('/register/' + user1.body.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
@@ -1507,7 +1507,7 @@ describe('Testing rescheduling', () => {
 			.put('/register/' + user1.body.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
-			.expect(403, { msg: 'trackday has reached capacity' })
+			.expect(403, { msg: ['Trackday has reached capacity'] })
 		// As admin
 		await request(app)
 			.put('/register/' + user1.body.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
@@ -1854,7 +1854,7 @@ describe('Testing checkin', () => {
 		await request(app)
 			.post('/checkin/' + user1.body.id + '/' + trackday.body.id + '/' + bike.body.id)
 			.set('Cookie', adminCookie)
-			.expect(403, { msg: 'member already checked in with this bike' })
+			.expect(403, { msg: ['Already checked in with this bike'] })
 	})
 
 	test("check in multiple bikes", async () => {
@@ -1920,7 +1920,7 @@ describe('Testing checkin', () => {
 		await request(app)
 			.post('/checkin/' + user1.body.id + '/' + trackday.body.id + '/' + bike.body.id)
 			.set('Cookie', adminCookie)
-			.expect(403, { msg: 'Member is not registered for that trackday' })
+			.expect(403, { msg: ['Not registered for trackday'] })
 	})
 
 	test("not marked as paid", async () => {
@@ -1944,7 +1944,7 @@ describe('Testing checkin', () => {
 		await request(app)
 			.post('/checkin/' + user1.body.id + '/' + trackday.body.id + '/' + bike.body.id)
 			.set('Cookie', adminCookie)
-			.expect(403, { msg: 'member is not paid' })
+			.expect(403, { msg: ['Not paid','Missing waiver'] })
 	})
 
 	test("missing waiver", async () => {
@@ -1975,7 +1975,7 @@ describe('Testing checkin', () => {
 		await request(app)
 			.post('/checkin/' + user1.body.id + '/' + trackday.body.id + '/' + bike.body.id)
 			.set('Cookie', adminCookie)
-			.expect(403, { msg: 'member has not signed waiver' })
+			.expect(403, { msg: ['Missing waiver'] })
 	})
 	test("valid checkin", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
@@ -2365,7 +2365,7 @@ describe('Testing updatePaid', () => {
 			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ setPaid: 'true' })
-			.expect(403, { msg: 'user already marked as paid' })
+			.expect(403, { msg: ['user already marked as paid'] })
 	})
 
 	test("not registered for that day", async () => {
@@ -2376,7 +2376,7 @@ describe('Testing updatePaid', () => {
 			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ setPaid: 'true' })
-			.expect(403, { msg: 'Member is not registered for that trackday' })
+			.expect(403, { msg: ['Member is not registered for that trackday'] })
 	})
 
 	test('gate registration', async () => {
