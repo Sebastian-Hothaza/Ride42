@@ -26,9 +26,9 @@ function validateForm(req, res, next) {
 // Called by middleware functions
 // Verify that the req.params.userID is a valid objectID and that it exists in our DB
 async function validateUserID(req, res, next) {
-    if (!ObjectId.isValid(req.params.userID)) return res.status(400).send({ msg: 'userID is not a valid ObjectID' });
+    if (!ObjectId.isValid(req.params.userID)) return res.status(400).send({ msg: ['userID is not a valid ObjectID'] });
     const userExists = await User.exists({ _id: req.params.userID });
-    if (!userExists) return res.status(404).send({ msg: 'User does not exist' });
+    if (!userExists) return res.status(404).send({ msg: ['User does not exist'] });
     next();
 }
 
@@ -37,15 +37,15 @@ async function validateUserID(req, res, next) {
 async function validateTrackdayID(req, res, next) {
     // Special case for validating trackdayID's for reschedule
     if (req.params.trackdayID_OLD && req.params.trackdayID_NEW) {
-        if (!(ObjectId.isValid(req.params.trackdayID_OLD) && ObjectId.isValid(req.params.trackdayID_NEW))) return res.status(400).send({ msg: 'trackdayID is not a valid ObjectID' });
+        if (!(ObjectId.isValid(req.params.trackdayID_OLD) && ObjectId.isValid(req.params.trackdayID_NEW))) return res.status(400).send({ msg: ['trackdayID is not a valid ObjectID'] });
         const trackdayOLDExists = await Trackday.exists({ _id: req.params.trackdayID_OLD });
         const trackdayNEWExists = await Trackday.exists({ _id: req.params.trackdayID_NEW });
-        if (!(trackdayOLDExists && trackdayNEWExists)) return res.status(404).send({ msg: 'Trackday does not exist' });
+        if (!(trackdayOLDExists && trackdayNEWExists)) return res.status(404).send({ msg: ['Trackday does not exist'] });
         next();
     } else {
-        if (!ObjectId.isValid(req.params.trackdayID)) return res.status(400).send({ msg: 'trackdayID is not a valid ObjectID' });
+        if (!ObjectId.isValid(req.params.trackdayID)) return res.status(400).send({ msg: ['trackdayID is not a valid ObjectID'] });
         const trackdayExists = await Trackday.exists({ _id: req.params.trackdayID });
-        if (!trackdayExists) return res.status(404).send({ msg: 'Trackday does not exist' });
+        if (!trackdayExists) return res.status(404).send({ msg: ['Trackday does not exist'] });
         next();
     }
 }
@@ -54,9 +54,9 @@ async function validateTrackdayID(req, res, next) {
 // Verify that the req.params.bikeID is a valid objectID and that it exists in our DB
 // NOTE: makes no guarantee that the bikeID is actually present in the users garage!
 async function validateBikeID(req, res, next) {
-    if (!ObjectId.isValid(req.params.bikeID)) return res.status(400).send({ msg: 'bikeID is not a valid ObjectID' });
+    if (!ObjectId.isValid(req.params.bikeID)) return res.status(400).send({ msg: ['bikeID is not a valid ObjectID'] });
     const bikeExists = await Bike.exists({ _id: req.params.bikeID });
-    if (!bikeExists) return res.status(404).send({ msg: 'Bike does not exist' });
+    if (!bikeExists) return res.status(404).send({ msg: ['Bike does not exist'] });
     next();
 }
 
@@ -133,7 +133,7 @@ async function verifyJWT_LS(req, res, next) {
         // Get tokens from array
         const accessToken = bearer[1];
         const refreshToken = bearer[2];
-        if (!accessToken || !refreshToken) return res.status(401).send({ msg: 'JWT Tokens missing' });
+        if (!accessToken || !refreshToken) return res.status(401).send({ msg: ['JWT Tokens missing'] });
 
         // Try to verify JWT_ACCESS
         let payload // Represents the object in the JWT_ACCESS
@@ -171,7 +171,7 @@ async function verifyJWT_LS(req, res, next) {
         next();
     } else {
         // Forbidden
-        return res.status(401).send({ msg: 'JWT Tokens missing' });
+        return res.status(401).send({ msg: ['JWT Tokens missing'] });
     }
 }
 

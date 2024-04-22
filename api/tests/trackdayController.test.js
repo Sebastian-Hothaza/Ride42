@@ -289,14 +289,14 @@ describe('Testing trackday read', () => {
 		await request(app)
 			.get('/trackdays/invalid')
 			.set('Cookie', adminCookie)
-			.expect(400, { msg: 'trackdayID is not a valid ObjectID' })
+			.expect(400, { msg: ['trackdayID is not a valid ObjectID'] })
 	});
 	test("get invalid trackdayID trackday", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
 			.get('/trackdays/' + '1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1')
 			.set('Cookie', adminCookie)
-			.expect(404, { msg: 'Trackday does not exist' })
+			.expect(404, { msg: ['Trackday does not exist'] })
 	});
 
 	test("get specific trackday from DB - no JWT", async () => {
@@ -364,7 +364,7 @@ describe('Testing trackday update', () => {
 			.put('/trackdays/invalid')
 			.set('Cookie', adminCookie)
 			.type('form').send({ date: getFormattedDate(10), guests: 0, status: 'regOpen', layout: 'technical' })
-			.expect(400, { msg: 'trackdayID is not a valid ObjectID' })
+			.expect(400, { msg: ['trackdayID is not a valid ObjectID'] })
 	});
 	test("update invalid trackdayID trackday", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
@@ -372,7 +372,7 @@ describe('Testing trackday update', () => {
 			.put('/trackdays/' + '1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1')
 			.set('Cookie', adminCookie)
 			.type('form').send({ date: getFormattedDate(10), guests: 0, status: 'regOpen', layout: 'technical' })
-			.expect(404, { msg: 'Trackday does not exist' })
+			.expect(404, { msg: ['Trackday does not exist'] })
 	});
 
 	test("update trackday - missing fields", async () => {
@@ -459,14 +459,14 @@ describe('Testing trackday delete', () => {
 		await request(app)
 			.delete('/trackdays/invalid')
 			.set('Cookie', adminCookie)
-			.expect(400, { msg: 'trackdayID is not a valid ObjectID' })
+			.expect(400, { msg: ['trackdayID is not a valid ObjectID'] })
 	});
 	test("get invalid trackdayID trackday", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
 			.delete('/trackdays/' + '1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1')
 			.set('Cookie', adminCookie)
-			.expect(404, { msg: 'Trackday does not exist' })
+			.expect(404, { msg: ['Trackday does not exist'] })
 	});
 
 	test("delete trackday from DB - no JWT", async () => {
@@ -504,7 +504,7 @@ describe('Testing registering', () => {
 			.post('/register/' + user1.body.id + '/invalid')
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.set('Cookie', adminCookie)
-			.expect(400, { msg: 'trackdayID is not a valid ObjectID' })
+			.expect(400, { msg: ['trackdayID is not a valid ObjectID'] })
 	});
 	test("invalid trackdayID trackday", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
@@ -512,7 +512,7 @@ describe('Testing registering', () => {
 			.post('/register/' + user1.body.id + '/1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1')
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.set('Cookie', adminCookie)
-			.expect(404, { msg: 'Trackday does not exist' })
+			.expect(404, { msg: ['Trackday does not exist'] })
 	});
 	test("invalid objectID user", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
@@ -520,7 +520,7 @@ describe('Testing registering', () => {
 			.post('/register/' + 'invalid/' + trackday.body.id)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.set('Cookie', adminCookie)
-			.expect(400, { msg: 'userID is not a valid ObjectID' })
+			.expect(400, { msg: ['userID is not a valid ObjectID'] })
 	});
 	test("invalid userID user", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
@@ -528,7 +528,7 @@ describe('Testing registering', () => {
 			.post('/register/' + '1' + user1.body.id.slice(1, user1.body.id.length - 1) + '1' + '/' + trackday.body.id)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.set('Cookie', adminCookie)
-			.expect(404, { msg: 'User does not exist' })
+			.expect(404, { msg: ['User does not exist'] })
 	});
 
 	test("missing fields", async () => {
@@ -974,28 +974,28 @@ describe('Testing un-registering', () => {
 		await request(app)
 			.delete('/register/' + user1.body.id + '/invalid')
 			.set('Cookie', adminCookie)
-			.expect(400, { msg: 'trackdayID is not a valid ObjectID' })
+			.expect(400, { msg: ['trackdayID is not a valid ObjectID'] })
 	});
 	test("invalid trackdayID trackday", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
 			.delete('/register/' + user1.body.id + '/1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1')
 			.set('Cookie', adminCookie)
-			.expect(404, { msg: 'Trackday does not exist' })
+			.expect(404, { msg: ['Trackday does not exist'] })
 	});
 	test("invalid objectID user", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
 			.delete('/register/' + 'invalid/' + trackday.body.id)
 			.set('Cookie', adminCookie)
-			.expect(400, { msg: 'userID is not a valid ObjectID' })
+			.expect(400, { msg: ['userID is not a valid ObjectID'] })
 	});
 	test("invalid userID user", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
 			.delete('/register/' + '1' + user1.body.id.slice(1, user1.body.id.length - 1) + '1' + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
-			.expect(404, { msg: 'User does not exist' })
+			.expect(404, { msg: ['User does not exist'] })
 	});
 
 	test("no JWT", async () => {
@@ -1215,7 +1215,7 @@ describe('Testing rescheduling', () => {
 		await request(app)
 			.put('/register/' + user1.body.id + '/invalid/invalid')
 			.set('Cookie', adminCookie)
-			.expect(400, { msg: 'trackdayID is not a valid ObjectID' })
+			.expect(400, { msg: ['trackdayID is not a valid ObjectID'] })
 	});
 	test("invalid trackdayID trackday", async () => {
 		const trackday1 = await addTrackday(getFormattedDate(5))
@@ -1223,7 +1223,7 @@ describe('Testing rescheduling', () => {
 		await request(app)
 			.put('/register/' + user1.body.id + '/1' + trackday1.body.id.slice(1, trackday1.body.id.length - 1) + '1' + '/1' + trackday2.body.id.slice(1, trackday2.body.id.length - 1) + '1')
 			.set('Cookie', adminCookie)
-			.expect(404, { msg: 'Trackday does not exist' })
+			.expect(404, { msg: ['Trackday does not exist'] })
 	});
 	test("invalid objectID user", async () => {
 		const trackday1 = await addTrackday(getFormattedDate(5))
@@ -1231,7 +1231,7 @@ describe('Testing rescheduling', () => {
 		await request(app)
 			.put('/register/' + 'invalid/' + trackday1.body.id + '/' + trackday2.body.id)
 			.set('Cookie', adminCookie)
-			.expect(400, { msg: 'userID is not a valid ObjectID' })
+			.expect(400, { msg: ['userID is not a valid ObjectID'] })
 	});
 	test("invalid userID user", async () => {
 		const trackday1 = await addTrackday(getFormattedDate(5))
@@ -1239,7 +1239,7 @@ describe('Testing rescheduling', () => {
 		await request(app)
 			.put('/register/' + '1' + user1.body.id.slice(1, user1.body.id.length - 1) + '1' + '/' + trackday1.body.id + '/' + trackday2.body.id)
 			.set('Cookie', adminCookie)
-			.expect(404, { msg: 'User does not exist' })
+			.expect(404, { msg: ['User does not exist'] })
 	});
 
 	test("no JWT", async () => {
@@ -1595,7 +1595,7 @@ describe('Testing walkons', () => {
 			.post('/walkons/invalid/')
 			.type('form').send({ firstName: 'John', lastName: 'Doe', group: 'yellow' })
 			.set('Cookie', adminCookie)
-			.expect(400, { msg: 'trackdayID is not a valid ObjectID' })
+			.expect(400, { msg: ['trackdayID is not a valid ObjectID'] })
 	});
 	test("invalid trackdayID trackday", async () => {
 
@@ -1604,7 +1604,7 @@ describe('Testing walkons', () => {
 			.post('/walkons/' + '1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1')
 			.type('form').send({ firstName: 'John', lastName: 'Doe', group: 'yellow' })
 			.set('Cookie', adminCookie)
-			.expect(404, { msg: 'Trackday does not exist' })
+			.expect(404, { msg: ['Trackday does not exist'] })
 	});
 
 	test("missing fields", async () => {
@@ -1704,20 +1704,20 @@ describe('Testing checkin', () => {
 		await request(app)
 			.post('/checkin/' + 'invalid/' + trackday.body.id + '/someBikeID')
 			.set('Cookie', adminCookie)
-			.expect(400, { msg: 'userID is not a valid ObjectID' })
+			.expect(400, { msg: ['userID is not a valid ObjectID'] })
 	});
 	test("invalid userID user", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
 			.post('/checkin/' + '1' + user1.body.id.slice(1, user1.body.id.length - 1) + '1' + '/' + trackday.body.id + '/someBikeID')
 			.set('Cookie', adminCookie)
-			.expect(404, { msg: 'User does not exist' })
+			.expect(404, { msg: ['User does not exist'] })
 	});
 	test("invalid objectID trackday", async () => {
 		await request(app)
 			.post('/checkin/' + user1.body.id + '/invalid/someBikeID')
 			.set('Cookie', adminCookie)
-			.expect(400, { msg: 'trackdayID is not a valid ObjectID' })
+			.expect(400, { msg: ['trackdayID is not a valid ObjectID'] })
 	});
 	test("invalid trackdayID trackday", async () => {
 
@@ -1725,7 +1725,7 @@ describe('Testing checkin', () => {
 		await request(app)
 			.post('/checkin/' + user1.body.id + '/1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1' + '/someBikeID')
 			.set('Cookie', adminCookie)
-			.expect(404, { msg: 'Trackday does not exist' })
+			.expect(404, { msg: ['Trackday does not exist'] })
 	});
 	test("verify for invalid objectID bike", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
@@ -1733,7 +1733,7 @@ describe('Testing checkin', () => {
 		await request(app)
 			.post('/checkin/' + user1.body.id + '/' + trackday.body.id + '/invalid')
 			.set('Cookie', adminCookie)
-			.expect(400, { msg: 'bikeID is not a valid ObjectID' })
+			.expect(400, { msg: ['bikeID is not a valid ObjectID'] })
 	});
 	test("verify for invalid bikeID bike", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
@@ -1749,7 +1749,7 @@ describe('Testing checkin', () => {
 		await request(app)
 			.post('/checkin/' + user1.body.id + '/' + trackday.body.id + '/1' + bike.body.id.slice(1, bike.body.id.length - 1) + '1')
 			.set('Cookie', adminCookie)
-			.expect(404, { msg: 'Bike does not exist' })
+			.expect(404, { msg: ['Bike does not exist'] })
 	});
 
 	test("no JWT", async () => {
@@ -2122,12 +2122,12 @@ describe('Testing presentTrackdaysForUser', () => {
 	test("get trackdays for invalid objectID user", async () => {
 		await request(app)
 			.get("/presentTrackdays/invalid")
-			.expect(400, { msg: 'userID is not a valid ObjectID' })
+			.expect(400, { msg: ['userID is not a valid ObjectID'] })
 	});
 	test("invalid userID user", async () => {
 		await request(app)
 			.get("/presentTrackdays/" + '1' + user1.body.id.slice(1, user1.body.id.length - 1) + '1')
-			.expect(404, { msg: 'User does not exist' })
+			.expect(404, { msg: ['User does not exist'] })
 	});
 
 	test("presentTrackdaysForUser - no trackdays", async () => {
@@ -2271,7 +2271,7 @@ describe('Testing updatePaid', () => {
 			.put('/paid/' + 'invalid/' + trackday.body.id)
 			.type('form').send({ setPaid: 'true' })
 			.set('Cookie', adminCookie)
-			.expect(400, { msg: 'userID is not a valid ObjectID' })
+			.expect(400, { msg: ['userID is not a valid ObjectID'] })
 	});
 	test("invalid userID user", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
@@ -2279,14 +2279,14 @@ describe('Testing updatePaid', () => {
 			.put('/paid/' + '1' + user1.body.id.slice(1, user1.body.id.length - 1) + '1' + '/' + trackday.body.id)
 			.type('form').send({ setPaid: 'true' })
 			.set('Cookie', adminCookie)
-			.expect(404, { msg: 'User does not exist' })
+			.expect(404, { msg: ['User does not exist'] })
 	});
 	test("invalid objectID trackday", async () => {
 		await request(app)
 			.put('/paid/' + user1.body.id + '/invalid/')
 			.type('form').send({ setPaid: 'true' })
 			.set('Cookie', adminCookie)
-			.expect(400, { msg: 'trackdayID is not a valid ObjectID' })
+			.expect(400, { msg: ['trackdayID is not a valid ObjectID'] })
 	});
 	test("invalid trackdayID trackday", async () => {
 
@@ -2295,7 +2295,7 @@ describe('Testing updatePaid', () => {
 			.put('/paid/' + user1.body.id + '/1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1')
 			.type('form').send({ setPaid: 'true' })
 			.set('Cookie', adminCookie)
-			.expect(404, { msg: 'Trackday does not exist' })
+			.expect(404, { msg: ['Trackday does not exist'] })
 	});
 
 	test("missing fields", async () => {
