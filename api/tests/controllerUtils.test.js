@@ -135,13 +135,13 @@ describe('Testing validateUserID', () => {
 	test("validateUserID of invalid objectID user", async () => {
 		await request(app)
 			.get("/testValidateUserID/invalid")
-			.expect(403, { msg: 'userID is not a valid ObjectID' })
+			.expect(400, { msg: 'userID is not a valid ObjectID' })
 	});
 
 	test("validateUserID of invalid userID user", async() => {
 		await request(app)
 		.get("/testValidateUserID/65fc44763da41baa7a275f74") // Some random but known valid objectID
-		.expect(403, { msg: 'User does not exist' })
+		.expect(404, { msg: 'User does not exist' })
 	});
 })
 
@@ -155,13 +155,13 @@ describe('Testing validateTrackdayID', () => {
 	test("validateTrackdayID of invalid objectID trackday", async () => {
 		await request(app)
 			.get("/testValidateTrackdayID/invalid")
-			.expect(403, { msg: 'trackdayID is not a valid ObjectID' })
+			.expect(400, { msg: 'trackdayID is not a valid ObjectID' })
 	});
 
 	test("validateUserID of invalid objectID trackday", async() => {
 		await request(app)
 		.get("/testValidateTrackdayID/65fc44763da41baa7a275f74") // Some random but known valid objectID
-		.expect(403, { msg: 'Trackday does not exist' })
+		.expect(404, { msg: 'Trackday does not exist' })
 	});
 })
 
@@ -175,13 +175,13 @@ describe('Testing validateBikeID', () => {
 	test("validateBikeID of invalid objectID bike", async () => {
 		await request(app)
 			.get("/testValidateBikeID/invalid")
-			.expect(403, { msg: 'bikeID is not a valid ObjectID' })
+			.expect(400, { msg: 'bikeID is not a valid ObjectID' })
 	});
 
 	test("validateBikeID of invalid bikeID bike", async() => {
 		await request(app)
 			.get("/testValidateBikeID/6604aa217c21ab6eb042bc6a") // Some random but known valid objectID
-			.expect(403, { msg: 'Bike does not exist' })
+			.expect(404, { msg: 'Bike does not exist' })
 	});
 })
 
