@@ -937,7 +937,7 @@ describe('Testing password update', () => {
 			.type("form")
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.send({ oldPassword: 'WrongPassword123', newPassword: 'ValidPassword1' })
-			.expect(403, { msg: "Old password is incorrect" });
+			.expect(403, { msg: ['Old password is incorrect'] });
 	});
 
 	test("update password for a user - incorrect old password - as admin", async () => {
@@ -1341,7 +1341,7 @@ describe('Delete bikes from a user garage', () => {
 		await request(app)
 			.delete("/garage/" + user.body.id + '/' + bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(403, { msg: "this bike does not exist in your garage" });
+			.expect(404, { msg: ['this bike does not exist in your garage'] });
 	});
 
 	test("remove bike from garage", async () => {
@@ -1452,7 +1452,7 @@ describe('Request QR code', () => {
 		await request(app)
 			.post("/qrcode/" + user.body.id + '/' + bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(403, { msg: "this bike does not exist in your garage" });
+			.expect(404, { msg: ['this bike does not exist in your garage'] });
 	});
 
 	test("request code", async () => {

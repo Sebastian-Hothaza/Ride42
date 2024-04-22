@@ -272,7 +272,7 @@ describe('Testing trackday create', () => {
 			.post("/trackdays")
 			.set('Cookie', adminCookie)
 			.type("form").send({ 'date': '2500-06-05T14:00Z' })
-			.expect(409, { msg: 'Trackday with this date and time already exists' })
+			.expect(409, { msg: ['Trackday with this date and time already exists'] })
 	});
 
 	test("add trackday to DB", async () => {

@@ -18,19 +18,19 @@ const mailTemplates = require('../mailer_templates')
 
 /*
     --------------------------------------------- TODO ---------------------------------------------
-    add 2 cookie authentication so logout funtion is secured on front end - or API endpoint for logging out
-    edit so error messages get sent out as array ALWAYS (Ie. msg: ['errormsg'])
-    add checks for deleting users, refuse deletion if users are registered for trackday
-    add checks for deleting bikes, refuse deletion if bikes are existing in peoples garages
-    make back end handle case where user is deleted but still a member of some td
-    cookie expiration synchronization. When pulling refresh token from DB and loading to user, the expiration of the cookie mismatches the expiration of the jwt
+    API endpoint for logging out
+    
     code cleanup & review
     --------------------------------------------- TODO ---------------------------------------------
 */
 
 /*
     --------------------------------------- FOR LATER REVIEW ---------------------------------------
-    
+    validation for selectively provided fields (Ie. firstName validation for when updating user by admin)
+    add checks for deleting users, refuse deletion if users are registered for trackday
+    add checks for deleting bikes, refuse deletion if bikes are existing in peoples garages
+    make back end handle case where user is deleted but still a member of some td
+    cookie expiration synchronization. When pulling refresh token from DB and loading to user, the expiration of the cookie mismatches the expiration of the jwt
     --------------------------------------- FOR LATER REVIEW ---------------------------------------
 */
 
@@ -79,7 +79,7 @@ exports.login = [
                 // Attach JWT in response body
                 return res.status(200).json({ id: user.id, firstName: user.firstName, memberType: user.memberType });
             } else {
-                return res.status(403).json({ msg: 'Incorrect Password' });
+                return res.status(403).json({ msg: ['Incorrect Password'] });
             }
         } else {
             return res.status(403).json({ msg: 'No user exists with this email' });
@@ -110,7 +110,7 @@ exports.updatePassword = [
                     await sendEmail(user.contact.email, "Your Password has been updated", mailTemplates.passwordChange, { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) })
                     res.sendStatus(200);
                 } else {
-                    res.status(403).send({ msg: "Old password is incorrect" });
+                    res.status(403).send({ msg: ['Old password is incorrect'] });
                 }
             })
             return // This return returns from the async handler fn
@@ -162,7 +162,7 @@ exports.garage_post = [
            
             // Check if user already has this bike in their garage
             for (let i = 0; i < user.garage.length; i++) {
-                if (user.garage[i].bike.equals(bike.id)) return res.status(409).send({ msg: 'Bike with these details already exists' });
+                if (user.garage[i].bike.equals(bike.id)) return res.status(409).send({ msg: ['Bike with these details already exists'] });
             }
 
             // Add QR info
@@ -190,13 +190,13 @@ exports.garage_delete = [
 
             // Verify the bikeID is actually in the users garage
             const hasBike = user.garage.some((garageEntry) => garageEntry.bike.equals(req.params.bikeID))
-            if (!hasBike) return res.status(403).send({ msg: "this bike does not exist in your garage" })
+            if (!hasBike) return res.status(404).send({ msg: ['this bike does not exist in your garage'] })
 
             const numBikesOriginally = user.garage.length;
             user.garage = user.garage.filter((garageEntry) => (!garageEntry.bike.equals(req.params.bikeID)))
 
             await user.save()
-            return (numBikesOriginally > user.garage.length) ? res.sendStatus(200) : res.sendStatus(403) //TODO: Change this to 400
+            return (numBikesOriginally > user.garage.length) ? res.sendStatus(200) : res.sendStatus(400)
         }
         return res.sendStatus(403)
     }),
@@ -214,7 +214,7 @@ exports.requestQRCode = [
 
             // Verify the bikeID is actually in the users garage
             const hasBike = user.garage.some((garageEntry) => garageEntry.bike.equals(req.params.bikeID))
-            if (!hasBike) res.status(403).send({ msg: "this bike does not exist in your garage" })
+            if (!hasBike) res.status(404).send({ msg: ['this bike does not exist in your garage'] })
 
             await sendEmail(process.env.ADMIN_EMAIL, "QR CODE REQUEST", mailTemplates.QRCodeRequest,
                 { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), userID: req.params.userID, bikeID: req.params.bikeID })
@@ -477,24 +477,3 @@ exports.admin = [
         })
     }),
 ]
-
-/*
-exports.service = asyncHandler(async (req,res,next) => {
-    let users = await User.find().populate("garage.bike", '-__v').select('-password -refreshToken -__v').exec();
-    for (let i=0; i<users.length; i++){ // go through all users
-
-        for (let j=0; j<users[i].garage.length; j++){ //Go through garage of each user
-            if (users[i].garage[j].qr === 'temp'){
-                // console.log(users[i].id)
-                // console.log(users[i].garage[j].bike.id)
-                const b64QR = await controllerUtils.generateQR('https://ride42.ca/dashboard/' + users[i].id + '/' + users[i].garage[j].bike.id);
-                users[i].garage[j].qr = b64QR;
-                await users[i].save();
-            }
-            
-        }
-    }
-    
-    return res.sendStatus(200);
-})
-*/

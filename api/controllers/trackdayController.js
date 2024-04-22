@@ -30,9 +30,8 @@ gate always marked as paid
     optimization, ie. validateUserID fetches user from DB, avoid double fetching later in the processing
     look into migrating updates to use save - codebase wide
     send email 12h after user check in requesting a review
-    email signature image WITHOUT showing up as attachment - possible?
+    email signature image WITHOUT showing up as attachment - possible? Base64 encoded?
     review validation chain setup
-    case insensitivity for garage (Ie. 2009 Yamaha R6 and 2009 YAMAHA r6 should be same entry in bikes DB)
     optimize tests
     --------------------------------------- FOR LATER REVIEW ---------------------------------------
 */
@@ -111,7 +110,7 @@ exports.register = [
 
             // Deny gate registrations unless they come from staff or admin
             if (req.body.paymentMethod === 'gate' && req.user.memberType !== 'admin' && req.user.memberType !== 'staff') {
-                return res.status(403).send({ msg: "only staff or admins can process gate registrations" })
+                return res.status(403).send({ msg: ['only staff or admins can process gate registrations'] })
             }
 
             // Deny if user is already registered to trackday
@@ -496,13 +495,13 @@ exports.trackday_post = [
         if (req.user.memberType === 'admin') {
             // Check if a trackday already exists with same date and time details
             const duplicateTrackday = await Trackday.find({ date: { $eq: req.body.date } })
-            if (duplicateTrackday.length) return res.status(409).send({ msg: 'Trackday with this date and time already exists' });
+            if (duplicateTrackday.length) return res.status(409).send({ msg: ['Trackday with this date and time already exists'] });
             // Create trackday
             const trackday = new Trackday({
                 date: req.body.date,
                 members: [],
                 walkons: [],
-                status: "regOpen",
+                status: 'regOpen',
                 layout: 'tbd'
             })
             await trackday.save();
@@ -531,7 +530,7 @@ exports.trackday_put = [
             // Check for duplicates
             const duplicateTrackday = await Trackday.findOne({ date: { $eq: req.body.date } })
             const requestedUpdateDate = new Date(req.body.date).toISOString()
-            if (duplicateTrackday && requestedUpdateDate !== oldTrackday.date.toISOString()) return res.status(409).send({ msg: 'Trackday with this date and time already exists' });
+            if (duplicateTrackday && requestedUpdateDate !== oldTrackday.date.toISOString()) return res.status(409).send({ msg: ['Trackday with this date and time already exists'] });
 
             // Create trackday
             const trackday = new Trackday({
