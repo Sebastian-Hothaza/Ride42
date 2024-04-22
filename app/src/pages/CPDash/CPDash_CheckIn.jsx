@@ -71,7 +71,7 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
             </div>
             <Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}></Modal>
             <Modal open={showNotificationModal.show} type='notification' text={showNotificationModal.msg} onClose={() => setShowNotificationModal('')}></Modal>
-            <Modal open={failModal.show} type='confirmation' text={`Error: \n ${failModal.msg}`} onClose={() =>{ setFailModal(''); failModal.scanner.start()}}
+            <Modal open={failModal.show} type='confirmation' text={`Error: \n ${failModal.msg && failModal.msg.join('\n')}`} onClose={() =>{ setFailModal(''); failModal.scanner.start()}}
                 okText="" closeText="Close" ></Modal>
         </>
     );
