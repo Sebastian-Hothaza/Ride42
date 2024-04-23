@@ -6,12 +6,13 @@ const app = express();
 
 // Simulate slow network
 const simulateSlowNetowrk = false;
+const delay = 2000;
 if (simulateSlowNetowrk) {
   const sleep = (ms) => new Promise(
     resolve => setTimeout(resolve, ms));
   app.use(async (req, res, next) => {
-    console.log('Simulating slow server')
-    await sleep(4000)
+    console.log('Simulating slow server',delay,'ms')
+    await sleep(delay)
     next();
   })
 }
