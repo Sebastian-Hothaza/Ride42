@@ -170,7 +170,7 @@ exports.register = [
 
             await trackday.save();
             if (req.body.paymentMethod !== 'gate') { //We do not send email on gate registrations
-                await sendEmail(user.contact.email, "Ride42 Trackday Registration Confirmation", mailTemplates.registerTrackday,
+                sendEmail(user.contact.email, "Ride42 Trackday Registration Confirmation", mailTemplates.registerTrackday,
                     { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) })
             }
 
@@ -222,11 +222,11 @@ exports.unregister = [
             }
             await trackday.save();
             // Send email to user
-            await sendEmail(user.contact.email, "Ride42 Trackday Cancellation Confirmation", mailTemplates.unregisterTrackday,
+            sendEmail(user.contact.email, "Ride42 Trackday Cancellation Confirmation", mailTemplates.unregisterTrackday,
                 { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) })
             // Notify admin only if payment wasn't made with credit (credit is auto refunded)
             if (memberEntry.paymentMethod !== 'credit') {
-                await sendEmail(process.env.ADMIN_EMAIL, "TRACKDAY CANCELATION", mailTemplates.unregisterTrackday_admin,
+                sendEmail(process.env.ADMIN_EMAIL, "TRACKDAY CANCELATION", mailTemplates.unregisterTrackday_admin,
                     { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) })
             }
             return res.sendStatus(200);
@@ -299,7 +299,7 @@ exports.reschedule = [
             trackdayOLD.members = trackdayOLD.members.filter((member) => !member.user.equals(req.params.userID))
             await trackdayOLD.save();
 
-            await sendEmail(user.contact.email, "Ride42 Trackday Reschedule Confirmation", mailTemplates.rescheduleTrackday,
+            sendEmail(user.contact.email, "Ride42 Trackday Reschedule Confirmation", mailTemplates.rescheduleTrackday,
                 { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), dateOLD: trackdayOLD.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }), dateNEW: trackdayNEW.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) })
             return res.sendStatus(200);
         }
@@ -452,7 +452,7 @@ exports.updatePaid = [
 
             // Send email confirmation to user
             if (memberEntry.paid) {
-                await sendEmail(memberEntry.user.contact.email, "Payment Confirmation", mailTemplates.notifyPaid, {
+                sendEmail(memberEntry.user.contact.email, "Payment Confirmation", mailTemplates.notifyPaid, {
                     name: memberEntry.user.firstName.charAt(0).toUpperCase() + memberEntry.user.firstName.slice(1),
                     date: trackday.date.toLocaleString('default', {
                         weekday: 'long', month: 'long', day: 'numeric'

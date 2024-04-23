@@ -1,6 +1,6 @@
 const nodemailer = require("nodemailer");
 
-// Usage example: if (process.env.NODE_ENV === 'production') await sendEmail("JohnDoe@gmail.com", "Hello from NodeMailer", mailTemplates.helloWorld, {name: "Joe"})
+// Usage example: if (process.env.NODE_ENV === 'production') sendEmail("JohnDoe@gmail.com", "Hello from NodeMailer", mailTemplates.helloWorld, {name: "Joe"})
 
 // Configure email sender info
 const transporter = nodemailer.createTransport({
