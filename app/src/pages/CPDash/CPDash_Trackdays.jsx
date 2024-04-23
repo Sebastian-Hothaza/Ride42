@@ -306,13 +306,13 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 				{activeModal.msg}
 			</Loading>
 
-			<Modal open={activeModal.type === 'success'} type='testing' >
+			<Modal open={activeModal.type === 'success'}>
 				<div className={modalStyles.modalNotif}></div>
 				<img id={modalStyles.modalCheckmarkIMG} src={checkmark} alt="checkmark icon" />
 				{activeModal.msg}
 			</Modal>
 
-			<Modal open={activeModal.type === 'failure'} type='testing' >
+			<Modal open={activeModal.type === 'failure'}>
 				<div className={modalStyles.modalNotif}></div>
 				<img id={modalStyles.modalCheckmarkIMG} src={errormark} alt="error icon" />
 				{activeModal.msg}
@@ -322,7 +322,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 
 
-			<Modal open={activeModal.type === 'cancel'} type='testing' >
+			<Modal open={activeModal.type === 'cancel'}>
 				<>
 					Are you sure you want to cancel this trackday?
 					<button className={`actionButton ${styles.confirmBtn}`} onClick={() => handleCancelTrackdaySubmit(activeModal.trackday.id)}>Yes, cancel it</button>
@@ -332,7 +332,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 
 
-			<Modal open={activeModal.type === 'reschedule'} type='testing'>
+			<Modal open={activeModal.type === 'reschedule'}>
 				<>
 					Which day do you want to reschedule to?
 					<form onSubmit={(e) => handleRescheduleSubmit(e, activeModal.trackday.id, e.target.result.value)}>

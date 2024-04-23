@@ -139,20 +139,20 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 				{activeModal.msg}
 			</Loading>
 
-			<Modal open={activeModal.type === 'success'} type='testing' >
+			<Modal open={activeModal.type === 'success'}>
 				<div className={modalStyles.modalNotif}></div>
 				<img id={modalStyles.modalCheckmarkIMG} src={checkmark} alt="checkmark icon" />
 				{activeModal.msg}
 			</Modal>
 
-			<Modal open={activeModal.type === 'failure'} type='testing' >
+			<Modal open={activeModal.type === 'failure'}>
 				<div className={modalStyles.modalNotif}></div>
 				<img id={modalStyles.modalCheckmarkIMG} src={errormark} alt="error icon" />
 				{activeModal.msg}
 				<button className='actionButton' onClick={() => setActiveModal('')}>Close</button>
 			</Modal>
 
-			<Modal open={activeModal.type === 'addBikeConfirm'} type='testing'>
+			<Modal open={activeModal.type === 'addBikeConfirm'}>
 				<>
 					Your bike has been added to your garage. We have created a QR code for you which will be available for pickup at the next trackday.
 					<button className={`actionButton ${styles.confirmBtn}`} onClick={()=>setActiveTab('trackdays')}>Go to My Trackdays</button>
@@ -160,7 +160,7 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 				</>
 			</Modal>
 
-			<Modal open={activeModal.type === 'qrConfirm'} type='testing'>
+			<Modal open={activeModal.type === 'qrConfirm'}>
 				<>
 					We have created a QR code for you which will be available for pickup at the next trackday.
 					<button className='actionButton' onClick={() => setActiveModal('')}>Ok</button>

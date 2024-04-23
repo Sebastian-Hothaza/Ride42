@@ -85,13 +85,13 @@ const Waiver = ({ APIServer, fetchAPIData, allUsers }) => {
                 {activeModal.msg}
             </Loading>
 
-            <Modal open={activeModal.type === 'success'} type='testing' >
+            <Modal open={activeModal.type === 'success'}>
                 <div className={modalStyles.modalNotif}></div>
                 <img id={modalStyles.modalCheckmarkIMG} src={checkmark} alt="checkmark icon" />
                 {activeModal.msg}
             </Modal>
 
-            <Modal open={activeModal.type === 'failure'} type='testing' >
+            <Modal open={activeModal.type === 'failure'}>
                 <div className={modalStyles.modalNotif}></div>
                 <img id={modalStyles.modalCheckmarkIMG} src={errormark} alt="error icon" />
                 {activeModal.msg}
@@ -99,7 +99,7 @@ const Waiver = ({ APIServer, fetchAPIData, allUsers }) => {
             </Modal>
 
 
-            <Modal open={activeModal.type === 'confirmWaiver'} type='testing'>
+            <Modal open={activeModal.type === 'confirmWaiver'}>
                 <>
                     Does the waiver contain: Name, Date, Initials, Signature?
                     <button className={`actionButton ${styles.confirmBtn}`} onClick={() => handleWaiverSubmit(activeModal.userID)}>Yes</button>

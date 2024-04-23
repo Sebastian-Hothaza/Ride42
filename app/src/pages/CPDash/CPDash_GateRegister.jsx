@@ -139,20 +139,20 @@ const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
                 {activeModal.msg}
             </Loading>
 
-            <Modal open={activeModal.type === 'success'} type='testing' >
+            <Modal open={activeModal.type === 'success'}>
                 <div className={modalStyles.modalNotif}></div>
                 <img id={modalStyles.modalCheckmarkIMG} src={checkmark} alt="checkmark icon" />
                 {activeModal.msg}
             </Modal>
 
-            <Modal open={activeModal.type === 'failure'} type='testing' >
+            <Modal open={activeModal.type === 'failure'}>
                 <div className={modalStyles.modalNotif}></div>
                 <img id={modalStyles.modalCheckmarkIMG} src={errormark} alt="error icon" />
                 {activeModal.msg}
                 <button className='actionButton' onClick={() => setActiveModal('')}>Close</button>
             </Modal>
 
-            <Modal open={activeModal.type === 'waiverWarning'} type='testing' text='' >
+            <Modal open={activeModal.type === 'waiverWarning'}>
                 <>
                     Waiver not on file! Please make sure to collect a waiver for this user!
                     <button className='actionButton' onClick={() => updateWaiver(activeModal.userID) }>Ok</button>

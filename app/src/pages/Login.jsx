@@ -64,7 +64,7 @@ const Login = () => {
 				{activeModal.msg}
 			</Loading>
 
-            <Modal open={activeModal.type === 'failure'} type='testing' >
+            <Modal open={activeModal.type === 'failure'}>
 				<div className={modalStyles.modalNotif}></div>
 				<img id={modalStyles.modalCheckmarkIMG} src={errormark} alt="error icon" />
 				{activeModal.msg}

@@ -245,20 +245,20 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 				{activeModal.msg}
 			</Loading>
 
-			<Modal open={activeModal.type === 'success'} type='testing' >
+			<Modal open={activeModal.type === 'success'}>
 				<div className={modalStyles.modalNotif}></div>
 				<img id={modalStyles.modalCheckmarkIMG} src={checkmark} alt="checkmark icon" />
 				{activeModal.msg}
 			</Modal>
 
-			<Modal open={activeModal.type === 'failure'} type='testing' >
+			<Modal open={activeModal.type === 'failure'}>
 				<div className={modalStyles.modalNotif}></div>
 				<img id={modalStyles.modalCheckmarkIMG} src={errormark} alt="error icon" />
 				{activeModal.msg}
 				<button className='actionButton' onClick={() => setActiveModal('')}>Close</button>
 			</Modal>
 
-			<Modal open={activeModal.type === 'selectGroup'} type='testing'>
+			<Modal open={activeModal.type === 'selectGroup'}>
 				<>
 					Which group?
 					<form onSubmit={(e) => handleUserGroupSubmit(e, e.target.result.value)}>

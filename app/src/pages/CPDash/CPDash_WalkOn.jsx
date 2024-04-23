@@ -100,13 +100,13 @@ const WalkOn = ({ APIServer, fetchAPIData, allTrackdays }) => {
 				{activeModal.msg}
 			</Loading>
 
-            <Modal open={activeModal.type === 'success'} type='testing' >
+            <Modal open={activeModal.type === 'success'}>
 				<div className={modalStyles.modalNotif}></div>
 				<img id={modalStyles.modalCheckmarkIMG} src={checkmark} alt="checkmark icon" />
 				{activeModal.msg}
 			</Modal>
 
-			<Modal open={activeModal.type === 'failure'} type='testing' >
+			<Modal open={activeModal.type === 'failure'}>
 				<div className={modalStyles.modalNotif}></div>
 				<img id={modalStyles.modalCheckmarkIMG} src={errormark} alt="error icon" />
 				{activeModal.msg}
