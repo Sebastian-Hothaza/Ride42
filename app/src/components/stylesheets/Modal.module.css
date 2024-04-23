@@ -62,6 +62,12 @@
     white-space: pre-line;
 }
 
+.modal:has(> .modalNotif){
+    color: white;
+    background-color: transparent;
+    font-size: 2rem;
+}
+
 .modal form{
     display: flex;
     flex-direction: column;
@@ -84,11 +90,8 @@
     width: 300px;
 }
 
-#modalCheckmark{
-    color: white;
-    background-color: transparent;
-    font-size: 2rem;
-}
+
+
 
 #modalCheckmarkIMG{
     height: 200px;
