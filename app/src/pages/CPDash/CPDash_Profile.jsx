@@ -1,60 +1,30 @@
 import { useState } from "react";
 import ScrollToTop from "../../components/ScrollToTop";
+
 import Modal from "../../components/Modal";
+import Loading from '../../components/Loading';
+
 import styles from './stylesheets/CPDash_Profile.module.css'
+import modalStyles from '../../components/stylesheets/Modal.module.css'
+
+import checkmark from './../../assets/checkmark.png'
+import errormark from './../../assets/error.png'
+
+
 
 const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 
-	const [editUserInfo, setEditUserInfo] = useState(false); // Tracks if we are editing fields
-	const [editUserInfoErrors, setEditUserInfoErrors] = useState(); // Array corresponding to error messages received from API
-	const [changePswErrorMsg, setChangePswErrorMsg] = useState(); // Array corresponding to error messages received from API
-	const [pendingSubmit, setPendingSubmit] = useState('');
-	const [showChangeGroupModal, setShowChangeGroupModal] = useState(false);
-	const [showNotificationModal, setShowNotificationModal] = useState('');
+	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
+	
+	const [lockedUserInfo, setLockedUserInfo] = useState(true); // Tracks if we are editing fields
+
+
 
 	// Build array of groups user can switch into
 	let groupChange = [{ value: 'green', displayValue: 'Green (Novice)' }, { value: 'yellow', displayValue: 'Yellow (Intermediate)' }, { value: 'red', displayValue: 'Red (Advanced)' }]
 	// Remove group user is currently in from the array
-	groupChange = groupChange.filter((group)=>group.value !== userInfo.group)
+	groupChange = groupChange.filter((group) => group.value !== userInfo.group)
 
-	
-
-	async function handleEditUserInfoSubmit(e) {
-		e.preventDefault();
-		e.target.phone.value = e.target.phone.value.replace(/[^0-9]/g, '');
-		e.target.EmergencyPhone.value = e.target.EmergencyPhone.value.replace(/[^0-9]/g, '');
-		setPendingSubmit({ show: true, msg: 'Updating your profile' });
-		const formData = new FormData(e.target);
-		formData.append("group", userInfo.group);
-		try {
-			const response = await fetch(APIServer + 'users/' + userInfo._id, {
-				method: 'PUT',
-				credentials: "include",
-				headers: {
-					'Content-type': 'application/json; charset=UTF-8',
-				},
-				body: JSON.stringify(Object.fromEntries(formData))
-			})
-			if (response.ok) {
-				// Updating accessToken in LS
-				// const data = await response.json();
-				// if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
-
-				setEditUserInfo(false)
-				setEditUserInfoErrors('');
-				// TODO: Do we need to fetchapidata here? Maybe add it in before clearing out pending submit
-				setShowNotificationModal({ show: true, msg: 'Profile updated' });
-			} else if (response.status === 400 || response.status === 403 || response.status === 409) {
-				const data = await response.json();
-				setEditUserInfoErrors(data.msg)
-			} else {
-				throw new Error('API Failure')
-			}
-		} catch (err) {
-			console.log(err.message)
-		}
-		setPendingSubmit('');
-	}
 
 	function checkPhoneFormat() {
 		let input = document.getElementById('phone');
@@ -84,44 +54,10 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 		}
 	}
 
-	async function handleChangePasswordSubmit(e) {
-		e.preventDefault();
-		setPendingSubmit({ show: true, msg: 'Updating your password' });
-		const formData = new FormData(e.target);
-		try {
-			const response = await fetch(APIServer + 'password/' + userInfo._id, {
-				method: 'PUT',
-				credentials: "include",
-				headers: {
-					'Content-type': 'application/json; charset=UTF-8',
-				},
-				body: JSON.stringify(Object.fromEntries(formData))
-			})
-			if (response.ok) {
-
-				// Updating accessToken in LS
-				// const data = await response.json();
-				// if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
-
-				setChangePswErrorMsg('');
-				setShowNotificationModal({ show: true, msg: 'Password updated' });
-			} else if (response.status === 400 || response.status === 403){
-				const data = await response.json();
-				setChangePswErrorMsg(data.msg)
-			} else {
-				throw new Error('API Failure')
-			}
-		} catch (err) {
-			console.log(err.message)
-		}
-		e.target.reset();
-		setPendingSubmit('');
-	}
 
 	async function handleUserGroupSubmit(e, newGroup) {
 		e.preventDefault();
-		setShowChangeGroupModal(false)
-		setPendingSubmit({ show: true, msg: 'Updating your group' });
+		setActiveModal({ type: 'loading', msg: 'Updating your group' });
 		try {
 			const response = await fetch(APIServer + 'users/' + userInfo._id, {
 				method: 'PUT',
@@ -142,26 +78,77 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 					group: newGroup
 				})
 			})
+			await fetchAPIData();
 			if (response.ok) {
-
-				// Updating accessToken in LS
-				// const data = await response.json();
-				// if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
-
-				await fetchAPIData();
-				setShowNotificationModal({ show: true, msg: 'Group updated' });
-			} else if (response.status === 400 || response.status === 403) {
-				const data = await response.json();
-				console.log('Change group failed: ', data)
+				setActiveModal({ type: 'success', msg: 'Group updated' });
+				setTimeout(() => setActiveModal(''), 1500)
 			} else {
-				throw new Error('API Failure')
+				const data = await response.json();
+				setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
 			}
-		} catch (err) {
+		} catch (err) { 
+			setActiveModal({ type: 'failure', msg: 'API Failure' })
 			console.log(err.message)
 		}
-		
-		setPendingSubmit('');
 	}
+
+	async function handlelockedUserInfoSubmit(e) {
+		e.preventDefault();
+		e.target.phone.value = e.target.phone.value.replace(/[^0-9]/g, '');
+		e.target.EmergencyPhone.value = e.target.EmergencyPhone.value.replace(/[^0-9]/g, '');
+		setActiveModal({ type: 'loading', msg: 'Updating your profile' });
+		const formData = new FormData(e.target);
+		formData.append("group", userInfo.group);
+		try {
+			const response = await fetch(APIServer + 'users/' + userInfo._id, {
+				method: 'PUT',
+				credentials: "include",
+				headers: {
+					'Content-type': 'application/json; charset=UTF-8',
+				},
+				body: JSON.stringify(Object.fromEntries(formData))
+			})
+			await fetchAPIData(); //TODO: Should we refresh user displayed fields to new updated values? Or in case of fail, to old valid values?
+			if (response.ok) {
+				setLockedUserInfo(true)
+				setActiveModal({ type: 'success', msg: 'Profile updated' });
+				setTimeout(() => setActiveModal(''), 1500)
+			} else {
+				const data = await response.json();
+				setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
+			}
+		} catch (err) { 
+			setActiveModal({ type: 'failure', msg: 'API Failure' })
+			console.log(err.message)
+		}
+	}
+
+	async function handleChangePasswordSubmit(e) {
+		e.preventDefault();
+		setActiveModal({ type: 'loading', msg: 'Updating your password' });
+		const formData = new FormData(e.target);
+		try {
+			const response = await fetch(APIServer + 'password/' + userInfo._id, {
+				method: 'PUT',
+				credentials: "include",
+				headers: {
+					'Content-type': 'application/json; charset=UTF-8',
+				},
+				body: JSON.stringify(Object.fromEntries(formData))
+			})
+			if (response.ok) {
+				setActiveModal({ type: 'success', msg: 'Password updated' });
+				setTimeout(() => setActiveModal(''), 1500)
+			} else {
+				const data = await response.json();
+				setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
+			}
+		} catch (err) { 
+			setActiveModal({ type: 'failure', msg: 'API Failure' })
+			console.log(err.message)
+		}
+	}
+
 
 
 
@@ -174,35 +161,35 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 					<div className={styles.inputSection}>
 						<div id={styles.groupContainer}>
 							<div className='capitalizeEach'>Group: {userInfo.group}</div>
-							<button onClick={() => setShowChangeGroupModal(true)}>Change Group</button>
+							<button onClick={() => setActiveModal({ type: 'selectGroup' })}>Change Group</button>
 						</div>
 
 						<div>Days on Credit: {userInfo.credits}</div>
 					</div>
 
-					<form className={styles.inputSection} onSubmit={(e) => handleEditUserInfoSubmit(e)} >
+					<form className={styles.inputSection} onSubmit={(e) => handlelockedUserInfoSubmit(e)} >
 						<div className={styles.inputPairing}>
 							<label htmlFor="email">Email:</label>
-							<input type="email" id="email" name="email" disabled={!editUserInfo} defaultValue={userInfo.contact.email} required></input>
+							<input type="email" id="email" name="email" disabled={lockedUserInfo} defaultValue={userInfo.contact.email} required></input>
 						</div>
 						<div className={styles.inputPairing}>
 							<label htmlFor="phone">Phone:</label>
-							<input type="tel" id="phone" name="phone" disabled={!editUserInfo} defaultValue={userInfo.contact.phone} required onInput={checkPhoneFormat}></input>
+							<input type="tel" id="phone" name="phone" disabled={lockedUserInfo} defaultValue={userInfo.contact.phone} required onInput={checkPhoneFormat}></input>
 						</div>
 
 						<div className={styles.inputPairing}>
 							<label htmlFor="address">Address:</label>
-							<input className='capitalizeEach' type="text" id="address" name="address" disabled={!editUserInfo} defaultValue={userInfo.contact.address} required minLength={2} maxLength={50}></input>
+							<input className='capitalizeEach' type="text" id="address" name="address" disabled={lockedUserInfo} defaultValue={userInfo.contact.address} required minLength={2} maxLength={50}></input>
 						</div>
 
 						<div className={styles.inputPairing}>
 							<label htmlFor="city">City:</label>
-							<input className='capitalizeEach' type="text" id="city" name="city" disabled={!editUserInfo} defaultValue={userInfo.contact.city} required minLength={2} maxLength={50}></input>
+							<input className='capitalizeEach' type="text" id="city" name="city" disabled={lockedUserInfo} defaultValue={userInfo.contact.city} required minLength={2} maxLength={50}></input>
 						</div>
 
 						<div className={styles.inputPairing}>
 							<label htmlFor="province">Province:</label>
-							<select name="province" id="province" disabled={!editUserInfo} defaultValue={userInfo.contact.province} required>
+							<select name="province" id="province" disabled={lockedUserInfo} defaultValue={userInfo.contact.province} required>
 								<option key="ontario" value="ontario">Ontario</option>
 								<option key="quebec" value="quebec">Quebec</option>
 								<option key="other" value="other">Other</option>
@@ -211,35 +198,28 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 
 						<div className={styles.inputPairing}>
 							<label htmlFor="EmergencyName_firstName">Emergency Contact - First Name:</label>
-							<input className='capitalizeEach' type="text" id="EmergencyName_firstName" name="EmergencyName_firstName" disabled={!editUserInfo} defaultValue={userInfo.emergencyContact.firstName} required minLength={2} maxLength={50}></input>
+							<input className='capitalizeEach' type="text" id="EmergencyName_firstName" name="EmergencyName_firstName" disabled={lockedUserInfo} defaultValue={userInfo.emergencyContact.firstName} required minLength={2} maxLength={50}></input>
 						</div>
 						<div className={styles.inputPairing}>
 							<label htmlFor="EmergencyName_lastName">Emergency Contact - Last Name:</label>
-							<input className='capitalizeEach' type="text" id="EmergencyName_lastName" name="EmergencyName_lastName" disabled={!editUserInfo} defaultValue={userInfo.emergencyContact.lastName} required minLength={2} maxLength={50}></input>
+							<input className='capitalizeEach' type="text" id="EmergencyName_lastName" name="EmergencyName_lastName" disabled={lockedUserInfo} defaultValue={userInfo.emergencyContact.lastName} required minLength={2} maxLength={50}></input>
 						</div>
 						<div className={styles.inputPairing}>
 							<label htmlFor="EmergencyPhone">Emergency Contact - Phone:</label>
-							<input type="tel" id="EmergencyPhone" name="EmergencyPhone" disabled={!editUserInfo} defaultValue={userInfo.emergencyContact.phone} required onInput={checkPhoneFormat}></input>
+							<input type="tel" id="EmergencyPhone" name="EmergencyPhone" disabled={lockedUserInfo} defaultValue={userInfo.emergencyContact.phone} required onInput={checkPhoneFormat}></input>
 						</div>
 						<div className={styles.inputPairing}>
 							<label htmlFor="EmergencyRelationship">Emergency Contact - Relationship:</label>
-							<input className='capitalizeEach' type="text" id="EmergencyRelationship" name="EmergencyRelationship" disabled={!editUserInfo} defaultValue={userInfo.emergencyContact.relationship} required minLength={2} maxLength={50}></input>
+							<input className='capitalizeEach' type="text" id="EmergencyRelationship" name="EmergencyRelationship" disabled={lockedUserInfo} defaultValue={userInfo.emergencyContact.relationship} required minLength={2} maxLength={50}></input>
 						</div>
 						<div className={styles.btnContainer} >
-							{editUserInfo ?
+							{!lockedUserInfo ?
 								<div className={styles.confirmContainer}>
-									<button type="button" onClick={() => {
-										setEditUserInfo(false);
-										setEditUserInfoErrors('');
-									}}>Cancel</button>
+									<button type="button" onClick={() => setLockedUserInfo(true)}>Cancel</button>								
 									<button className={styles.confirmBtn} type="submit">Confirm</button>
 								</div>
-								: <button type="button" onClick={() => setEditUserInfo(true)}>Edit Personal Info</button>}
+								: <button type="button" onClick={() => setLockedUserInfo(false)}>Edit Personal Info</button>}
 						</div>
-						{editUserInfoErrors && editUserInfoErrors.length > 0 &&
-							<ul className="errorText">Encountered the following errors:
-								{editUserInfoErrors.map((errorItem) => <li key={errorItem}>{errorItem}</li>)}
-							</ul>}
 					</form>
 
 					<form className={styles.inputSection} onSubmit={(e) => handleChangePasswordSubmit(e)}>
@@ -258,16 +238,40 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 						<div id={styles.changePswBtn} >
 							<button className={styles.confirmBtn} type="submit">Change Password</button>
 						</div>
-						{changePswErrorMsg && <div className="errorText">{changePswErrorMsg}</div>}
 					</form>
 				</div>
 			}
-			<Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}></Modal>
-			<Modal open={showNotificationModal.show} type='notification' text={showNotificationModal.msg} onClose={() => setShowNotificationModal('')}></Modal>
+			<Loading open={activeModal.type === 'loading'}>
+				{activeModal.msg}
+			</Loading>
 
-			<Modal open={showChangeGroupModal} type='select' text='Which group?'
-				onClose={() => setShowChangeGroupModal(false)} onOK={handleUserGroupSubmit}
-				okText={'Confirm'} closeText={'Cancel'} selection={groupChange} ></Modal>
+			<Modal open={activeModal.type === 'success'} type='testing' >
+				<div className={modalStyles.modalNotif}></div>
+				<img id={modalStyles.modalCheckmarkIMG} src={checkmark} alt="checkmark icon" />
+				{activeModal.msg}
+			</Modal>
+
+			<Modal open={activeModal.type === 'failure'} type='testing' >
+				<div className={modalStyles.modalNotif}></div>
+				<img id={modalStyles.modalCheckmarkIMG} src={errormark} alt="error icon" />
+				{activeModal.msg}
+				<button className='actionButton' onClick={() => setActiveModal('')}>Close</button>
+			</Modal>
+
+			<Modal open={activeModal.type === 'selectGroup'} type='testing'>
+				<>
+					Which group?
+					<form onSubmit={(e) => handleUserGroupSubmit(e, e.target.result.value)}>
+						<select name="result" id="result" required>
+							<option key="none" value="">---Select---</option>
+							{groupChange.map((item) => <option key={item.value} value={item.value}>{item.displayValue}</option>)}
+						</select>
+						<button className={`actionButton ${styles.confirmBtn}`} type="submit">Confirm</button>
+						<button type="button" className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
+					</form>
+				</>
+			</Modal>
+
 		</>
 	);
 };

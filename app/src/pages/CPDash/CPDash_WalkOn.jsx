@@ -1,31 +1,36 @@
-import styles from './stylesheets/CPDash_WalkOn.module.css'
+import { useState } from "react";
 import ScrollToTop from "../../components/ScrollToTop";
 
-import { useState } from "react";
 import Modal from "../../components/Modal";
+import Loading from '../../components/Loading';
+
+import styles from './stylesheets/CPDash_WalkOn.module.css'
+import modalStyles from '../../components/stylesheets/Modal.module.css'
+
+import checkmark from './../../assets/checkmark.png'
+import errormark from './../../assets/error.png'
+
+
 
 const WalkOn = ({ APIServer, fetchAPIData, allTrackdays }) => {
-    const [pendingSubmit, setPendingSubmit] = useState('');
-    const [showNotificationModal, setShowNotificationModal] = useState('');
 
-    const [nextTrackday, setNextTrackday] = useState(''); // Corresponds to next trackday object
-    const [registerErrors, setRegisterErrors] = useState('');
+    const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
 
+    let nextTrackday = { date: 'ERROR: NO UPCOMING DATE' }
 
     // Load in the nextTrackday
-    if (allTrackdays && !nextTrackday) {
+    if (allTrackdays) {
         const lateAllowance = 12 * 60 * 60 * 1000; // Time in ms that a trackday will still be considered the next trackday AFTER it has already passed. Default is 12H
 
         // Remove trackdays in the past
-        allTrackdays = allTrackdays.filter((trackday) => {
+        const upcomingTrackdays = allTrackdays.filter((trackday) => {
             return new Date(trackday.date).getTime() + lateAllowance >= Date.now() // Trackday is in future
         })
-        if (allTrackdays.length == 0) {
-            setNextTrackday({ date: 'ERROR' })
+        if (upcomingTrackdays.length == 0) {
             return console.error('no more TD')// Protect against no trackdays
         }
 
-        allTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
+        upcomingTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
 
         // Formatting
         const date = new Date(allTrackdays[0].date)
@@ -33,12 +38,12 @@ const WalkOn = ({ APIServer, fetchAPIData, allTrackdays }) => {
         const numericDay = date.toLocaleString('default', { day: 'numeric' })
         const formattedDate = month + ' ' + numericDay;
 
-        setNextTrackday({ date: formattedDate, id: allTrackdays[0].id });
+        nextTrackday = { date: formattedDate, id: upcomingTrackdays[0].id };
     }
 
     async function handleRegistrationSubmit(e) {
         e.preventDefault();
-        setPendingSubmit({ show: true, msg: 'Submitting walk-on registration' });
+        setActiveModal({ type: 'loading', msg: 'Submitting walk-on registration' });
         const formData = new FormData(e.target);
         try {
             const response = await fetch(APIServer + 'walkons/' + nextTrackday.id, {
@@ -49,22 +54,19 @@ const WalkOn = ({ APIServer, fetchAPIData, allTrackdays }) => {
                 },
                 body: JSON.stringify(Object.fromEntries(formData))
             })
-            setPendingSubmit('');
+            await fetchAPIData();
             if (response.ok) {
-                await fetchAPIData();
-                setRegisterErrors('');
-                setShowNotificationModal({ show: true, msg: 'Walk-on registration complete' })
+                setActiveModal({ type: 'success', msg: 'Walk-On Registration Complete' });
+                setTimeout(() => setActiveModal(''), 1500)
             } else {
-                throw new Error('API Failure')
+                const data = await response.json();
+                setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
             }
         } catch (err) {
+            setActiveModal({ type: 'failure', msg: 'API Failure' })
             console.log(err.message)
         }
-        e.target.reset();
     }
-
-
-
 
     return (
         <>
@@ -93,13 +95,23 @@ const WalkOn = ({ APIServer, fetchAPIData, allTrackdays }) => {
                     </div>
                     <button className={styles.confirmBtn} type="submit">Register Walk-On</button>
                 </form>
-                {registerErrors && registerErrors.length > 0 &&
-                    <ul className="errorText">Encountered the following errors:
-                        {registerErrors.map((errorItem) => <li key={errorItem}>{errorItem}</li>)}
-                    </ul>}
             </div>
-            <Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}></Modal>
-            <Modal open={showNotificationModal.show} type='notification' text={showNotificationModal.msg} onClose={() => setShowNotificationModal('')}></Modal>
+            <Loading open={activeModal.type === 'loading'}>
+				{activeModal.msg}
+			</Loading>
+
+            <Modal open={activeModal.type === 'success'} type='testing' >
+				<div className={modalStyles.modalNotif}></div>
+				<img id={modalStyles.modalCheckmarkIMG} src={checkmark} alt="checkmark icon" />
+				{activeModal.msg}
+			</Modal>
+
+			<Modal open={activeModal.type === 'failure'} type='testing' >
+				<div className={modalStyles.modalNotif}></div>
+				<img id={modalStyles.modalCheckmarkIMG} src={errormark} alt="error icon" />
+				{activeModal.msg}
+				<button className='actionButton' onClick={() => setActiveModal('')}>Close</button>
+			</Modal>
         </>
     );
 };

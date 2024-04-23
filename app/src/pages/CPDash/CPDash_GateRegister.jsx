@@ -1,34 +1,37 @@
-import styles from './stylesheets/CPDash_GateRegister.module.css'
-import ScrollToTop from "../../components/ScrollToTop";
 import { useState } from "react";
+import ScrollToTop from "../../components/ScrollToTop";
+
 import Modal from "../../components/Modal";
+import Loading from '../../components/Loading';
+
+import styles from './stylesheets/CPDash_GateRegister.module.css'
+import modalStyles from '../../components/stylesheets/Modal.module.css'
+
+import checkmark from './../../assets/checkmark.png'
+import errormark from './../../assets/error.png'
 
 
 const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
-    const [pendingSubmit, setPendingSubmit] = useState('');
-    const [showNotificationModal, setShowNotificationModal] = useState('');
+
+    const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
+
     const [eligibleUsers, setEligibleUsers] = useState('');
-    const [waiverModal, setWaiverModal] = useState('')
 
-    const [nextTrackday, setNextTrackday] = useState(''); // Corresponds to next trackday object
-    const [registerErrors, setRegisterErrors] = useState('');
-
-
+    let nextTrackday = { date: 'ERROR: NO UPCOMING DATE' }
 
     // Load in the nextTrackday
-    if (allTrackdays && !nextTrackday) {
+    if (allTrackdays) {
         const lateAllowance = 12 * 60 * 60 * 1000; // Time in ms that a trackday will still be considered the next trackday AFTER it has already passed. Default is 12H
 
         // Remove trackdays in the past
-        allTrackdays = allTrackdays.filter((trackday) => {
+        const upcomingTrackdays = allTrackdays.filter((trackday) => {
             return new Date(trackday.date).getTime() + lateAllowance >= Date.now() // Trackday is in future
         })
-        if (allTrackdays.length == 0) {
-            setNextTrackday({ date: 'ERROR' })
+        if (upcomingTrackdays.length == 0) {
             return console.error('no more TD')// Protect against no trackdays
         }
 
-        allTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
+        upcomingTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
 
         // Formatting
         const date = new Date(allTrackdays[0].date)
@@ -36,10 +39,8 @@ const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
         const numericDay = date.toLocaleString('default', { day: 'numeric' })
         const formattedDate = month + ' ' + numericDay;
 
-        setNextTrackday({ date: formattedDate, id: allTrackdays[0].id });
+        nextTrackday = { date: formattedDate, id: upcomingTrackdays[0].id };
     }
-
-
 
     // Load in eligible users (sorted by first name). 
     if (allUsers && !eligibleUsers) {
@@ -57,15 +58,18 @@ const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
                     'Content-type': 'application/json; charset=UTF-8',
                 },
             })
-            if (!response.ok) throw new Error('API Failure')
+            if (!response.ok) {
+                setActiveModal({ type: 'failure', msg: 'Failed to update waiver for user' })
+            }
         } catch (err) {
+            setActiveModal({ type: 'failure', msg: 'API Failure' })
             console.log(err.message)
         }
+        handleRegistrationSubmit(userID) //TODO: some refinement here needed; do we want to block a gate reg if waiver update fails?
     }
 
     async function handleRegistrationSubmit(userID) {
-        setWaiverModal('');
-        setPendingSubmit({ show: true, msg: 'Submitting gate registration' });
+        setActiveModal({ type: 'loading', msg: 'Submitting gate registration' });
         try {
             const response = await fetch(APIServer + 'register/' + userID + '/' + nextTrackday.id, {
                 method: 'POST',
@@ -79,18 +83,16 @@ const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
                     guests: 1
                 })
             })
-            setPendingSubmit('');
+            await fetchAPIData();
             if (response.ok) {
-                await fetchAPIData();
-                setRegisterErrors('');
-                setShowNotificationModal({ show: true, msg: 'Gate registration complete' })
-            } else if (response.status === 400 || response.status === 403 || response.status === 409) {
-                const data = await response.json();
-                setRegisterErrors(data.msg);
+                setActiveModal({ type: 'success', msg: 'Gate Registration Complete' });
+                setTimeout(() => setActiveModal(''), 1500)
             } else {
-                throw new Error('API Failure')
+                const data = await response.json();
+                setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
             }
         } catch (err) {
+            setActiveModal({ type: 'failure', msg: 'API Failure' })
             console.log(err.message)
         }
     }
@@ -112,7 +114,7 @@ const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
                     e.preventDefault();
                     // If user has no waiver completed, show modal. Else proceed directly with gate reg
                     if (allUsers.find((user) => user._id === e.target.user.value && user.waiver === false)) {
-                        setWaiverModal({ show: true, userID: e.target.user.value });
+                        setActiveModal({ type: 'waiverWarning', userID: e.target.user.value });
                     } else {
                         handleRegistrationSubmit(e.target.user.value)
                     }
@@ -131,16 +133,31 @@ const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
 
                     <button className={styles.confirmBtn} type="submit">Gate Register</button>
                 </form>
-                {registerErrors && registerErrors.length > 0 &&
-                    <ul className="errorText">Encountered the following errors:
-                        {registerErrors.map((errorItem) => <li key={errorItem}>{errorItem}</li>)}
-                    </ul>}
+            
             </div>
-            <Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}></Modal>
-            <Modal open={showNotificationModal.show} type='notification' text={showNotificationModal.msg} onClose={() => setShowNotificationModal('')}></Modal>
+            <Loading open={activeModal.type === 'loading'}>
+                {activeModal.msg}
+            </Loading>
 
-            <Modal open={waiverModal.show} type='confirmation' text='Waiver not on file! Please make sure to submit a waiver for this user' onClose={() => { updateWaiver(waiverModal.userID); handleRegistrationSubmit(waiverModal.userID) }}
-                okText="" closeText="Ok" ></Modal>
+            <Modal open={activeModal.type === 'success'} type='testing' >
+                <div className={modalStyles.modalNotif}></div>
+                <img id={modalStyles.modalCheckmarkIMG} src={checkmark} alt="checkmark icon" />
+                {activeModal.msg}
+            </Modal>
+
+            <Modal open={activeModal.type === 'failure'} type='testing' >
+                <div className={modalStyles.modalNotif}></div>
+                <img id={modalStyles.modalCheckmarkIMG} src={errormark} alt="error icon" />
+                {activeModal.msg}
+                <button className='actionButton' onClick={() => setActiveModal('')}>Close</button>
+            </Modal>
+
+            <Modal open={activeModal.type === 'waiverWarning'} type='testing' text='' >
+                <>
+                    Waiver not on file! Please make sure to collect a waiver for this user!
+                    <button className='actionButton' onClick={() => updateWaiver(activeModal.userID) }>Ok</button>
+                </>
+            </Modal>
         </>
     );
 };

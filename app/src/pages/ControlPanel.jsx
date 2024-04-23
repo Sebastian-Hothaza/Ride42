@@ -1,9 +1,11 @@
 
 import { useEffect, useState } from "react";
 import styles from './stylesheets/ControlPanel.module.css'
+import modalStyles from '../components/stylesheets/Modal.module.css'
 
 import { useOutletContext } from "react-router-dom";
 import Modal from "../components/Modal";
+import Loading from "../components/Loading";
 import CPDash_Trackdays from './CPDash/CPDash_Trackdays'
 import CPDash_Profile from './CPDash/CPDash_Profile'
 import CPDash_Garage from './CPDash/CPDash_Garage'
@@ -19,6 +21,8 @@ import CPDash_AdminSelect from './CPDash/CPDash_AdminSelect'
 
 const ControlPanel = ({ APIServer }) => {
 
+    const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
+
     const { handleLogout } = useOutletContext();
     const loggedInUser = JSON.parse(localStorage.getItem("user"))
     const [userInfo, setUserInfo] = useState('');
@@ -27,9 +31,9 @@ const ControlPanel = ({ APIServer }) => {
     const [userTrackdays, setUserTrackdays] = useState('');
     const [allTrackdays, setAllTrackdays] = useState('');
 
-    const [activeTab, setActiveTab] = (loggedInUser.memberType =='staff' || loggedInUser.memberType =='admin')? useState('adminSelect') : useState('trackdays')
- 
-    const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const [activeTab, setActiveTab] = (loggedInUser.memberType == 'staff' || loggedInUser.memberType == 'admin') ? useState('adminSelect') : useState('trackdays')
+
+
 
 
     async function fetchAPIData() {
@@ -61,8 +65,8 @@ const ControlPanel = ({ APIServer }) => {
         if (userInfoData.memberType === 'staff' || userInfoData.memberType === 'admin') {
             let allUsersData = []
             try {
-                const allUsers = await fetch(APIServer + 'users', { credentials: "include"});
-                   
+                const allUsers = await fetch(APIServer + 'users', { credentials: "include" });
+
                 if (!allUsers.ok) throw new Error('Failed to build API Data for userInfo');
 
 
@@ -114,7 +118,7 @@ const ControlPanel = ({ APIServer }) => {
                         }
 
                     </div>
-                    <button id={styles.logOutBtn} onClick={() => setShowLogoutModal(true)}>LOG OUT</button>
+                    <button id={styles.logOutBtn} onClick={() => setActiveModal({type: 'logoutConfirm'})}>LOG OUT</button>
                 </div>
                 <div className={styles.CPDash}>
                     {/* CPDash rendered based on active tab */}
@@ -137,12 +141,28 @@ const ControlPanel = ({ APIServer }) => {
                     <button className={activeTab == 'trackdays' ? styles.selected : undefined} onClick={() => setActiveTab('trackdays')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined ${activeTab == 'trackdays' ? styles.selected : undefined}`}> calendar_month </span></button>
                     {(loggedInUser.memberType == 'staff' || loggedInUser.memberType == 'admin') && <button className={activeTab == 'adminSelect' ? styles.selected : undefined} onClick={() => setActiveTab('adminSelect')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined ${activeTab == 'adminSelect' ? styles.selected : undefined}`}> shield_person </span></button>}
                     <button className={activeTab == 'garage' ? styles.selected : undefined} onClick={() => setActiveTab('garage')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined ${activeTab == 'garage' ? styles.selected : undefined}`}> garage_home </span></button>
-                    <button onClick={() => setShowLogoutModal(true)}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined`}> logout </span></button>
+                    <button onClick={() => setActiveModal({type: 'logoutConfirm'})}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined`}> logout </span></button>
                 </div>
             </div>
-            <Modal open={!userInfo || !allTrackdays || !userTrackdays} type='loading' text={'Fetching your data...'}>  </Modal>
-            <Modal open={(userInfo && allTrackdays && userTrackdays) && !allUsers && (userInfo.memberType === 'admin' || userInfo.memberType === 'staff')} type='loading' text={'Fetching staff data...'}>  </Modal>
-            <Modal open={showLogoutModal} type='confirmation' text='Are you sure you want to log out?' onClose={() => setShowLogoutModal(false)} onOK={() => handleLogout()} okText="Yes" closeText="No" ></Modal>
+
+            <Loading open={!userInfo || !allTrackdays || !userTrackdays}>
+                Fetching your data...
+            </Loading>
+
+            <Loading open={(userInfo && allTrackdays && userTrackdays) && !allUsers && (userInfo.memberType === 'admin' || userInfo.memberType === 'staff')}>
+                Fetching staff data...
+            </Loading>
+
+
+
+
+            <Modal open={activeModal.type === 'logoutConfirm'} type='testing'>
+                <>
+                    Are you sure you want to log out?
+                    <button className={`actionButton ${modalStyles.confirmBtn}`} onClick={() => handleLogout()}>Yes</button>
+                    <button className='actionButton' onClick={() => setActiveModal('')}>No</button>
+                </>
+            </Modal>
         </>
     );
 };

@@ -1,23 +1,26 @@
 import { NavLink, useOutletContext } from "react-router-dom";
 import { useState } from "react";
-
-import styles from './stylesheets/Login.module.css'
-
-import Modal from "../components/Modal";
 import ScrollToTop from "../components/ScrollToTop";
 
+import Loading from '../components/Loading';
+import Modal from '../components/Modal';
+
+import styles from './stylesheets/Login.module.css'
+import modalStyles from '../components/stylesheets/Modal.module.css'
+
+import errormark from './../assets/error.png'
 
 const Login = () => {
+	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
+    const { handleLogin, loginErrorMsg } = useOutletContext();
 
-    const {  handleLogin, loginErrorMsg } = useOutletContext();
-    const [pendingSubmit, setPendingSubmit] = useState('');
 
 
     async function handleLoginSubmit(e) {
         e.preventDefault();
-        setPendingSubmit({show: true, msg: 'Logging you in...'});
-        await handleLogin(e);
-        setPendingSubmit('');
+        setActiveModal({type: 'loading', msg: 'Logging you in...'});
+        const error_message = await handleLogin(e);
+        setActiveModal({type: 'failure', msg: error_message}); // Only executes if log in fails
     }
 
     return (
@@ -56,7 +59,19 @@ const Login = () => {
 
                 </div>
             </div>
-            <Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}>  </Modal>
+            
+			<Loading open={activeModal.type === 'loading'}>
+				{activeModal.msg}
+			</Loading>
+
+            <Modal open={activeModal.type === 'failure'} type='testing' >
+				<div className={modalStyles.modalNotif}></div>
+				<img id={modalStyles.modalCheckmarkIMG} src={errormark} alt="error icon" />
+				{activeModal.msg}
+				<button className='actionButton' onClick={() => setActiveModal('')}>Ok</button>
+			</Modal>
+
+
         </>
     );
 };

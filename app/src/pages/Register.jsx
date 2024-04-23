@@ -1,15 +1,20 @@
 import { useOutletContext, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
-
-import styles from './stylesheets/Register.module.css'
-
 import Card from "../components/Card"
 import Modal from "../components/Modal";
+import Loading from '../components/Loading';
+
+import styles from './stylesheets/Register.module.css'
+import modalStyles from '../components/stylesheets/Modal.module.css'
+
+import checkmark from './../assets/checkmark.png'
+import errormark from './../assets/error.png'
 
 const Register = () => {
-	const [registerErrors, setRegisterErrors] = useState();
-    const [pendingSubmit, setPendingSubmit] = useState('');
+
+	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
+
 	const { APIServer } = useOutletContext();
 	const navigate = useNavigate();
 
@@ -23,7 +28,7 @@ const Register = () => {
 
 				<div className={styles.inputPairing}>
 					<label htmlFor="lastName">Last Name:</label>
-					<input type="text" id="lastName" name="lastName"  required minLength={2} maxLength={50}></input>
+					<input type="text" id="lastName" name="lastName" required minLength={2} maxLength={50}></input>
 				</div>
 
 				<div className={styles.inputPairing}>
@@ -96,14 +101,6 @@ const Register = () => {
 					<input type="password" id="passwordConfirm" name="passwordConfirm" required onInput={checkPswMatches}></input>
 				</div>
 			</div>
-
-			{
-				registerErrors && registerErrors.length > 0 &&
-				<ul className="errorText">Encountered the following errors:
-					{registerErrors.map((errorItem) => <li key={errorItem}>{errorItem}</li>)}
-				</ul>
-			}
-
 			<button className={styles.registerBtn} type="submit">Submit Registration</button>
 
 
@@ -122,7 +119,7 @@ const Register = () => {
 	}
 	function checkPswFormat() {
 		let input = document.getElementById('password');
-		if ((/^(?=.*[0-9])(?=.*[a-z])(?!.* ).{8,50}$/).test(input.value) && input.value.length>=8 && input.value.length<=50) {
+		if ((/^(?=.*[0-9])(?=.*[a-z])(?!.* ).{8,50}$/).test(input.value) && input.value.length >= 8 && input.value.length <= 50) {
 			input.setCustomValidity(''); // input is valid -- reset the error message
 		} else {
 			input.setCustomValidity('Password must contain minimum 8 characters and be a combination of letters and numbers');
@@ -149,11 +146,11 @@ const Register = () => {
 
 	async function handleRegisterSubmit(e) {
 		e.preventDefault();
+		setActiveModal({ type: 'loading', msg: 'Submitting Your Registration...' });
 		// Strip out non-numerical values from phone and emergency phone
 		e.target.phone.value = e.target.phone.value.replace(/[^0-9]/g, '');
 		e.target.EmergencyPhone.value = e.target.EmergencyPhone.value.replace(/[^0-9]/g, '');
 
-		setPendingSubmit({show: true, msg: 'Submitting Your Registration...'});
 		const formData = new FormData(e.target);
 		try {
 			const response = await fetch(APIServer + 'users/', {
@@ -163,19 +160,18 @@ const Register = () => {
 				},
 				body: JSON.stringify(Object.fromEntries(formData))
 			})
-			
+
 			if (response.ok) {
-				navigate("/dashboard");
-			} else if (response.status === 400 || response.status === 409) { 
-				const data = await response.json();
-				setRegisterErrors(data.msg);
+				setActiveModal({ type: 'success', msg: 'Account created, taking you to log in page...' });
+				setTimeout(() => navigate("/dashboard"), 3000)
 			} else {
-				throw new Error('API Failure')
+				const data = await response.json();
+				setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
 			}
 		} catch (err) {
+			setActiveModal({ type: 'failure', msg: 'API Failure' })
 			console.log(err.message)
 		}
-		setPendingSubmit('');
 	}
 
 
@@ -185,7 +181,25 @@ const Register = () => {
 			<div className="content">
 				<Card heading='Register' body={registerForm} inverted={false} />
 			</div>
-			<Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}>  </Modal>
+
+			<Loading open={activeModal.type === 'loading'}>
+				{activeModal.msg}
+			</Loading>
+
+			<Modal open={activeModal.type === 'success'} type='testing' >
+				<div className={modalStyles.modalNotif}></div>
+				<img id={modalStyles.modalCheckmarkIMG} src={checkmark} alt="checkmark icon" />
+				{activeModal.msg}
+			</Modal>
+
+			<Modal open={activeModal.type === 'failure'} type='testing' >
+				<div className={modalStyles.modalNotif}></div>
+				<img id={modalStyles.modalCheckmarkIMG} src={errormark} alt="error icon" />
+				{activeModal.msg}
+				<button className='actionButton' onClick={() => setActiveModal('')}>Ok</button>
+			</Modal>
+
+
 		</>
 	);
 };

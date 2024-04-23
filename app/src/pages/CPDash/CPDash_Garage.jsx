@@ -1,19 +1,22 @@
-import styles from './stylesheets/CPDash_Garage.module.css'
-import ScrollToTop from "../../components/ScrollToTop";
 import { useState } from "react";
+import ScrollToTop from "../../components/ScrollToTop";
+
 import Modal from "../../components/Modal";
+import Loading from '../../components/Loading';
+
+import styles from './stylesheets/CPDash_Garage.module.css'
+import modalStyles from '../../components/stylesheets/Modal.module.css'
+
+import checkmark from './../../assets/checkmark.png'
+import errormark from './../../assets/error.png'
 
 
 const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 
-	const [pendingSubmit, setPendingSubmit] = useState('');
-	const [addBikeConfirm, setAddBikeConfirm] = useState(false);
-	const [QRConfirmModal, setQRConfirmModal] = useState(false);
-	const [addBikeErrors, setAddBikeErrors] = useState('');
-	const [showNotificationModal, setShowNotificationModal] = useState('');
+	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
 
 	async function handleRequestQR(bikeID) {
-		setPendingSubmit({ show: true, msg: 'Requesting your QR Code' });
+		setActiveModal({ type: 'loading', msg: 'Requesting your QR Code' });
 		try {
 			const response = await fetch(APIServer + 'qrcode/' + userInfo._id + '/' + bikeID, {
 				method: 'POST',
@@ -22,21 +25,20 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 					'Content-type': 'application/json; charset=UTF-8',
 				}
 			})
-			if (!response.ok) throw new Error('API Failure')
-
-			// Updating accessToken in LS
-			// const data = await response.json();
-			// if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
-
-			setQRConfirmModal(true);
+			if (response.ok) {
+				setActiveModal({ type: 'qrConfirm'});
+			} else {
+				const data = await response.json();
+				setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
+			}
 		} catch (err) {
+			setActiveModal({ type: 'failure', msg: 'API Failure' })
 			console.log(err.message)
 		}
-		setPendingSubmit('');
 	}
 
 	async function handleRemoveBike(bikeID) {
-		setPendingSubmit({ show: true, msg: 'Selling your bike' });
+		setActiveModal({ type: 'loading', msg: 'Selling your bike' });
 		try {
 			const response = await fetch(APIServer + 'garage/' + userInfo._id + '/' + bikeID, {
 				method: 'DELETE',
@@ -45,22 +47,23 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 					'Content-type': 'application/json; charset=UTF-8',
 				}
 			})
-			if (!response.ok) throw new Error('API Failure')
-
-			// Updating accessToken in LS
-			// const data = await response.json();
-			// if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
-			setShowNotificationModal({ show: true, msg: 'Bike sold!' });
+			await fetchAPIData();
+			if (response.ok) {
+				setActiveModal({ type: 'success', msg: 'Bike Sold!' });
+				setTimeout(() => setActiveModal(''), 1500)
+			} else {
+				const data = await response.json();
+				setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
+			}
 		} catch (err) {
+			setActiveModal({ type: 'failure', msg: 'API Failure' })
 			console.log(err.message)
 		}
-		await fetchAPIData();
-		setPendingSubmit('')
 	}
 
 	async function handleAddBike(e) {
 		e.preventDefault();
-		setPendingSubmit({ show: true, msg: 'Parking your bike' });
+		setActiveModal({ type: 'loading', msg: 'Parking your bike' });
 		const formData = new FormData(e.target);
 		try {
 			const response = await fetch(APIServer + 'garage/' + userInfo._id, {
@@ -71,32 +74,18 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 				},
 				body: JSON.stringify(Object.fromEntries(formData))
 			})
-
+			await fetchAPIData();
+			e.target.reset();
 			if (response.ok) {
-				// Updating accessToken in LS
-				// const data = await response.json();
-				// if (data.accessToken_FRESH) localStorage.setItem('accessToken', data.accessToken_FRESH);
-
-				await fetchAPIData();
-				setPendingSubmit('');
-				setAddBikeConfirm(true);
-				setAddBikeErrors('');
-				e.target.reset();
-			} else if (response.status === 400 || response.status === 409) {
-				const data = await response.json();
-				setAddBikeErrors(data.msg);
+				setActiveModal({ type: 'addBikeConfirm'});
 			} else {
-				throw new Error('API Failure')
+				const data = await response.json();
+				setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
 			}
-			setPendingSubmit('');
-
-
 		} catch (err) {
+			setActiveModal({ type: 'failure', msg: 'API Failure' })
 			console.log(err.message)
 		}
-
-
-
 	}
 
 
@@ -144,18 +133,39 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 					<button className={styles.confirmBtn} type="submit">Add Bike</button>
 				</form>
 
-				{addBikeErrors && addBikeErrors.length > 0 &&
-					<ul className="errorText">Encountered the following errors:
-						{addBikeErrors.map((errorItem) => <li key={errorItem}>{errorItem}</li>)}
-					</ul>}
-
 			</div>
 
-			<Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}></Modal>
-			<Modal open={showNotificationModal.show} type='notification' text={showNotificationModal.msg} onClose={() => setShowNotificationModal('')}></Modal>
-			<Modal open={addBikeConfirm} type='confirmation' text='Your bike has been added to your garage. We have created a QR code for you which will be available for pickup at the next trackday.'
-				onClose={() => setAddBikeConfirm(false)} onOK={() => setActiveTab('trackdays')} okText="Go to trackdays" closeText="Stay in garage"></Modal>
-			<Modal open={QRConfirmModal} type='confirmation' text='We have created a QR code for you which will be available for pickup at the next trackday.' onClose={() => setQRConfirmModal(false)} okText="" closeText="Ok"></Modal>
+			<Loading open={activeModal.type === 'loading'}>
+				{activeModal.msg}
+			</Loading>
+
+			<Modal open={activeModal.type === 'success'} type='testing' >
+				<div className={modalStyles.modalNotif}></div>
+				<img id={modalStyles.modalCheckmarkIMG} src={checkmark} alt="checkmark icon" />
+				{activeModal.msg}
+			</Modal>
+
+			<Modal open={activeModal.type === 'failure'} type='testing' >
+				<div className={modalStyles.modalNotif}></div>
+				<img id={modalStyles.modalCheckmarkIMG} src={errormark} alt="error icon" />
+				{activeModal.msg}
+				<button className='actionButton' onClick={() => setActiveModal('')}>Close</button>
+			</Modal>
+
+			<Modal open={activeModal.type === 'addBikeConfirm'} type='testing'>
+				<>
+					Your bike has been added to your garage. We have created a QR code for you which will be available for pickup at the next trackday.
+					<button className={`actionButton ${styles.confirmBtn}`} onClick={()=>setActiveTab('trackdays')}>Go to My Trackdays</button>
+					<button className='actionButton' onClick={()=>setActiveModal('')}>Stay in garage</button>
+				</>
+			</Modal>
+
+			<Modal open={activeModal.type === 'qrConfirm'} type='testing'>
+				<>
+					We have created a QR code for you which will be available for pickup at the next trackday.
+					<button className='actionButton' onClick={() => setActiveModal('')}>Ok</button>
+				</>
+			</Modal>
 		</>
 
 

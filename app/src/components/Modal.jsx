@@ -19,16 +19,7 @@ const Modal = ({ children, open, type, text, onClose, onOK, okText, closeText, s
     if (!open) return null
 
     switch (type) {
-        case 'loading':
-            return (
-                <>
-                    <div className={styles.overlay} ></div>
-                    <div className={styles.spinnerContainer}>
-                        <div className={styles.loader}></div>
-                        <div> {text} </div>
-                    </div>
-                </>
-            );
+
         case 'confirmation':
             return (
                 <>

@@ -1,17 +1,17 @@
-import styles from './stylesheets/CPDash_ViewQR.module.css'
-import ScrollToTop from "../../components/ScrollToTop";
 import { useState } from "react";
-import html2canvas from 'html2canvas'
+import ScrollToTop from "../../components/ScrollToTop";
+
+import styles from './stylesheets/CPDash_ViewQR.module.css'
 
 import r42_small from '../../assets/R42_sticker.png'
+import html2canvas from 'html2canvas'
 
 
 const ViewQR = ({ allUsers }) => {
+
     const [curUser, setCurUser] = useState(allUsers[0])
 
     if (allUsers) allUsers.sort((a, b) => (a.firstName > b.firstName) ? 1 : ((b.firstName > a.firstName) ? -1 : 0))
-
-
 
     async function downloadImage(user, garageItem) {
         const canvas = await html2canvas(document.getElementById(garageItem._id), { onclone: (doc) => doc.getElementById('stickerContainer').style.display = 'block' })
@@ -69,5 +69,3 @@ const ViewQR = ({ allUsers }) => {
 };
 
 export default ViewQR;
-
-

@@ -11,7 +11,7 @@ import Footer from './components/Footer';
 function App() {
     const APIServer = (process.env.NODE_ENV === 'production') ? 'https://api.ride42.ca/' : 'http://localhost:3000/'
     const [loggedIn, setLoggedIn] = useState(false);
-    const [loginErrorMsg, setLoginErrorMsg] = useState();
+
 
     // Deal with user redreshing the page which would reset logged in status
     if (!loggedIn && localStorage.getItem('user')) setLoggedIn(true)
@@ -47,45 +47,39 @@ function App() {
             if (response.ok) {
                 const data = await response.json();
                 localStorage.setItem("user", JSON.stringify(data)); // Store user in localStorage
-                // Store JWT's in localStorage
-                // localStorage.setItem('accessToken', data.accessToken);
-                // localStorage.setItem('refreshToken', data.refreshToken);
-
-                setLoginErrorMsg('')
                 setLoggedIn(true);
-
-            } else if (response.status === 400 || response.status === 403) {
-                const data = await response.json();
-                e.target.password.value = '';
-                
-                setLoginErrorMsg(data.msg);
-                setLoggedIn(false);
             } else {
-                throw new Error('API Failure')
+                e.target.password.value = '';
+                setLoggedIn(false); //TODO Why is it needed
+                const data = await response.json();
+                return data.msg.join('\n')
             }
         } catch (err) {
-            console.log(err.message)
+            return err.message;
         }
     }
 
-    function handleLogout() {
-        // TODO: API call to logout to wipe refresh token out?
-        localStorage.clear();
-        setLoggedIn(false);
-    }
-
-    return (
-        <>
-            <Navbar />
-            <ScrollToTop />
-            <div className='main'>
-                <Outlet context={{ APIServer, handleLogin, loginErrorMsg, loggedIn, setLoggedIn, handleLogout }} />
-                <Footer />
-            </div>
 
 
-        </>
-    )
+
+function handleLogout() {
+    // TODO: API call to logout to wipe refresh token out?
+    localStorage.clear();
+    setLoggedIn(false);
+}
+
+return (
+    <>
+        <Navbar />
+        <ScrollToTop />
+        <div className='main'>
+            <Outlet context={{ APIServer, handleLogin, loggedIn, setLoggedIn, handleLogout }} />
+            <Footer />
+        </div>
+
+
+    </>
+)
 }
 
 export default App

@@ -1,17 +1,24 @@
 import { useState } from "react";
-import Modal from "../../components/Modal";
 import ScrollToTop from "../../components/ScrollToTop";
+
+import Modal from "../../components/Modal";
+import Loading from '../../components/Loading';
+
 import styles from './stylesheets/CPDash_Trackdays.module.css'
+import modalStyles from '../../components/stylesheets/Modal.module.css'
+
+import checkmark from './../../assets/checkmark.png'
+import errormark from './../../assets/error.png'
+
 
 // TODO; remove hardcoded 7 days restriction
-// TODO: make reschdule also a modal
+
 
 const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPIData, setActiveTab }) => {
-	const [bookErrors, setBookErrors] = useState(); // Array corresponding to error messages received from API
-	const [pendingSubmit, setPendingSubmit] = useState('');
-	const [showCancelModal, setShowCancelModal] = useState('')
-	const [showRescheduleModal, setShowRescheduleModal] = useState('');
-	const [showNotificationModal, setShowNotificationModal] = useState('');
+
+	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
+
+
 
 	// Returns true if a user is registered for a specified trackday ID
 	function userRegistered(trackdayID) {
@@ -82,7 +89,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 	async function handleBookTrackdaySubmit(e) {
 		e.preventDefault();
-		setPendingSubmit({ show: true, msg: 'Booking your trackday' });
+		setActiveModal({ type: 'loading', msg: 'Booking your trackday' });
 		const formData = new FormData(e.target);
 
 		// Build layout vote array
@@ -92,7 +99,6 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 		}
 		let formDataFinal = Object.fromEntries(formData)
 		formDataFinal.layoutVote = layoutVoteArray.length ? layoutVoteArray : 'none'
-
 		try {
 			const response = await fetch(APIServer + 'register/' + userInfo._id + '/' + formData.get('date'), {
 				method: 'POST',
@@ -102,26 +108,22 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 				},
 				body: JSON.stringify(formDataFinal)
 			})
+			await fetchAPIData();
 			if (response.ok) {
-				await fetchAPIData(); // Wait for fetch to complete so the spinner stays on screen
-				setBookErrors('');
-				setShowNotificationModal({ show: true, msg: 'Trackday booked' });
-			} else if (response.status === 400 || response.status === 403 || response.status === 409) {
-				const data = await response.json();
-				setBookErrors(data.msg)
+				setActiveModal({ type: 'success', msg: 'Trackday booked' });
+				setTimeout(() => setActiveModal(''), 1500)
 			} else {
-				throw new Error('API Failure')
+				const data = await response.json();
+				setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
 			}
-
 		} catch (err) {
+			setActiveModal({ type: 'failure', msg: 'API Failure' })
 			console.log(err.message)
 		}
-		setPendingSubmit('');
 	}
 
 	async function handleCancelTrackdaySubmit(trackdayID) {
-		setShowCancelModal('')
-		setPendingSubmit({ show: true, msg: 'Cancelling your trackday' });
+		setActiveModal({ type: 'loading', msg: 'Cancelling your trackday' });
 		try {
 			const response = await fetch(APIServer + 'register/' + userInfo._id + '/' + trackdayID, {
 				method: 'DELETE',
@@ -130,21 +132,23 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 					'Content-type': 'application/json; charset=UTF-8',
 				},
 			})
-			if (!response.ok) throw new Error('API Failure')
-
 			await fetchAPIData();
-			setShowNotificationModal({ show: true, msg: 'Trackday cancelled' });
+			if (response.ok) {
+				setActiveModal({ type: 'success', msg: 'Trackday cancelled' });
+				setTimeout(() => setActiveModal(''), 1500)
+			} else {
+				const data = await response.json();
+				setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
+			}
 		} catch (err) {
+			setActiveModal({ type: 'failure', msg: 'API Failure' })
 			console.log(err.message)
 		}
-		setPendingSubmit('');
-
 	}
 
 	async function handleRescheduleSubmit(e, trackdayID_OLD, trackdayID_NEW) {
 		e.preventDefault();
-		setShowRescheduleModal('');
-		setPendingSubmit({ show: true, msg: 'Rescheduling your trackday' });
+		setActiveModal({ type: 'loading', msg: 'Rescheduling your trackday' });
 		try {
 			const response = await fetch(APIServer + 'register/' + userInfo._id + '/' + trackdayID_OLD + '/' + trackdayID_NEW, {
 				method: 'PUT',
@@ -153,23 +157,19 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 					'Content-type': 'application/json; charset=UTF-8',
 				},
 			})
-
+			await fetchAPIData();
 
 			if (response.ok) {
-				await fetchAPIData();
-				setShowNotificationModal({ show: true, msg: 'Trackday rescheduled' });
-				setBookErrors('');
-			} else if (response.status === 400 || response.status === 403 || response.status === 409) {
-				const data = await response.json();
-				setBookErrors(data.msg)
+				setActiveModal({ type: 'success', msg: 'Trackday rescheduled' });
+				setTimeout(() => setActiveModal(''), 1500)
 			} else {
-				throw new Error('API Failure')
+				const data = await response.json();
+				setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
 			}
-
 		} catch (err) {
+			setActiveModal({ type: 'failure', msg: 'API Failure' })
 			console.log(err.message)
 		}
-		setPendingSubmit('');
 	}
 
 
@@ -272,15 +272,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 						</div>
 
 					</div>
-
-
-
 					<button className={styles.confirmBtn} id={styles.registerBtn} type="submit">Register</button>
-
-					{bookErrors && bookErrors.length > 0 &&
-						<ul className="errorText">Encountered the following errors:
-							{bookErrors.map((errorItem) => <li key={errorItem}>{errorItem}</li>)}
-						</ul>}
 				</form>
 
 
@@ -299,8 +291,8 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 									<div className={styles.tdControls}>
 										{/* These buttons should not be shown if trackday is in past */}
 										{canModify(trackday) && <>
-											<button onClick={() => setShowRescheduleModal({ show: true, trackday: trackday })}>Reschedule</button>
-											<button onClick={() => setShowCancelModal({ show: true, trackday: trackday })}>Cancel Trackday</button>
+											<button onClick={() => setActiveModal({ type: 'reschedule', trackday: trackday })}>Reschedule</button>
+											<button onClick={() => setActiveModal({ type: 'cancel', trackday: trackday })}>Cancel Trackday</button>
 										</>}
 									</div>
 								</div>
@@ -310,21 +302,49 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 
 			</div>
-			<Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}></Modal>
-			<Modal open={showNotificationModal.show} type='notification' text={showNotificationModal.msg} onClose={() => setShowNotificationModal('')}></Modal>
-			<Modal open={showCancelModal.show} type='confirmation' text='Are you sure you want to cancel this trackday?' onClose={() => setShowCancelModal('')}
-				onOK={() => handleCancelTrackdaySubmit(showCancelModal.trackday.id)} okText="Yes, cancel it" closeText="No, keep it" ></Modal>
+			<Loading open={activeModal.type === 'loading'}>
+				{activeModal.msg}
+			</Loading>
+
+			<Modal open={activeModal.type === 'success'} type='testing' >
+				<div className={modalStyles.modalNotif}></div>
+				<img id={modalStyles.modalCheckmarkIMG} src={checkmark} alt="checkmark icon" />
+				{activeModal.msg}
+			</Modal>
+
+			<Modal open={activeModal.type === 'failure'} type='testing' >
+				<div className={modalStyles.modalNotif}></div>
+				<img id={modalStyles.modalCheckmarkIMG} src={errormark} alt="error icon" />
+				{activeModal.msg}
+				<button className='actionButton' onClick={() => setActiveModal('')}>Close</button>
+			</Modal>
 
 
 
 
+			<Modal open={activeModal.type === 'cancel'} type='testing' >
+				<>
+					Are you sure you want to cancel this trackday?
+					<button className={`actionButton ${styles.confirmBtn}`} onClick={() => handleCancelTrackdaySubmit(activeModal.trackday.id)}>Yes, cancel it</button>
+					<button className='actionButton' onClick={() => setActiveModal('')}>No, keep it</button>
+				</>
+			</Modal>
 
 
 
-
-			<Modal open={showRescheduleModal.show} type='select' text='Which day do you want to reschedule to?'
-				onClose={() => setShowRescheduleModal('')} onOK={(e, trackdayID_NEW) => handleRescheduleSubmit(e, showRescheduleModal.trackday.id, trackdayID_NEW)}
-				okText={'Confirm'} closeText={'Cancel'} selection={allTrackdays}></Modal>
+			<Modal open={activeModal.type === 'reschedule'} type='testing'>
+				<>
+					Which day do you want to reschedule to?
+					<form onSubmit={(e) => handleRescheduleSubmit(e, activeModal.trackday.id, e.target.result.value)}>
+						<select name="result" id="result" required>
+							<option key="none" value="">--- Select ---</option>
+							{allTrackdays && allTrackdays.map((item) => <option key={item.value} value={item.value}>{item.displayValue}</option>)}
+						</select>
+						<button className={`actionButton ${styles.confirmBtn}`} type="submit">Confirm</button>
+						<button type="button" className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
+					</form>
+				</>
+			</Modal>
 
 
 

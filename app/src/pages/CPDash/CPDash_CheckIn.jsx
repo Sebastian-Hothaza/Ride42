@@ -1,18 +1,24 @@
-import styles from './stylesheets/CPDash_CheckIn.module.css'
+import { useState } from "react";
 import ScrollToTop from "../../components/ScrollToTop";
 
-import { useState } from "react";
 import Modal from "../../components/Modal";
+import Loading from '../../components/Loading';
 import Scanner from '../../components/Scanner';
+
+import styles from './stylesheets/CPDash_CheckIn.module.css'
+import modalStyles from '../../components/stylesheets/Modal.module.css'
+
+import checkmark from './../../assets/checkmark.png'
+import errormark from './../../assets/error.png'
 
 
 const CheckIn = ({ APIServer, allTrackdays }) => {
-    const [pendingSubmit, setPendingSubmit] = useState('');
-    const [showNotificationModal, setShowNotificationModal] = useState('');
-    const [failModal, setFailModal] = useState('')
-    let nextTrackday = { date: 'ERROR: NO UPCOMING DATE'}
 
-    
+    const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
+
+    let nextTrackday = { date: 'ERROR: NO UPCOMING DATE' }
+
+
     // Load in the nextTrackday
     if (allTrackdays) {
         const lateAllowance = 12 * 60 * 60 * 1000; // Time in ms that a trackday will still be considered the next trackday AFTER it has already passed. Default is 12H
@@ -38,7 +44,7 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
 
     async function handleCheckIn(scanData, scanner) {
         const [userID, bikeID] = scanData.replace("https://ride42.ca/dashboard/", "").split("/");
-        setPendingSubmit({ show: true, msg: 'Checking user in' });
+        setActiveModal({ type: 'loading', msg: 'Checking user in' });
         try {
             const response = await fetch(APIServer + 'checkin/' + userID + '/' + nextTrackday.id + '/' + bikeID, {
                 method: 'POST',
@@ -47,17 +53,16 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
                     'Content-type': 'application/json; charset=UTF-8',
                 }
             })
-            setPendingSubmit(''); // Clear loading screen
             if (response.ok) {
-                setShowNotificationModal({ show: true, msg: 'Check-In complete' })
+                setActiveModal({ type: 'success', msg: 'Check-In complete' });
+                setTimeout(() => setActiveModal(''), 1500)
                 setTimeout(() => scanner.start(), 2000) // Prompt scanner to start scanning again
-            } else if (response.status === 403) {
-                const data = await response.json();
-                setFailModal({ show: true, msg: data.msg, scanner: scanner })
             } else {
-                throw new Error('API Failure')
+                const data = await response.json();
+                setActiveModal({ type: 'failure', msg: data.msg.join('\n'), scanner: scanner })
             }
         } catch (err) {
+            setActiveModal({ type: 'failure', msg: 'API Failure' })
             console.log(err.message)
         }
     }
@@ -69,10 +74,22 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
                 <h1>{nextTrackday.date} Check In</h1>
                 <Scanner onDecodeEnd={handleCheckIn} />
             </div>
-            <Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}></Modal>
-            <Modal open={showNotificationModal.show} type='notification' text={showNotificationModal.msg} onClose={() => setShowNotificationModal('')}></Modal>
-            <Modal open={failModal.show} type='confirmation' text={`Error: \n ${failModal.msg && failModal.msg.join('\n')}`} onClose={() =>{ setFailModal(''); failModal.scanner.start()}}
-                okText="" closeText="Close" ></Modal>
+            <Loading open={activeModal.type === 'loading'}>
+                {activeModal.msg}
+            </Loading>
+
+            <Modal open={activeModal.type === 'success'} type='testing' >
+                <div className={modalStyles.modalNotif}></div>
+                <img id={modalStyles.modalCheckmarkIMG} src={checkmark} alt="checkmark icon" />
+                {activeModal.msg}
+            </Modal>
+
+            <Modal open={activeModal.type === 'failure'} type='testing' >
+                <div className={modalStyles.modalNotif}></div>
+                <img id={modalStyles.modalCheckmarkIMG} src={errormark} alt="error icon" />
+                {activeModal.msg}
+                <button className='actionButton' onClick={() => {setActiveModal(''); activeModal.scanner.start()}}>Close</button>
+            </Modal>
         </>
     );
 };

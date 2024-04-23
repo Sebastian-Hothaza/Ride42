@@ -1,14 +1,21 @@
-import styles from './stylesheets/CPDash_Waiver.module.css'
-import ScrollToTop from "../../components/ScrollToTop";
 import { useEffect, useState } from "react";
+import ScrollToTop from "../../components/ScrollToTop";
+
 import Modal from "../../components/Modal";
+import Loading from '../../components/Loading';
+
+import styles from './stylesheets/CPDash_Waiver.module.css'
+import modalStyles from '../../components/stylesheets/Modal.module.css'
+
+import checkmark from './../../assets/checkmark.png'
+import errormark from './../../assets/error.png'
 
 const Waiver = ({ APIServer, fetchAPIData, allUsers }) => {
 
-    const [pendingSubmit, setPendingSubmit] = useState('');
-    const [showNotificationModal, setShowNotificationModal] = useState('');
-    const [eligibleUsers, setEligibleUsers] = useState('');
-    const [showConfirmModal, setShowConfirmModal] = useState('')
+    const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
+
+    const [eligibleUsers, setEligibleUsers] = useState(''); // TODO: move this out of a state variable?
+  
 
 
 
@@ -20,10 +27,9 @@ const Waiver = ({ APIServer, fetchAPIData, allUsers }) => {
         }
     }, [allUsers])
 
-    // TOOD: Make handle errors more gracefully
+
     async function handleWaiverSubmit(userID) {
-        setShowConfirmModal('');
-        setPendingSubmit({ show: true, msg: 'Updating Waiver' });
+        setActiveModal({ type: 'loading', msg: 'Updating Waiver' });
         try {
             const response = await fetch(APIServer + 'waiver/' + userID, {
                 method: 'POST',
@@ -32,15 +38,16 @@ const Waiver = ({ APIServer, fetchAPIData, allUsers }) => {
                     'Content-type': 'application/json; charset=UTF-8',
                 },
             })
+            await fetchAPIData();
             if (response.ok) {
-                await fetchAPIData();
-                setPendingSubmit('');
-                setShowNotificationModal({ show: true, msg: 'Waiver updated' })
+                setActiveModal({ type: 'success', msg: 'Waiver updated' });
+                setTimeout(() => setActiveModal(''), 1500)
             } else {
-                throw new Error('API Failure')
+                const data = await response.json();
+                setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
             }
-            setPendingSubmit('');
         } catch (err) {
+            setActiveModal({ type: 'failure', msg: 'API Failure' })
             console.log(err.message)
         }
     }
@@ -58,7 +65,7 @@ const Waiver = ({ APIServer, fetchAPIData, allUsers }) => {
                 <h1>Waiver Submission</h1>
                 <form onSubmit={(e) => {
                     e.preventDefault();
-                    setShowConfirmModal({ show: true, userID: e.target.user.value });
+                    setActiveModal({ type: 'confirmWaiver', userID: e.target.user.value });
                     e.target.reset();
                 }}>
 
@@ -68,16 +75,37 @@ const Waiver = ({ APIServer, fetchAPIData, allUsers }) => {
 
                     <select className='capitalizeEach' name="user" id="user" required>
                         {eligibleUsers && eligibleUsers.map((user) => <option className='capitalizeEach' key={user._id} value={user._id}>{user.firstName}, {user.lastName}</option>)}
-                        {eligibleUsers.length==0 && <option key='empty' value=''>No entries found</option>}
+                        {eligibleUsers.length == 0 && <option key='empty' value=''>No entries found</option>}
                     </select>
 
                     <button className={styles.confirmBtn} type="submit">Update Waiver</button>
                 </form>
             </div>
-            <Modal open={pendingSubmit.show} type='loading' text={pendingSubmit.msg}></Modal>
-            <Modal open={showNotificationModal.show} type='notification' text={showNotificationModal.msg} onClose={() => setShowNotificationModal('')}></Modal>
-            <Modal open={showConfirmModal.show} type='confirmation' text='Does the waiver contain: Name, Date, Initials, Signature?' onClose={() => setShowConfirmModal('')}
-                onOK={() => handleWaiverSubmit(showConfirmModal.userID)} okText="Yes" closeText="No" ></Modal>
+            <Loading open={activeModal.type === 'loading'}>
+                {activeModal.msg}
+            </Loading>
+
+            <Modal open={activeModal.type === 'success'} type='testing' >
+                <div className={modalStyles.modalNotif}></div>
+                <img id={modalStyles.modalCheckmarkIMG} src={checkmark} alt="checkmark icon" />
+                {activeModal.msg}
+            </Modal>
+
+            <Modal open={activeModal.type === 'failure'} type='testing' >
+                <div className={modalStyles.modalNotif}></div>
+                <img id={modalStyles.modalCheckmarkIMG} src={errormark} alt="error icon" />
+                {activeModal.msg}
+                <button className='actionButton' onClick={() => setActiveModal('')}>Close</button>
+            </Modal>
+
+
+            <Modal open={activeModal.type === 'confirmWaiver'} type='testing'>
+                <>
+                    Does the waiver contain: Name, Date, Initials, Signature?
+                    <button className={`actionButton ${styles.confirmBtn}`} onClick={() => handleWaiverSubmit(activeModal.userID)}>Yes</button>
+                    <button className='actionButton' onClick={() => setActiveModal('')}>No</button>
+                </>
+            </Modal>
         </>
     );
 };
