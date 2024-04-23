@@ -11,7 +11,7 @@ import checkmark from './../assets/checkmark.png'
 // closeText: Text that appears on the close button of the modal
 // selection: Array of items to appear in the select. !!! Items must have a displayValue and value property !!!
 
-const Modal = ({ open, type, text, onClose, onOK, okText, closeText, selection }) => {
+const Modal = ({ children, open, type, text, onClose, onOK, okText, closeText, selection }) => {
 
 
 
@@ -68,6 +68,16 @@ const Modal = ({ open, type, text, onClose, onOK, okText, closeText, selection }
 
                     </div>
                 </>
+            );
+        case 'testing':
+            return (
+                <>
+                    <div className={styles.overlay} ></div>
+                    <div className={styles.modal}>
+                        {children}
+                    </div>
+                </>
+
             );
         default:
             return <div>INVALID MODAL</div>
