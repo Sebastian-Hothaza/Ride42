@@ -13,7 +13,7 @@ import errormark from './../../assets/error.png'
 
 
 
-const CheckIn = ({ APIServer, allTrackdays }) => {
+const CheckIn = ({ APIServer, allTrackdays, allUsers }) => {
     const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
 
     let nextTrackday = { date: 'ERROR: NO UPCOMING DATE' }
@@ -43,6 +43,9 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
 
     async function handleVerify(scanData, scanner) {
         const [userID, bikeID] = scanData.replace("https://ride42.ca/dashboard/", "").split("/");
+        const user = allUsers.find((user)=> user._id === userID)
+        const bike = user.garage.find((garageItem)=>garageItem.bike._id===bikeID).bike
+        
         setActiveModal({ type: 'loading', msg: 'Verifying user' }); // Show loading modal
         try {
             const response = await fetch(APIServer + 'verify/' + userID + '/' + nextTrackday.id + '/' + bikeID, {
@@ -59,7 +62,7 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
                     setTimeout(() => setActiveModal(''), 1500)
                     setTimeout(() => scanner.start(), 2000) // Prompt scanner to start scanning again
                 } else {
-                    setActiveModal({ type: 'failure', msg: 'BAD', scanner: scanner })
+                    setActiveModal({ type: 'failure', msg: `${user.firstName}, ${user.lastName}\n${bike.year} ${bike.make} ${bike.model}`, scanner: scanner })
                 }
                 
             } else {
@@ -92,13 +95,13 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
             <Modal open={activeModal.type === 'success'} type='testing' >
 				<div className={modalStyles.modalNotif}></div>
 				<img id={modalStyles.modalCheckmarkIMG} src={checkmark} alt="checkmark icon" />
-				{activeModal.msg}
+				<div className="capitalizeEach">{activeModal.msg}</div>
 			</Modal>
 
 			<Modal open={activeModal.type === 'failure'} type='testing' >
 				<div className={modalStyles.modalNotif}></div>
 				<img id={modalStyles.modalCheckmarkIMG} src={errormark} alt="error icon" />
-				{activeModal.msg}
+				<div className="capitalizeEach">{activeModal.msg}</div>
 				<button className='actionButton' onClick={() => {setActiveModal(''); activeModal.scanner.start()}}>Close</button>
 			</Modal>
 
