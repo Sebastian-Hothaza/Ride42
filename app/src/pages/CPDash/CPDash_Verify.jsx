@@ -57,7 +57,7 @@ const CheckIn = ({ APIServer, allTrackdays, allUsers }) => {
             })
             if (response.ok) {
                 const data = await response.json();
-                if (data.verified === 'true') {
+                if (data.verified === true) {
                     setActiveModal({ type: 'success', msg: 'OK' })
                     setTimeout(() => setActiveModal(''), 1500)
                     setTimeout(() => scanner.start(), 2000) // Prompt scanner to start scanning again
