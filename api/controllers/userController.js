@@ -332,11 +332,11 @@ exports.user_post = [
     }),
 ]
 
-// Update user info EXCLUDING password, garage and waiver. Requires JWT with matching userID OR admin
+// Update user info EXCLUDING password and garage. Requires JWT with matching userID OR admin
 /*
     /// PERMISSIONS ///
     USER: contact, emergencyContact, group(7 day requirement; else fail entire request)
-    ADMIN: name, credits, member type
+    ADMIN: name, credits, member type, waiver
 */
 exports.user_put = [
     body("email", "Email must be in format of samplename@sampledomain.com").trim().isEmail().escape(),
@@ -396,7 +396,7 @@ exports.user_put = [
                 garage: oldUser.garage,
                 group: req.body.group.toLowerCase(),
                 credits: (req.user.memberType === 'admin' && req.body.credits) ? req.body.credits : oldUser.credits,
-                waiver: oldUser.waiver,
+                waiver: (req.user.memberType === 'admin' && req.body.waiver) ? req.body.waiver : oldUser.waiver,
                 memberType: (req.user.memberType === 'admin' && req.body.memberType) ? req.body.memberType.toLowerCase() : oldUser.memberType,
                 password: oldUser.password,
                 _id: req.params.userID,
