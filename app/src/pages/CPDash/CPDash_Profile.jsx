@@ -92,7 +92,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 		}
 	}
 
-	async function handlelockedUserInfoSubmit(e) {
+	async function handleUserInfoSubmit(e) {
 		e.preventDefault();
 		e.target.phone.value = e.target.phone.value.replace(/[^0-9]/g, '');
 		e.target.EmergencyPhone.value = e.target.EmergencyPhone.value.replace(/[^0-9]/g, '');
@@ -167,7 +167,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 						<div>Days on Credit: {userInfo.credits}</div>
 					</div>
 
-					<form className={styles.inputSection} onSubmit={(e) => handlelockedUserInfoSubmit(e)} >
+					<form className={styles.inputSection} onSubmit={(e) => handleUserInfoSubmit(e)} >
 						<div className={styles.inputPairing}>
 							<label htmlFor="email">Email:</label>
 							<input type="email" id="email" name="email" disabled={lockedUserInfo} defaultValue={userInfo.contact.email} required></input>
