@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import styles from './stylesheets/ControlPanel.module.css'
 import modalStyles from '../components/stylesheets/Modal.module.css'
@@ -9,15 +8,23 @@ import Loading from "../components/Loading";
 import CPDash_Trackdays from './CPDash/CPDash_Trackdays'
 import CPDash_Profile from './CPDash/CPDash_Profile'
 import CPDash_Garage from './CPDash/CPDash_Garage'
+
+import CPDash_AdminSelect from './CPDash/CPDash_AdminSelect'
 import CPDash_Waiver from './CPDash/CPDash_Waiver'
 import CPDash_GateRegister from './CPDash/CPDash_GateRegister'
 import CPDash_WalkOn from './CPDash/CPDash_WalkOn'
 import CPDash_CheckIn from './CPDash/CPDash_CheckIn'
 import CPDash_Verify from './CPDash/CPDash_Verify'
+
 import CPDash_ViewQR from './CPDash/CPDash_ViewQR'
+import CPDash_ManageUsers from './CPDash/CPDash_ManageUsers'
+import CPDash_ManageTrackdays from './CPDash/CPDash_ManageTrackdays'
+import CPDash_MarkPaid from './CPDash/CPDash_MarkPaid'
+import CPDash_TrackdayState from './CPDash/CPDash_TrackdayState'
+import CPDash_TrackdaySummary from './CPDash/CPDash_TrackdaySummary'
+import CPDash_CheckInManual from './CPDash/CPDash_CheckInManual'
+import CPDash_Emailer from './CPDash/CPDash_Emailer'
 
-
-import CPDash_AdminSelect from './CPDash/CPDash_AdminSelect'
 
 const ControlPanel = ({ APIServer }) => {
 
@@ -114,11 +121,18 @@ const ControlPanel = ({ APIServer }) => {
                         {(loggedInUser.memberType == 'admin') &&
                             <>
                                 <button className={activeTab == 'viewQR' ? styles.selected : undefined} onClick={() => setActiveTab('viewQR')}>View QR</button>
+                                <button className={activeTab == 'manageUsers' ? styles.selected : undefined} onClick={() => setActiveTab('manageUsers')}>Manage Users</button>
+                                <button className={activeTab == 'manageTrackdays' ? styles.selected : undefined} onClick={() => setActiveTab('manageTrackdays')}>Manage Trackdays</button>
+                                <button className={activeTab == 'markPaid' ? styles.selected : undefined} onClick={() => setActiveTab('markPaid')}>Mark Paid</button>
+                                <button className={activeTab == 'trackdayState' ? styles.selected : undefined} onClick={() => setActiveTab('trackdayState')}>Trackday State</button>
+                                <button className={activeTab == 'trackdaySummary' ? styles.selected : undefined} onClick={() => setActiveTab('trackdaySummary')}>Trackday Summary</button>
+                                <button className={activeTab == 'checkInManual' ? styles.selected : undefined} onClick={() => setActiveTab('checkInManual')}>Manual Check In</button>
+                                <button className={activeTab == 'emailer' ? styles.selected : undefined} onClick={() => setActiveTab('emailer')}>Emailer</button>
                             </>
                         }
 
                     </div>
-                    <button id={styles.logOutBtn} onClick={() => setActiveModal({type: 'logoutConfirm'})}>LOG OUT</button>
+                    <button id={styles.logOutBtn} onClick={() => setActiveModal({ type: 'logoutConfirm' })}>LOG OUT</button>
                 </div>
                 <div className={styles.CPDash}>
                     {/* CPDash rendered based on active tab */}
@@ -126,14 +140,24 @@ const ControlPanel = ({ APIServer }) => {
                     {activeTab == 'trackdays' && <CPDash_Trackdays APIServer={APIServer} userInfo={userInfo} allTrackdays={allTrackdays} userTrackdays={userTrackdays} fetchAPIData={fetchAPIData} setActiveTab={setActiveTab} />}
                     {activeTab == 'garage' && <CPDash_Garage APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} setActiveTab={setActiveTab} />}
 
+                    {/* STAFF */}
                     {activeTab == 'adminSelect' && <CPDash_AdminSelect setActiveTab={setActiveTab} memberType={loggedInUser.memberType} />}
-
                     {activeTab == 'waiver' && <CPDash_Waiver APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} />}
                     {activeTab == 'gateRegister' && <CPDash_GateRegister APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdays={allTrackdays} />}
                     {activeTab == 'walkOn' && <CPDash_WalkOn APIServer={APIServer} fetchAPIData={fetchAPIData} allTrackdays={allTrackdays} />}
-                    {activeTab == 'checkIn' && <CPDash_CheckIn APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers}/>}
-                    {activeTab == 'verify' && <CPDash_Verify APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers}/>}
+                    {activeTab == 'checkIn' && <CPDash_CheckIn APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers} />}
+                    {activeTab == 'verify' && <CPDash_Verify APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers} />}
+                    {/* ADMIN */}
                     {activeTab == 'viewQR' && <CPDash_ViewQR allUsers={allUsers} />}
+                    {activeTab == 'manageUsers' && <CPDash_ManageUsers APIServer={APIServer}/>}
+                    {activeTab == 'manageTrackdays' && <CPDash_ManageTrackdays APIServer={APIServer}/>}
+                    {activeTab == 'markPaid' && <CPDash_MarkPaid APIServer={APIServer}/>}
+                    {activeTab == 'trackdayState' && <CPDash_TrackdayState APIServer={APIServer}/>}
+                    {activeTab == 'trackdaySummary' && <CPDash_TrackdaySummary APIServer={APIServer}/>}
+                    {activeTab == 'checkInManual' && <CPDash_CheckInManual APIServer={APIServer}/>}
+                    {activeTab == 'emailer' && <CPDash_Emailer APIServer={APIServer}/>}
+
+
                 </div>
                 {/* MOBILE TOOLBAR*/}
                 <div className={styles.CPMenuMobile}>
@@ -141,7 +165,7 @@ const ControlPanel = ({ APIServer }) => {
                     <button className={activeTab == 'trackdays' ? styles.selected : undefined} onClick={() => setActiveTab('trackdays')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined ${activeTab == 'trackdays' ? styles.selected : undefined}`}> calendar_month </span></button>
                     {(loggedInUser.memberType == 'staff' || loggedInUser.memberType == 'admin') && <button className={activeTab == 'adminSelect' ? styles.selected : undefined} onClick={() => setActiveTab('adminSelect')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined ${activeTab == 'adminSelect' ? styles.selected : undefined}`}> shield_person </span></button>}
                     <button className={activeTab == 'garage' ? styles.selected : undefined} onClick={() => setActiveTab('garage')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined ${activeTab == 'garage' ? styles.selected : undefined}`}> garage_home </span></button>
-                    <button onClick={() => setActiveModal({type: 'logoutConfirm'})}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined`}> logout </span></button>
+                    <button onClick={() => setActiveModal({ type: 'logoutConfirm' })}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined`}> logout </span></button>
                 </div>
             </div>
 
