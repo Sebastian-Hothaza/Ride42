@@ -11,7 +11,7 @@ const ViewQR = ({ allUsers }) => {
 
     const [curUser, setCurUser] = useState(allUsers[0])
 
-    if (allUsers) allUsers.sort((a, b) => (a.firstName > b.firstName) ? 1 : ((b.firstName > a.firstName) ? -1 : 0))
+ 
 
     async function downloadImage(user, garageItem) {
         const canvas = await html2canvas(document.getElementById(garageItem._id), { onclone: (doc) => doc.getElementById('stickerContainer').style.display = 'block' })
@@ -22,6 +22,12 @@ const ViewQR = ({ allUsers }) => {
         link.click();
     }
 
+    if (!allUsers) {
+        return null;
+    } else {
+        allUsers.sort((a, b) => (a.firstName > b.firstName) ? 1 : ((b.firstName > a.firstName) ? -1 : 0))
+    }
+
     return (
         <>
             <ScrollToTop />
@@ -29,7 +35,7 @@ const ViewQR = ({ allUsers }) => {
                 <h1>View QR</h1>
                 <form>
                     <select className='capitalizeEach' name="user" id="user" required onChange={() => setCurUser(allUsers.find((candidateUser) => candidateUser._id === user.value))}>
-                        {allUsers && allUsers.map((user) => <option className='capitalizeEach' key={user._id} value={user._id}>{user.firstName}, {user.lastName}</option>)}
+                        {allUsers.map((user) => <option className='capitalizeEach' key={user._id} value={user._id}>{user.firstName}, {user.lastName}</option>)}
                     </select>
                 </form>
                 {
