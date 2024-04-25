@@ -34,6 +34,7 @@ const ControlPanel = ({ APIServer }) => {
     const loggedInUser = JSON.parse(localStorage.getItem("user"))
     const [userInfo, setUserInfo] = useState('');
     const [allUsers, setAllUsers] = useState('');
+    const [allTrackdaysFULL, setAllTrackdaysFULL] = useState('');
 
     const [userTrackdays, setUserTrackdays] = useState('');
     const [allTrackdays, setAllTrackdays] = useState('');
@@ -70,16 +71,21 @@ const ControlPanel = ({ APIServer }) => {
 
         // Fetch staff API Data
         if (userInfoData.memberType === 'staff' || userInfoData.memberType === 'admin') {
-            let allUsersData = []
+            let allUsersData, allTrackdaysFULLData = []
             try {
-                const allUsers = await fetch(APIServer + 'users', { credentials: "include" });
 
-                if (!allUsers.ok) throw new Error('Failed to build API Data for userInfo');
+                const [allUsersResponse, allTrackdaysFULLResponse] = await Promise.all([
+                    fetch(APIServer + 'users', { credentials: "include" }),
+                    fetch(APIServer + 'trackdays', { credentials: "include" })]);
+
+                if (!allUsersResponse.ok) throw new Error('Failed to build API Data for allUsers');
+                if (!allTrackdaysFULLResponse.ok) throw new Error('Failed to build API Data for allTrackdaysFULL');
 
 
-                [allUsersData] = await Promise.all([allUsers.json()])
+                [allUsersData, allTrackdaysFULLData] = await Promise.all([allUsersResponse.json(), allTrackdaysFULLResponse.json()])
 
                 setAllUsers(allUsersData)
+                setAllTrackdaysFULL(allTrackdaysFULLData)
 
 
             } catch (err) {
@@ -149,13 +155,13 @@ const ControlPanel = ({ APIServer }) => {
                     {activeTab == 'verify' && <CPDash_Verify APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers} />}
                     {/* ADMIN */}
                     {activeTab == 'viewQR' && <CPDash_ViewQR allUsers={allUsers} />}
-                    {activeTab == 'manageUsers' && <CPDash_ManageUsers APIServer={APIServer} allUsers={allUsers}/>}
-                    {activeTab == 'manageTrackdays' && <CPDash_ManageTrackdays APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers} fetchAPIData={fetchAPIData}/>}
-                    {activeTab == 'markPaid' && <CPDash_MarkPaid APIServer={APIServer}/>}
-                    {activeTab == 'trackdayState' && <CPDash_TrackdayState APIServer={APIServer}/>}
-                    {activeTab == 'trackdaySummary' && <CPDash_TrackdaySummary APIServer={APIServer}/>}
-                    {activeTab == 'checkInManual' && <CPDash_CheckInManual APIServer={APIServer}/>}
-                    {activeTab == 'emailer' && <CPDash_Emailer APIServer={APIServer}/>}
+                    {activeTab == 'manageUsers' && <CPDash_ManageUsers APIServer={APIServer} allUsers={allUsers} />}
+                    {activeTab == 'manageTrackdays' && <CPDash_ManageTrackdays APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers} fetchAPIData={fetchAPIData} />}
+                    {activeTab == 'markPaid' && <CPDash_MarkPaid APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdaysFULL={allTrackdaysFULL} />}
+                    {activeTab == 'trackdayState' && <CPDash_TrackdayState APIServer={APIServer} />}
+                    {activeTab == 'trackdaySummary' && <CPDash_TrackdaySummary APIServer={APIServer} />}
+                    {activeTab == 'checkInManual' && <CPDash_CheckInManual APIServer={APIServer} />}
+                    {activeTab == 'emailer' && <CPDash_Emailer APIServer={APIServer} />}
 
 
                 </div>
