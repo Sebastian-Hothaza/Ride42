@@ -39,9 +39,7 @@ form label {
 
 .tdControls {
     display: flex;
-    justify-content: space-between;
     gap: 1rem;
-    flex-wrap: wrap;
 }
 
 .tdControls button {
@@ -73,9 +71,19 @@ form label {
 
     .tdEntry {
         flex-direction: column;
+        padding: 3rem 0;
     }
 
+    .tdControls {
+        flex-direction: column;
+        align-items: center;
+        gap: .5rem;
+    }
 
+    .tdControls button{
+        min-width: 200px;
+
+    }
 
 
 
