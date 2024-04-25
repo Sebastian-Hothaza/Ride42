@@ -5,12 +5,12 @@
     font-size: 1.25rem;
 }
 
-h1{
+.content h1{
     display: flex;
     gap: .5rem;
 }
 
-h1 select{
+.content h1 select{
     font-size: inherit;
     border: none;
 }
