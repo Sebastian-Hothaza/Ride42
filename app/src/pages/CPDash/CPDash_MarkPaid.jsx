@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ScrollToTop from "../../components/ScrollToTop";
 
 import Modal from "../../components/Modal";
@@ -18,6 +18,7 @@ const MarkPaid = ({ APIServer, fetchAPIData, allUsers, allTrackdaysFULL }) => {
 	const [selectedEntry, setSelectedEntry] = useState(''); // Tracks what the current entry we are looking at (taekn from members array for given trackday)
 
 
+
 	if (!allUsers || !allTrackdaysFULL) {
 		return null;
 	} else {
@@ -25,6 +26,15 @@ const MarkPaid = ({ APIServer, fetchAPIData, allUsers, allTrackdaysFULL }) => {
 		allTrackdaysFULL.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
 	}
 
+
+	// Refresh state variable if corresponding prop changes
+	useEffect(() => {
+		if (selectedTrackday && selectedEntry) {
+			setSelectedTrackday(allTrackdaysFULL.find((td) => td._id === selectedTrackday._id)) // Update trackday
+			setSelectedEntry(allTrackdaysFULL.find((td) => td._id === selectedTrackday._id).members.find((memberEntry) => memberEntry.user._id === selectedEntry.user._id)) //Update entry
+		}
+
+	}, [allTrackdaysFULL])
 
 	// Modify date of allTrackdays to be a nice format
 	allTrackdaysFULL.forEach((trackday) => {
@@ -63,12 +73,8 @@ const MarkPaid = ({ APIServer, fetchAPIData, allUsers, allTrackdaysFULL }) => {
 			setActiveModal({ type: 'failure', msg: 'API Failure' })
 			console.log(err.message)
 		}
-		e.target.reset();
-		setSelectedEntry('');
-		setSelectedTrackday('');
-
-		
 	}
+
 
 
 	return (
