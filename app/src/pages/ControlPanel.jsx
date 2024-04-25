@@ -155,10 +155,10 @@ const ControlPanel = ({ APIServer }) => {
                     {activeTab == 'verify' && <CPDash_Verify APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers} />}
                     {/* ADMIN */}
                     {activeTab == 'viewQR' && <CPDash_ViewQR allUsers={allUsers} />}
-                    {activeTab == 'manageUsers' && <CPDash_ManageUsers APIServer={APIServer} allUsers={allUsers} />}
+                    {activeTab == 'manageUsers' && <CPDash_ManageUsers APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} />}
                     {activeTab == 'manageTrackdays' && <CPDash_ManageTrackdays APIServer={APIServer} allTrackdaysFULL={allTrackdaysFULL} allUsers={allUsers} fetchAPIData={fetchAPIData} />}
                     {activeTab == 'markPaid' && <CPDash_MarkPaid APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdaysFULL={allTrackdaysFULL} />}
-                    {activeTab == 'trackdayState' && <CPDash_TrackdayState allUsers={allUsers} allTrackdays={allTrackdays} allTrackdaysFULL={allTrackdaysFULL} />}
+                    {activeTab == 'trackdayState' && <CPDash_TrackdayState fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdays={allTrackdays} allTrackdaysFULL={allTrackdaysFULL} />}
                     {activeTab == 'trackdaySummary' && <CPDash_TrackdaySummary APIServer={APIServer} />}
                     {activeTab == 'checkInManual' && <CPDash_CheckInManual APIServer={APIServer} />}
                     {activeTab == 'emailer' && <CPDash_Emailer APIServer={APIServer} />}
