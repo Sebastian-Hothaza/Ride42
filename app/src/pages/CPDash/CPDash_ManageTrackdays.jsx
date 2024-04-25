@@ -34,12 +34,6 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdays, allUsers }) =>
 	})
 
 
-	// Reschedule modal requires objects in selection to have a key and value property, so we add those in
-	allTrackdays.forEach((trackday) => {
-		trackday.value = trackday.id;
-		trackday.displayValue = trackday.prettyDate;
-	})
-
 	async function handleRegisterSubmit(e, userID, trackdayID, paymentMethod) {
 		e.preventDefault();
 		setActiveModal({ type: 'loading', msg: 'Adding user to trackday' });
@@ -166,19 +160,20 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdays, allUsers }) =>
 					{allTrackdays.map((trackday) => {
 						return (
 							<div key={trackday.id} className={styles.tdEntry}>
-
-								<div>{trackday.prettyDate} ({trackday.layout}) - {trackday.status}</div>
-
-								<button onClick={() => setActiveModal({ type: 'register', trackday: trackday })}>Add User</button>
-								<button onClick={() => setActiveModal({ type: 'unregister', trackday: trackday })}>Remove User</button>
-								<button onClick={() => setActiveModal({ type: 'editDetails', trackday: trackday })}>Edit</button>
-								<button onClick={() => alert('not yet implemented; extreme caution needed as currently may break back end')}>Delete</button>
-
+								<div className={styles.tdInfo}>
+									<div>{trackday.prettyDate} ({trackday.layout}) - {trackday.status}</div>
+								</div>
+								<div className={styles.tdControls}>
+									<button className='actionButton' onClick={() => setActiveModal({ type: 'register', trackday: trackday })}>Add User</button>
+									<button className='actionButton' onClick={() => setActiveModal({ type: 'unregister', trackday: trackday })}>Remove User</button>
+									<button className='actionButton' onClick={() => setActiveModal({ type: 'editDetails', trackday: trackday })}>Edit</button>
+									<button className='actionButton' onClick={() => alert('not yet implemented; extreme caution needed as currently may break back end')}>Delete</button>
+								</div>
 							</div>
 						)
 					})}
 				</div>
-				<button onClick={() => setActiveModal({ type: 'createTrackday' })}>Create Trackday</button>
+				<button className={styles.createButton} onClick={() => setActiveModal({ type: 'createTrackday' })}>Create Trackday</button>
 			</div>
 
 			<Loading open={activeModal.type === 'loading'}>
@@ -200,7 +195,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdays, allUsers }) =>
 
 			<Modal open={activeModal.type === 'register'}>
 				<>
-					<div>Register User</div>
+					<h2>Register User</h2>
 					<form onSubmit={(e) => handleRegisterSubmit(e, e.target.user.value, activeModal.trackday.id, e.target.paymentMethod.value,)}>
 
 						<div className={styles.inputPairing}>
@@ -232,7 +227,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdays, allUsers }) =>
 
 			<Modal open={activeModal.type === 'unregister'}>
 				<>
-					<div>Register User</div>
+					<h2>Un-register User</h2>
 					<form onSubmit={(e) => handleUnRegisterSubmit(e, e.target.user.value, activeModal.trackday.id)}>
 
 						<div className={styles.inputPairing}>
@@ -242,10 +237,6 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdays, allUsers }) =>
 								{allUsers.map((user) => <option key={user._id} value={user._id}>{user.firstName}, {user.lastName}</option>)}
 							</select>
 						</div>
-
-
-
-
 						<button className={`actionButton ${styles.confirmBtn}`} type="submit">Confirm</button>
 						<button type="button" className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
 					</form>
@@ -254,7 +245,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdays, allUsers }) =>
 
 			<Modal open={activeModal.type === 'editDetails'}>
 				<>
-					<div>Edit Trackday Details</div>
+					<h2>Edit Trackday Details</h2>
 					<form onSubmit={(e) => handleEditDetailsSubmit(e, e.target.layout.value, e.target.status.value, e.target.date.value, activeModal.trackday.id)}>
 
 						<div className={styles.inputPairing}>
@@ -293,7 +284,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdays, allUsers }) =>
 
 			<Modal open={activeModal.type === 'createTrackday'}>
 				<>
-					<div>Create New Trackday</div>
+					<h2>Create New Trackday</h2>
 					<form onSubmit={(e) => handleCreateTrackdaySubmit(e, e.target.date.value)}>
 
 
