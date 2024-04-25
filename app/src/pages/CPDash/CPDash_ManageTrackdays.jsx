@@ -11,20 +11,25 @@ import checkmark from './../../assets/checkmark.png'
 import errormark from './../../assets/error.png'
 
 
-const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdays, allUsers }) => {
+const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }) => {
 
 	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
 
-	if (!allUsers || !allUsers) {
+	if (!allUsers || !allTrackdaysFULL) {
 		return null;
 	} else {
 		allUsers.sort((a, b) => (a.firstName > b.firstName) ? 1 : ((b.firstName > a.firstName) ? -1 : 0))
-		allTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
+		allTrackdaysFULL.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
+	}
+
+	// Sort the members array if we are displaying a modal where members array will be presented
+	if (activeModal.trackday){
+		activeModal.trackday.members.sort((a, b) => (a.user.firstName > b.user.firstName) ? 1 : ((b.user.firstName > a.user.firstName) ? -1 : 0))
 	}
 
 
-	// Modify date of allTrackdays to be a nice format
-	allTrackdays.forEach((trackday) => {
+	// Modify date of allTrackdaysFULL to be a nice format
+	allTrackdaysFULL.forEach((trackday) => {
 		const date = new Date(trackday.date)
 		const weekday = date.toLocaleString('default', { weekday: 'short' })
 		const month = date.toLocaleString('default', { month: 'long' })
@@ -157,9 +162,9 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdays, allUsers }) =>
 			<div className={styles.content}>
 				<h1>Manage Trackdays</h1>
 				<div>
-					{allTrackdays.map((trackday) => {
+					{allTrackdaysFULL.map((trackday) => {
 						return (
-							<div key={trackday.id} className={styles.tdEntry}>
+							<div key={trackday._id} className={styles.tdEntry}>
 								<div className={styles.tdInfo}>
 									<div>{trackday.prettyDate} ({trackday.layout}) - {trackday.status}</div>
 								</div>
@@ -196,13 +201,13 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdays, allUsers }) =>
 			<Modal open={activeModal.type === 'register'}>
 				<>
 					<h2>Register User</h2>
-					<form onSubmit={(e) => handleRegisterSubmit(e, e.target.user.value, activeModal.trackday.id, e.target.paymentMethod.value,)}>
+					<form onSubmit={(e) => handleRegisterSubmit(e, e.target.user.value, activeModal.trackday._id, e.target.paymentMethod.value,)}>
 
 						<div className={styles.inputPairing}>
 							<label htmlFor="user">Select User:</label>
-							<select name="user" id="user" required>
+							<select className='capitalizeEach' name="user" id="user" required>
 								<option key="none" value="">--- Select ---</option>
-								{allUsers.map((user) => <option key={user._id} value={user._id}>{user.firstName}, {user.lastName}</option>)}
+								{activeModal.trackday && allUsers.filter((user)=>!activeModal.trackday.members.find((memberEntry)=> memberEntry.user._id === user._id)).map((user) => <option key={user._id} value={user._id}>{user.firstName}, {user.lastName}</option>)}
 							</select>
 						</div>
 
@@ -228,13 +233,14 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdays, allUsers }) =>
 			<Modal open={activeModal.type === 'unregister'}>
 				<>
 					<h2>Un-register User</h2>
-					<form onSubmit={(e) => handleUnRegisterSubmit(e, e.target.user.value, activeModal.trackday.id)}>
+					<form onSubmit={(e) => handleUnRegisterSubmit(e, e.target.user.value, activeModal.trackday._id)}>
 
 						<div className={styles.inputPairing}>
 							<label htmlFor="user">Select User:</label>
-							<select name="user" id="user" required>
+							<select className='capitalizeEach' name="user" id="user" required>
 								<option key="none" value="">--- Select ---</option>
-								{allUsers.map((user) => <option key={user._id} value={user._id}>{user.firstName}, {user.lastName}</option>)}
+								{activeModal.trackday && activeModal.trackday.members.map((memberEntry) => <option key={memberEntry.user._id} value={memberEntry.user._id}>{memberEntry.user.firstName}, {memberEntry.user.lastName}</option>)}
+							
 							</select>
 						</div>
 						<button className={`actionButton ${styles.confirmBtn}`} type="submit">Confirm</button>
@@ -246,7 +252,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdays, allUsers }) =>
 			<Modal open={activeModal.type === 'editDetails'}>
 				<>
 					<h2>Edit Trackday Details</h2>
-					<form onSubmit={(e) => handleEditDetailsSubmit(e, e.target.layout.value, e.target.status.value, e.target.date.value, activeModal.trackday.id)}>
+					<form onSubmit={(e) => handleEditDetailsSubmit(e, e.target.layout.value, e.target.status.value, e.target.date.value, activeModal.trackday._id)}>
 
 						<div className={styles.inputPairing}>
 							<label htmlFor="group">Layout</label>
