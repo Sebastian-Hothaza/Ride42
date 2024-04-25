@@ -158,7 +158,7 @@ const ControlPanel = ({ APIServer }) => {
                     {activeTab == 'manageUsers' && <CPDash_ManageUsers APIServer={APIServer} allUsers={allUsers} />}
                     {activeTab == 'manageTrackdays' && <CPDash_ManageTrackdays APIServer={APIServer} allTrackdaysFULL={allTrackdaysFULL} allUsers={allUsers} fetchAPIData={fetchAPIData} />}
                     {activeTab == 'markPaid' && <CPDash_MarkPaid APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdaysFULL={allTrackdaysFULL} />}
-                    {activeTab == 'trackdayState' && <CPDash_TrackdayState APIServer={APIServer} />}
+                    {activeTab == 'trackdayState' && <CPDash_TrackdayState allUsers={allUsers} allTrackdays={allTrackdays} allTrackdaysFULL={allTrackdaysFULL} />}
                     {activeTab == 'trackdaySummary' && <CPDash_TrackdaySummary APIServer={APIServer} />}
                     {activeTab == 'checkInManual' && <CPDash_CheckInManual APIServer={APIServer} />}
                     {activeTab == 'emailer' && <CPDash_Emailer APIServer={APIServer} />}

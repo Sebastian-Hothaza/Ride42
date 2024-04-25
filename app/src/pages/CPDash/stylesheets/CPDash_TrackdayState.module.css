@@ -1,0 +1,89 @@
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    font-size: 1.25rem;
+}
+
+.content h1{
+    display: flex;
+    gap: .5rem;
+}
+
+.content h1 select{
+    font-size: inherit;
+    border: none;
+}
+
+.inputPairing {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.inputPairing input{
+    min-width: 300px;
+    font-size: inherit;
+}
+
+.inputPairing select{
+    min-width: 308px;
+    font-size: inherit;
+}
+
+
+.tdSummary{
+    /* background-color: orange; */
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 5rem;
+
+}
+.tdSummary h2{
+    grid-column: span 2;
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.tdSummary div{
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.tdSummary .summaryEntry{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+/* TD RIDERS */
+
+.tdRiders{
+    display: grid;
+    row-gap: .5rem;
+    column-gap: 5rem;
+    grid-template-columns: 1fr auto auto auto auto;
+}
+
+.tdRiders h2 {
+    grid-column: span 5;
+    text-align: center;
+}
+
+.tdRiders h3{
+    grid-column: span 5;
+    margin-bottom: 1rem;
+}
+
+.tdRiders img{
+    height: 25px;
+    justify-self: center;
+}
+
+.divisor{
+    border: dashed 2px black;
+    grid-column: span 5;
+    margin-top: 1.5rem;
+}
