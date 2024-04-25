@@ -11,7 +11,7 @@ import checkmark from './../../assets/checkmark.png'
 import errormark from './../../assets/error.png'
 
 
-const ManageUsers = ({ APIServer, allUsers }) => {
+const ManageUsers = ({ APIServer, fetchAPIData, allUsers }) => {
 
     const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
 
@@ -35,7 +35,7 @@ const ManageUsers = ({ APIServer, allUsers }) => {
 				},
 				body: JSON.stringify(Object.fromEntries(formData))
 			})
-			// await fetchAPIData(); //TODO: Should we refresh user displayed fields to new updated values? Or in case of fail, to old valid values?
+			await fetchAPIData();
 			if (response.ok) {
 				setLockedUserInfo(true)
 				setActiveModal({ type: 'success', msg: 'Profile updated' });
