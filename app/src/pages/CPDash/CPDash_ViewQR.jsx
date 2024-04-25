@@ -8,10 +8,13 @@ import html2canvas from 'html2canvas'
 
 
 const ViewQR = ({ allUsers }) => {
+    if (!allUsers) {
+        return null;
+    } else {
+        allUsers.sort((a, b) => (a.firstName > b.firstName) ? 1 : ((b.firstName > a.firstName) ? -1 : 0))
+    }
 
     const [curUser, setCurUser] = useState(allUsers[0])
-
- 
 
     async function downloadImage(user, garageItem) {
         const canvas = await html2canvas(document.getElementById(garageItem._id), { onclone: (doc) => doc.getElementById('stickerContainer').style.display = 'block' })
@@ -20,12 +23,6 @@ const ViewQR = ({ allUsers }) => {
         link.download = `${user.firstName}_${garageItem.bike.model}`
         link.href = image
         link.click();
-    }
-
-    if (!allUsers) {
-        return null;
-    } else {
-        allUsers.sort((a, b) => (a.firstName > b.firstName) ? 1 : ((b.firstName > a.firstName) ? -1 : 0))
     }
 
     return (
