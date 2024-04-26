@@ -32,6 +32,20 @@
     font-size: inherit;
 }
 
+#refreshBtn{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: .5rem 2rem;
+    margin-left: auto;
+    border: none;
+    background-color: black;
+    color: white;
+}
+
+.mobileToolbarIcons {
+    font-size: 40px;
+}
 
 .tdSummary{
     /* background-color: orange; */

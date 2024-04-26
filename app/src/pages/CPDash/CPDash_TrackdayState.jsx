@@ -1,18 +1,17 @@
-import { useState, Fragment } from "react";
+import { useState, Fragment, useEffect } from "react";
 import ScrollToTop from "../../components/ScrollToTop";
+
+import Loading from '../../components/Loading';
 
 import styles from './stylesheets/CPDash_TrackdayState.module.css'
 
 import checkmark from './../../assets/checkmark.png'
 import errormark from './../../assets/error.png'
 
-const TrackdayState = ({ allUsers, allTrackdays, allTrackdaysFULL }) => {
-	const [selectedTrackday, setSelectedTrackday] = useState(''); // Tracks what the current working trackday is 
+const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL }) => {
 
-	const trackdayRegNumbers = allTrackdays.find((td) => td.id === selectedTrackday._id)
+    const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
 
-	let preRegistrations = 0;
-	let gateRegistrations = 0;
 
 	if (!allUsers || !allTrackdaysFULL) {
 		return null;
@@ -20,6 +19,19 @@ const TrackdayState = ({ allUsers, allTrackdays, allTrackdaysFULL }) => {
 		allUsers.sort((a, b) => (a.firstName > b.firstName) ? 1 : ((b.firstName > a.firstName) ? -1 : 0))
 		allTrackdaysFULL.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
 	}
+
+
+	const [selectedTrackdayId, setSelectedTrackdayId] = useState(''); // Tracks what the current working trackdayId is 
+
+
+
+	let preRegistrations = 0;
+	let gateRegistrations = 0;
+	let selectedTrackday;
+	let trackdayRegNumbers;
+
+	if (selectedTrackdayId) selectedTrackday = allTrackdaysFULL.find((td) => td._id === selectedTrackdayId)
+
 
 
 	// Modify date of allTrackdays to be a nice format
@@ -33,7 +45,16 @@ const TrackdayState = ({ allUsers, allTrackdays, allTrackdaysFULL }) => {
 	})
 
 	// Get registration break down.
-	if (selectedTrackday) selectedTrackday.members.forEach((memberEntry) => memberEntry.paymentMethod === 'gate' ? gateRegistrations++ : preRegistrations++)
+	if (selectedTrackday) {
+		selectedTrackday.members.forEach((memberEntry) => memberEntry.paymentMethod === 'gate' ? gateRegistrations++ : preRegistrations++)
+		trackdayRegNumbers = allTrackdays.find((td) => td.id === selectedTrackday._id)
+	}
+
+	async function handleRefresh() {
+		setActiveModal({ type: 'loading', msg: 'Refreshing data' });
+		await fetchAPIData();
+		setActiveModal('');
+	}
 
 
 	return (
@@ -43,12 +64,13 @@ const TrackdayState = ({ allUsers, allTrackdays, allTrackdaysFULL }) => {
 				<h1>Trackday State-
 					<form onSubmit={(e) => updatePaid(e, !selectedEntry.paid)}>
 						<div className={styles.inputPairing}>
-							<select name="trackday" id="trackday" onChange={() => setSelectedTrackday(allTrackdaysFULL.find((td) => td._id === trackday.value))} required>
+							<select name="trackday" id="trackday" onChange={() => setSelectedTrackdayId(trackday.value)} required>
 								<option style={{ textAlign: 'center' }} key="none" value="">---Select---</option>
 								{allTrackdaysFULL.map((trackday) => <option key={trackday._id} value={trackday._id}>{trackday.prettyDate}</option>)}
 							</select>
 						</div>
 					</form>
+					<button id={styles.refreshBtn} onClick={() => handleRefresh()}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined `}>refresh</span></button>
 				</h1>
 
 				{selectedTrackday &&
@@ -114,11 +136,11 @@ const TrackdayState = ({ allUsers, allTrackdays, allTrackdaysFULL }) => {
 									</Fragment>
 								)
 							})}
-							{selectedTrackday.walkons.filter((user) =>user.group === 'green').map((user) => {
+							{selectedTrackday.walkons.filter((user) => user.group === 'green').map((user) => {
 								return (
-									<Fragment key={user.firstName+user.lastName+user.group}>
+									<Fragment key={user.firstName + user.lastName + user.group}>
 										<div className="capitalizeEach">{user.firstName}, {user.lastName}</div>
-										<img src={checkmark}></img> 
+										<img src={checkmark}></img>
 										<div>Walk On</div>
 										<img src={checkmark}></img>
 										<img src={checkmark}></img>
@@ -158,9 +180,13 @@ const TrackdayState = ({ allUsers, allTrackdays, allTrackdaysFULL }) => {
 						</div>
 					</>
 				}
+
 			</div>
 
 
+			<Loading open={activeModal.type === 'loading'}>
+				{activeModal.msg}
+			</Loading>
 
 		</>
 	);
