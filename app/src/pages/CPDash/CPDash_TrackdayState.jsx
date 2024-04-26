@@ -1,4 +1,4 @@
-import { useState, Fragment, useEffect } from "react";
+import { useState, Fragment } from "react";
 import ScrollToTop from "../../components/ScrollToTop";
 
 import Loading from '../../components/Loading';
@@ -11,7 +11,12 @@ import errormark from './../../assets/error.png'
 const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL }) => {
 
     const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
+	const [selectedTrackdayId, setSelectedTrackdayId] = useState(''); // Tracks what the current working trackdayId is 
 
+	let preRegistrations = 0;
+	let gateRegistrations = 0;
+	let selectedTrackday;
+	let trackdayRegNumbers;
 
 	if (!allUsers || !allTrackdaysFULL) {
 		return null;
@@ -20,21 +25,7 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 		allTrackdaysFULL.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
 	}
 
-
-	const [selectedTrackdayId, setSelectedTrackdayId] = useState(''); // Tracks what the current working trackdayId is 
-
-
-
-	let preRegistrations = 0;
-	let gateRegistrations = 0;
-	let selectedTrackday;
-	let trackdayRegNumbers;
-
-	if (selectedTrackdayId) selectedTrackday = allTrackdaysFULL.find((td) => td._id === selectedTrackdayId)
-
-
-
-	// Modify date of allTrackdays to be a nice format
+	// Augment prettydate of allTrackdays to be a nice format
 	allTrackdaysFULL.forEach((trackday) => {
 		const date = new Date(trackday.date)
 		const weekday = date.toLocaleString('default', { weekday: 'short' })
@@ -44,9 +35,18 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 		trackday.prettyDate = formattedDate;
 	})
 
-	// Get registration break down.
+
+	// Set the selected trackday and sort its members array
+	if (selectedTrackdayId) {
+		selectedTrackday = allTrackdaysFULL.find((td) => td._id === selectedTrackdayId)
+		selectedTrackday.members.sort((a, b) => (a.user.firstName > b.user.firstName) ? 1 : ((b.user.firstName > a.user.firstName) ? -1 : 0))
+	}
+
+	
 	if (selectedTrackday) {
+		// Get registration break down.
 		selectedTrackday.members.forEach((memberEntry) => memberEntry.paymentMethod === 'gate' ? gateRegistrations++ : preRegistrations++)
+		// Used to determine number of riders in each group
 		trackdayRegNumbers = allTrackdays.find((td) => td.id === selectedTrackday._id)
 	}
 
