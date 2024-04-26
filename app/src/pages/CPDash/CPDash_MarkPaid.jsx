@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import ScrollToTop from "../../components/ScrollToTop";
 
 import Modal from "../../components/Modal";
@@ -14,10 +14,11 @@ import errormark from './../../assets/error.png'
 const MarkPaid = ({ APIServer, fetchAPIData, allUsers, allTrackdaysFULL }) => {
 
 	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
-	const [selectedTrackday, setSelectedTrackday] = useState(''); // Tracks what the current working trackday is which determines what users to show in dropdown
-	const [selectedEntry, setSelectedEntry] = useState(''); // Tracks what the current entry we are looking at (taekn from members array for given trackday)
+	const [selectedTrackdayId, setSelectedTrackdayId] = useState(''); // Tracks what the current working trackday is which determines what users to show in dropdown
+	const [selectedEntryId, setSelectedEntryId] = useState(''); // Tracks what the current entry we are looking at (taken from members array for given trackday)
 
-
+	let selectedTrackday;
+	let selectedEntry;
 
 	if (!allUsers || !allTrackdaysFULL) {
 		return null;
@@ -25,16 +26,6 @@ const MarkPaid = ({ APIServer, fetchAPIData, allUsers, allTrackdaysFULL }) => {
 		allUsers.sort((a, b) => (a.firstName > b.firstName) ? 1 : ((b.firstName > a.firstName) ? -1 : 0))
 		allTrackdaysFULL.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
 	}
-
-
-	// Refresh state variable if corresponding prop changes
-	useEffect(() => {
-		if (selectedTrackday && selectedEntry) {
-			setSelectedTrackday(allTrackdaysFULL.find((td) => td._id === selectedTrackday._id)) // Update trackday
-			setSelectedEntry(allTrackdaysFULL.find((td) => td._id === selectedTrackday._id).members.find((memberEntry) => memberEntry.user._id === selectedEntry.user._id)) //Update entry
-		}
-
-	}, [allTrackdaysFULL])
 
 	// Modify date of allTrackdays to be a nice format
 	allTrackdaysFULL.forEach((trackday) => {
@@ -46,6 +37,9 @@ const MarkPaid = ({ APIServer, fetchAPIData, allUsers, allTrackdaysFULL }) => {
 		trackday.prettyDate = formattedDate;
 
 	})
+
+	if (selectedTrackdayId) selectedTrackday = allTrackdaysFULL.find((td) => td._id === selectedTrackdayId)
+	if (selectedEntryId) selectedEntry = selectedTrackday.members.find((memberEntry) => memberEntry.user._id === selectedEntryId)
 
 	async function updatePaid(e, newStatus) {
 		e.preventDefault();
@@ -86,7 +80,7 @@ const MarkPaid = ({ APIServer, fetchAPIData, allUsers, allTrackdaysFULL }) => {
 				<form onSubmit={(e) => updatePaid(e, !selectedEntry.paid)}>
 					<div className={styles.inputPairing}>
 						<label htmlFor="user">Select Trackday:</label>
-						<select name="trackday" id="trackday" onChange={() => setSelectedTrackday(allTrackdaysFULL.find((td) => td._id === trackday.value))} required>
+						<select name="trackday" id="trackday" onChange={() => setSelectedTrackdayId(trackday.value)} required>
 							<option key="none" value=""></option>
 							{allTrackdaysFULL.map((trackday) => <option key={trackday._id} value={trackday._id}>{trackday.prettyDate}</option>)}
 						</select>
@@ -94,7 +88,7 @@ const MarkPaid = ({ APIServer, fetchAPIData, allUsers, allTrackdaysFULL }) => {
 
 					<div className={styles.inputPairing}>
 						<label htmlFor="user">Select User:</label>
-						<select className='capitalizeEach' name="user" id="user" onChange={() => setSelectedEntry(selectedTrackday.members.find((memberEntry) => memberEntry.user._id === user.value))} required>
+						<select className='capitalizeEach' name="user" id="user" onChange={() => setSelectedEntryId(user.value)} required>
 							<option key="none" value=""></option>
 							{selectedTrackday && allUsers.filter((user) => selectedTrackday.members.find((member) => member.user._id == user._id)).map((user) => <option key={user._id} value={user._id}>{user.firstName}, {user.lastName}</option>)}
 						</select>
