@@ -471,13 +471,13 @@ exports.updatePaid = [
 //              CRUD
 //////////////////////////////////////
 
-// Returns specific trackday. Requires JWT with admin.
+// Returns specific trackday. Requires JWT with staff or admin.
 exports.trackday_get = [
     controllerUtils.verifyJWT,
     controllerUtils.validateTrackdayID,
 
     asyncHandler(async (req, res, next) => {
-        if (req.user.memberType === 'admin') {
+        if (req.user.memberType === 'staff' || req.user.memberType === 'admin') {
             const trackday = await Trackday.findById(req.params.trackdayID).populate('members.user', '-password -refreshToken -garage -__v').select('-__v').exec();
             return res.status(200).send({ ...trackday._doc, guests: getRegDetails(trackday).guests });
         }
@@ -485,11 +485,11 @@ exports.trackday_get = [
     })
 ]
 
-// Returns all trackdays. Requires JWT with admin.
+// Returns all trackdays. Requires JWT with staff or admin.
 exports.trackday_getALL = [
     controllerUtils.verifyJWT,
     asyncHandler(async (req, res, next) => {
-        if (req.user.memberType === 'admin') {
+        if (req.user.memberType === 'staff' || req.user.memberType === 'admin') {
             const trackdays = await Trackday.find().populate('members.user', '-password -refreshToken -garage -__v').select('-__v').exec();
             trackdays.forEach((trackday) => trackday._doc = { ...trackday._doc, guests: getRegDetails(trackday).guests })
             return res.status(200).json(trackdays);
