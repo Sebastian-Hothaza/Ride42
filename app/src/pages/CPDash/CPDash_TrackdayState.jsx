@@ -62,7 +62,7 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 			<ScrollToTop />
 			<div className={styles.content}>
 				<h1>Trackday State-
-					<form onSubmit={(e) => updatePaid(e, !selectedEntry.paid)}>
+					<form>
 						<div className={styles.inputPairing}>
 							<select name="trackday" id="trackday" onChange={() => setSelectedTrackdayId(trackday.value)} required>
 								<option style={{ textAlign: 'center' }} key="none" value="">---Select---</option>
