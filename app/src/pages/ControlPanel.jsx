@@ -119,6 +119,7 @@ const ControlPanel = ({ APIServer }) => {
                                 <button className={activeTab == 'waiver' ? styles.selected : undefined} onClick={() => setActiveTab('waiver')}>Waiver</button>
                                 <button className={activeTab == 'gateRegister' ? styles.selected : undefined} onClick={() => setActiveTab('gateRegister')}>Gate Register</button>
                                 <button className={activeTab == 'walkOn' ? styles.selected : undefined} onClick={() => setActiveTab('walkOn')}>Walk On</button>
+                                <button className={activeTab == 'trackdayState' ? styles.selected : undefined} onClick={() => setActiveTab('trackdayState')}>Trackday State</button>
                                 <button className={activeTab == 'checkIn' ? styles.selected : undefined} onClick={() => setActiveTab('checkIn')}>Check In</button>
                                 <button className={activeTab == 'verify' ? styles.selected : undefined} onClick={() => setActiveTab('verify')}>Verify</button>
                             </>
@@ -130,7 +131,6 @@ const ControlPanel = ({ APIServer }) => {
                                 <button className={activeTab == 'manageUsers' ? styles.selected : undefined} onClick={() => setActiveTab('manageUsers')}>Manage Users</button>
                                 <button className={activeTab == 'manageTrackdays' ? styles.selected : undefined} onClick={() => setActiveTab('manageTrackdays')}>Manage Trackdays</button>
                                 <button className={activeTab == 'markPaid' ? styles.selected : undefined} onClick={() => setActiveTab('markPaid')}>Mark Paid</button>
-                                <button className={activeTab == 'trackdayState' ? styles.selected : undefined} onClick={() => setActiveTab('trackdayState')}>Trackday State</button>
                                 <button className={activeTab == 'trackdaySummary' ? styles.selected : undefined} onClick={() => setActiveTab('trackdaySummary')}>Trackday Summary</button>
                                 <button className={activeTab == 'checkInManual' ? styles.selected : undefined} onClick={() => setActiveTab('checkInManual')}>Manual Check In</button>
                                 <button className={activeTab == 'emailer' ? styles.selected : undefined} onClick={() => setActiveTab('emailer')}>Emailer</button>
