@@ -91,7 +91,7 @@ const registerTrackday =
 		<br />
 		E-transfers should be sent to payments@ride42.ca.
 		<br />
-		Credit card payments can be made <a href="https://buy.stripe.com/00gg2C4wDgbt6aYbII"><strong>using this link.</strong></a>.
+		Credit card payments can be made <a href="https://buy.stripe.com/5kA7w6aV1aR91UI145"><strong>using this link.</strong></a>.
 		<br />
 		If you have not completed a waiver yet, you can print one out <a href="https://drive.google.com/file/d/1FkyTbPXo9x5K6xtGztmjMHLd0B5iSsva/view?usp=sharing"><strong>here</strong></a> to make your morning check in process faster.<br />
 		<br />
