@@ -11,7 +11,7 @@ import checkmark from './../../assets/checkmark.png'
 import errormark from './../../assets/error.png'
 
 
-// TODO; remove hardcoded 7 days restriction
+// TODO; remove hardcoded 6 days restriction
 
 
 const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPIData, setActiveTab }) => {
@@ -34,7 +34,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 		if (new Date(trackday.date).getTime() - Date.now() < 0) return false
 
 		// In lockout period and payment method was not credit
-		const timeLockout = 7 * (1000 * 60 * 60 * 24);
+		const timeLockout = 6 * (1000 * 60 * 60 * 24);
 		const timeDifference = new Date(trackday.date).getTime() - Date.now()
 		if (trackday.paymentMethod !== 'credit' && timeDifference < timeLockout) return false;
 		return true;
