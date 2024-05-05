@@ -58,11 +58,11 @@ const CheckIn = ({ APIServer, allTrackdays, allUsers }) => {
             if (response.ok) {
                 const data = await response.json();
                 if (data.verified === true) {
-                    setActiveModal({ type: 'success', msg: `${user.firstName}, ${user.lastName}\n${bike.year} ${bike.make} ${bike.model}` })
+                    setActiveModal({ type: 'success', msg: `${user.firstName}, ${user.lastName}\nGroup: ${user.group}\n${bike.year} ${bike.make} ${bike.model}` })
                     setTimeout(() => setActiveModal(''), 1500)
                     setTimeout(() => scanner.start(), 2000) // Prompt scanner to start scanning again
                 } else {
-                    setActiveModal({ type: 'failure', msg: `${user.firstName}, ${user.lastName}\n${bike.year} ${bike.make} ${bike.model}`, scanner: scanner })
+                    setActiveModal({ type: 'failure', msg: `${user.firstName}, ${user.lastName}\nGroup: ${user.group}\n${bike.year} ${bike.make} ${bike.model}`, scanner: scanner })
                 }
                 
             } else {
