@@ -80,9 +80,10 @@ function TrackdayInfo() {
 			}
 
 			const dateInfo = {
+				id: trackday.id,
 				formattedDate: weekday + ' ' + month + ' ' + numericDay,
 				layout: formattedLayout,
-				id: trackday.id
+				status: trackday.status
 			}
 			datesArray.push(dateInfo)
 		})
@@ -96,7 +97,7 @@ function TrackdayInfo() {
 				<li key={dateInfo.id}>
 					<div className={styles.dateEntry}>
 						<div>{dateInfo.formattedDate}</div>
-						<div id={styles.layout}>{dateInfo.layout}</div>
+						{dateInfo.status === 'cancelled'? <div id={styles.layout}>Cancelled</div> : <div id={styles.layout}>{dateInfo.layout}</div>}
 					</div>
 				</li>
 			))}
