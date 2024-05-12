@@ -11,7 +11,7 @@ import modalStyles from '../../components/stylesheets/Modal.module.css'
 import checkmark from './../../assets/checkmark.png'
 import errormark from './../../assets/error.png'
 
-
+// TODO: Fix issue when scanning a user's bike and bike is no longer in users garage
 
 const CheckIn = ({ APIServer, allTrackdays, allUsers }) => {
     const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
@@ -33,7 +33,7 @@ const CheckIn = ({ APIServer, allTrackdays, allUsers }) => {
         upcomingTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
 
         // Formatting
-        const date = new Date(allTrackdays[0].date)
+        const date = new Date(upcomingTrackdays[0].date)
         const month = date.toLocaleString('default', { month: 'long' })
         const numericDay = date.toLocaleString('default', { day: 'numeric' })
         const formattedDate = month + ' ' + numericDay;

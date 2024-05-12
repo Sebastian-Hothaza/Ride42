@@ -34,7 +34,7 @@ const CheckIn = ({ APIServer, allTrackdays, allUsers }) => {
         upcomingTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
 
         // Formatting
-        const date = new Date(allTrackdays[0].date)
+        const date = new Date(upcomingTrackdays[0].date)
         const month = date.toLocaleString('default', { month: 'long' })
         const numericDay = date.toLocaleString('default', { day: 'numeric' })
         const formattedDate = month + ' ' + numericDay;
