@@ -325,6 +325,7 @@ exports.walkons = [
             trackday.walkons.push({
                 firstName: req.body.firstName,
                 lastName: req.body.lastName,
+                paymentMethod: 'gate',
                 group: req.body.group
             })
             await trackday.save();
