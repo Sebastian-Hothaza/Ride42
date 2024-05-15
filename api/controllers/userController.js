@@ -210,14 +210,14 @@ exports.requestQRCode = [
 
     asyncHandler(async (req, res, next) => {
         if (req.user.memberType === 'admin' || (req.user.id === req.params.userID)) {
-            const user = await User.findById(req.params.userID).exec();
+            const user = await User.findById(req.params.userID).populate('garage.bike').exec();
 
             // Verify the bikeID is actually in the users garage
-            const hasBike = user.garage.some((garageEntry) => garageEntry.bike.equals(req.params.bikeID))
-            if (!hasBike) res.status(404).send({ msg: ['this bike does not exist in your garage'] })
+            const userBike = user.garage.find((garageEntry) => garageEntry.bike.equals(req.params.bikeID))
+            if (!userBike) return res.status(404).send({ msg: ['this bike does not exist in your garage'] })
 
             sendEmail(process.env.ADMIN_EMAIL, "QR CODE REQUEST", mailTemplates.QRCodeRequest,
-                { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), userID: req.params.userID, bikeID: req.params.bikeID })
+                { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), userID: req.params.userID, bike: `QR_REQ_${userBike.bike.year} ${userBike.bike.make} ${userBike.bike.model}`, bikeID: req.params.bikeID })
             return res.sendStatus(200)
         }
         return res.sendStatus(403)
