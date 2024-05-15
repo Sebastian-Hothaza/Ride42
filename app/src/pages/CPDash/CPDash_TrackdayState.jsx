@@ -232,7 +232,7 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 									<Fragment key={user._id}>
 										<div className="capitalizeEach">{user.firstName}, {user.lastName}</div>
 										<div className={styles.memberDetail}>
-											<div>{paymentMethod}</div>
+											<div>Walk On</div>
 											<div className={styles.statusEntry}>
 												Paid
 												<img src={checkmark}></img>
@@ -279,7 +279,7 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 									<Fragment key={user._id}>
 										<div className="capitalizeEach">{user.firstName}, {user.lastName}</div>
 										<div className={styles.memberDetail}>
-											<div>{paymentMethod}</div>
+											<div>Walk On</div>
 											<div className={styles.statusEntry}>
 												Paid
 												<img src={checkmark}></img>
@@ -325,7 +325,7 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 									<Fragment key={user._id}>
 										<div className="capitalizeEach">{user.firstName}, {user.lastName}</div>
 										<div className={styles.memberDetail}>
-											<div>{paymentMethod}</div>
+											<div>Walk On</div>
 											<div className={styles.statusEntry}>
 												Paid
 												<img src={checkmark}></img>
