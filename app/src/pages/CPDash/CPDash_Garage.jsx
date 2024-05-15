@@ -102,7 +102,7 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 							<div key={garageItem.bike._id} className={styles.bikeEntry}>
 								<div className='capitalizeEach' >{garageItem.bike.year} {garageItem.bike.make} <span className='capitalizeAll'>{garageItem.bike.model}</span></div>
 								<div className={styles.bikeControls}>
-									<button onClick={(e) => handleRequestQR(garageItem.bike._id)}>Request QR Code</button>
+									<button onClick={(e) => handleRequestQR(garageItem.bike._id)}>Request replacement QR Code</button>
 									<button className={styles.confirmBtn} onClick={(e) => handleRemoveBike(garageItem.bike._id)}>Remove</button>
 								</div>
 
