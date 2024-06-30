@@ -14,7 +14,7 @@ const Dashboard = () => {
 	
 	return (
 		<>
-			{loggedIn ? <ControlPanel APIServer={APIServer} setLoggedIn={setLoggedIn} handleLogout={handleLogout}/> : <Login />} 
+			{loggedIn ? <ControlPanel APIServer={APIServer} setLoggedIn={setLoggedIn} handleLogout={handleLogout}/> : <Login APIServer={APIServer}/>} 
 		</>
 	);
 };
