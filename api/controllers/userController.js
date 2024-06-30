@@ -143,7 +143,7 @@ exports.requestPasswordResetLink = [
 
 // Resets user password
 exports.resetPassword = [
-    body("newPassword", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().matches(/^(?=.*[0-9])(?=.*[a-z])(?!.* ).{8,50}$/).escape(),
+    body("password", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().matches(/^(?=.*[0-9])(?=.*[a-z])(?!.* ).{8,50}$/).escape(),
 
     controllerUtils.validateForm,
     controllerUtils.validateUserID,
@@ -151,7 +151,7 @@ exports.resetPassword = [
     asyncHandler(async (req, res, next) => {
         try {
             const payload = jwt.verify(req.params.token, process.env.JWT_ACCESS_CODE);
-            bcrypt.hash(req.body.newPassword, 10, async (err, hashedPassword) => {
+            bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
                 if (err) console.log("bcrypt error")
                 let user = await User.findById(payload.id).exec();
                 user.password = hashedPassword;
