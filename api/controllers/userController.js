@@ -123,27 +123,45 @@ exports.updatePassword = [
 exports.requestPasswordResetLink = [
     body("email", "Email must be in format of samplename@sampledomain.com").trim().isEmail().escape(),
 
- 
     controllerUtils.validateForm,
-
 
     asyncHandler(async (req, res, next) => {
         // Check that there exists a user with this email
-        const user = await User.findOne({ 'contact.email': { $eq: req.body.email} }).exec();
+        const user = await User.findOne({ 'contact.email': { $eq: req.body.email } }).exec();
 
         if (user) {
             // Create JWT
             const resetToken = jwt.sign({ id: user._id }, process.env.JWT_ACCESS_CODE, { expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION })
-            
-            // Email link to user
-            sendEmail(req.body.email, "Reset Your Ride42 Password", mailTemplates.passwordResetLink, { name: user.firstName, link: `https://Ride42.ca/${resetToken}` })
 
-        } else {
-            return res.status(403).json({ msg: ['No user exists with this email'] });
+            // Email link to user
+            sendEmail(req.body.email, "Reset Your Ride42 Password", mailTemplates.passwordResetLink, { name: user.firstName, link: `https://Ride42.ca/passwordreset/${user._id}/${resetToken}` })
+            return res.sendStatus(200)
         }
-        
-        return res.sendStatus(200)  
-        
+        return res.status(403).json({ msg: ['No user exists with this email'] });
+    })
+]
+
+// Resets user password
+exports.resetPassword = [
+    body("newPassword", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().matches(/^(?=.*[0-9])(?=.*[a-z])(?!.* ).{8,50}$/).escape(),
+
+    controllerUtils.validateForm,
+    controllerUtils.validateUserID,
+
+    asyncHandler(async (req, res, next) => {
+        try {
+            const payload = jwt.verify(req.params.token, process.env.JWT_ACCESS_CODE);
+            bcrypt.hash(req.body.newPassword, 10, async (err, hashedPassword) => {
+                if (err) console.log("bcrypt error")
+                let user = await User.findById(payload.id).exec();
+                user.password = hashedPassword;
+                await user.save();
+                sendEmail(user.contact.email, "Your Password has been updated", mailTemplates.passwordChange, { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) })
+                res.sendStatus(200);
+            })
+        } catch {
+            return res.sendStatus(403)
+        }
     })
 ]
 
@@ -160,7 +178,7 @@ exports.verify = [
         const memberEntry = trackday.members.find((member) => member.user.equals(req.params.userID));
 
 
-        memberEntry && memberEntry.checkedIn.includes(req.params.bikeID) ? res.status(200).json({verified: true }) : res.status(200).json({verified: false})
+        memberEntry && memberEntry.checkedIn.includes(req.params.bikeID) ? res.status(200).json({ verified: true }) : res.status(200).json({ verified: false })
     })
 ]
 
@@ -186,8 +204,8 @@ exports.garage_post = [
                 await bike.save()
             }
 
-            
-           
+
+
             // Check if user already has this bike in their garage
             for (let i = 0; i < user.garage.length; i++) {
                 if (user.garage[i].bike.equals(bike.id)) return res.status(409).send({ msg: ['Bike with these details already exists'] });
