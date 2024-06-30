@@ -9,6 +9,7 @@ import Faq from "./pages/Faq";
 import Shop from "./pages/Shop";
 import Dashboard from "./pages/Dashboard";
 import Register from "./pages/Register";
+import PasswordReset from "./pages/PasswordReset";
 
 import Construction from "./pages/Construction";
 const underConstruction = false; // Used to hide website content, routes accessible unless commented out
@@ -28,6 +29,7 @@ const Router = () => {
 				{ path: "/shop", element: <Shop /> },
 				{ path: "/dashboard/*", element: <Dashboard /> },
 				{ path: "/register", element: <Register /> },
+				{ path: "/passwordreset/:userID/:token", element: <PasswordReset/> },
 			],
 		},
 	]);
