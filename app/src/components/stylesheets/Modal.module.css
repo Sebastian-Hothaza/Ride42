@@ -76,6 +76,11 @@
     gap: 1rem;
 }
 
+.modal form input{
+    font-size: inherit;
+    width: 100%;
+}
+
 .modal form select{
     font-size: inherit;
     width: 100%;
