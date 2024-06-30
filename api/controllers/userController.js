@@ -119,6 +119,34 @@ exports.updatePassword = [
     })
 ]
 
+// Requests a password reset link to be sent to a user
+exports.requestPasswordResetLink = [
+    body("email", "Email must be in format of samplename@sampledomain.com").trim().isEmail().escape(),
+
+ 
+    controllerUtils.validateForm,
+
+
+    asyncHandler(async (req, res, next) => {
+        // Check that there exists a user with this email
+        const user = await User.findOne({ 'contact.email': { $eq: req.body.email} }).exec();
+
+        if (user) {
+            // Create JWT
+            const resetToken = jwt.sign({ id: user._id }, process.env.JWT_ACCESS_CODE, { expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION })
+            
+            // Email link to user
+            sendEmail(req.body.email, "Reset Your Ride42 Password", mailTemplates.passwordResetLink, { name: user.firstName, link: `https://Ride42.ca/${resetToken}` })
+
+        } else {
+            return res.status(403).json({ msg: ['No user exists with this email'] });
+        }
+        
+        return res.sendStatus(200)  
+        
+    })
+]
+
 // Returns true if the user/bike is checked in for a given trackday. PUBLIC.
 exports.verify = [
     controllerUtils.validateUserID,

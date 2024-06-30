@@ -9,6 +9,7 @@ router.get('/', (req,res,next)=>res.sendStatus(200)) // Used to ping API and wak
 router.post('/login', userController.login)
 router.get('/verify/:userID/:trackdayID/:bikeID', userController.verify)
 router.put('/password/:userID', userController.updatePassword)
+router.post('/resetpassword', userController.requestPasswordResetLink)
 router.post('/garage/:userID', userController.garage_post)
 router.delete('/garage/:userID/:bikeID', userController.garage_delete)
 router.post('/qrcode/:userID/:bikeID', userController.requestQRCode)
