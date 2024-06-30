@@ -81,6 +81,18 @@ const passwordChange =
 	${signature}
 </body>`
 
+const passwordResetLink =
+	`<body>
+	<div class="default-style">
+		Hello {name}, <br />
+		<br />
+		<a href={link}><strong>Click here to reset your password.</strong></a>
+		<br />
+		If you did not request a password reset, please contact us immediately.
+	</div>
+	${signature}
+</body>`
+
 const registerTrackday =
 	`<body>
 	<div class="default-style">
@@ -155,4 +167,4 @@ const notifyPaid =
 
 
 
-module.exports = { welcomeUser, updateUser, passwordChange, registerTrackday, unregisterTrackday, unregisterTrackday_admin, rescheduleTrackday, QRCodeRequest, notifyPaid };
+module.exports = { welcomeUser, updateUser, passwordChange, passwordResetLink, registerTrackday, unregisterTrackday, unregisterTrackday_admin, rescheduleTrackday, QRCodeRequest, notifyPaid };
