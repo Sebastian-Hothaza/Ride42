@@ -86,7 +86,7 @@ const passwordResetLink =
 	<div class="default-style">
 		Hello {name}, <br />
 		<br />
-		<a href={link}><strong>Click here to reset your password.</strong></a>
+		<a href={link}><strong>Click here to reset your password.</strong></a><br />
 		<br />
 		If you did not request a password reset, please contact us immediately.
 	</div>
