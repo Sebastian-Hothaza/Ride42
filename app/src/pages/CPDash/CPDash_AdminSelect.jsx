@@ -17,6 +17,7 @@ const AdminSelect = ({ setActiveTab, memberType }) => {
                 {/* ADMIN */}
                 {memberType === 'admin' &&
                     <>
+                        <button onClick={() => setActiveTab('generateQR')}>Generate QR</button>
                         <button onClick={() => setActiveTab('viewQR')}>View QR</button>
                         <button onClick={() => setActiveTab('manageUsers')}>Manage Users</button>
                         <button onClick={() => setActiveTab('manageTrackdays')}>Manage Trackdays</button>
