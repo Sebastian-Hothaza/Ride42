@@ -178,8 +178,23 @@ exports.verify = [
         // Check that the member we want to verify for a trackday actually exists in the trackday
         const memberEntry = trackday.members.find((member) => member.user.equals(req.params.userID));
 
-
         memberEntry && memberEntry.checkedIn.includes(req.params.bikeID) ? res.status(200).json({ verified: true }) : res.status(200).json({ verified: false })
+    })
+]
+
+// Returns true if the user/bike is checked in for a given trackday. Used by QR PUBLIC.
+exports.verifyQR = [
+    controllerUtils.validateQRID,
+    controllerUtils.validateTrackdayID,
+
+    asyncHandler(async (req, res, next) => {
+        const qr = await QR.findById(req.params.QRID).populate('user bike').exec();
+        const trackday = await Trackday.findById(req.params.trackdayID).exec();
+
+        // Check that the member we want to verify for a trackday actually exists in the trackday
+        const memberEntry = trackday.members.find((member) => member.user.equals(qr.user.id));
+
+        memberEntry && memberEntry.checkedIn.includes(qr.bike.id) ? res.status(200).json({ verified: true }) : res.status(200).json({ verified: false })
     })
 ]
 
@@ -277,7 +292,7 @@ exports.requestQRCode = [
 exports.generateQRs = [
     controllerUtils.verifyJWT,
 
-    body("qty", "Quantity must be between 0-100").trim().isInt({ min: 1, max: 100 }).escape(),
+    body("qty", "Quantity must be between 1-100").trim().isInt({ min: 1, max: 100 }).escape(),
 
     controllerUtils.validateForm,
 
@@ -293,6 +308,19 @@ exports.generateQRs = [
         }
         return res.sendStatus(403)
     })
+]
+
+exports.getQR = [
+    controllerUtils.verifyJWT,
+
+    asyncHandler(async (req, res) => {
+        // JWT is valid. Verify user is allowed to access this resource and return the information
+        if (req.user.memberType === 'admin') {
+            let qr = await QR.find().populate([{path: 'user', select: '-password -refreshToken -__v'},{path: 'bike', select: '-__v'}]).select('-__v').exec();
+            return res.status(200).json(qr);
+        }
+        return res.sendStatus(403);
+    }),
 ]
 
 // Marries a user and bike to a QR code
@@ -334,7 +362,7 @@ exports.marryQR = [
     })
 ]
 
-// Marries a user and bike to a QR code
+// Deletes a QR code and removes its link if it exists
 // Also updates a users QRid to remove link
 // TODO: Testing
 exports.deleteQR = [
