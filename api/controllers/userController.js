@@ -295,6 +295,7 @@ exports.generateQRs = [
 ]
 
 // Marries a user and bike to a QR code
+// Also updates a users QRid
 // TODO: Testing
 exports.marryQR = [
     controllerUtils.verifyJWT,
@@ -308,6 +309,13 @@ exports.marryQR = [
             qr.user = req.params.userID;
             qr.bike = req.params.bikeID;
             await qr.save();
+      
+            // Updates the users QRID for the bike that has just been married
+            const user = await User.findById(req.params.userID).exec();
+            const bikeToMarry = user.garage.find((bike) => bike.bike._id.toString() == req.params.bikeID);
+            bikeToMarry.QRID = qr;
+            await user.save();
+      
             return res.status(201).json({ id: qr.id });
         }
         return res.sendStatus(403)
