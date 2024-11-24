@@ -1650,8 +1650,8 @@ describe('Testing rescheduling', () => {
 	});
 
 	test("reschedule - after check in", async () => {
-		const trackday1 = await addTrackday('2024-06-05T14:00Z')
-		const trackday2 = await addTrackday('2024-07-07T14:00Z')
+		const trackday1 = await addTrackday(getFormattedDate(15))
+		const trackday2 = await addTrackday(getFormattedDate(20))
 
 		// Add bike to garage
 		const bike = await request(app)
@@ -1696,8 +1696,8 @@ describe('Testing rescheduling', () => {
 	});
 
 	test("valid reschedule", async () => {
-		const trackday1 = await addTrackday('2024-06-05T14:00Z')
-		const trackday2 = await addTrackday('2024-07-07T14:00Z')
+		const trackday1 = await addTrackday(getFormattedDate(15))
+		const trackday2 = await addTrackday(getFormattedDate(30))
 
 		// Add bike to garage
 		await request(app)
@@ -1727,7 +1727,7 @@ describe('Testing rescheduling', () => {
 			.set('Cookie', adminCookie)
 			.expect(200, [{
 				id: trackday1.body.id,
-				date: '2024-06-05T14:00:00.000Z',
+				date: getFormattedDate(15).slice(0, getFormattedDate(10).length - 1) + ':00.000Z',
 				status: 'regOpen',
 				layout: 'tbd',
 				green: 0,
@@ -1747,7 +1747,7 @@ describe('Testing rescheduling', () => {
 			},
 			{
 				id: trackday2.body.id,
-				date: '2024-07-07T14:00:00.000Z',
+				date: getFormattedDate(30).slice(0, getFormattedDate(10).length - 1) + ':00.000Z',
 				status: 'regOpen',
 				layout: 'tbd',
 				green: 0,
