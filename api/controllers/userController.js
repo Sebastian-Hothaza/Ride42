@@ -239,6 +239,10 @@ exports.garage_delete = [
             const hasBike = user.garage.some((garageEntry) => garageEntry.bike.equals(req.params.bikeID))
             if (!hasBike) return res.status(404).send({ msg: ['this bike does not exist in your garage'] })
 
+
+            // Remove QRID from QR DB
+            await QR.findByIdAndDelete(user.garage.find((garageEntry) => garageEntry.bike.equals(req.params.bikeID)).QRID);
+
             const numBikesOriginally = user.garage.length;
             user.garage = user.garage.filter((garageEntry) => (!garageEntry.bike.equals(req.params.bikeID)))
 
@@ -309,14 +313,40 @@ exports.marryQR = [
             qr.user = req.params.userID;
             qr.bike = req.params.bikeID;
             await qr.save();
-      
+
             // Updates the users QRID for the bike that has just been married
             const user = await User.findById(req.params.userID).exec();
-            const bikeToMarry = user.garage.find((bike) => bike.bike._id.toString() == req.params.bikeID);
+            const bikeToMarry = user.garage.find((garageItem) => garageItem.bike._id.toString() == req.params.bikeID);
             bikeToMarry.QRID = qr;
             await user.save();
-      
+
             return res.status(201).json({ id: qr.id });
+        }
+        return res.sendStatus(403)
+    })
+]
+
+// Marries a user and bike to a QR code
+// Also updates a users QRid to remove link
+// TODO: Testing
+exports.deleteQR = [
+    controllerUtils.verifyJWT,
+    controllerUtils.validateQRID,
+
+    asyncHandler(async (req, res, next) => {
+        if (req.user.memberType === 'admin') {
+            const qr = await QR.findById(req.params.QRID).exec();
+            const user = await User.findById(qr.user).exec();
+
+            // Remove link in user
+            const bikeToUpdate = user.garage.find((garageItem) => garageItem.QRID == req.params.QRID);
+            bikeToUpdate.QRID = null;
+            await user.save();
+
+            // Remove QR item from DB
+            await QR.findByIdAndDelete(req.params.QRID);
+
+            return res.sendStatus(200);
         }
         return res.sendStatus(403)
     })
