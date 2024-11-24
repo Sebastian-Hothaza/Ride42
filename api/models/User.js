@@ -13,7 +13,7 @@ const UserSchema = new mongoose.Schema({
 						phone:		 	{ type: Number, required: true, minLength: 10,maxLength: 10 },
 						relationship:	{ type: String, required: true, minLength: 2, maxLength: 50 }},
 	garage: 		[{ bike: { type: mongoose.Schema.Types.ObjectId, ref: "Bike" },
-						 qr: { type: String, required: true }}],
+					   qrID: { type: mongoose.Schema.Types.ObjectId, ref: "QR" }}],
 	group: 			{ type: String, required: true, enum: ["green", "yellow", "red"] },
 	credits: 		{ type: Number, required: true},
 	waiver:			{ type: Boolean, required: true},
