@@ -196,30 +196,27 @@ exports.garage_post = [
     asyncHandler(async (req, res, next) => {
         if (req.user.memberType === 'admin' || req.user.id === req.params.userID) {
             const user = await User.findById(req.params.userID).exec();
-            let bike
+            let newBike
 
             // Check if bike exists in the DB. If it does not, add it.
-            bike = await Bike.findOne({ year: { $eq: req.body.year }, make: { $regex: req.body.make, $options: 'i' }, model: { $regex: req.body.model, $options: 'i' } })
-            if (!bike) {
-                bike = new Bike({ year: req.body.year, make: req.body.make.toLowerCase(), model: req.body.model.toLowerCase() });
-                await bike.save()
+            newBike = await Bike.findOne({ year: { $eq: req.body.year }, make: { $regex: req.body.make, $options: 'i' }, model: { $regex: req.body.model, $options: 'i' } })
+            if (!newBike) {
+                newBike = new Bike({ year: req.body.year, make: req.body.make.toLowerCase(), model: req.body.model.toLowerCase() });
+                await newBike.save()
             }
 
 
 
             // Check if user already has this bike in their garage
             for (let i = 0; i < user.garage.length; i++) {
-                if (user.garage[i].bike.equals(bike.id)) return res.status(409).send({ msg: ['Bike with these details already exists'] });
+                if (user.garage[i].bike.equals(newBike.id)) return res.status(409).send({ msg: ['Bike with these details already exists'] });
             }
 
-            // Add QR info
-            const b64QR = await controllerUtils.generateQR('https://ride42.ca/dashboard/' + req.user.id + '/' + bike.id);
-            user.garage.push({ bike: bike, qr: b64QR });
+            
+            user.garage.push({bike: newBike});
 
             await user.save();
-            sendEmail(process.env.ADMIN_EMAIL, "QR CODE REQUEST", mailTemplates.QRCodeRequest,
-                { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), userID: req.params.userID, bike: `${bike.year} ${bike.make} ${bike.model}`, bikeID: bike.id })
-            return res.status(201).json({ id: bike.id });;
+            return res.status(201).json({ id: newBike.id });;
         }
         return res.sendStatus(403)
     })
