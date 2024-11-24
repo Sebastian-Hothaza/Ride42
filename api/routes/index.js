@@ -16,6 +16,7 @@ router.delete('/garage/:userID/:bikeID', userController.garage_delete)
 router.post('/qrcode/:userID/:bikeID', userController.requestQRCode)
 router.post('/QR', userController.generateQRs)
 router.put('/QR/:QRID/:userID/:bikeID', userController.marryQR)
+router.delete('/QR/:QRID', userController.deleteQR)
 router.post('/waiver/:userID', userController.markWaiver)
 
 
