@@ -1,5 +1,6 @@
 const Trackday = require('../models/Trackday');
 const User = require('../models/User');
+const QR = require('../models/QR');
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const controllerUtils = require('./controllerUtils')
@@ -361,6 +362,42 @@ exports.checkin = [
 
             // Process the check in
             memberEntry.checkedIn.push(req.params.bikeID);
+            await trackday.save();
+            return res.sendStatus(200);
+        }
+        return res.sendStatus(403)
+
+    })
+]
+
+// Marks a user as checked in via QR code. Requires JWT with staff/admin.
+// TODO: Testing
+exports.checkinQR = [
+    controllerUtils.verifyJWT,
+    controllerUtils.validateQRID,
+    controllerUtils.validateTrackdayID,
+
+    asyncHandler(async (req, res, next) => {
+        if (req.user.memberType === 'admin' || req.user.memberType === 'staff') {
+            const trackday = await Trackday.findById(req.params.trackdayID).populate('members.user', 'waiver').exec();
+            const qr = await QR.findById(req.params.QRID).populate('user bike').exec();
+
+            // Check that the member we want to check in for trackday actually exists
+            const memberEntry = trackday.members.find((member) => member.user.equals(qr.user.id));
+            if (!memberEntry) return res.status(403).send({ msg: ['Not registered for trackday'] });
+
+            // Check that member is not already checked in with that same bike
+            if (memberEntry.checkedIn.includes(qr.bike.id)) return res.status(403).json({ msg: ['Already checked in with this bike'] })
+
+
+            // Do not allow checkin if unpaid or waiver is not signed
+            let failCauses = []
+            if (!memberEntry.paid) failCauses.push('Not paid')
+            if (!memberEntry.user.waiver) failCauses.push('Missing waiver')
+            if (failCauses.length) return res.status(403).json({ msg: failCauses })
+
+            // Process the check in
+            memberEntry.checkedIn.push(qr.bike.id);
             await trackday.save();
             return res.sendStatus(200);
         }
