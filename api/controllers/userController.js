@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Trackday = require('../models/Trackday');
 const Bike = require('../models/Bike');
+const QR = require('../models/QR');
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const bcrypt = require('bcryptjs')
@@ -265,6 +266,49 @@ exports.requestQRCode = [
             sendEmail(process.env.ADMIN_EMAIL, "QR CODE REQUEST", mailTemplates.QRCodeRequest,
                 { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), userID: req.params.userID, bike: `QR_REQ_${userBike.bike.year} ${userBike.bike.make} ${userBike.bike.model}`, bikeID: req.params.bikeID })
             return res.sendStatus(200)
+        }
+        return res.sendStatus(403)
+    })
+]
+
+// Generates virgin codes in QR database for future use
+// TODO: Testing
+exports.generateQRs = [
+    controllerUtils.verifyJWT,
+
+    body("qty", "Quantity must be between 0-100").trim().isInt({ min: 1, max: 100 }).escape(),
+
+    controllerUtils.validateForm,
+
+    asyncHandler(async (req, res, next) => {
+        let qrGen = [];
+        if (req.user.memberType === 'admin') {
+            for (let i = 0; i < req.body.qty; i++) {
+                const qr = new QR();
+                await qr.save();
+                qrGen.push({ id: qr.id })
+            }
+            return res.status(201).json(qrGen);
+        }
+        return res.sendStatus(403)
+    })
+]
+
+// Marries a user and bike to a QR code
+// TODO: Testing
+exports.marryQR = [
+    controllerUtils.verifyJWT,
+    controllerUtils.validateUserID,
+    controllerUtils.validateBikeID,
+    controllerUtils.validateQRID,
+
+    asyncHandler(async (req, res, next) => {
+        if (req.user.memberType === 'admin') {
+            const qr = await QR.findById(req.params.QRID).exec();
+            qr.user = req.params.userID;
+            qr.bike = req.params.bikeID;
+            await qr.save();
+            return res.status(201).json({ id: qr.id });
         }
         return res.sendStatus(403)
     })
