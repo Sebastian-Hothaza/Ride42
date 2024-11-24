@@ -212,8 +212,8 @@ exports.garage_post = [
                 if (user.garage[i].bike.equals(newBike.id)) return res.status(409).send({ msg: ['Bike with these details already exists'] });
             }
 
-            
-            user.garage.push({bike: newBike});
+
+            user.garage.push({ bike: newBike });
 
             await user.save();
             return res.status(201).json({ id: newBike.id });;
@@ -298,6 +298,7 @@ exports.generateQRs = [
 // Marries a user and bike to a QR code
 // Also updates a users QRid
 // TODO: Testing
+// TODO: Before marry, check for existing marriage and if there is one, kill it
 exports.marryQR = [
     controllerUtils.verifyJWT,
     controllerUtils.validateUserID,
@@ -307,13 +308,22 @@ exports.marryQR = [
     asyncHandler(async (req, res, next) => {
         if (req.user.memberType === 'admin') {
             const qr = await QR.findById(req.params.QRID).exec();
+            const user = await User.findById(req.params.userID).exec();
+            const bikeToMarry = user.garage.find((garageItem) => garageItem.bike.equals(req.params.bikeID));
+
+        
+            // Check for old QR and if one exists, delete it
+            if (bikeToMarry.QRID){
+                console.log("pre-existin marriage detected");
+                await QR.findByIdAndDelete(bikeToMarry.QRID); 
+            }
+
+            // Update QR
             qr.user = req.params.userID;
             qr.bike = req.params.bikeID;
             await qr.save();
 
             // Updates the users QRID for the bike that has just been married
-            const user = await User.findById(req.params.userID).exec();
-            const bikeToMarry = user.garage.find((garageItem) => garageItem.bike._id.toString() == req.params.bikeID);
             bikeToMarry.QRID = qr;
             await user.save();
 
@@ -334,11 +344,13 @@ exports.deleteQR = [
         if (req.user.memberType === 'admin') {
             const qr = await QR.findById(req.params.QRID).exec();
             const user = await User.findById(qr.user).exec();
+            const bikeToUpdate = user? user.garage.find((garageItem) => garageItem.QRID == req.params.QRID):null;
 
-            // Remove link in user
-            const bikeToUpdate = user.garage.find((garageItem) => garageItem.QRID == req.params.QRID);
-            bikeToUpdate.QRID = null;
-            await user.save();
+            if (bikeToUpdate) {// Remove link in user if exists and there is a corresponding bike to updae
+                bikeToUpdate.QRID = null;
+                await user.save();
+            }
+
 
             // Remove QR item from DB
             await QR.findByIdAndDelete(req.params.QRID);
