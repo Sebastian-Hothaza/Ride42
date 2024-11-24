@@ -13,7 +13,7 @@ import errormark from './../../assets/error.png'
 
 // TODO: Fix issue when scanning a user's bike and bike is no longer in users garage
 
-const CheckIn = ({ APIServer, allTrackdays, allUsers }) => {
+const Verify = ({ APIServer, allTrackdays, allUsers }) => {
     const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
 
     let nextTrackday = { date: 'ERROR: NO UPCOMING DATE' }
@@ -110,4 +110,4 @@ const CheckIn = ({ APIServer, allTrackdays, allUsers }) => {
     );
 };
 
-export default CheckIn;
+export default Verify;
