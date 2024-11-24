@@ -298,7 +298,6 @@ exports.generateQRs = [
 // Marries a user and bike to a QR code
 // Also updates a users QRid
 // TODO: Testing
-// TODO: Before marry, check for existing marriage and if there is one, kill it
 exports.marryQR = [
     controllerUtils.verifyJWT,
     controllerUtils.validateUserID,
@@ -311,10 +310,12 @@ exports.marryQR = [
             const user = await User.findById(req.params.userID).exec();
             const bikeToMarry = user.garage.find((garageItem) => garageItem.bike.equals(req.params.bikeID));
 
+            if (!bikeToMarry) return res.status(404).send({ msg: ['this bike does not exist in your garage'] })
+            if (bikeToMarry.QRID == req.params.QRID) return res.status(400).send({ msg: ['This QR is already attached to this user,bike'] })
+
         
             // Check for old QR and if one exists, delete it
             if (bikeToMarry.QRID){
-                console.log("pre-existin marriage detected");
                 await QR.findByIdAndDelete(bikeToMarry.QRID); 
             }
 
