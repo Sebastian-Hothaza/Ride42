@@ -6,6 +6,8 @@ import styles from './stylesheets/CPDash_ViewQR.module.css'
 import r42_small from '../../assets/R42_sticker.png'
 import html2canvas from 'html2canvas'
 
+import QRCode from 'qrcode';
+
 
 const ViewQR = ({ allUsers }) => {
     if (!allUsers) {
@@ -25,6 +27,21 @@ const ViewQR = ({ allUsers }) => {
         link.click();
     }
 
+    async function generateQR(text) {
+        try {
+            const b64 = await QRCode.toDataURL(text, { errorCorrectionLevel: 'L' });
+            return b64;
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    // Preprocess QRID 
+    
+
+    
+
+   
     return (
         <>
             <ScrollToTop />
@@ -40,16 +57,22 @@ const ViewQR = ({ allUsers }) => {
                     <>
                         <div className={styles.allBikes}>
                             <>
-                                {curUser.garage.map((garageItem) => (
-                                    <div key={garageItem.bike._id}>
-                                        <div className={styles.bikeEntry}>
-                                            <h2 className='capitalizeEach' >{garageItem.bike.year} {garageItem.bike.make} <span className='capitalizeAll'>{garageItem.bike.model}</span></h2>
-                                            <img src={garageItem.qr}></img>
-                                            <button key={garageItem._id} onClick={() => downloadImage(curUser, garageItem)}>Download Sticker</button>
+                                {curUser.garage.map((garageItem) => {
+                                    if (!garageItem.qr){ // TODO: Compatibility with new style stickers
+                                        console.log(garageItem.QRID)
+                                        garageItem.qr = generateQR(garageItem.QRID);
+                                    }
+                                    return (
+                                        <div key={garageItem.bike._id}>
+                                            <div className={styles.bikeEntry}>
+                                                <h2 className='capitalizeEach' >{garageItem.bike.year} {garageItem.bike.make} <span className='capitalizeAll'>{garageItem.bike.model}</span></h2>
+                                                <img src={garageItem.qr}></img>
+                                                <button key={garageItem._id} onClick={() => downloadImage(curUser, garageItem)}>Download Sticker</button>
+                                            </div>
+
                                         </div>
-                                        
-                                    </div>
-                                ))}
+                                    )
+                                })}
                             </>
                         </div>
 

@@ -1,0 +1,99 @@
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    font-size: 1.25rem;
+}
+
+.content form select {
+    font-size: inherit;
+    max-width: 400px;
+}
+
+.content .bikeEntry img{
+    height: 200px;
+    width: 200px;
+}
+
+.content button {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    font-size: inherit;
+    border-radius: .2rem;
+    padding: .5rem 2rem;
+}
+
+
+.allBikes{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    row-gap: 5rem;
+}
+
+.bikeEntry{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+}
+
+/* STICKER */
+
+.stickerContainer{
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.sticker{
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background-color: white;
+    padding: 2px;
+}
+
+.sticker img{
+    height: 200px;
+}
+
+.sticker .groupSticker{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 150px;
+    width: 150px;
+    border: solid 3px black;
+    border-radius: 50%;
+    margin-right: 2rem;
+}
+
+@media (max-width: 1000px) {
+    .content h1 {
+        text-align: center;
+        font-size: 2rem;
+    }
+    .content h2{
+        font-size: 1.5rem;
+    }
+
+
+    .allBikes {
+        grid-template-columns: 1fr;
+    }
+
+    .content form{
+        margin: auto;
+
+    }
+
+    .content form select {
+        font-size: 1rem;
+        text-align: center;
+        max-width: 250px;
+    }
+
+   
+}
