@@ -50,13 +50,14 @@
 .sticker{
     display: flex;
     align-items: center;
-    gap: 1rem;
-    background-color: white;
-    padding: 2px;
 }
 
 .sticker img{
     height: 200px;
+}
+
+.logo{
+    margin: 0 50px;
 }
 
 .sticker .groupSticker{

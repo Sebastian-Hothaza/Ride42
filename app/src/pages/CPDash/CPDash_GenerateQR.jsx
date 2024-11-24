@@ -19,6 +19,9 @@ const GenerateQR = ({ APIServer }) => {
     async function handleGenerateQRSubmit(e) {
         e.preventDefault();
         const totalQR = Number(e.target.greenQR.value) + Number(e.target.yellowQR.value) + Number(e.target.redQR.value)
+        let greenBal = Number(e.target.greenQR.value);
+        let yellowBal = Number(e.target.yellowQR.value);
+        let redBal = Number(e.target.redQR.value);
 
 
 
@@ -37,7 +40,17 @@ const GenerateQR = ({ APIServer }) => {
                 const data = await response.json(); // Data is an array of objects where each object has form {id: "67436fe8bf5e6f497683cf3a"}
                 data.forEach(async (item) => {
                     const b64 = await generateQR(item.id);
-                    setb64Arr(prev => [...prev, {id: item.id, img: b64}])
+                    if (greenBal){
+                        setb64Arr(prev => [...prev, {id: item.id, img: b64, group: '#00ff00'}])
+                        greenBal--;
+                    }else if (yellowBal){
+                        setb64Arr(prev => [...prev, {id: item.id, img: b64, group: '#ffee00'}])
+                        yellowBal--;
+                    }else if (redBal){
+                        setb64Arr(prev => [...prev, {id: item.id, img: b64, group: '#ff0000'}])
+                        redBal--;
+                    }
+                    
                 });
 
                 setActiveModal({ type: 'success', msg: 'QR Codes Generated' });
@@ -100,10 +113,9 @@ const GenerateQR = ({ APIServer }) => {
             {b64Arr &&
                 <div id='stickerContainer' className={styles.stickerContainer}>
                     {b64Arr.map((item) => (
-                        <div className={styles.sticker} key={item.id} id={item.id}>
+                        <div className={styles.sticker} key={item.id} id={item.id} style={{backgroundColor: item.group}}>
                             <img src={item.img} alt="QR code"></img>
-                            <img src={r42_small} alt="R42 sticker"></img>
-                            <div className={styles.groupSticker}>GROUP</div>
+                            <img className={styles.logo} src={r42_small} alt="R42 sticker"></img>
                         </div>
                     ))}
                 </div>
