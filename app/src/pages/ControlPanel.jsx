@@ -41,11 +41,11 @@ const ControlPanel = ({ APIServer }) => {
     const [userTrackdays, setUserTrackdays] = useState('');
     const [allTrackdays, setAllTrackdays] = useState('');
 
-    const [activeTab, setActiveTab] = (loggedInUser.memberType == 'staff' || loggedInUser.memberType == 'admin') ? useState('adminSelect') : useState('trackdays')
+    const [activeTab, setActiveTab] = (loggedInUser.memberType == 'staff' || loggedInUser.memberType == 'admin') ? useState('marryQR') : useState('trackdays')
 
 
 
-
+    // Refreshes user & trackday data to ensure we are using latest data
     async function fetchAPIData() {
         let userInfoData, allTrackdaysData, userTrackdaysData = []
         try {
@@ -160,7 +160,7 @@ const ControlPanel = ({ APIServer }) => {
                     {activeTab == 'verify' && <CPDash_Verify APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers} />}
                     {/* ADMIN */}
                     {activeTab == 'generateQR' && <CPDash_GenerateQR APIServer={APIServer} />}
-                    {activeTab == 'marryQR' && <CPDash_MarryQR allUsers={allUsers} />}
+                    {activeTab == 'marryQR' && <CPDash_MarryQR allUsers={allUsers} APIServer={APIServer} fetchAPIData={fetchAPIData} />}
                     {activeTab == 'viewQR' && <CPDash_ViewQR allUsers={allUsers} />}
                     {activeTab == 'manageUsers' && <CPDash_ManageUsers APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} />}
                     {activeTab == 'manageTrackdays' && <CPDash_ManageTrackdays APIServer={APIServer} allTrackdaysFULL={allTrackdaysFULL} allUsers={allUsers} fetchAPIData={fetchAPIData} />}
