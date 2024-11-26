@@ -344,11 +344,16 @@ exports.checkin = [
 
     asyncHandler(async (req, res, next) => {
         if (req.user.memberType === 'admin' || req.user.memberType === 'staff') {
+            const user = await User.findById(req.params.userID).populate('garage.bike').exec();
             const trackday = await Trackday.findById(req.params.trackdayID).populate('members.user', 'waiver').exec();
 
             // Check that the member we want to check in for trackday actually exists
             const memberEntry = trackday.members.find((member) => member.user.equals(req.params.userID));
             if (!memberEntry) return res.status(403).send({ msg: ['Not registered for trackday'] });
+
+            // Verify the bikeID is actually in the users garage
+            const userBike = user.garage.find((garageEntry) => garageEntry.bike.equals(req.params.bikeID))
+            if (!userBike) return res.status(404).send({ msg: ['this bike does not exist in your garage'] })
 
             // Check that member is not already checked in with that same bike
             if (memberEntry.checkedIn.includes(req.params.bikeID)) return res.status(403).json({ msg: ['Already checked in with this bike'] })
