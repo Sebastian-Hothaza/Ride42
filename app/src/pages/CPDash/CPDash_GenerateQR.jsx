@@ -39,7 +39,7 @@ const GenerateQR = ({ APIServer }) => {
             if (response.ok) {
                 const data = await response.json(); // Data is an array of objects where each object has form {id: "67436fe8bf5e6f497683cf3a"}
                 data.forEach(async (item) => {
-                    const b64 = await generateQR(item.id);
+                    const b64 = await generateQR('https://Ride42.ca/QR/'+item.id);
                     if (greenBal){
                         setb64Arr(prev => [...prev, {id: item.id, img: b64, group: '#00ff00'}])
                         greenBal--;
