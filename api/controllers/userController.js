@@ -267,7 +267,6 @@ exports.garage_delete = [
 ]
 
 // Generates virgin codes in QR database for future use
-// TODO: Testing
 exports.generateQRs = [
     controllerUtils.verifyJWT,
 
@@ -289,13 +288,14 @@ exports.generateQRs = [
     })
 ]
 
+// Gets all QRs
 exports.getQR = [
     controllerUtils.verifyJWT,
 
     asyncHandler(async (req, res) => {
         // JWT is valid. Verify user is allowed to access this resource and return the information
         if (req.user.memberType === 'admin') {
-            let qr = await QR.find().populate([{path: 'user', select: '-password -refreshToken -__v'},{path: 'bike', select: '-__v'}]).select('-__v').exec();
+            let qr = await QR.find().populate([{ path: 'user', select: '-password -refreshToken -__v' }, { path: 'bike', select: '-__v' }]).select('-__v').exec();
             return res.status(200).json(qr);
         }
         return res.sendStatus(403);
@@ -303,28 +303,30 @@ exports.getQR = [
 ]
 
 // Marries a user and bike to a QR code
-// Also updates a users QRid
-// TODO: Testing, protectin against marrying a QR which is already attached to someone else
+// Also updates a users QRID
 exports.marryQR = [
     controllerUtils.verifyJWT,
+    controllerUtils.validateQRID,
     controllerUtils.validateUserID,
     controllerUtils.validateBikeID,
-    controllerUtils.validateQRID,
+
 
     asyncHandler(async (req, res, next) => {
         if (req.user.memberType === 'admin') {
-            const qr = await QR.findById(req.params.QRID).exec();
+            const qr = await QR.findById(req.params.QRID).populate('user').exec();
             const user = await User.findById(req.params.userID).exec();
             const bikeToMarry = user.garage.find((garageItem) => garageItem.bike.equals(req.params.bikeID));
+            
 
             if (!bikeToMarry) return res.status(404).send({ msg: ['this bike does not exist in your garage'] })
-            if (bikeToMarry.QRID == req.params.QRID) return res.status(400).send({ msg: ['This QR is already attached to this user,bike'] })
-                // TODO: Prevent if req.params.QRID is already attached to someone else
+            if (bikeToMarry.QRID == req.params.QRID) return res.status(400).send({ msg: ['This QR is already attached to you'] })
+            if (qr.bike) return res.status(400).send({ msg: ['This QR is attached to '+qr.user.firstName+' '+qr.user.lastName] })
 
-        
+
+
             // Check for old QR and if one exists, delete it
-            if (bikeToMarry.QRID){
-                await QR.findByIdAndDelete(bikeToMarry.QRID); 
+            if (bikeToMarry.QRID) {
+                await QR.findByIdAndDelete(bikeToMarry.QRID);
             }
 
             // Update QR
@@ -344,7 +346,6 @@ exports.marryQR = [
 
 // Deletes a QR code and removes its link if it exists
 // Also updates a users QRid to remove link
-// TODO: Testing
 exports.deleteQR = [
     controllerUtils.verifyJWT,
     controllerUtils.validateQRID,
@@ -353,7 +354,7 @@ exports.deleteQR = [
         if (req.user.memberType === 'admin') {
             const qr = await QR.findById(req.params.QRID).exec();
             const user = await User.findById(qr.user).exec();
-            const bikeToUpdate = user? user.garage.find((garageItem) => garageItem.QRID == req.params.QRID):null;
+            const bikeToUpdate = user ? user.garage.find((garageItem) => garageItem.QRID == req.params.QRID) : null;
 
             if (bikeToUpdate) {// Remove link in user if exists and there is a corresponding bike to updae
                 bikeToUpdate.QRID = null;
