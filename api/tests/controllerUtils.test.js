@@ -185,6 +185,26 @@ describe('Testing validateBikeID', () => {
 	});
 })
 
+describe('Testing validateQRID', () => {
+	// Define the route and server side handling of request
+	app.get('/testValidateQRID/:QRID', [
+		controllerUtils.validateQRID,
+		(req,res,next)=>res.sendStatus(200)
+	]);
+
+	test("validateQRID of invalid objectID QR", async () => {
+		await request(app)
+			.get("/testValidateQRID/invalid")
+			.expect(400, { msg: ['QRID is not a valid ObjectID'] })
+	});
+
+	test("validateQRID of invalid bikeID bike", async() => {
+		await request(app)
+			.get("/testValidateQRID/6604aa217c21ab6eb042bc6a") // Some random but known valid objectID
+			.expect(404, { msg: ['QR does not exist'] })
+	});
+})
+
 describe('Testing isInLockoutPeriod', () => {
 	// Define the route and server side handling of request
 	app.get('/isInLockoutPeriod/:trackdayID', async (req,res,next) => {
