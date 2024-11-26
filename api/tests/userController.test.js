@@ -1043,7 +1043,7 @@ describe('Testing verify', () => {
 
 		await request(app)
 			.get("/verify/" + user.body.id + '/' + trackday.body.id + '/' + bike.body.id)
-			.expect(200, {verified: false})
+			.expect(200, { verified: false })
 	});
 
 	test("verify for user - not checkedin for trackday", async () => {
@@ -1069,7 +1069,7 @@ describe('Testing verify', () => {
 
 		await request(app)
 			.get("/verify/" + user.body.id + '/' + trackday.body.id + '/' + bike.body.id)
-			.expect(200, { verified:false})
+			.expect(200, { verified: false })
 	});
 
 	test("verify for user", async () => {
@@ -1090,7 +1090,7 @@ describe('Testing verify', () => {
 		// Register user for trackday
 		await request(app)
 			.post('/register/' + user.body.id + '/' + trackday.body.id)
-			.type("form").send({ paymentMethod: 'creditCard', guests: 3, layoutVote: 'none'  })
+			.type("form").send({ paymentMethod: 'creditCard', guests: 3, layoutVote: 'none' })
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 
@@ -1115,7 +1115,7 @@ describe('Testing verify', () => {
 
 		await request(app)
 			.get("/verify/" + user.body.id + '/' + trackday.body.id + '/' + bike.body.id)
-			.expect(200, { verified:true})
+			.expect(200, { verified: true })
 	});
 })
 
@@ -1359,6 +1359,542 @@ describe('Delete bikes from a user garage', () => {
 
 		user = await request(app).get('/users/' + user.body.id).set('Cookie', loginRes.headers['set-cookie']).expect(200)
 		expect(user.body.garage.length).toBe(0)
+	});
+})
+
+describe('Generate QR Codes', () => {
+
+	test("Generate QR Codes - missing fields", async () => {
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(userAdmin, 200)
+		await request(app)
+			.post('/QR')
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(400);
+	});
+
+	test("Generate QR Codes - malformed fields", async () => {
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(userAdmin, 200)
+
+		await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ foo: 'bar' })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(400);
+	});
+
+
+
+	test("Generate QR Codes - no JWT", async () => {
+		const user = await addUser(user1, 201)
+		await request(app)
+			.post('/QR')
+			.expect(401)
+	});
+	test("Generate QR Codes - unauthorized", async () => {
+		const user = await addUser(user1, 201)
+		const loginRes = await loginUser(user1, 200)
+		await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 2 })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(403)
+	});
+
+
+
+	test("generate QR codes", async () => {
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(userAdmin, 200)
+
+		await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 5 })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+	});
+})
+
+describe('Get all QR Codes', () => {
+	test("Get all QR Codes - no JWT", async () => {
+		const user = await addUser(user1, 201)
+		await request(app)
+			.get('/QR')
+			.expect(401)
+	});
+	test("Get all QR Codes - unauthorized", async () => {
+		const user = await addUser(user1, 201)
+		const loginRes = await loginUser(user1, 200)
+		await request(app)
+			.get('/QR')
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(403)
+	});
+	test("get QR codes", async () => {
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(userAdmin, 200)
+
+		await request(app)
+			.get('/QR')
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200)
+	});
+})
+
+describe('Assign QR code to user', () => {
+
+	test("Assign for invalid objectID QRID", async () => {
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(userAdmin, 200)
+		await request(app)
+			.put("/QR/invalid/someuserID/somebikeID")
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(400, { msg: ['QRID is not a valid ObjectID'] })
+	});
+	test("Assign for invalid QRID", async () => {
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(userAdmin, 200)
+		await request(app)
+			.put("/QR/6604aa217c21ab6eb042bc6a/someuserID/somebikeID")
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(404, { msg: ['QR does not exist'] })
+	});
+
+	test("Assign for invalid objectID userID", async () => {
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(userAdmin, 200);
+
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+
+		await request(app)
+			.put("/QR/" + newQR.body[0].id + "/someuserID/somebikeID")
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(400, { msg: ['userID is not a valid ObjectID'] })
+	});
+	test("Assign for invalid userID", async () => {
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(userAdmin, 200)
+
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+
+
+		await request(app)
+			.put("/QR/" + newQR.body[0].id + "/6604aa217c21ab6eb042bc6a/somebikeID")
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(404, { msg: ['User does not exist'] })
+	});
+
+	test("Assign for invalid objectID bike", async () => {
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(userAdmin, 200)
+
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+
+
+		await request(app)
+			.put("/QR/" + newQR.body[0].id + "/" + admin.body.id + "/invalid")
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(400, { msg: ['bikeID is not a valid ObjectID'] })
+	});
+	test("Assign for invalid bikeID bike", async () => {
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(userAdmin, 200)
+
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+
+		await request(app)
+			.put("/QR/" + newQR.body[0].id + '/' + admin.body.id + "/6604aa217c21ab6eb042bc6a")
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(404, { msg: ['Bike does not exist'] });
+	});
+
+
+	test("Assign QR - no JWT", async () => {
+		const user = await addUser(user1, 201)
+		await request(app)
+			.put('/QR/someQRID/someuserID/somebikeID')
+			.expect(401)
+	});
+	test("Assign QR - unauthorized", async () => {
+		const user = await addUser(user1, 201)
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(user1, 200);
+		const loginResAdmin = await loginUser(userAdmin, 200);
+
+
+		// Add bike to garage
+		const bike = await request(app)
+			.post("/garage/" + admin.body.id)
+			.type("form")
+			.send({ year: '2009', make: 'Yamaha', model: "R6" })
+			.set('Cookie', loginResAdmin.headers['set-cookie'])
+			.expect(201);
+
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', loginResAdmin.headers['set-cookie'])
+			.expect(201)
+
+
+		// Marry QR to bike and user
+		await request(app)
+			.put("/QR/" + newQR.body[0].id + '/' + admin.body.id + "/" + bike.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(403)
+	});
+
+
+
+	test('Assign QR - QR already married to other user/bike', async () => {
+		const admin = await addUser(userAdmin, 201);
+		const user = await addUser(user1, 201);
+
+		const loginRes = await loginUser(user1, 200)
+		const loginResAdmin = await loginUser(userAdmin, 200)
+
+		// Add bike to admin garage
+		const bikeAdmin = await request(app)
+			.post("/garage/" + admin.body.id)
+			.type("form")
+			.send({ year: '2009', make: 'Yamaha', model: "R6" })
+			.set('Cookie', loginResAdmin.headers['set-cookie'])
+			.expect(201);
+
+		// Add bike to user garage
+		const bikeUser = await request(app)
+			.post("/garage/" + user.body.id)
+			.type("form")
+			.send({ year: '2009', make: 'Yamaha', model: "R6" })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201);
+
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', loginResAdmin.headers['set-cookie'])
+			.expect(201)
+
+		// Marry QR1 to admin
+		await request(app)
+			.put("/QR/" + newQR.body[0].id + '/' + admin.body.id + "/" + bikeAdmin.body.id)
+			.set('Cookie', loginResAdmin.headers['set-cookie'])
+			.expect(201)
+
+		// Attempt to marry QR1 to user
+		await request(app)
+			.put("/QR/" + newQR.body[0].id + '/' + user.body.id + "/" + bikeUser.body.id)
+			.set('Cookie', loginResAdmin.headers['set-cookie'])
+			.expect(400, { msg: ['This QR is attached to ' + userAdmin.firstName.toLowerCase() + ' ' + userAdmin.lastName.toLowerCase()] });
+
+		// Verify that the admin retained QR1
+		const fetchedAdmin = await request(app)
+			.get('/users/' + admin.body.id)
+			.set('Cookie', loginResAdmin.headers['set-cookie'])
+			.expect(200)
+		expect((fetchedAdmin.body.garage[0]).QRID).toEqual(newQR.body[0].id);
+
+		// Verify that the user did NOT get pointed to QR1
+		const fetchedUser = await request(app)
+			.get('/users/' + user.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200)
+		expect((fetchedUser.body.garage[0]).QRID).toEqual(undefined);
+	});
+	test('Assign QR - User does not have that bike in their garage', async () => {
+		const admin = await addUser(userAdmin, 201);
+		const user = await addUser(user1, 201);
+
+		const loginRes = await loginUser(user1, 200)
+		const loginResAdmin = await loginUser(userAdmin, 200)
+
+		// Add bike to admin garage
+		const bikeAdmin = await request(app)
+			.post("/garage/" + admin.body.id)
+			.type("form")
+			.send({ year: '2009', make: 'Yamaha', model: "R6" })
+			.set('Cookie', loginResAdmin.headers['set-cookie'])
+			.expect(201);
+
+		// Add bike to user garage
+		const bikeUser = await request(app)
+			.post("/garage/" + user.body.id)
+			.type("form")
+			.send({ year: '2005', make: 'Honda', model: "CBR600" })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201);
+
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', loginResAdmin.headers['set-cookie'])
+			.expect(201)
+
+		// Attempt to marry QR to Admin but using users bike
+		await request(app)
+			.put("/QR/" + newQR.body[0].id + '/' + admin.body.id + "/" + bikeUser.body.id)
+			.set('Cookie', loginResAdmin.headers['set-cookie'])
+			.expect(404, { msg: ['this bike does not exist in your garage'] });
+	});
+
+	test('Assign QR - QR already exists for this user-overwrite', async () => {
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(userAdmin, 200)
+
+		// Add bike to garage
+		const bike = await request(app)
+			.post("/garage/" + admin.body.id)
+			.type("form")
+			.send({ year: '2009', make: 'Yamaha', model: "R6" })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201);
+
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+
+		// Marry QR1 to bike and user
+		await request(app)
+			.put("/QR/" + newQR.body[0].id + '/' + admin.body.id + "/" + bike.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+
+		// Try to re-marry QR1 to bike and user
+		await request(app)
+			.put("/QR/" + newQR.body[0].id + '/' + admin.body.id + "/" + bike.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(400, { msg: ['This QR is already attached to you'] });
+	});
+
+	test('Assign QR - QR already exists for this user-new QR', async () => {
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(userAdmin, 200)
+
+		// Add bike to garage
+		const bike = await request(app)
+			.post("/garage/" + admin.body.id)
+			.type("form")
+			.send({ year: '2009', make: 'Yamaha', model: "R6" })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201);
+
+		// Generate the 2 QR Codes
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 2 })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+
+		// Marry QR1 to bike and user
+		await request(app)
+			.put("/QR/" + newQR.body[0].id + '/' + admin.body.id + "/" + bike.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+
+		// Marry QR2 to user
+		await request(app)
+			.put("/QR/" + newQR.body[1].id + '/' + admin.body.id + "/" + bike.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+
+		// Check that QR1 no longer exists and that QR2 correctly points to admin
+		const allQR = await request(app)
+			.get('/QR')
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200)
+		expect(allQR.body.length).toEqual(1);
+		expect(allQR.body[0].user._id).toEqual(admin.body.id);
+
+		// Check that user has correct QRID
+		const fetchedUser = await request(app)
+			.get('/users/' + admin.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200)
+		expect((fetchedUser.body.garage[0]).QRID).toEqual(newQR.body[1].id);
+	});
+
+
+	test("Assign QR", async () => {
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(userAdmin, 200)
+
+		// Add bike to garage
+		const bike = await request(app)
+			.post("/garage/" + admin.body.id)
+			.type("form")
+			.send({ year: '2009', make: 'Yamaha', model: "R6" })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201);
+
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+
+		// Marry QR to bike and user
+		await request(app)
+			.put("/QR/" + newQR.body[0].id + '/' + admin.body.id + "/" + bike.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+
+		// Verify that the user as newly generated QR attached as QRID
+		const fetchedUser = await request(app)
+			.get('/users/' + admin.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200)
+		expect((fetchedUser.body.garage[0]).QRID).toEqual(newQR.body[0].id);
+	});
+})
+
+describe('Delete QR code', () => {
+
+	test("Delete for invalid objectID QRID", async () => {
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(userAdmin, 200)
+		await request(app)
+			.delete("/QR/invalid")
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(400, { msg: ['QRID is not a valid ObjectID'] })
+	});
+	test("Delete for invalid QRID", async () => {
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(userAdmin, 200)
+		await request(app)
+			.delete("/QR/6604aa217c21ab6eb042bc6a/")
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(404, { msg: ['QR does not exist'] })
+	});
+
+
+	test("Delete QR - no JWT", async () => {
+		const user = await addUser(user1, 201)
+		await request(app)
+			.delete('/QR/someQRID')
+			.expect(401)
+	});
+	test("Delete QR - unauthorized", async () => {
+		const user = await addUser(user1, 201)
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(user1, 200);
+		const loginResAdmin = await loginUser(userAdmin, 200);
+
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', loginResAdmin.headers['set-cookie'])
+			.expect(201)
+
+
+		// Delete QR 
+		await request(app)
+			.delete("/QR/" + newQR.body[0].id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(403)
+	});
+
+
+	test("Delete QR - When married to some user/bike", async () => {
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(userAdmin, 200)
+
+		// Add bike to garage
+		const bike = await request(app)
+			.post("/garage/" + admin.body.id)
+			.type("form")
+			.send({ year: '2009', make: 'Yamaha', model: "R6" })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201);
+
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+
+		// Marry QR to bike and user
+		await request(app)
+			.put("/QR/" + newQR.body[0].id + '/' + admin.body.id + "/" + bike.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+
+		// Delete QR
+		await request(app)
+			.delete("/QR/" + newQR.body[0].id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200)
+
+		// Verify that the user does not have QR still attached
+		const fetchedUser = await request(app)
+			.get('/users/' + admin.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200)
+		expect((fetchedUser.body.garage[0]).QRID).toEqual(null);
+
+	});
+
+	test("Delete QR", async () => {
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(userAdmin, 200)
+
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+
+		// Delete QR
+		await request(app)
+			.delete("/QR/" + newQR.body[0].id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200)
 	});
 })
 
