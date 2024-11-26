@@ -20,8 +20,7 @@ const MarryQR = ({ allUsers, APIServer, fetchAPIData, }) => {
     const [curUser, setCurUser] = useState('')
     const [curBike, setCurBike] = useState('')
 
-    console.log(curBike)
-
+ 
     if (!allUsers) {
         return null;
     } else {
@@ -42,19 +41,12 @@ const MarryQR = ({ allUsers, APIServer, fetchAPIData, }) => {
                 }
             })
             if (response.ok) {
-                const data = await response.json();
-                if (data.verified === true) {
-                    setActiveModal({ type: 'success', msg: 'good' })
-                    setTimeout(() => setActiveModal(''), 1500)
-                    // setTimeout(() => scanner.start(), 2000) // Prompt scanner to start scanning again
-                } else {
-                    setActiveModal({ type: 'failure', msg: 'FAIL', scanner: scanner })
-                }
-
-            } else {
-                const data = await response.json();
-                setActiveModal({ type: 'failure', msg: data.msg.join('\n'), scanner: scanner })
-            }
+				setActiveModal({ type: 'success', msg: 'QR Assigned' });
+				setTimeout(() => setActiveModal(''), 1500)
+			} else {
+				const data = await response.json();
+				setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
+			}
         } catch (err) {
             setActiveModal({ type: 'failure', msg: 'API Failure' })
             console.log(err.message)
