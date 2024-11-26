@@ -36,11 +36,17 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 **Remove a motorcycle from a users garage:** Submit a `DELETE` request to `/garage/:userID/:bikeID`.
 
+**Generate QR codes:** Submit a `POST` request to `/QR`. Server will respond with array of newly created QR objects.
+
+**Get all QR Code objects:** Submit a `GET` request to `/QR`. Server will respond with array of QR objects.
+
+**Assign QR code to bike/user:** Submit a `PUT` request to `/QR/:QRID/:userID/:bikeID`. Server will respond with `id` of newly assigned QR.
+
+**Delete QR Code:** Submit a `DELETE` request to `/QR/:QRID`.
+
 **Get trackdays basic info (PUBLIC):** Submit a `GET` request to `/presentTrackdays`. Server will respond with JSON of all the trackdays.
 
 **Get trackdays basic info for trackdays a user is registered for (PUBLIC):** Submit a `GET` request to `/presentTrackdays/:userID`. Server will respond with JSON of all the trackdays that a user is registered for.
-
-**Notify admin of QR code request:** Submit a `POST` request to `/qrcode/:userID/:bikeID`.
 
 **Update payment status of a user for a trackday:** Submit a `PUT` request to `/paid/:userID/:trackdayID`.
 

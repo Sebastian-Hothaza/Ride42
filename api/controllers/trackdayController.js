@@ -376,7 +376,6 @@ exports.checkin = [
 ]
 
 // Marks a user as checked in via QR code. Requires JWT with staff/admin.
-// TODO: Testing
 exports.checkinQR = [
     controllerUtils.verifyJWT,
     controllerUtils.validateQRID,
@@ -390,6 +389,8 @@ exports.checkinQR = [
             // Check that the member we want to check in for trackday actually exists
             const memberEntry = trackday.members.find((member) => member.user.equals(qr.user.id));
             if (!memberEntry) return res.status(403).send({ msg: ['Not registered for trackday'] });
+
+            // NOTE: We do not need to verify that bike is in users garage since garage_delete wipes QRID from QR DB
 
             // Check that member is not already checked in with that same bike
             if (memberEntry.checkedIn.includes(qr.bike.id)) return res.status(403).json({ msg: ['Already checked in with this bike'] })
