@@ -18,6 +18,7 @@ import CPDash_Verify from './CPDash/CPDash_Verify'
 
 import CPDash_GenerateQR from './CPDash/CPDash_GenerateQR'
 import CPDash_MarryQR from './CPDash/CPDash_MarryQR'
+import CPDash_DeleteQR from './CPDash/CPDash_DeleteQR'
 import CPDash_ViewQR from './CPDash/CPDash_ViewQR'
 import CPDash_ManageUsers from './CPDash/CPDash_ManageUsers'
 import CPDash_ManageTrackdays from './CPDash/CPDash_ManageTrackdays'
@@ -41,7 +42,7 @@ const ControlPanel = ({ APIServer }) => {
     const [userTrackdays, setUserTrackdays] = useState('');
     const [allTrackdays, setAllTrackdays] = useState('');
 
-    const [activeTab, setActiveTab] = (loggedInUser.memberType == 'staff' || loggedInUser.memberType == 'admin') ? useState('marryQR') : useState('trackdays')
+    const [activeTab, setActiveTab] = (loggedInUser.memberType == 'staff' || loggedInUser.memberType == 'admin') ? useState('deleteQR') : useState('trackdays')
 
 
 
@@ -131,6 +132,7 @@ const ControlPanel = ({ APIServer }) => {
                             <>
                                 <button className={activeTab == 'generateQR' ? styles.selected : undefined} onClick={() => setActiveTab('generateQR')}>Generate QR</button>
                                 <button className={activeTab == 'marryQR' ? styles.selected : undefined} onClick={() => setActiveTab('marryQR')}>Assign QR</button>
+                                <button className={activeTab == 'deleteQR' ? styles.selected : undefined} onClick={() => setActiveTab('deleteQR')}>Delete QR</button>
                                 <button className={activeTab == 'viewQR' ? styles.selected : undefined} onClick={() => setActiveTab('viewQR')}>View QR</button>
                                 <button className={activeTab == 'manageUsers' ? styles.selected : undefined} onClick={() => setActiveTab('manageUsers')}>Manage Users</button>
                                 <button className={activeTab == 'manageTrackdays' ? styles.selected : undefined} onClick={() => setActiveTab('manageTrackdays')}>Manage Trackdays</button>
@@ -160,7 +162,8 @@ const ControlPanel = ({ APIServer }) => {
                     {activeTab == 'verify' && <CPDash_Verify APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers} />}
                     {/* ADMIN */}
                     {activeTab == 'generateQR' && <CPDash_GenerateQR APIServer={APIServer} />}
-                    {activeTab == 'marryQR' && <CPDash_MarryQR allUsers={allUsers} APIServer={APIServer} fetchAPIData={fetchAPIData} />}
+                    {activeTab == 'marryQR' && <CPDash_MarryQR allUsers={allUsers} APIServer={APIServer}  />}
+                    {activeTab == 'deleteQR' && <CPDash_DeleteQR allUsers={allUsers} APIServer={APIServer}  />}
                     {activeTab == 'viewQR' && <CPDash_ViewQR allUsers={allUsers} />}
                     {activeTab == 'manageUsers' && <CPDash_ManageUsers APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} />}
                     {activeTab == 'manageTrackdays' && <CPDash_ManageTrackdays APIServer={APIServer} allTrackdaysFULL={allTrackdaysFULL} allUsers={allUsers} fetchAPIData={fetchAPIData} />}
