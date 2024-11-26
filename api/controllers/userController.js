@@ -326,7 +326,7 @@ exports.getQR = [
 
 // Marries a user and bike to a QR code
 // Also updates a users QRid
-// TODO: Testing
+// TODO: Testing, protectin against marrying a QR which is already attached to someone else
 exports.marryQR = [
     controllerUtils.verifyJWT,
     controllerUtils.validateUserID,
@@ -341,6 +341,7 @@ exports.marryQR = [
 
             if (!bikeToMarry) return res.status(404).send({ msg: ['this bike does not exist in your garage'] })
             if (bikeToMarry.QRID == req.params.QRID) return res.status(400).send({ msg: ['This QR is already attached to this user,bike'] })
+                // TODO: Prevent if req.params.QRID is already attached to someone else
 
         
             // Check for old QR and if one exists, delete it
