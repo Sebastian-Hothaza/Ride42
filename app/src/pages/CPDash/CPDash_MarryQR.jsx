@@ -4,6 +4,11 @@ import ScrollToTop from "../../components/ScrollToTop";
 import Loading from '../../components/Loading';
 import Scanner from '../../components/Scanner';
 
+import modalStyles from '../../components/stylesheets/Modal.module.css';
+import checkmark from './../../assets/checkmark.png';
+import errormark from './../../assets/error.png';
+import Modal from "../../components/Modal";
+
 import styles from './stylesheets/CPDash_MarryQR.module.css'
 
 
@@ -98,6 +103,21 @@ const MarryQR = ({ allUsers, APIServer, fetchAPIData, }) => {
 
 
             </div>
+
+            <Loading open={activeModal.type === 'loading'}>
+                {activeModal.msg}
+            </Loading>
+            <Modal open={activeModal.type === 'success'}>
+                <div className={modalStyles.modalNotif}></div>
+                <img id={modalStyles.modalCheckmarkIMG} src={checkmark} alt="checkmark icon" />
+                {activeModal.msg}
+            </Modal>
+            <Modal open={activeModal.type === 'failure'}>
+                <div className={modalStyles.modalNotif}></div>
+                <img id={modalStyles.modalCheckmarkIMG} src={errormark} alt="error icon" />
+                {activeModal.msg}
+                <button className='actionButton' onClick={() => setActiveModal('')}>Close</button>
+            </Modal>
         </>
     );
 };
