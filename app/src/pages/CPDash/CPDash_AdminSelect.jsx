@@ -20,7 +20,6 @@ const AdminSelect = ({ setActiveTab, memberType }) => {
                         <button onClick={() => setActiveTab('generateQR')}>Generate QR</button>
                         <button onClick={() => setActiveTab('marryQR')}>Marry QR</button>
                         <button onClick={() => setActiveTab('deleteQR')}>Delete QR</button>
-                        <button onClick={() => setActiveTab('viewQR')}>View QR</button>
                         <button onClick={() => setActiveTab('manageUsers')}>Manage Users</button>
                         <button onClick={() => setActiveTab('manageTrackdays')}>Manage Trackdays</button>
                         <button onClick={() => setActiveTab('markPaid')}>Mark Paid</button>
