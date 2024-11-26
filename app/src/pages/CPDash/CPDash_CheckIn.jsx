@@ -43,12 +43,25 @@ const CheckIn = ({ APIServer, allTrackdays, allUsers }) => {
     }
 
     async function handleCheckIn(scanData, scanner) {
-        const [userID, bikeID] = scanData.replace("https://ride42.ca/dashboard/", "").split("/");
-        const user = allUsers.find((user)=> user._id === userID)
-        const bike = user.garage.find((garageItem)=>garageItem.bike._id===bikeID).bike
+        let user, bike;
+        if (scanData.includes('https://ride42.ca/dashboard/')) {
+            const [userID, bikeID] = scanData.replace("https://ride42.ca/dashboard/", "").split("/");
+            user = allUsers.find((user)=> user._id === userID)
+            bike = user.garage.find((garageItem)=>garageItem.bike._id===bikeID).bike
+        } else {
+            const QRID = scanData.replace("https://Ride42.ca/QR/", "")
+            user = allUsers.find(user => {
+                const garageItem = user.garage.find(item => item.QRID === QRID);
+                if (garageItem) bike = garageItem.bike
+                return garageItem ? user:undefined;
+            });
+        }
+
+      
+
         setActiveModal({ type: 'loading', msg: 'Checking user in' });
         try {
-            const response = await fetch(APIServer + 'checkin/' + userID + '/' + nextTrackday.id + '/' + bikeID, {
+            const response = await fetch(APIServer + 'checkin/' + user._id + '/' + nextTrackday.id + '/' + bike._id, {
                 method: 'POST',
                 credentials: "include",
                 headers: {

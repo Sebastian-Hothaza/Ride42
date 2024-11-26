@@ -42,13 +42,25 @@ const Verify = ({ APIServer, allTrackdays, allUsers }) => {
     }
 
     async function handleVerify(scanData, scanner) {
-        const [userID, bikeID] = scanData.replace("https://ride42.ca/dashboard/", "").split("/");
-        const user = allUsers.find((user)=> user._id === userID)
-        const bike = user.garage.find((garageItem)=>garageItem.bike._id===bikeID).bike
-        
+        let user, bike;
+        if (scanData.includes('https://ride42.ca/dashboard/')) {
+            const [userID, bikeID] = scanData.replace("https://ride42.ca/dashboard/", "").split("/");
+            user = allUsers.find((user)=> user._id === userID)
+            bike = user.garage.find((garageItem)=>garageItem.bike._id===bikeID).bike
+        } else {
+            const QRID = scanData.replace("https://Ride42.ca/QR/", "")
+            user = allUsers.find(user => {
+                const garageItem = user.garage.find(item => item.QRID === QRID);
+                if (garageItem) bike = garageItem.bike
+                return garageItem ? user:undefined;
+            });
+        }
+  
+
+  
         setActiveModal({ type: 'loading', msg: 'Verifying user' }); // Show loading modal
         try {
-            const response = await fetch(APIServer + 'verify/' + userID + '/' + nextTrackday.id + '/' + bikeID, {
+            const response = await fetch(APIServer + 'verify/' + user._id + '/' + nextTrackday.id + '/' + bike._id, {
                 method: 'GET',
                 credentials: "include",
                 headers: {
@@ -64,7 +76,7 @@ const Verify = ({ APIServer, allTrackdays, allUsers }) => {
                 } else {
                     setActiveModal({ type: 'failure', msg: `${user.firstName}, ${user.lastName}\nGroup: ${user.group}\n${bike.year} ${bike.make} ${bike.model}`, scanner: scanner })
                 }
-                
+
             } else {
                 const data = await response.json();
                 setActiveModal({ type: 'failure', msg: data.msg.join('\n'), scanner: scanner })
@@ -93,17 +105,17 @@ const Verify = ({ APIServer, allTrackdays, allUsers }) => {
             </Loading>
 
             <Modal open={activeModal.type === 'success'}>
-				<div className={modalStyles.modalNotif}></div>
-				<img id={modalStyles.modalCheckmarkIMG} src={checkmark} alt="checkmark icon" />
-				<div className="capitalizeEach">{activeModal.msg}</div>
-			</Modal>
+                <div className={modalStyles.modalNotif}></div>
+                <img id={modalStyles.modalCheckmarkIMG} src={checkmark} alt="checkmark icon" />
+                <div className="capitalizeEach">{activeModal.msg}</div>
+            </Modal>
 
-			<Modal open={activeModal.type === 'failure'}>
-				<div className={modalStyles.modalNotif}></div>
-				<img id={modalStyles.modalCheckmarkIMG} src={errormark} alt="error icon" />
-				<div className="capitalizeEach">{activeModal.msg}</div>
-				<button className='actionButton' onClick={() => {setActiveModal(''); activeModal.scanner.start()}}>Close</button>
-			</Modal>
+            <Modal open={activeModal.type === 'failure'}>
+                <div className={modalStyles.modalNotif}></div>
+                <img id={modalStyles.modalCheckmarkIMG} src={errormark} alt="error icon" />
+                <div className="capitalizeEach">{activeModal.msg}</div>
+                <button className='actionButton' onClick={() => { setActiveModal(''); activeModal.scanner.start() }}>Close</button>
+            </Modal>
 
 
         </>
