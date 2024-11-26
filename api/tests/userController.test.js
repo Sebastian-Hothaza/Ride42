@@ -1119,6 +1119,193 @@ describe('Testing verify', () => {
 	});
 })
 
+describe('Testing verifyQR', () => {
+	test("verifyQR for invalid objectID QRID", async () => {
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(userAdmin, 200)
+		await request(app)
+			.get("/verify/invalid/invalid")
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(400, { msg: ['QRID is not a valid ObjectID'] })
+	});
+	test("verifyQR for invalid QRID", async () => {
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(userAdmin, 200)
+		await request(app)
+			.get("/verify/6604aa217c21ab6eb042bc6a/sometrackdayID")
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(404, { msg: ['QR does not exist'] })
+	});
+
+
+	test("verifyQR for invalid objectID trackday", async () => {
+		const admin = await addUser(userAdmin, 201)
+		const loginRes = await loginUser(userAdmin, 200);
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+
+		await request(app)
+			.get("/verify/" + newQR.body[0].id + "/invalid")
+			.expect(400, { msg: ['trackdayID is not a valid ObjectID'] })
+	});
+
+	test("verifyQR for invalid trackdayID trackday", async () => {
+		const admin = await addUser(userAdmin, 201)
+		const loginRes = await loginUser(userAdmin, 200);
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+
+		await request(app)
+		.get("/verify/" + newQR.body[0].id + "/6604aa217c21ab6eb042bc6a")
+			.expect(404, { msg: ['Trackday does not exist'] })
+	});
+
+
+	test("verifyQR for user - not registered for trackday", async () => {
+		const user = await addUser(user1, 201);
+		const admin = await addUser(userAdmin, 201)
+		const loginRes = await loginUser(userAdmin, 200);
+		// Create the trackday
+		const trackday = await addTrackday(getFormattedDate(3), loginRes.headers['set-cookie'])
+
+		// Add bike to garage
+		const bike = await request(app)
+			.post("/garage/" + user.body.id)
+			.type("form")
+			.send({ year: '2009', make: 'Yamaha', model: "R6" })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201);
+
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+
+		// Marry QR to bike and user
+		await request(app)
+			.put("/QR/" + newQR.body[0].id + '/' + user.body.id + "/" + bike.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+
+		await request(app)
+			.get("/verify/" + newQR.body[0].id + '/' + trackday.body.id)
+			.expect(200, { verified: false })
+	});
+
+	test("verifyQR for user - not checkedin for trackday", async () => {
+		const user = await addUser(user1, 201);
+		const admin = await addUser(userAdmin, 201)
+		const loginRes = await loginUser(userAdmin, 200);
+		// Create the trackday
+		const trackday = await addTrackday(getFormattedDate(3), loginRes.headers['set-cookie'])
+		// Register user for trackday
+		await request(app)
+			.post('/register/' + user.body.id + '/' + trackday.body.id)
+			.type("form").send({ paymentMethod: 'creditCard', guests: 3, layoutVote: 'none' })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200)
+
+		// Add bike to garage
+		const bike = await request(app)
+			.post("/garage/" + user.body.id)
+			.type("form")
+			.send({ year: '2009', make: 'Yamaha', model: "R6" })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201);
+
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+
+		// Marry QR to bike and user
+		await request(app)
+			.put("/QR/" + newQR.body[0].id + '/' + user.body.id + "/" + bike.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+
+		await request(app)
+			.get("/verify/" + newQR.body[0].id + '/' + trackday.body.id)
+			.expect(200, { verified: false })
+	});
+
+	test("verifyQR for user", async () => {
+		const user = await addUser(user1, 201);
+		const admin = await addUser(userAdmin, 201)
+		const loginRes = await loginUser(userAdmin, 200);
+		// Create the trackday
+		const trackday = await addTrackday(getFormattedDate(3), loginRes.headers['set-cookie'])
+
+		// Add bike to garage
+		const bike = await request(app)
+			.post("/garage/" + user.body.id)
+			.type("form")
+			.send({ year: '2009', make: 'Yamaha', model: "R6" })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201);
+
+		// Register user for trackday
+		await request(app)
+			.post('/register/' + user.body.id + '/' + trackday.body.id)
+			.type("form").send({ paymentMethod: 'creditCard', guests: 3, layoutVote: 'none' })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200)
+
+		// Mark user as paid
+		await request(app)
+			.put('/paid/' + user.body.id + '/' + trackday.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.type('form').send({ setPaid: 'true' })
+			.expect(200)
+
+		// Mark waiver as signed
+		await request(app)
+			.post("/waiver/" + user.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200);
+
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+
+		// Marry QR to bike and user
+		await request(app)
+			.put("/QR/" + newQR.body[0].id + '/' + user.body.id + "/" + bike.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+
+		// Check-in user for trackday
+		await request(app)
+			.post('/checkin/' + user.body.id + '/' + trackday.body.id + '/' + bike.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200)
+
+		await request(app)
+			.get("/verify/" + newQR.body[0].id + '/' + trackday.body.id)
+			.expect(200, { verified: true })
+	});
+})
+
 describe('Testing adding bikes to a user garage', () => {
 	test("add bike to garage - invalid objectID user", async () => {
 		const user = await addUser(user1, 201)

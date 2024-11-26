@@ -183,7 +183,6 @@ exports.verify = [
 ]
 
 // Returns true if the user/bike is checked in for a given trackday. Used by QR PUBLIC.
-// TODO: Testing
 exports.verifyQR = [
     controllerUtils.validateQRID,
     controllerUtils.validateTrackdayID,
