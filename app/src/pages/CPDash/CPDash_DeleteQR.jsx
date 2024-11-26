@@ -34,7 +34,6 @@ const DeleteQR = ({ allUsers, APIServer, fetchAPIData, }) => {
     
     async function handleDeleteQR(e) {
         e.preventDefault();
-        console.log(e);
         setActiveModal({ type: 'loading', msg: 'Deleting QR' }); // Show loading modal
         try {
             const response = await fetch(APIServer + 'QR/' + e.target.qrid.value, {
