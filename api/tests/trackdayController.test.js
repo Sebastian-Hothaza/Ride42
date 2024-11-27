@@ -2194,7 +2194,7 @@ describe('Testing checkin', () => {
 			.set('Cookie', user1Cookie)
 			.expect(200);
 
-					
+
 		await request(app)
 			.post('/checkin/' + user1.body.id + '/' + trackday.body.id + '/' + bike.body.id)
 			.set('Cookie', adminCookie)
@@ -2235,6 +2235,491 @@ describe('Testing checkin', () => {
 
 		await request(app)
 			.post('/checkin/' + user1.body.id + '/' + trackday.body.id + '/' + bike.body.id)
+			.set('Cookie', adminCookie)
+			.expect(200)
+	})
+})
+
+describe('Testing checkinQR', () => {
+	test("checkinQR for invalid objectID QRID", async () => {
+		await request(app)
+			.post("/checkin/invalid/invalid")
+			.set('Cookie', adminCookie)
+			.expect(400, { msg: ['QRID is not a valid ObjectID'] })
+	});
+	test("checkinQR for invalid QRID", async () => {
+		await request(app)
+			.post("/checkin/6604aa217c21ab6eb042bc6a/sometrackdayID")
+			.set('Cookie', adminCookie)
+			.expect(404, { msg: ['QR does not exist'] })
+	});
+	test("checkinQR for invalid objectID trackday", async () => {
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', adminCookie)
+			.expect(201)
+
+		await request(app)
+			.post("/checkin/" + newQR.body[0].id + "/invalid")
+			.set('Cookie', adminCookie)
+			.expect(400, { msg: ['trackdayID is not a valid ObjectID'] })
+	});
+	test("checkinQR for invalid trackdayID trackday", async () => {
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', adminCookie)
+			.expect(201)
+
+		await request(app)
+			.post("/checkin/" + newQR.body[0].id + "/6604aa217c21ab6eb042bc6a")
+			.set('Cookie', adminCookie)
+			.expect(404, { msg: ['Trackday does not exist'] })
+	});
+
+
+
+	test("no JWT", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+		await request(app)
+			.post('/checkin/someQRID/someBikeID')
+			.expect(401)
+	});
+	test("not authorized", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		// Add the bike to user garage
+		const bike = await request(app).post("/garage/" + user1.body.id).type("form").send({ year: '2009', make: 'Yamaha', model: "R6" })
+			.set('Cookie', user1Cookie).expect(201);
+
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', adminCookie)
+			.expect(201)
+
+		await request(app)
+			.post("/checkin/" + newQR.body[0].id + "/" + trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.expect(403)
+	});
+	test("as staff", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		// Add bike to garage
+		const bike = await request(app)
+			.post("/garage/" + user1.body.id)
+			.type("form")
+			.send({ year: '2009', make: 'Yamaha', model: "R6" })
+			.set('Cookie', user1Cookie)
+			.expect(201);
+
+		// Create staff member
+		const staff = await addUser(userStaff);
+		await request(app)
+			.put('/users/' + staff.body.id)
+			.type('form').send(userStaff_update)
+			.set('Cookie', adminCookie)
+			.expect(201)
+		const staffLoginRes = await loginUser(userStaff);
+
+		// Register for trackday
+		await request(app)
+			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
+			.expect(200)
+
+		// Mark user as paid
+		await request(app)
+			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.set('Cookie', adminCookie)
+			.type('form').send({ setPaid: 'true' })
+			.expect(200)
+
+		// Mark waiver as signed
+		await request(app)
+			.post("/waiver/" + user1.body.id)
+			.set('Cookie', staffLoginRes.headers['set-cookie'])
+			.expect(200);
+
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', adminCookie)
+			.expect(201)
+
+		// Marry QR to bike and user
+		await request(app)
+			.put("/QR/" + newQR.body[0].id + '/' + user1.body.id + "/" + bike.body.id)
+			.set('Cookie', adminCookie)
+			.expect(201)
+
+		// Check in user
+		await request(app)
+			.post('/checkin/' + newQR.body[0].id + "/" + trackday.body.id)
+			.set('Cookie', staffLoginRes.headers['set-cookie'])
+			.expect(200)
+	})
+
+
+	test("already checked in that bike", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		// Add bike to garage
+		const bike = await request(app)
+			.post("/garage/" + user1.body.id)
+			.type("form")
+			.send({ year: '2009', make: 'Yamaha', model: "R6" })
+			.set('Cookie', user1Cookie)
+			.expect(201);
+
+		// Register for trackday
+		await request(app)
+			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
+			.expect(200)
+
+		// Mark user as paid
+		await request(app)
+			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.set('Cookie', adminCookie)
+			.type('form').send({ setPaid: 'true' })
+			.expect(200)
+
+		// Mark waiver as signed
+		await request(app)
+			.post("/waiver/" + user1.body.id)
+			.set('Cookie', adminCookie)
+			.expect(200);
+
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', adminCookie)
+			.expect(201)
+
+		// Marry QR to bike and user
+		await request(app)
+			.put("/QR/" + newQR.body[0].id + '/' + user1.body.id + "/" + bike.body.id)
+			.set('Cookie', adminCookie)
+			.expect(201)
+
+		await request(app)
+			.post('/checkin/' + newQR.body[0].id + "/" + trackday.body.id)
+			.set('Cookie', adminCookie)
+			.expect(200)
+
+		await request(app)
+			.post('/checkin/' + newQR.body[0].id + "/" + trackday.body.id)
+			.set('Cookie', adminCookie)
+			.expect(403, { msg: ['Already checked in with this bike'] })
+	})
+
+	test("check in multiple bikes", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		// Add bike1 to garage
+		const bike1 = await request(app)
+			.post("/garage/" + user1.body.id)
+			.type("form")
+			.send({ year: '2009', make: 'Yamaha', model: "R6" })
+			.set('Cookie', user1Cookie)
+			.expect(201);
+
+		// Add bike2 to garage
+		const bike2 = await request(app)
+			.post("/garage/" + user1.body.id)
+			.type("form")
+			.send({ year: '2010', make: 'Yamaha', model: "R1" })
+			.set('Cookie', user1Cookie)
+			.expect(201);
+
+		// Register for trackday
+		await request(app)
+			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
+			.expect(200)
+		// Mark user as paid
+		await request(app)
+			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.set('Cookie', adminCookie)
+			.type('form').send({ setPaid: 'true' })
+			.expect(200)
+
+		// Mark waiver as signed
+		await request(app)
+			.post("/waiver/" + user1.body.id)
+			.set('Cookie', adminCookie)
+			.expect(200);
+
+		// Generate the 2 QR Codes
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 2 })
+			.set('Cookie', adminCookie)
+			.expect(201)
+
+		// Marry QR1 to bike1 and user
+		await request(app)
+			.put("/QR/" + newQR.body[0].id + '/' + user1.body.id + "/" + bike1.body.id)
+			.set('Cookie', adminCookie)
+			.expect(201)
+
+		// Marry QR2 to bike2 and user
+		await request(app)
+			.put("/QR/" + newQR.body[1].id + '/' + user1.body.id + "/" + bike2.body.id)
+			.set('Cookie', adminCookie)
+			.expect(201)
+
+		// Check in both bikes
+		await request(app)
+			.post('/checkin/' + newQR.body[0].id + "/" + trackday.body.id)
+			.set('Cookie', adminCookie)
+			.expect(200)
+		await request(app)
+			.post('/checkin/' + newQR.body[1].id + "/" + trackday.body.id)
+			.set('Cookie', adminCookie)
+			.expect(200)
+	})
+
+	test("not registered for that day", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		// Add bike to garage
+		const bike = await request(app)
+			.post("/garage/" + user1.body.id)
+			.type("form")
+			.send({ year: '2009', make: 'Yamaha', model: "R6" })
+			.set('Cookie', user1Cookie)
+			.expect(201);
+
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', adminCookie)
+			.expect(201)
+
+		// Marry QR to bike and user
+		await request(app)
+			.put("/QR/" + newQR.body[0].id + '/' + user1.body.id + "/" + bike.body.id)
+			.set('Cookie', adminCookie)
+			.expect(201)
+
+		await request(app)
+			.post('/checkin/' + newQR.body[0].id + "/" + trackday.body.id)
+			.set('Cookie', adminCookie)
+			.expect(403, { msg: ['Not registered for trackday'] })
+	})
+
+	test("not marked as paid", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		// Add bike to garage
+		const bike = await request(app)
+			.post("/garage/" + user1.body.id)
+			.type("form")
+			.send({ year: '2009', make: 'Yamaha', model: "R6" })
+			.set('Cookie', user1Cookie)
+			.expect(201);
+
+		// Register for trackday
+		await request(app)
+			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
+			.expect(200)
+
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', adminCookie)
+			.expect(201)
+
+		// Marry QR to bike and user
+		await request(app)
+			.put("/QR/" + newQR.body[0].id + '/' + user1.body.id + "/" + bike.body.id)
+			.set('Cookie', adminCookie)
+			.expect(201)
+
+
+		await request(app)
+			.post('/checkin/' + newQR.body[0].id + "/" + trackday.body.id)
+			.set('Cookie', adminCookie)
+			.expect(403, { msg: ['Not paid', 'Missing waiver'] })
+	})
+
+	test("missing waiver", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		// Add bike to garage
+		const bike = await request(app)
+			.post("/garage/" + user1.body.id)
+			.type("form")
+			.send({ year: '2009', make: 'Yamaha', model: "R6" })
+			.set('Cookie', user1Cookie)
+			.expect(201);
+
+		// Register for trackday
+		await request(app)
+			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
+			.expect(200)
+
+		// Mark user as paid
+		await request(app)
+			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.set('Cookie', adminCookie)
+			.type('form').send({ setPaid: 'true' })
+			.expect(200)
+
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', adminCookie)
+			.expect(201)
+
+		// Marry QR to bike and user
+		await request(app)
+			.put("/QR/" + newQR.body[0].id + '/' + user1.body.id + "/" + bike.body.id)
+			.set('Cookie', adminCookie)
+			.expect(201)
+
+
+		await request(app)
+			.post('/checkin/' + newQR.body[0].id + "/" + trackday.body.id)
+			.set('Cookie', adminCookie)
+			.expect(403, { msg: ['Missing waiver'] })
+	})
+
+	test('user doesnt have that bike in their garage', async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		// Add bike to garage
+		const bike = await request(app)
+			.post("/garage/" + user1.body.id)
+			.type("form")
+			.send({ year: '2009', make: 'Yamaha', model: "R6" })
+			.set('Cookie', user1Cookie)
+			.expect(201);
+
+		// Register for trackday
+		await request(app)
+			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
+			.expect(200)
+
+		// Mark user as paid
+		await request(app)
+			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.set('Cookie', adminCookie)
+			.type('form').send({ setPaid: 'true' })
+			.expect(200)
+
+		// Mark waiver as signed
+		await request(app)
+			.post("/waiver/" + user1.body.id)
+			.set('Cookie', adminCookie)
+			.expect(200);
+
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', adminCookie)
+			.expect(201)
+
+		// Marry QR to bike and user
+		await request(app)
+			.put("/QR/" + newQR.body[0].id + '/' + user1.body.id + "/" + bike.body.id)
+			.set('Cookie', adminCookie)
+			.expect(201)
+
+		// Remove bike from garage
+		// NOTE: This also kills the QR in the DB
+		await request(app)
+			.delete("/garage/" + user1.body.id + '/' + bike.body.id)
+			.set('Cookie', user1Cookie)
+			.expect(200);
+
+		await request(app)
+			.post('/checkin/' + newQR.body[0].id + "/" + trackday.body.id)
+			.set('Cookie', adminCookie)
+			.expect(404, { msg: ['QR does not exist'] })
+	})
+
+
+
+	test("valid checkin", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		// Add bike to garage
+		const bike = await request(app)
+			.post("/garage/" + user1.body.id)
+			.type("form")
+			.send({ year: '2009', make: 'Yamaha', model: "R6" })
+			.set('Cookie', user1Cookie)
+			.expect(201);
+
+		// Register for trackday
+		await request(app)
+			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
+			.expect(200)
+
+		// Mark user as paid
+		await request(app)
+			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.set('Cookie', adminCookie)
+			.type('form').send({ setPaid: 'true' })
+			.expect(200)
+
+		// Mark waiver as signed
+		await request(app)
+			.post("/waiver/" + user1.body.id)
+			.set('Cookie', adminCookie)
+			.expect(200);
+
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', adminCookie)
+			.expect(201)
+
+		// Marry QR to bike and user
+		await request(app)
+			.put("/QR/" + newQR.body[0].id + '/' + user1.body.id + "/" + bike.body.id)
+			.set('Cookie', adminCookie)
+			.expect(201)
+
+		await request(app)
+			.post('/checkin/' + newQR.body[0].id + "/" + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.expect(200)
 	})
