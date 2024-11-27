@@ -38,10 +38,10 @@ const Home = () => {
 		<ul>
 			<li>Trackday run by experienced personnel who are eager to ensure you have a great time</li>
 			<li>Safe and structured riding divided into groups based on skill level. Occasionally we may go down to 2 groups; our goal is to maximize your time on track while maintaining a safe environment</li>
-			<li>Experienced pro level regional and national racers available for one-on-one coaching and guidance</li>
+			<li>Experienced pro level regional and national racers available for coaching and guidance</li>
 			<li>BBQ lunch with refreshments</li>
 			<li>Paved, well maintained track environment without the hazards, limitations or distractions you’d typically find on the street</li>
-			<li>Professional photographs from an on-site photographer</li>
+			
 		</ul>
 	</div>
 
