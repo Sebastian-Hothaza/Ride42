@@ -273,7 +273,6 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 							<select name="status" id="status" defaultValue={activeModal.trackday && activeModal.trackday.status} required>
 								<option key="regOpen" value="regOpen">Registration Open</option>
 								<option key="regClosed" value="regClosed">Registration Closed</option>
-								<option key="finished" value="finished">Finished</option>
 								<option key="cancelled" value="cancelled">Cancelled</option>
 								<option key="archived" value="archived">Archive</option>
 							</select>
