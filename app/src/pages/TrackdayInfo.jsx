@@ -20,7 +20,7 @@ function TrackdayInfo() {
 			const response = await fetch(APIServer + 'presentTrackdays');
 			if (!response.ok) throw new Error("Failed to get API Data for presentTrackdays")
 			const data = await response.json();
-			setAllTrackdays(data);
+			setAllTrackdays(data.filter(trackday => trackday.status !== "archived")); // exclude archived trackdays
 		} catch (err) {
 			console.log(err.message)
 		}
