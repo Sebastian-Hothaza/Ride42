@@ -20,8 +20,6 @@ if (simulateSlowNetwork) {
   })
 }
 
-logger.info({ message: 'info log' });
-
 // cors setup
 const cors = require('cors')
 
