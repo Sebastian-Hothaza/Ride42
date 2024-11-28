@@ -127,7 +127,7 @@ exports.register = [
 
 
             // If trackday is in the past
-            if (req.user.memberType !== 'admin' && trackday.date.getTime() < Date.now()) { 
+            if (req.user.memberType !== 'admin' && trackday.date.getTime() < Date.now()) {
                 if (req.body.paymentMethod === 'gate' || req.body.paymentMethod === 'credit') { // Allow for late allowance for gate and credit registrations
                     if (trackday.date.getTime() + (process.env.LATE_ALLOWANCE_HOURS * 60 * 60 * 1000) < Date.now()) return res.status(403).send({ msg: ['Cannot register for trackday in the past'] })
                 } else {
@@ -175,7 +175,7 @@ exports.register = [
                 sendEmail(user.contact.email, "Ride42 Trackday Registration Confirmation", mailTemplates.registerTrackday,
                     { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) })
             }
-
+            logger.info({ message: "Booked trackday for " + user.firstName + ' ' + user.lastName + ' on ' + trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' })});
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
@@ -231,6 +231,8 @@ exports.unregister = [
                 sendEmail(process.env.ADMIN_EMAIL, "TRACKDAY CANCELATION", mailTemplates.unregisterTrackday_admin,
                     { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) })
             }
+            logger.info({ message: "Cancelled trackday for " + user.firstName + ' ' + user.lastName + ' on ' + trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' })});
+            
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
@@ -301,8 +303,10 @@ exports.reschedule = [
             trackdayOLD.members = trackdayOLD.members.filter((member) => !member.user.equals(req.params.userID))
             await trackdayOLD.save();
 
+            // TODO: There may be an issue here where dateNEW is not being correctly considered
             sendEmail(user.contact.email, "Ride42 Trackday Reschedule Confirmation", mailTemplates.rescheduleTrackday,
                 { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), dateOLD: trackdayOLD.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }), dateNEW: trackdayNEW.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) })
+            logger.info({ message: "Rescheduled " + user.firstName + ' ' + user.lastName + ' from ' + trackdayOLD.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) + ' to ' + trackdayNEW.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' })});
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
@@ -330,6 +334,7 @@ exports.walkons = [
                 group: req.body.group
             })
             await trackday.save();
+
             return res.sendStatus(201);
         }
         return res.sendStatus(403)
@@ -369,6 +374,7 @@ exports.checkin = [
             // Process the check in
             memberEntry.checkedIn.push(req.params.bikeID);
             await trackday.save();
+            logger.info({ message: "Checked in " + memberEntry.user.firstName + ' ' + memberEntry.user.lastName + ' with ' + userBike.year + ' ' + userBike.make + ' ' + userBike.model });
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
@@ -406,6 +412,7 @@ exports.checkinQR = [
             // Process the check in
             memberEntry.checkedIn.push(qr.bike.id);
             await trackday.save();
+            // TODO:Logging
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
@@ -504,6 +511,7 @@ exports.updatePaid = [
             }
 
             await trackday.save()
+            logger.info({ message: "Set paid for " + memberEntry.user.firstName + ' ' + memberEntry.user.lastName + ' to ' + memberEntry.paid });
             return res.sendStatus(200)
         }
         return res.sendStatus(403)
@@ -562,8 +570,10 @@ exports.trackday_post = [
                 layout: 'tbd'
             })
             await trackday.save();
+            logger.info({ message: "trackday created: " + trackday.id });
             return res.status(201).json({ id: trackday.id });
         }
+
         return res.sendStatus(403)
     })
 ]
@@ -599,6 +609,7 @@ exports.trackday_put = [
                 _id: req.params.trackdayID
             })
             await Trackday.findByIdAndUpdate(req.params.trackdayID, trackday, {});
+            logger.info({ message: "trackday updated: " + trackday.id });
             return res.status(201).json({ id: trackday.id });
         }
         return res.sendStatus(403)
@@ -613,6 +624,7 @@ exports.trackday_delete = [
     asyncHandler(async (req, res, next) => {
         if (req.user.memberType === 'admin') {
             await Trackday.findByIdAndDelete(req.params.trackdayID);
+            logger.info({ message: "trackday deleted: " + req.params.trackdayID });
             return res.sendStatus(200);
         }
         return res.sendStatus(403)

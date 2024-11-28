@@ -179,6 +179,8 @@ exports.verify = [
         // Check that the member we want to verify for a trackday actually exists in the trackday
         const memberEntry = trackday.members.find((member) => member.user.equals(req.params.userID));
 
+        //logger.info({message: `Verified ${qr.user.firstName} ${qr.user.lastName} with a ${qr.bike.year} ${qr.bike.make} ${qr.bike.model}`})
+        // TODO:Logging
         memberEntry && memberEntry.checkedIn.includes(req.params.bikeID) ? res.status(200).json({ verified: true }) : res.status(200).json({ verified: false })
     })
 ]
@@ -194,7 +196,7 @@ exports.verifyQR = [
 
         // Check that the member we want to verify for a trackday actually exists in the trackday
         const memberEntry = trackday.members.find((member) => member.user.equals(qr.user.id));
-
+        // TODO:Logging
         memberEntry && memberEntry.checkedIn.includes(qr.bike.id) ? res.status(200).json({ verified: true }) : res.status(200).json({ verified: false })
     })
 ]
