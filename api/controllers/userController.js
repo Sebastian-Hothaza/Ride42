@@ -9,6 +9,7 @@ const jwt = require('jsonwebtoken')
 const controllerUtils = require('./controllerUtils')
 const sendEmail = require('../mailer')
 const mailTemplates = require('../mailer_templates')
+const logger = require('../logger');
 
 
 
@@ -100,7 +101,7 @@ exports.updatePassword = [
     asyncHandler(async (req, res, next) => {
         if (req.user.memberType === 'admin' || req.user.id === req.params.userID) {
             bcrypt.hash(req.body.newPassword, 10, async (err, hashedPassword) => {
-                if (err) console.log("bcrypt error")
+                if (err) logger.error({message: "bcrypt error"})
                 let user = await User.findById(req.params.userID).exec();
 
                 // Verify old Password
@@ -153,7 +154,7 @@ exports.resetPassword = [
         try {
             const payload = jwt.verify(req.params.token, process.env.JWT_ACCESS_CODE);
             bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
-                if (err) console.log("bcrypt error")
+                if (err) logger.error({message: "bcrypt error"})
                 let user = await User.findById(payload.id).exec();
                 user.password = hashedPassword;
                 await user.save();

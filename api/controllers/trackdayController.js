@@ -6,6 +6,7 @@ const { body, validationResult } = require("express-validator");
 const controllerUtils = require('./controllerUtils')
 const sendEmail = require('../mailer')
 const mailTemplates = require('../mailer_templates')
+const logger = require('../logger');
 
 /*
 PAYMENT NOTE
@@ -431,7 +432,6 @@ exports.presentTrackdays = async (req, res, next) => {
             votes: getRegDetails(trackday).votes
         })
     })
-
     return res.status(200).send(result)
 }
 

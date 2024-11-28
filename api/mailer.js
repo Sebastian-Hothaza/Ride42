@@ -1,4 +1,5 @@
 const nodemailer = require("nodemailer");
+const logger = require('./logger');
 
 // Usage example: if (process.env.NODE_ENV === 'production') sendEmail("JohnDoe@gmail.com", "Hello from NodeMailer", mailTemplates.helloWorld, {name: "Joe"})
 
@@ -35,10 +36,10 @@ async function main(recipient,subject,htmlBody,args){
                 html: htmlBody, 
             });
         }catch(err){
-            console.log(err)
+            logger.error({message: err})
         }
     }else if (process.env.NODE_ENV === 'development'){
-        console.log(htmlBody)
+        logger.info({message: htmlBody})
     }
 
 }
