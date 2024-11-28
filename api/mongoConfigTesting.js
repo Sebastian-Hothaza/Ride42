@@ -1,8 +1,5 @@
 const mongoose = require("mongoose");
 const { MongoMemoryServer } = require("mongodb-memory-server");
-<<<<<<<<< Temporary merge branch 1
-const logger = require('../logger');
-=========
 const logger = require('./logger');
 
 let mongoServer
