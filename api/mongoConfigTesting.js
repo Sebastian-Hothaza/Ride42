@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { MongoMemoryServer } = require("mongodb-memory-server");
+const logger = require('../logger');
 const logger = require('./logger');
 
 let mongoServer
