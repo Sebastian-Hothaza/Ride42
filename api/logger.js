@@ -5,15 +5,17 @@ winston.addColors({
     error: 'bold white redBG',
     warn: 'italic yellow',
     info: 'white',
+    debug: 'gray'
 });
 
 const logger = winston.createLogger({
-    level: 'info',
+    level: 'debug',
     format: winston.format.json(),
     levels: {
         error: 0,
         warn: 1,
         info: 2,
+        debug: 3
     },
     format: winston.format.printf(({ level, message }) => { return `${level}: ${message}` }),
 });
@@ -28,7 +30,8 @@ if (process.env.NODE_ENV === 'development') {
         collection: 'serverLogs',
         capped: true,
         cappedMax: 10000,
-        tryReconnect: true
+        tryReconnect: true,
+        level: 'info' // Minimum log level to store; we dont want to store debug info
     }));
 }
 
