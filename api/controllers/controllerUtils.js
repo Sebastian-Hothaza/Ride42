@@ -6,6 +6,7 @@ const { body, validationResult } = require("express-validator");
 const ObjectId = require('mongoose').Types.ObjectId;
 const jwt = require('jsonwebtoken')
 
+
 /*
     --------------------------------------------- TODO ---------------------------------------------
     code cleanup & review
@@ -150,7 +151,6 @@ async function verifyJWT_LS(req, res, next) {
             payload = jwt.verify(accessToken, process.env.JWT_ACCESS_CODE);
         } catch {
             try {
-                console.log('accessToken verification failed. attempt to verify refreshToken')
                 // Check the refresh token is not expired
                 const JWTRefreshPayload = jwt.verify(refreshToken, process.env.JWT_REFRESH_CODE);
 
@@ -170,7 +170,6 @@ async function verifyJWT_LS(req, res, next) {
 
             } catch {
                 // JWT_REFRESH verification failed.
-                console.log('refreshToken verification failed.')
                 return res.sendStatus(401)
             }
         }
