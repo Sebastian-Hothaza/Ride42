@@ -91,19 +91,23 @@ function TrackdayInfo() {
 
 
 
-	const HTML_Dates = <>
-		<ul id={styles.datesUl}>
-			{datesArray.map((dateInfo) => (
-				<li key={dateInfo.id}>
-					<div className={styles.dateEntry}>
-						<div>{dateInfo.formattedDate}</div>
-						{dateInfo.status === 'cancelled'? <div id={styles.layout}>Cancelled</div> : <div id={styles.layout}>{dateInfo.layout}</div>}
-					</div>
-				</li>
-			))}
-		</ul>
-		<NavLink className={styles.bookBtn} to="/dashboard">Book Your Day</NavLink>
-	</>
+	const HTML_Dates = allTrackdays.length ?
+		<>
+			<ul id={styles.datesUl}>
+				{datesArray.map((dateInfo) => (
+					<li key={dateInfo.id}>
+						<div className={styles.dateEntry}>
+							<div>{dateInfo.formattedDate}</div>
+							{dateInfo.status === 'cancelled' ? <div id={styles.layout}>Cancelled</div> : <div id={styles.layout}>{dateInfo.layout}</div>}
+						</div>
+					</li>
+				))}
+			</ul>
+			<NavLink className={styles.bookBtn} to="/dashboard">Book Your Day</NavLink>
+		</> :
+		<>
+		<div className={styles.priceEntry} style={{justifyContent: "center"}}>No dates available yet, check back soon!</div>
+		</>
 
 
 
@@ -171,7 +175,7 @@ function TrackdayInfo() {
 		<span style={{ fontWeight: 'bold' }}>My Garage –</span> Manage your bikes; you will receive a unique QR sticker at your next trackday.
 		<br></br>
 		<br></br>
-		<a style={{textDecoration: 'reset', color: 'blue'}} target="_blank" href="https://drive.google.com/file/d/1UzJK9AUoWWt9Ol0Yl95JTrmOD50xu7hv/view?usp=sharing">Waiver Link</a>
+		<a style={{ textDecoration: 'reset', color: 'blue' }} target="_blank" href="https://drive.google.com/file/d/1UzJK9AUoWWt9Ol0Yl95JTrmOD50xu7hv/view?usp=sharing">Waiver Link</a>
 		<br></br><br></br>
 	</p>
 		<NavLink className={styles.bookBtn} to="/dashboard">Join Now!</NavLink>
