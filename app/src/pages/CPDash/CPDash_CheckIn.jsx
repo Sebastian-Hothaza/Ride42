@@ -43,11 +43,12 @@ const CheckIn = ({ APIServer, allTrackdays, allUsers }) => {
     }
 
     async function handleCheckIn(scanData, scanner) {
-        let user, bike;
+        let user, bike, APIURL;
         if (scanData.includes('https://ride42.ca/dashboard/')) {
             const [userID, bikeID] = scanData.replace("https://ride42.ca/dashboard/", "").split("/");
             user = allUsers.find((user)=> user._id === userID)
             bike = user.garage.find((garageItem)=>garageItem.bike._id===bikeID).bike
+            APIURL = APIServer + 'checkin/' + user._id + '/' + nextTrackday.id + '/' + bike._id;
         } else {
             const QRID = scanData.replace("https://Ride42.ca/QR/", "")
             user = allUsers.find(user => {
@@ -55,13 +56,14 @@ const CheckIn = ({ APIServer, allTrackdays, allUsers }) => {
                 if (garageItem) bike = garageItem.bike
                 return garageItem ? user:undefined;
             });
+            APIURL = APIServer + 'checkin/' + QRID + '/' + nextTrackday.id;
         }
 
       
 
         setActiveModal({ type: 'loading', msg: 'Checking user in' });
         try {
-            const response = await fetch(APIServer + 'checkin/' + user._id + '/' + nextTrackday.id + '/' + bike._id, {
+            const response = await fetch(APIURL, {
                 method: 'POST',
                 credentials: "include",
                 headers: {
