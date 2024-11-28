@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { MongoMemoryServer } = require("mongodb-memory-server");
+const logger = require('./logger');
 
 let mongoServer
 
@@ -11,10 +12,10 @@ async function initializeMongoServer() {
 
   mongoose.connection.on("error", e => {
     if (e.message.code === "ETIMEDOUT") {
-      console.log(e);
+      logger.error({message: e});
       mongoose.connect(mongoUri);
     }
-    console.log(e);
+    logger.error({message: e});
   });
 }
 
