@@ -39,7 +39,7 @@ async function main(recipient,subject,htmlBody,args){
             logger.error({message: err})
         }
     }else if (process.env.NODE_ENV === 'development'){
-        logger.info({message: htmlBody})
+        logger.debug({message: `Email sent: \n${htmlBody}`});
     }
 
 }
