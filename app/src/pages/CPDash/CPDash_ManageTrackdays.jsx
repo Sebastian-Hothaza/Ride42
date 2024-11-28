@@ -271,10 +271,11 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 						<div className={styles.inputPairing}>
 							<label htmlFor="group">Status</label>
 							<select name="status" id="status" defaultValue={activeModal.trackday && activeModal.trackday.status} required>
-								<option key="regOpen" value="regOpen">regOpen</option>
-								<option key="regClosed" value="regClosed">regClosed</option>
-								<option key="finished" value="finished">finished</option>
-								<option key="cancelled" value="cancelled">cancelled</option>
+								<option key="regOpen" value="regOpen">Registration Open</option>
+								<option key="regClosed" value="regClosed">Registration Closed</option>
+								<option key="finished" value="finished">Finished</option>
+								<option key="cancelled" value="cancelled">Cancelled</option>
+								<option key="archived" value="archived">Archive</option>
 							</select>
 						</div>
 						<div className={styles.inputPairing}>
