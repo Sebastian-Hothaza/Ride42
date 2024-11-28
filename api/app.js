@@ -1,22 +1,24 @@
 const express = require('express');
-
 require("./mongoConfig")
+const logger = require('./logger');
+
+
 
 const app = express();
 
 // Simulate slow network
-const simulateSlowNetowrk = false;
+const simulateSlowNetwork = false;
 const delay = 2000;
-if (simulateSlowNetowrk) {
+if (simulateSlowNetwork) {
+  logger.warn({ message: 'SLOW SERVER SIMULATION' });
   const sleep = (ms) => new Promise(
     resolve => setTimeout(resolve, ms));
   app.use(async (req, res, next) => {
-    console.log('Simulating slow server',delay,'ms')
+    logger.warn({message: 'server delayed by ' + delay + ' ms'})
     await sleep(delay)
     next();
   })
 }
-
 
 // cors setup
 const cors = require('cors')
@@ -24,8 +26,6 @@ const cors = require('cors')
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' ? "https://ride42.ca" : "http://localhost:5173", credentials: true,
 }));
-
-
 
 
 app.use(express.json());
