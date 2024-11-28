@@ -358,8 +358,8 @@ exports.checkin = [
             if (!memberEntry) return res.status(403).send({ msg: ['Not registered for trackday'] });
 
             // Verify the bikeID is actually in the users garage
-            const userBike = user.garage.find((garageEntry) => garageEntry.bike.equals(req.params.bikeID))
-            if (!userBike) return res.status(404).send({ msg: ['this bike does not exist in your garage'] })
+            const garageItem = user.garage.find((garageEntry) => garageEntry.bike.equals(req.params.bikeID))
+            if (!garageItem) return res.status(404).send({ msg: ['this bike does not exist in your garage'] })
 
             // Check that member is not already checked in with that same bike
             if (memberEntry.checkedIn.includes(req.params.bikeID)) return res.status(403).json({ msg: ['Already checked in with this bike'] })
@@ -374,7 +374,7 @@ exports.checkin = [
             // Process the check in
             memberEntry.checkedIn.push(req.params.bikeID);
             await trackday.save();
-            logger.info({ message: "Checked in " + memberEntry.user.firstName + ' ' + memberEntry.user.lastName + ' with ' + userBike.year + ' ' + userBike.make + ' ' + userBike.model });
+            logger.info({message: `Checked in ${user.firstName} ${user.lastName} with a ${garageItem.bike.year} ${garageItem.bike.make} ${garageItem.bike.model} for trackday on ${trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' })}`})
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
@@ -412,7 +412,7 @@ exports.checkinQR = [
             // Process the check in
             memberEntry.checkedIn.push(qr.bike.id);
             await trackday.save();
-            // TODO:Logging
+            logger.info({message: `Checked in ${qr.user.firstName} ${qr.user.lastName} with a ${qr.bike.year} ${qr.bike.make} ${qr.bike.model} for trackday on ${trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' })}`})
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
