@@ -569,10 +569,10 @@ exports.trackday_post = [
 ]
 
 // Updates a trackday EXCLUDING members and walkons. Requires JWT with admin.
-// TODO: updates tests for layout
+// TODO: updates tests for layout and archived status
 exports.trackday_put = [
     body("date", "Date must be in YYYY-MM-DDThh:mm form where time is in UTC").isISO8601().bail().isLength({ min: 17, max: 17 }).escape(),
-    body("status", "Status must be one of: [regOpen, regClosed, finished, cancelled]").trim().isIn(["regOpen", "regClosed", "finished", "cancelled"]).escape(),
+    body("status", "Status must be one of: [regOpen, regClosed, finished, cancelled, archived]").trim().isIn(["regOpen", "regClosed", "finished", "cancelled", "archived"]).escape(),
     body("layout", "Layout must be one of: [tbd, technical, Rtechnical, alien, Ralien, modified, Rmodified, long]").trim().isIn(["tbd", "technical", "Rtechnical", "alien", "Ralien", "modified", "Rmodified", "long"]).escape(),
 
     controllerUtils.verifyJWT,
