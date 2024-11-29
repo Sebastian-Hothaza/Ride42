@@ -110,6 +110,7 @@ exports.updatePassword = [
                     user.password = hashedPassword;
                     await user.save();
                     sendEmail(user.contact.email, "Your Password has been updated", mailTemplates.passwordChange, { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) })
+                    logger.info({message: `Password updated for user ${user.firstName} ${user.lastName}`})
                     res.sendStatus(200);
                 } else {
                     res.status(403).send({ msg: ['Old password is incorrect'] });
@@ -137,6 +138,7 @@ exports.requestPasswordResetLink = [
 
             // Email link to user
             sendEmail(req.body.email, "Reset Your Ride42 Password", mailTemplates.passwordResetLink, { name: user.firstName, link: `https://Ride42.ca/passwordreset/${user._id}/${resetToken}` })
+            logger.info({message: `Password reset link generated for ${user.firstName} ${user.lastName}`})
             return res.sendStatus(200)
         }
         return res.status(403).json({ msg: ['No user exists with this email'] });
@@ -159,6 +161,7 @@ exports.resetPassword = [
                 user.password = hashedPassword;
                 await user.save();
                 sendEmail(user.contact.email, "Your Password has been updated", mailTemplates.passwordChange, { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) })
+                logger.info({message: `Password updated for user ${user.firstName} ${user.lastName}`})
                 res.sendStatus(200);
             })
         } catch {
@@ -281,6 +284,7 @@ exports.generateQRs = [
                 await qr.save();
                 qrGen.push({ id: qr.id })
             }
+            logger.info({message: `Generared ${req.body.qty} QR Codes`})
             return res.status(201).json(qrGen);
         }
         return res.sendStatus(403)
@@ -336,7 +340,7 @@ exports.marryQR = [
             // Updates the users QRID for the bike that has just been married
             bikeToMarry.QRID = qr;
             await user.save();
-
+            logger.info({message: `Married QR Code ${req.params.QRID} to ${user.firstName} ${user.lastName}'s ${bikeToMarry.bike.year} ${bikeToMarry.bike.make} ${bikeToMarry.bike.model}`})
             return res.status(201).json({ id: qr.id });
         }
         return res.sendStatus(403)
@@ -363,7 +367,7 @@ exports.deleteQR = [
 
             // Remove QR item from DB
             await QR.findByIdAndDelete(req.params.QRID);
-
+            logger.info({message: `Deleted QR Code ${req.params.QRID}`})
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
@@ -380,6 +384,7 @@ exports.markWaiver = [
             const user = await User.findById(req.params.userID).exec();
             user.waiver = true;
             await user.save();
+            logger.info({message: `Marked waiver for ${user.firstName} as signed`})
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
@@ -473,6 +478,7 @@ exports.user_post = [
             })
             await user.save();
             sendEmail(user.contact.email, "Welcome to Ride42", mailTemplates.welcomeUser, { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) })
+            logger.info({message: `Created user ${user.firstName} ${user.lastName}`})
             return res.status(201).json({ id: user.id });
         })
     }),
@@ -550,6 +556,7 @@ exports.user_put = [
 
             await User.findByIdAndUpdate(req.params.userID, user, {});
             sendEmail(user.contact.email, "Your account details have been updated", mailTemplates.updateUser, { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) })
+            logger.info({message: `Updated user ${user.firstName} ${user.lastName}`})
             return res.status(201).json({ id: user.id });
         }
         return res.sendStatus(403)
@@ -564,6 +571,7 @@ exports.user_delete = [
     asyncHandler(async (req, res, next) => {
         if (req.user.memberType === 'admin') {
             await User.findByIdAndDelete(req.params.userID);
+            logger.info({message: `Deleted user ${req.params.userID}`})
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
