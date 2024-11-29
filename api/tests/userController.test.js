@@ -1166,7 +1166,7 @@ describe('Testing verifyQR', () => {
 			.expect(201)
 
 		await request(app)
-		.get("/verify/" + newQR.body[0].id + "/6604aa217c21ab6eb042bc6a")
+			.get("/verify/" + newQR.body[0].id + "/6604aa217c21ab6eb042bc6a")
 			.expect(404, { msg: ['Trackday does not exist'] })
 	});
 
@@ -1625,10 +1625,17 @@ describe('Get all QR Codes', () => {
 		const admin = await addUser(userAdmin, 201);
 		const loginRes = await loginUser(userAdmin, 200)
 
+		const fetchedQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+
 		await request(app)
 			.get('/QR')
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(200)
+			.expect(200, [{_id: fetchedQR.body[0].id }] )
 	});
 })
 
