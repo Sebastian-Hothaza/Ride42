@@ -320,21 +320,17 @@ exports.marryQR = [
     asyncHandler(async (req, res, next) => {
         if (req.user.memberType === 'admin') {
             const qr = await QR.findById(req.params.QRID).populate('user').exec();
-            const user = await User.findById(req.params.userID).exec();
-            const bikeToMarry = user.garage.find((garageItem) => garageItem.bike.equals(req.params.bikeID));
-            
+            const user = await User.findById(req.params.userID).populate('garage.bike').exec();
+            const bikeToMarry = user.garage.find((garageItem) => garageItem.bike.equals(req.params.bikeID));          
 
             if (!bikeToMarry) return res.status(404).send({ msg: ['this bike does not exist in your garage'] })
             if (bikeToMarry.QRID == req.params.QRID) return res.status(400).send({ msg: ['This QR is already attached to you'] })
             if (qr.bike) return res.status(400).send({ msg: ['This QR is attached to '+qr.user.firstName+' '+qr.user.lastName] })
 
 
-
             // Check for old QR and if one exists, delete it
-            if (bikeToMarry.QRID) {
-                await QR.findByIdAndDelete(bikeToMarry.QRID);
-            }
-
+            if (bikeToMarry.QRID) await QR.findByIdAndDelete(bikeToMarry.QRID);
+                
             // Update QR
             qr.user = req.params.userID;
             qr.bike = req.params.bikeID;
