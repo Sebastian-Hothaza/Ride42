@@ -34,18 +34,17 @@ const welcomeUser =
 	Lastly, we want to provide our members with the right tools to continually develop their skills. This will be done through our coaching system and carefully selected partnerships with organizations that share our values and can benefit our community. 
 	We also welcome you to join our <a href="https://www.facebook.com/groups/ride42">Facebook page</a> and to follow us on Instagram <a href="https://www.instagram.com/ride42_official">@ride42_official</a>
 
+	<h3>How our trackdays work</h3>
+	I am proud to offer a first for Ontario trackdays; a QR based express check in! At your first Ride42 trackday, you will receive a QR sticker to place on your windshield. For all future events you pre-register for, you no longer need to check-in when 
+	arriving! Once you arrive, you can go directly to tech inspection where your QR code will be scanned and you will be automatically checked in. Your QR code is unique to you and your bike. If you scan it with your phone, it will take you to your dashboard. 
+	At each Ride42 trackday, we will have Pro racers available for one-on-one coaching & guidance, a delicious BBQ lunch and full tire service. All these are included with your Ride42 trackday and I trust you will find value in each one. <br></br>
+
 	<h3>A little about me</h3>
 	I started riding motorcycles back in 2013 on a Kawasaki Ninja 250R and in 2015, I moved up to a Yamaha R6. I accumulated many, MANY kilometers in the first few years on the R6 but quickly realized public 
 	roads were not the place to be riding a bike like that! I started doing trackdays in 2016 and fell in love with the sport. However, I found the trackdays to be very impersonal; you show up, ride, go home. I wanted something more, I wanted a community 
 	atmosphere where everyone feels welcome, engaged and valued. This is the experience that Ride42 strives to deliver. <br></br>
 	Outside of running trackdays, I enjoy racing in our national series (CSBK) as well as our regional series (SOAR & RACE) in the Pro Supersport category. I couldn't stop myself with just road bikes! I spend quite a bit of time riding trails with my KTM 
-	and am looking into competing at the 2024 Corduroy Enduro. You can follow me on Instagram <a href="https://www.instagram.com/42Seb">@42Seb</a> and view my YouTube channel <a href="https://www.youtube.com/@seb42">here.</a>
-
-	<h3>How our trackdays work</h3>
-	Over the winter break, I spent some time thinking what I could do to further improve the trackday experience for you. I have built an integrated trackday management system where you can now log in to and manage your profile, trackdays and garage. 
-	I am proud to offer a first for Ontario trackdays; a QR based express check in! At your first Ride42 trackday, you will receive a QR sticker to place on your windshield. For all future events you pre-register for, you no longer need to check-in when 
-	arriving! Once you arrive, you can go directly to tech inspection where your QR code will be scanned and you will be automatically checked in. Your QR code is unique to you and your bike, if you scan it with your phone, it will take you to your dashboard. 
-	At each Ride42 trackday, we will have Pro racers available for one-on-one coaching & guidance, a delicious BBQ lunch, full tire service and photography. All these are included with your Ride42 trackday and I trust you will find value in each one. <br></br>
+	and am looking into competing at the 2025 Corduroy Enduro. You can follow me on Instagram <a href="https://www.instagram.com/42Seb">@42Seb</a> and view my YouTube channel <a href="https://www.youtube.com/@seb42">here.</a>
 
 	<br></br>
 	
@@ -105,7 +104,7 @@ const registerTrackday =
 		<br />
 		Credit card payments can be made <a href="https://buy.stripe.com/5kA7w6aV1aR91UI145"><strong>using this link.</strong></a>.
 		<br />
-		If you have not completed a waiver yet, you can print one out <a href="https://drive.google.com/file/d/1FkyTbPXo9x5K6xtGztmjMHLd0B5iSsva/view?usp=sharing"><strong>here</strong></a> to make your morning check in process faster.<br />
+		If you have not completed a waiver yet, you can print one out <a href="https://drive.google.com/file/d/1UzJK9AUoWWt9Ol0Yl95JTrmOD50xu7hv/view"><strong>here</strong></a> to make your morning check in process faster.<br />
 		<br />
 		We look forward to seeing you on track soon!
 	</div>
@@ -142,18 +141,6 @@ const rescheduleTrackday =
 	${signature}
 </body>`
 
-
-const QRCodeRequest =
-	`<body>
-	<div class="default-style">
-		A QR code has been requested for {name}(userID: {userID}) for a {bike}(bikeID: {bikeID})
-	</div>
-</body>`
-
-
-
-
-
 const notifyPaid =
 	`<body>
 	<div class="default-style">
@@ -167,4 +154,4 @@ const notifyPaid =
 
 
 
-module.exports = { welcomeUser, updateUser, passwordChange, passwordResetLink, registerTrackday, unregisterTrackday, unregisterTrackday_admin, rescheduleTrackday, QRCodeRequest, notifyPaid };
+module.exports = { welcomeUser, updateUser, passwordChange, passwordResetLink, registerTrackday, unregisterTrackday, unregisterTrackday_admin, rescheduleTrackday, notifyPaid };
