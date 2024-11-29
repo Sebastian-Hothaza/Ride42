@@ -3,7 +3,22 @@ const router = express.Router();
 const userController = require('../controllers/userController')
 const trackdayController = require('../controllers/trackdayController')
 
-router.get('/', (req,res,next)=>res.sendStatus(200)) // Used to ping API and wake up FLY machines
+// Needed for logging
+const ServerLogs = require('../models/ServerLogs');
+const controllerUtils = require('../controllers/controllerUtils')
+const asyncHandler = require("express-async-handler");
+
+router.get('/', (req, res, next) => res.sendStatus(200)) // Used to ping API and wake up FLY machines
+
+// Logging
+router.get('/logs', [
+    controllerUtils.verifyJWT,
+    asyncHandler(async (req, res, next) => {
+        if (req.user.memberType !== 'admin') return res.sendStatus(403)
+        let logs = await ServerLogs.find().exec();
+        return res.status(200).json(logs);
+    })
+])
 
 // Users
 router.post('/login', userController.login)
@@ -34,9 +49,9 @@ if (process.env.NODE_ENV === 'test') router.post('/admin', userController.admin)
 //router.post('/service', userController.service)
 
 // Trackdays
-router.post('/register/:userID/:trackdayID', trackdayController.register) 
+router.post('/register/:userID/:trackdayID', trackdayController.register)
 router.delete('/register/:userID/:trackdayID', trackdayController.unregister)
-router.put('/register/:userID/:trackdayID_OLD/:trackdayID_NEW', trackdayController.reschedule) 
+router.put('/register/:userID/:trackdayID_OLD/:trackdayID_NEW', trackdayController.reschedule)
 router.post('/checkin/:userID/:trackdayID/:bikeID', trackdayController.checkin)
 router.post('/checkin/:QRID/:trackdayID/', trackdayController.checkinQR)
 router.get('/presentTrackdays', trackdayController.presentTrackdays)
@@ -47,7 +62,7 @@ router.post('/walkons/:trackdayID', trackdayController.walkons)
 
 router.get('/trackdays/:trackdayID', trackdayController.trackday_get)
 router.get('/trackdays', trackdayController.trackday_getALL)
-router.post('/trackdays', trackdayController.trackday_post) 
+router.post('/trackdays', trackdayController.trackday_post)
 router.put('/trackdays/:trackdayID', trackdayController.trackday_put)
 router.delete('/trackdays/:trackdayID', trackdayController.trackday_delete)
 
