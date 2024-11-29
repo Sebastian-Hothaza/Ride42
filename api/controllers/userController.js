@@ -389,7 +389,7 @@ exports.markWaiver = [
             const user = await User.findById(req.params.userID).exec();
             user.waiver = true;
             await user.save();
-            logger.info({message: `Marked waiver for ${user.firstName} as signed`})
+            logger.info({message: `Marked waiver for ${user.firstName} ${user.lastName} as signed`})
             return res.sendStatus(200);
         }
         return res.sendStatus(403)

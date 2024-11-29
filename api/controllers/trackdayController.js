@@ -523,7 +523,7 @@ exports.updatePaid = [
             }
 
             await trackday.save()
-            logger.info({ message: "Set paid for " + memberEntry.user.firstName + ' ' + memberEntry.user.lastName + ' to ' + memberEntry.paid });
+            logger.info({ message: `Set paid for ${memberEntry.user.firstName} ${memberEntry.user.lastName} to ${memberEntry.paid} for trackday on ${trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' })}` });
             return res.sendStatus(200)
         }
         return res.sendStatus(403)
