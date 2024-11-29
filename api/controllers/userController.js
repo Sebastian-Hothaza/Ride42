@@ -110,7 +110,6 @@ exports.updatePassword = [
                     user.password = hashedPassword;
                     await user.save();
                     sendEmail(user.contact.email, "Your Password has been updated", mailTemplates.passwordChange, { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) })
-                    logger.info({message: `Password updated for user ${user.firstName} ${user.lastName}`})
                     res.sendStatus(200);
                 } else {
                     res.status(403).send({ msg: ['Old password is incorrect'] });
@@ -123,6 +122,7 @@ exports.updatePassword = [
 ]
 
 // Requests a password reset link to be sent to a user. PUBLIC
+// ! Logged operation !
 exports.requestPasswordResetLink = [
     body("email", "Email must be in format of samplename@sampledomain.com").trim().isEmail().escape(),
 
@@ -146,6 +146,7 @@ exports.requestPasswordResetLink = [
 ]
 
 // Resets user password using token from email reset link
+// ! Logged operation !
 exports.resetPassword = [
     body("password", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().matches(/^(?=.*[0-9])(?=.*[a-z])(?!.* ).{8,50}$/).escape(),
 
@@ -161,7 +162,7 @@ exports.resetPassword = [
                 user.password = hashedPassword;
                 await user.save();
                 sendEmail(user.contact.email, "Your Password has been updated", mailTemplates.passwordChange, { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) })
-                logger.info({message: `Password updated for user ${user.firstName} ${user.lastName}`})
+                logger.info({message: `Password reset for user ${user.firstName} ${user.lastName}`})
                 res.sendStatus(200);
             })
         } catch {
@@ -269,6 +270,7 @@ exports.garage_delete = [
 ]
 
 // Generates virgin codes in QR database for future use
+// ! Logged operation !
 exports.generateQRs = [
     controllerUtils.verifyJWT,
 
@@ -307,6 +309,7 @@ exports.getQR = [
 
 // Marries a user and bike to a QR code
 // Also updates a users QRID
+// ! Logged operation !
 exports.marryQR = [
     controllerUtils.verifyJWT,
     controllerUtils.validateQRID,
@@ -348,7 +351,8 @@ exports.marryQR = [
 ]
 
 // Deletes a QR code and removes its link if it exists
-// Also updates a users QRid to remove link
+// Also updates a users QRid to remove link if QR was married
+// ! Logged operation !
 exports.deleteQR = [
     controllerUtils.verifyJWT,
     controllerUtils.validateQRID,
@@ -357,10 +361,10 @@ exports.deleteQR = [
         if (req.user.memberType === 'admin') {
             const qr = await QR.findById(req.params.QRID).exec();
             const user = await User.findById(qr.user).exec();
-            const bikeToUpdate = user ? user.garage.find((garageItem) => garageItem.QRID == req.params.QRID) : null;
+            const userBike = user ? user.garage.find((garageItem) => garageItem.QRID == req.params.QRID) : null;
 
-            if (bikeToUpdate) {// Remove link in user if exists and there is a corresponding bike to updae
-                bikeToUpdate.QRID = null;
+            if (userBike) {// Remove link in user if exists and there is a corresponding bike to updae
+                userBike.QRID = null;
                 await user.save();
             }
 
@@ -375,6 +379,7 @@ exports.deleteQR = [
 ]
 
 // Marks user as having waiver signed. Requires JWT with admin or staff.
+// ! Logged operation !
 exports.markWaiver = [
     controllerUtils.verifyJWT,
     controllerUtils.validateUserID,
@@ -425,6 +430,7 @@ exports.user_getALL = [
 
 // Creates a user. PUBLIC.
 // NOTE: We do not provide any JWT functionality here. It is up to the front end to make a POST request to /login if desired.
+// ! Logged operation !
 exports.user_post = [
     body("firstName", "First Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50 }).escape(),
     body("lastName", "Last Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50 }).escape(),
@@ -490,6 +496,7 @@ exports.user_post = [
     USER: contact, emergencyContact, group(7 day requirement; else fail entire request)
     ADMIN: name, credits, member type, waiver
 */
+// ! Logged operation !
 exports.user_put = [
     body("email", "Email must be in format of samplename@sampledomain.com").trim().isEmail().escape(),
     body("phone", "Phone must contain 10 digits").trim().isNumeric().bail().isLength({ min: 10, max: 10 }).escape(),
@@ -564,6 +571,7 @@ exports.user_put = [
 ]
 
 // Deletes a user. Requires JWT with admin.
+// ! Logged operation !
 exports.user_delete = [
     controllerUtils.verifyJWT,
     controllerUtils.validateUserID,
@@ -579,6 +587,7 @@ exports.user_delete = [
 ]
 
 // Testing use only, route available only in test NODE_env. Creates admin user.
+// ! Logged operation !
 exports.admin = [
     body("firstName", "First Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50 }).escape(),
     body("lastName", "Last Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50 }).escape(),
@@ -627,6 +636,7 @@ exports.admin = [
                 password: hashedPassword
             })
             await user.save();
+            logger.warn({message: `Created admin ${user.firstName} ${user.lastName}`})
             return res.status(201).json({ id: user.id });
         })
     }),

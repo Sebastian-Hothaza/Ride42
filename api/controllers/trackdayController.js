@@ -94,6 +94,7 @@ function getRegDetails(trackday) {
 }
 
 // Registers a user for a trackday. Requires JWT with matching userID OR admin. Staff permitted for gate registrations.
+// ! Logged operation !
 exports.register = [
     body("paymentMethod", "PaymentMethod must be one of: [etransfer, credit, creditCard, gate]").trim().isIn(["etransfer", "credit", "creditCard", "gate"]).escape(),
     body("layoutVote", "Layout vote must be provided and each value must be one of: [none, technical, Rtechnical, alien, Ralien, modified, Rmodified, long]").trim().isIn(["none", "technical", "Rtechnical", "alien", "Ralien", "modified", "Rmodified", "long"]).escape(),
@@ -175,7 +176,7 @@ exports.register = [
                 sendEmail(user.contact.email, "Ride42 Trackday Registration Confirmation", mailTemplates.registerTrackday,
                     { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) })
             }
-            logger.info({ message: "Booked trackday for " + user.firstName + ' ' + user.lastName + ' on ' + trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' })});
+            logger.info({ message: "Booked trackday for " + user.firstName + ' ' + user.lastName + ' on ' + trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) });
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
@@ -184,6 +185,7 @@ exports.register = [
 ]
 
 // Removes a user from a trackday. Requires JWT with matching userID OR admin.
+// ! Logged operation !
 exports.unregister = [
     controllerUtils.verifyJWT,
     controllerUtils.validateUserID,
@@ -231,8 +233,8 @@ exports.unregister = [
                 sendEmail(process.env.ADMIN_EMAIL, "TRACKDAY CANCELATION", mailTemplates.unregisterTrackday_admin,
                     { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) })
             }
-            logger.info({ message: "Cancelled trackday for " + user.firstName + ' ' + user.lastName + ' on ' + trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' })});
-            
+            logger.info({ message: "Cancelled trackday for " + user.firstName + ' ' + user.lastName + ' on ' + trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) });
+
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
@@ -241,6 +243,7 @@ exports.unregister = [
 ]
 
 // Reschedules a user. Requires JWT with matching userID OR admin.
+// ! Logged operation !
 exports.reschedule = [
     controllerUtils.verifyJWT,
     controllerUtils.validateUserID,
@@ -306,7 +309,7 @@ exports.reschedule = [
             // TODO: There may be an issue here where dateNEW is not being correctly considered
             sendEmail(user.contact.email, "Ride42 Trackday Reschedule Confirmation", mailTemplates.rescheduleTrackday,
                 { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), dateOLD: trackdayOLD.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }), dateNEW: trackdayNEW.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) })
-            logger.info({ message: "Rescheduled " + user.firstName + ' ' + user.lastName + ' from ' + trackdayOLD.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) + ' to ' + trackdayNEW.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' })});
+            logger.info({ message: "Rescheduled " + user.firstName + ' ' + user.lastName + ' from ' + trackdayOLD.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) + ' to ' + trackdayNEW.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) });
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
@@ -342,6 +345,7 @@ exports.walkons = [
 ]
 
 // Marks a user as checked in. Requires JWT with staff/admin.
+// ! Logged operation !
 exports.checkin = [
     controllerUtils.verifyJWT,
     controllerUtils.validateUserID,
@@ -362,7 +366,10 @@ exports.checkin = [
             if (!garageItem) return res.status(404).send({ msg: ['this bike does not exist in your garage'] })
 
             // Check that member is not already checked in with that same bike
-            if (memberEntry.checkedIn.includes(req.params.bikeID)) return res.status(403).json({ msg: ['Already checked in with this bike'] })
+            if (memberEntry.checkedIn.includes(req.params.bikeID)) {
+                logger.warn({ message: `${user.firstName} ${user.lastName} is already checked in with a ${garageItem.bike.year} ${garageItem.bike.make} ${garageItem.bike.model} for trackday on ${trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' })}` })
+                return res.status(403).json({ msg: ['Already checked in with this bike'] })
+            }
 
 
             // Do not allow checkin if unpaid or waiver is not signed
@@ -374,7 +381,7 @@ exports.checkin = [
             // Process the check in
             memberEntry.checkedIn.push(req.params.bikeID);
             await trackday.save();
-            logger.info({message: `Checked in ${user.firstName} ${user.lastName} with a ${garageItem.bike.year} ${garageItem.bike.make} ${garageItem.bike.model} for trackday on ${trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' })}`})
+            logger.info({ message: `Checked in ${user.firstName} ${user.lastName} with a ${garageItem.bike.year} ${garageItem.bike.make} ${garageItem.bike.model} for trackday on ${trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' })}` })
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
@@ -383,6 +390,7 @@ exports.checkin = [
 ]
 
 // Marks a user as checked in via QR code. Requires JWT with staff/admin.
+// ! Logged operation !
 exports.checkinQR = [
     controllerUtils.verifyJWT,
     controllerUtils.validateQRID,
@@ -400,7 +408,10 @@ exports.checkinQR = [
             // NOTE: We do not need to verify that bike is in users garage since garage_delete wipes QRID from QR DB
 
             // Check that member is not already checked in with that same bike
-            if (memberEntry.checkedIn.includes(qr.bike.id)) return res.status(403).json({ msg: ['Already checked in with this bike'] })
+            if (memberEntry.checkedIn.includes(qr.bike.id)) {
+                logger.warn({ message: `${qr.user.firstName} ${qr.user.lastName} is already checked in with a ${qr.bike.year} ${qr.bike.make} ${qr.bike.model} for trackday on ${trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' })}` })
+                return res.status(403).json({ msg: ['Already checked in with this bike'] })
+            }
 
 
             // Do not allow checkin if unpaid or waiver is not signed
@@ -412,7 +423,7 @@ exports.checkinQR = [
             // Process the check in
             memberEntry.checkedIn.push(qr.bike.id);
             await trackday.save();
-            logger.info({message: `Checked in ${qr.user.firstName} ${qr.user.lastName} with a ${qr.bike.year} ${qr.bike.make} ${qr.bike.model} for trackday on ${trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' })}`})
+            logger.info({ message: `Checked in ${qr.user.firstName} ${qr.user.lastName} with a ${qr.bike.year} ${qr.bike.make} ${qr.bike.model} for trackday on ${trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' })}` })
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
@@ -473,6 +484,7 @@ exports.presentTrackdaysForUser = [
 ]
 
 // Updates paid status of member for a trackday. Requires JWT with admin.
+// ! Logged operation !
 exports.updatePaid = [
     body('setPaid', 'setPaid must be either true or false').trim().isBoolean().escape(),
 
@@ -497,7 +509,7 @@ exports.updatePaid = [
             if (!memberEntry.paid && req.body.setPaid == 'false') return res.status(403).send({ msg: ['user already marked as unpaid'] })
 
             // Update paid status
-            memberEntry.paid = memberEntry.paid ? false : true
+            memberEntry.paid = !memberEntry.paid
 
 
             // Send email confirmation to user
@@ -550,6 +562,7 @@ exports.trackday_getALL = [
 ]
 
 // Creates a trackday. Requires JWT with admin.
+// ! Logged operation !
 exports.trackday_post = [
     body("date", "Date must be in YYYY-MM-DDThh:mmZ form where time is in UTC").isISO8601().bail().isLength({ min: 17, max: 17 }).escape(),
 
@@ -580,6 +593,7 @@ exports.trackday_post = [
 
 // Updates a trackday EXCLUDING members and walkons. Requires JWT with admin.
 // TODO: updates tests for layout and archived status
+// ! Logged operation !
 exports.trackday_put = [
     body("date", "Date must be in YYYY-MM-DDThh:mm form where time is in UTC").isISO8601().bail().isLength({ min: 17, max: 17 }).escape(),
     body("status", "Status must be one of: [regOpen, regClosed, cancelled, archived]").trim().isIn(["regOpen", "regClosed", "cancelled", "archived"]).escape(),
@@ -617,6 +631,7 @@ exports.trackday_put = [
 ]
 
 // Deletes a trackday. Requires JWT with admin.
+// ! Logged operation !
 exports.trackday_delete = [
     controllerUtils.verifyJWT,
     controllerUtils.validateTrackdayID,
