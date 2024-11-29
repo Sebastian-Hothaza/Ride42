@@ -14,6 +14,11 @@
     max-width: 1500px;
 }
 
+.bookBtn{
+    margin: auto;
+    composes: actionButton from global;
+}
+
 /* Required to allow images to shrink in imageContainer */
 img {
     min-width: 0;
