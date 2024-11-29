@@ -56,6 +56,8 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 **Mark user as having waiver completed:** Submit a `POST` request to `'/waiver/:userID'`.
 
+**Dump DB logs:** Submit a `GET` request to `/logs`. 
+
 
 
 ### Create
