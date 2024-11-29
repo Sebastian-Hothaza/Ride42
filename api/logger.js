@@ -21,9 +21,7 @@ const logger = winston.createLogger({
 });
 
 // Log to console in dev, stream to mongoDB in prod
-if (process.env.NODE_ENV === 'development') {
-    logger.add(new winston.transports.Console({ format: winston.format.colorize({ all: true }) }));
-} else if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === 'production') {
     // Add mongoDB transport
     logger.add(new winston.transports.MongoDB({
         db: process.env.MONGODB_URI,
@@ -33,10 +31,13 @@ if (process.env.NODE_ENV === 'development') {
         tryReconnect: true,
         level: 'info' // Minimum log level to store; we dont want to store debug info
     }));
+} else {
+    logger.add(new winston.transports.Console({ format: winston.format.colorize({ all: true }) }));
+    if (process.env.NODE_ENV === 'test') logger.level = 'warn'; // Supress console of info messages
 }
 
 module.exports = logger;
-
+ 
 /*
 Note; db should be MongoDB connection uri, pre-connected MongoClient object or promise which resolves to a pre-connected MongoClient object.
 Optimization note: we are double connecting to DB here?
