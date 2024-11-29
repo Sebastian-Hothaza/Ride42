@@ -1,7 +1,10 @@
 import styles from './stylesheets/CPDash_AdminSelect.module.css'
 import ScrollToTop from "../../components/ScrollToTop";
+import ControlPanel from '../ControlPanel';
 
-const AdminSelect = ({ setActiveTab, memberType }) => {
+import fetchLogs from '../logUtils';
+
+const AdminSelect = ({ setActiveTab, memberType, APIServer }) => {
     return (
         <>
             <ScrollToTop />
@@ -26,10 +29,9 @@ const AdminSelect = ({ setActiveTab, memberType }) => {
                         <button onClick={() => setActiveTab('trackdaySummary')}>Trackday Summary</button>
                         <button onClick={() => setActiveTab('checkInManual')}>Manual Check In</button>
                         <button onClick={() => setActiveTab('emailer')}>Emailer</button>
+                        <button onClick={() => fetchLogs(APIServer)}>Dump Logs</button>
                     </>
                 }
-
-
             </div>
         </>
     );

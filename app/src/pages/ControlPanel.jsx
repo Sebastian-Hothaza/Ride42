@@ -27,6 +27,8 @@ import CPDash_TrackdaySummary from './CPDash/CPDash_TrackdaySummary'
 import CPDash_CheckInManual from './CPDash/CPDash_CheckInManual'
 import CPDash_Emailer from './CPDash/CPDash_Emailer'
 
+import fetchLogs from './logUtils';
+
 
 const ControlPanel = ({ APIServer }) => {
 
@@ -138,6 +140,7 @@ const ControlPanel = ({ APIServer }) => {
                                 <button className={activeTab == 'trackdaySummary' ? styles.selected : undefined} onClick={() => setActiveTab('trackdaySummary')}>Trackday Summary</button>
                                 <button className={activeTab == 'checkInManual' ? styles.selected : undefined} onClick={() => setActiveTab('checkInManual')}>Manual Check In</button>
                                 <button className={activeTab == 'emailer' ? styles.selected : undefined} onClick={() => setActiveTab('emailer')}>Emailer</button>
+                                <button onClick={() => fetchLogs(APIServer)}>Dump Logs</button>
                             </>
                         }
 
@@ -151,7 +154,7 @@ const ControlPanel = ({ APIServer }) => {
                     {activeTab == 'garage' && <CPDash_Garage APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} setActiveTab={setActiveTab} />}
 
                     {/* STAFF */}
-                    {activeTab == 'adminSelect' && <CPDash_AdminSelect setActiveTab={setActiveTab} memberType={loggedInUser.memberType} />}
+                    {activeTab == 'adminSelect' && <CPDash_AdminSelect setActiveTab={setActiveTab} memberType={loggedInUser.memberType} APIServer={APIServer}/>}
                     {activeTab == 'waiver' && <CPDash_Waiver APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} />}
                     {activeTab == 'gateRegister' && <CPDash_GateRegister APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdays={allTrackdays} />}
                     {activeTab == 'walkOn' && <CPDash_WalkOn APIServer={APIServer} fetchAPIData={fetchAPIData} allTrackdays={allTrackdays} />}
@@ -160,8 +163,8 @@ const ControlPanel = ({ APIServer }) => {
                     {activeTab == 'verify' && <CPDash_Verify APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers} />}
                     {/* ADMIN */}
                     {activeTab == 'generateQR' && <CPDash_GenerateQR APIServer={APIServer} />}
-                    {activeTab == 'marryQR' && <CPDash_MarryQR allUsers={allUsers} APIServer={APIServer}  />}
-                    {activeTab == 'deleteQR' && <CPDash_DeleteQR allUsers={allUsers} APIServer={APIServer}  />}
+                    {activeTab == 'marryQR' && <CPDash_MarryQR allUsers={allUsers} APIServer={APIServer} />}
+                    {activeTab == 'deleteQR' && <CPDash_DeleteQR allUsers={allUsers} APIServer={APIServer} />}
                     {activeTab == 'manageUsers' && <CPDash_ManageUsers APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} />}
                     {activeTab == 'manageTrackdays' && <CPDash_ManageTrackdays APIServer={APIServer} allTrackdaysFULL={allTrackdaysFULL} allUsers={allUsers} fetchAPIData={fetchAPIData} />}
                     {activeTab == 'markPaid' && <CPDash_MarkPaid APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdaysFULL={allTrackdaysFULL} />}
