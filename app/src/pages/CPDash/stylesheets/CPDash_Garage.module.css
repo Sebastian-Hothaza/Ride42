@@ -5,6 +5,8 @@
     font-size: 1.25rem;
 }
 
+
+
 .allBikes {
     display: flex;
     flex-direction: column;
@@ -40,24 +42,25 @@
     display: flex;
     gap: 2rem;
     font-size: 1.25rem;
+    margin: auto;
 }
 
 
-/* Year field to be short */
-.inputPairing:first-child {
-    width: 24rem;
-}
+
 
 .content form input {
     font-size: inherit;
-    width: 100%;
+
+    width: 200px;
 }
 
 .inputPairing {
     display: flex;
+    justify-content: space-between;
     align-items: center;
     gap: .5rem;
     width: 100%;
+    
 }
 
 .confirmBtn {
