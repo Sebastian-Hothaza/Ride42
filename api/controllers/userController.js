@@ -122,7 +122,7 @@ exports.updatePassword = [
     })
 ]
 
-// Requests a password reset link to be sent to a user
+// Requests a password reset link to be sent to a user. PUBLIC
 exports.requestPasswordResetLink = [
     body("email", "Email must be in format of samplename@sampledomain.com").trim().isEmail().escape(),
 
@@ -145,7 +145,7 @@ exports.requestPasswordResetLink = [
     })
 ]
 
-// Resets user password
+// Resets user password using token from email reset link
 exports.resetPassword = [
     body("password", "Password must contain 8-50 characters and be a combination of letters and numbers").trim().matches(/^(?=.*[0-9])(?=.*[a-z])(?!.* ).{8,50}$/).escape(),
 

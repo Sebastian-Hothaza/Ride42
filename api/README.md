@@ -20,7 +20,9 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 **Log in a user (PUBLIC):** Submit a `POST` request to `login/:userID`. Server will attach JWT httpOnly cookies (access & refresh tokens).
 
-**Change password of an existing user in the `Users` collection:** Submit a `PUT` request to `/password/:userID`. 
+**Request password reset link (PUBLIC):** Submit a `POST` request to `/resetpassword`. 
+
+**Reset password of an existing user in the `Users` collection:** Submit a `PUT` request to `/resetpassword/:userID/:token`. 
 
 **Verify a user is checked in (PUBLIC):** Submit a `GET` request to `/verify/:userID/:trackdayID/:bikeID`. Server will respond with `{"verified" : "true"}` or `{"verified" : "false"}`.
 
@@ -72,6 +74,8 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 ### Update
 **Update an existing user in the `Users` collection:** Submit a `PUT` request to `/users/:userID`. Server will respond with `id` of newly updated user. Excludes password, waiver and garage.
+
+**Change password of an existing user in the `Users` collection:** Submit a `PUT` request to `/password/:userID`. 
 
 **Update an existing Trackday in the `Users` collection:** Submit a `PUT` request to `/trackdays/:trackdayID`. Server will respond with `id` of newly updated trackday.
 
