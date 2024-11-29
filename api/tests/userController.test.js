@@ -1531,6 +1531,59 @@ describe('Delete bikes from a user garage', () => {
 			.expect(404, { msg: ['this bike does not exist in your garage'] });
 	});
 
+	test("remove bike from garage - bike has married QR", async () => {
+		let user = await addUser(user1, 201);
+		const admin = await addUser(userAdmin, 201);
+		const loginRes = await loginUser(user1, 200)
+		const adminRes = await loginUser(userAdmin, 200)
+
+
+		// Add the bike to user garage
+		const bike = await request(app).post("/garage/" + user.body.id).type("form").send({ year: '2009', make: 'Yamaha', model: "R6" })
+			.set('Cookie', loginRes.headers['set-cookie']).expect(201);
+
+		// Generate the QR Code
+		const newQR = await request(app)
+			.post('/QR')
+			.type("form")
+			.send({ qty: 1 })
+			.set('Cookie', adminRes.headers['set-cookie'])
+			.expect(201)
+
+		// Marry QR to bike and user
+		await request(app)
+			.put("/QR/" + newQR.body[0].id + '/' + user.body.id + "/" + bike.body.id)
+			.set('Cookie', adminRes.headers['set-cookie'])
+			.expect(201)
+
+
+		let fetchedUser = await request(app).get('/users/' + user.body.id).set('Cookie', loginRes.headers['set-cookie']).expect(200)
+
+		// Verify userbike has valid QRID
+		expect(fetchedUser.body.garage[0].QRID).toBe(newQR.body[0].id)
+
+		// Verify QRID has valid user/bike fields
+		expect(newQR.body[0].user).toBe(user.id)
+		expect(newQR.body[0].bike).toBe(bike.id)
+
+
+		// Delete the bike
+		await request(app)
+			.delete("/garage/" + user.body.id + '/' + bike.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200);
+
+		// Verify empty garage
+		fetchedUser = await request(app).get('/users/' + user.body.id).set('Cookie', loginRes.headers['set-cookie']).expect(200)
+		expect(fetchedUser.body.garage.length).toBe(0)
+
+		// verify QR entry also deleted
+		await request(app)
+			.get('/QR')
+			.set('Cookie', adminRes.headers['set-cookie'])
+			.expect(200, [])
+	});
+
 	test("remove bike from garage", async () => {
 		let user = await addUser(user1, 201);
 		const loginRes = await loginUser(user1, 200)
@@ -1635,7 +1688,7 @@ describe('Get all QR Codes', () => {
 		await request(app)
 			.get('/QR')
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(200, [{_id: fetchedQR.body[0].id }] )
+			.expect(200, [{ _id: fetchedQR.body[0].id }])
 	});
 })
 
