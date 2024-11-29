@@ -496,7 +496,6 @@ exports.user_post = [
     USER: contact, emergencyContact, group(7 day requirement; else fail entire request)
     ADMIN: name, credits, member type, waiver
 */
-// ! Logged operation !
 exports.user_put = [
     body("email", "Email must be in format of samplename@sampledomain.com").trim().isEmail().escape(),
     body("phone", "Phone must contain 10 digits").trim().isNumeric().bail().isLength({ min: 10, max: 10 }).escape(),
@@ -563,7 +562,6 @@ exports.user_put = [
 
             await User.findByIdAndUpdate(req.params.userID, user, {});
             sendEmail(user.contact.email, "Your account details have been updated", mailTemplates.updateUser, { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) })
-            logger.info({message: `Updated user ${user.firstName} ${user.lastName}`})
             return res.status(201).json({ id: user.id });
         }
         return res.sendStatus(403)
