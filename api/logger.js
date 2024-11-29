@@ -25,7 +25,7 @@ if (process.env.NODE_ENV === 'production') {
     // Add mongoDB transport
     logger.add(new winston.transports.MongoDB({
         db: process.env.MONGODB_URI,
-        collection: 'serverLogs',
+        collection: 'serverlogs',
         capped: true,
         cappedMax: 10000,
         tryReconnect: true,
