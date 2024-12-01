@@ -40,7 +40,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 		return true;
 	}
 
-	// Pre-process allTrackdays (remove invalid, sort, format date, prepare for modal)
+	// Pre-process allTrackdays (remove invalid, sort, format date, prepare for modal) & userTrackdays (Removed archived trackdays)
 	if (allTrackdays && userTrackdays) {
 		// Remove trackdays in the past, trackdays for which reg is not open and trackdays that user is already registered for
 		allTrackdays = allTrackdays.filter((trackday) => {
@@ -51,6 +51,9 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			)
 		})
 
+		// exclude archived trackdays
+		userTrackdays = userTrackdays.filter(trackday => trackday.status != "archived"); 
+		
 		// Sort trackdays as order may not be correct when received from back end. (Ie. backend can add trackdays out of order - no guarantee)
 		allTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
 		userTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
@@ -277,7 +280,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 
 
-				<h1>My Trackdays</h1>
+				<h1>My 2025 Trackdays</h1>
 				{userTrackdays &&
 					<div>
 						{userTrackdays.map((trackday) => {
