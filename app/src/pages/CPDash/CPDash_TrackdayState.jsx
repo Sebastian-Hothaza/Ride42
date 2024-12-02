@@ -22,10 +22,11 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 		return null;
 	} else {
 		allUsers.sort((a, b) => (a.firstName > b.firstName) ? 1 : ((b.firstName > a.firstName) ? -1 : 0))
+		allTrackdaysFULL = allTrackdaysFULL.filter(trackday => trackday.status != "archived"); // exclude archived trackdays
 		allTrackdaysFULL.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
 	}
 
-	// Augment prettydate of allTrackdays to be a nice format
+	// Augment prettydate of allTrackdaysFULL to be a nice format
 	allTrackdaysFULL.forEach((trackday) => {
 		const date = new Date(trackday.date)
 		const weekday = date.toLocaleString('default', { weekday: 'short' })
