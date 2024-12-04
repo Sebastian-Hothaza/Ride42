@@ -24,6 +24,7 @@ const MarkPaid = ({ APIServer, fetchAPIData, allUsers, allTrackdaysFULL }) => {
 		return null;
 	} else {
 		allUsers.sort((a, b) => (a.firstName > b.firstName) ? 1 : ((b.firstName > a.firstName) ? -1 : 0))
+		allTrackdaysFULL = allTrackdaysFULL.filter(trackday => trackday.status != "archived"); // exclude archived trackdays
 		allTrackdaysFULL.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
 	}
 
