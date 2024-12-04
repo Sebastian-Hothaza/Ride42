@@ -28,7 +28,7 @@ const Home = () => {
 	</div>
 
 	const HTML_AboutUs = <p>
-		Founded in 2024, Ride42 primarily focuses on running motorcycle trackdays at Grand Bend Motorplex. Many riders begin their motorcycle journey on the street
+		Ride42 primarily focuses on running motorcycle trackdays at Grand Bend Motorplex. Many riders begin their motorcycle journey on the street
 		and soon realize the danger of exploring the limits of their machine on public roads with other road users, unknown road surface conditions and no run off
 		area. The consequences and risks simply outweigh the rewards.<br></br>
 		<br></br>
