@@ -61,11 +61,11 @@ const PasswordReset = () => {
 
     }
 
-    const HTML_ResetPassword = <div className={styles.rulesCard}>
+    const HTML_ResetPassword = <div id={styles.passwordResetForm} className={styles.rulesCard}>
         <h3>Enter your new password below. Password must contain minimum 8 characters and be a combination of letters and numbers</h3>
         <br></br><br></br>
 
-        <form onSubmit={(e) => handlePasswordReset(e)} >
+        <form  onSubmit={(e) => handlePasswordReset(e)} >
             <label htmlFor="password">Password:</label>
             <input type="password" id="password" name="password" required onInput={checkPswFormat} ></input>
 
