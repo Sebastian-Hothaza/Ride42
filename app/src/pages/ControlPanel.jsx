@@ -15,9 +15,8 @@ import GateRegister from './CPDash/GateRegister'
 import CheckIn from './CPDash/CheckIn'
 import Verify from './CPDash/Verify'
 
-import GenerateQR from './CPDash/GenerateQR'
-import MarryQR from './CPDash/MarryQR'
-import DeleteQR from './CPDash/DeleteQR'
+import ManageQR from './CPDash/ManageQR'
+
 import ManageUsers from './CPDash/ManageUsers'
 import ManageTrackdays from './CPDash/ManageTrackdays'
 import MarkPaid from './CPDash/MarkPaid'
@@ -130,9 +129,7 @@ const ControlPanel = ({ APIServer }) => {
                         {/* ADMIN */}
                         {(loggedInUser.memberType == 'admin') &&
                             <>
-                                <button className={activeTab == 'generateQR' ? styles.selected : undefined} onClick={() => setActiveTab('generateQR')}>Generate QR</button>
-                                <button className={activeTab == 'marryQR' ? styles.selected : undefined} onClick={() => setActiveTab('marryQR')}>Assign QR</button>
-                                <button className={activeTab == 'deleteQR' ? styles.selected : undefined} onClick={() => setActiveTab('deleteQR')}>Delete QR</button>
+                                <button className={activeTab == 'manageQR' ? styles.selected : undefined} onClick={() => setActiveTab('manageQR')}>Manage QR</button>
                                 <button className={activeTab == 'manageUsers' ? styles.selected : undefined} onClick={() => setActiveTab('manageUsers')}>Manage Users</button>
                                 <button className={activeTab == 'manageTrackdays' ? styles.selected : undefined} onClick={() => setActiveTab('manageTrackdays')}>Manage Trackdays</button>
                                 <button className={activeTab == 'markPaid' ? styles.selected : undefined} onClick={() => setActiveTab('markPaid')}>Mark Paid</button>
@@ -156,14 +153,11 @@ const ControlPanel = ({ APIServer }) => {
                     {activeTab == 'adminSelect' && <AdminSelect setActiveTab={setActiveTab} memberType={loggedInUser.memberType} APIServer={APIServer}/>}
                     {activeTab == 'waiver' && <Waiver APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} />}
                     {activeTab == 'gateRegister' && <GateRegister APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdays={allTrackdays} />}
-                  
                     {activeTab == 'trackdayState' && <TrackdayState fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdays={allTrackdays} allTrackdaysFULL={allTrackdaysFULL} />}
                     {activeTab == 'checkIn' && <CheckIn APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers} />}
                     {activeTab == 'verify' && <Verify APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers} />}
                     {/* ADMIN */}
-                    {activeTab == 'generateQR' && <GenerateQR APIServer={APIServer} />}
-                    {activeTab == 'marryQR' && <MarryQR allUsers={allUsers} APIServer={APIServer} />}
-                    {activeTab == 'deleteQR' && <DeleteQR allUsers={allUsers} APIServer={APIServer} />}
+                    {activeTab == 'manageQR' && <ManageQR APIServer={APIServer} allUsers={allUsers} fetchAPIData={fetchAPIData} />}
                     {activeTab == 'manageUsers' && <ManageUsers APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} />}
                     {activeTab == 'manageTrackdays' && <ManageTrackdays APIServer={APIServer} allTrackdaysFULL={allTrackdaysFULL} allUsers={allUsers} fetchAPIData={fetchAPIData} />}
                     {activeTab == 'markPaid' && <MarkPaid APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdaysFULL={allTrackdaysFULL} />}
