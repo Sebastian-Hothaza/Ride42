@@ -23,7 +23,6 @@ import MarkPaid from './CPDash/MarkPaid'
 import TrackdayState from './CPDash/TrackdayState'
 import TrackdaySummary from './CPDash/TrackdaySummary'
 import CheckInManual from './CPDash/CheckInManual'
-import Emailer from './CPDash/Emailer'
 
 import fetchLogs from './logUtils';
 
@@ -135,7 +134,7 @@ const ControlPanel = ({ APIServer }) => {
                                 <button className={activeTab == 'markPaid' ? styles.selected : undefined} onClick={() => setActiveTab('markPaid')}>Mark Paid</button>
                                 <button className={activeTab == 'trackdaySummary' ? styles.selected : undefined} onClick={() => setActiveTab('trackdaySummary')}>Trackday Summary</button>
                                 <button className={activeTab == 'checkInManual' ? styles.selected : undefined} onClick={() => setActiveTab('checkInManual')}>Manual Check In</button>
-                                <button className={activeTab == 'emailer' ? styles.selected : undefined} onClick={() => setActiveTab('emailer')}>Emailer</button>
+                    
                                 <button onClick={() => fetchLogs(APIServer)}>Dump Logs</button>
                             </>
                         }
@@ -163,7 +162,7 @@ const ControlPanel = ({ APIServer }) => {
                     {activeTab == 'markPaid' && <MarkPaid APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdaysFULL={allTrackdaysFULL} />}
                     {activeTab == 'trackdaySummary' && <TrackdaySummary allUsers={allUsers} allTrackdaysFULL={allTrackdaysFULL} />}
                     {activeTab == 'checkInManual' && <CheckInManual allUsers={allUsers} allTrackdaysFULL={allTrackdaysFULL} />}
-                    {activeTab == 'emailer' && <Emailer APIServer={APIServer} />}
+             
 
 
                 </div>

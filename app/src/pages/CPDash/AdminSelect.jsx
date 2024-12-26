@@ -25,7 +25,7 @@ const AdminSelect = ({ setActiveTab, memberType, APIServer }) => {
                         <button onClick={() => setActiveTab('markPaid')}>Mark Paid</button>
                         <button onClick={() => setActiveTab('trackdaySummary')}>Trackday Summary</button>
                         <button onClick={() => setActiveTab('checkInManual')}>Manual Check In</button>
-                        <button onClick={() => setActiveTab('emailer')}>Emailer</button>
+                   
                         <button onClick={() => fetchLogs(APIServer)}>Dump Logs</button>
                     </>
                 }
