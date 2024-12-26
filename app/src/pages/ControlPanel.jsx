@@ -12,7 +12,6 @@ import Garage from './CPDash/Garage'
 import AdminSelect from './CPDash/AdminSelect'
 import Waiver from './CPDash/Waiver'
 import GateRegister from './CPDash/GateRegister'
-import WalkOn from './CPDash/WalkOn'
 import CheckIn from './CPDash/CheckIn'
 import Verify from './CPDash/Verify'
 
@@ -122,7 +121,7 @@ const ControlPanel = ({ APIServer }) => {
                             <>
                                 <button className={activeTab == 'waiver' ? styles.selected : undefined} onClick={() => setActiveTab('waiver')}>Waiver</button>
                                 <button className={activeTab == 'gateRegister' ? styles.selected : undefined} onClick={() => setActiveTab('gateRegister')}>Gate Register</button>
-                                <button className={activeTab == 'walkOn' ? styles.selected : undefined} onClick={() => setActiveTab('walkOn')}>Walk On</button>
+                         
                                 <button className={activeTab == 'trackdayState' ? styles.selected : undefined} onClick={() => setActiveTab('trackdayState')}>Trackday State</button>
                                 <button className={activeTab == 'checkIn' ? styles.selected : undefined} onClick={() => setActiveTab('checkIn')}>Check In</button>
                                 <button className={activeTab == 'verify' ? styles.selected : undefined} onClick={() => setActiveTab('verify')}>Verify</button>
@@ -157,7 +156,7 @@ const ControlPanel = ({ APIServer }) => {
                     {activeTab == 'adminSelect' && <AdminSelect setActiveTab={setActiveTab} memberType={loggedInUser.memberType} APIServer={APIServer}/>}
                     {activeTab == 'waiver' && <Waiver APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} />}
                     {activeTab == 'gateRegister' && <GateRegister APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdays={allTrackdays} />}
-                    {activeTab == 'walkOn' && <WalkOn APIServer={APIServer} fetchAPIData={fetchAPIData} allTrackdays={allTrackdays} />}
+                  
                     {activeTab == 'trackdayState' && <TrackdayState fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdays={allTrackdays} allTrackdaysFULL={allTrackdaysFULL} />}
                     {activeTab == 'checkIn' && <CheckIn APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers} />}
                     {activeTab == 'verify' && <Verify APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers} />}

@@ -12,7 +12,6 @@ const AdminSelect = ({ setActiveTab, memberType, APIServer }) => {
                 <h1>Staff Tools</h1>
                 <button onClick={() => setActiveTab('waiver')}>Waiver</button>
                 <button onClick={() => setActiveTab('gateRegister')}>Gate Register</button>
-                <button onClick={() => setActiveTab('walkOn')}>Walk On</button>
                 <button onClick={() => setActiveTab('trackdayState')}>Trackday State</button>
                 <button onClick={() => setActiveTab('checkIn')}>Check In</button>
                 <button onClick={() => setActiveTab('verify')}>Verify</button>

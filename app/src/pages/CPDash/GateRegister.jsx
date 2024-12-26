@@ -97,6 +97,33 @@ const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
         }
     }
 
+    async function handleWalkOnSubmit(e) {
+        e.preventDefault();
+        setActiveModal({ type: 'loading', msg: 'Submitting walk-on registration' });
+        const formData = new FormData(e.target);
+        try {
+            const response = await fetch(APIServer + 'walkons/' + nextTrackday.id, {
+                method: 'POST',
+                credentials: "include",
+                headers: {
+                    'Content-type': 'application/json; charset=UTF-8',
+                },
+                body: JSON.stringify(Object.fromEntries(formData))
+            })
+            await fetchAPIData();
+            if (response.ok) {
+                setActiveModal({ type: 'success', msg: 'Walk-On Registration Complete' });
+                setTimeout(() => setActiveModal(''), 1500)
+            } else {
+                const data = await response.json();
+                setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
+            }
+        } catch (err) {
+            setActiveModal({ type: 'failure', msg: 'API Failure' })
+            console.log(err.message)
+        }
+    }
+
     // Called by filter input everytime there is a change, filters by last 4 digits of phone number
     function filterEligibleUsers() {
         let input = document.getElementById('phoneEnd');
@@ -108,8 +135,10 @@ const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
     return (
         <>
             <ScrollToTop />
+            <h1>Gate Registration for {nextTrackday.date}</h1>
+            
             <div className={styles.content}>
-                <h1>Gate Registration for Existing Members ({nextTrackday.date})</h1>
+                <h3>Existing Members</h3>
                 <form onSubmit={(e) => {
                     e.preventDefault();
                     // If user has no waiver completed, show modal. Else proceed directly with gate reg
@@ -133,8 +162,37 @@ const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
 
                     <button className={styles.confirmBtn} type="submit">Gate Register</button>
                 </form>
-            
             </div>
+
+
+
+            <div className={styles.content}>
+                <h3>Walk-Ons</h3>
+                <form onSubmit={(e) => handleWalkOnSubmit(e)}>
+                    <div className={styles.inputPairing}>
+                        <label htmlFor="firstName">First Name:</label>
+                        <input type="text" id="firstName" name="firstName" required minLength={2} maxLength={50}></input>
+                    </div>
+
+                    <div className={styles.inputPairing}>
+                        <label htmlFor="lastName">Last Name:</label>
+                        <input type="text" id="lastName" name="lastName" required minLength={2} maxLength={50}></input>
+                    </div>
+
+                    <div className={styles.inputPairing}>
+                        <label htmlFor="group">Group:</label>
+                        <select name="group" id="group" form={styles.registerForm} required>
+                            <option key="groupNone" value="">---Choose Group---</option>
+                            <option key="green" value="green">Green</option>
+                            <option key="yellow" value="yellow">Yellow</option>
+                            <option key="red" value="red">Red</option>
+                        </select>
+                    </div>
+                    <button className={styles.confirmBtn} type="submit">Register Walk-On</button>
+                </form>
+            </div>
+
+
             <Loading open={activeModal.type === 'loading'}>
                 {activeModal.msg}
             </Loading>
@@ -155,7 +213,7 @@ const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
             <Modal open={activeModal.type === 'waiverWarning'}>
                 <>
                     Waiver not on file! Please make sure to collect a waiver for this user!
-                    <button className='actionButton' onClick={() => updateWaiver(activeModal.userID) }>Ok</button>
+                    <button className='actionButton' onClick={() => updateWaiver(activeModal.userID)}>Ok</button>
                 </>
             </Modal>
         </>
