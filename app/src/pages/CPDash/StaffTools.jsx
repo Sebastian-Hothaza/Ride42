@@ -1,10 +1,10 @@
-import styles from './stylesheets/AdminSelect.module.css'
+import styles from './stylesheets/StaffTools.module.css'
 import ScrollToTop from "../../components/ScrollToTop";
 import ControlPanel from '../ControlPanel';
 
 import fetchLogs from '../logUtils';
 
-const AdminSelect = ({ setActiveTab, memberType, APIServer }) => {
+const staffTools = ({ setActiveTab, memberType, APIServer }) => {
     return (
         <>
             <ScrollToTop />
@@ -32,4 +32,4 @@ const AdminSelect = ({ setActiveTab, memberType, APIServer }) => {
     );
 };
 
-export default AdminSelect;
+export default staffTools;

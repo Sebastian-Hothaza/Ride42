@@ -9,7 +9,7 @@ import Trackdays from './CPDash/Trackdays'
 import Profile from './CPDash/Profile'
 import Garage from './CPDash/Garage'
 
-import AdminSelect from './CPDash/AdminSelect'
+import StaffTools from './CPDash/StaffTools'
 import Waiver from './CPDash/Waiver'
 import GateRegister from './CPDash/GateRegister'
 import CheckIn from './CPDash/CheckIn'
@@ -40,7 +40,7 @@ const ControlPanel = ({ APIServer }) => {
     const [userTrackdays, setUserTrackdays] = useState('');
     const [allTrackdays, setAllTrackdays] = useState('');
 
-    const [activeTab, setActiveTab] = (loggedInUser.memberType == 'staff' || loggedInUser.memberType == 'admin') ? useState('adminSelect') : useState('trackdays')
+    const [activeTab, setActiveTab] = (loggedInUser.memberType == 'staff' || loggedInUser.memberType == 'admin') ? useState('staffTools') : useState('trackdays')
 
 
 
@@ -108,40 +108,19 @@ const ControlPanel = ({ APIServer }) => {
         <>
             <div className={styles.controlPanel}>
                 <div className={styles.CPMenu}>
-                    {/* Menu items rendered on memberType */}
                     <div className={styles.mainControls}>
                         <div id={styles.greeting}>Welcome {loggedInUser.firstName[0].toUpperCase() + loggedInUser.firstName.slice(1)},</div>
                         <button className={activeTab == 'profile' ? styles.selected : undefined} onClick={() => setActiveTab('profile')}>My Profile</button>
                         <button className={activeTab == 'trackdays' ? styles.selected : undefined} onClick={() => setActiveTab('trackdays')}>My Trackdays</button>
                         <button className={activeTab == 'garage' ? styles.selected : undefined} onClick={() => setActiveTab('garage')}>My Garage</button>
-                        {/* STAFF */}
                         {(loggedInUser.memberType == 'staff' || loggedInUser.memberType == 'admin') &&
-                            <>
-                                <button className={activeTab == 'waiver' ? styles.selected : undefined} onClick={() => setActiveTab('waiver')}>Waiver</button>
-                                <button className={activeTab == 'gateRegister' ? styles.selected : undefined} onClick={() => setActiveTab('gateRegister')}>Gate Register</button>
-                         
-                                <button className={activeTab == 'trackdayState' ? styles.selected : undefined} onClick={() => setActiveTab('trackdayState')}>Trackday State</button>
-                                <button className={activeTab == 'checkIn' ? styles.selected : undefined} onClick={() => setActiveTab('checkIn')}>Check In</button>
-                                <button className={activeTab == 'verify' ? styles.selected : undefined} onClick={() => setActiveTab('verify')}>Verify</button>
-                            </>
+                            <button className={activeTab == 'staffTools' ? styles.selected : undefined} onClick={() => setActiveTab('staffTools')}>Staff Tools</button>
                         }
-                        {/* ADMIN */}
-                        {(loggedInUser.memberType == 'admin') &&
-                            <>
-                                <button className={activeTab == 'manageQR' ? styles.selected : undefined} onClick={() => setActiveTab('manageQR')}>Manage QR</button>
-                                <button className={activeTab == 'manageUsers' ? styles.selected : undefined} onClick={() => setActiveTab('manageUsers')}>Manage Users</button>
-                                <button className={activeTab == 'manageTrackdays' ? styles.selected : undefined} onClick={() => setActiveTab('manageTrackdays')}>Manage Trackdays</button>
-                                <button className={activeTab == 'markPaid' ? styles.selected : undefined} onClick={() => setActiveTab('markPaid')}>Mark Paid</button>
-                                <button className={activeTab == 'trackdaySummary' ? styles.selected : undefined} onClick={() => setActiveTab('trackdaySummary')}>Trackday Summary</button>
-                                
-                    
-                                <button onClick={() => fetchLogs(APIServer)}>Dump Logs</button>
-                            </>
-                        }
-
                     </div>
                     <button id={styles.logOutBtn} onClick={() => setActiveModal({ type: 'logoutConfirm' })}>LOG OUT</button>
                 </div>
+
+
                 <div className={styles.CPDash}>
                     {/* CPDash rendered based on active tab */}
                     {activeTab == 'profile' && <Profile APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} />}
@@ -149,7 +128,7 @@ const ControlPanel = ({ APIServer }) => {
                     {activeTab == 'garage' && <Garage APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} setActiveTab={setActiveTab} />}
 
                     {/* STAFF */}
-                    {activeTab == 'adminSelect' && <AdminSelect setActiveTab={setActiveTab} memberType={loggedInUser.memberType} APIServer={APIServer}/>}
+                    {activeTab == 'staffTools' && <StaffTools setActiveTab={setActiveTab} memberType={loggedInUser.memberType} APIServer={APIServer} />}
                     {activeTab == 'waiver' && <Waiver APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} />}
                     {activeTab == 'gateRegister' && <GateRegister APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdays={allTrackdays} />}
                     {activeTab == 'trackdayState' && <TrackdayState fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdays={allTrackdays} allTrackdaysFULL={allTrackdaysFULL} />}
@@ -161,8 +140,8 @@ const ControlPanel = ({ APIServer }) => {
                     {activeTab == 'manageTrackdays' && <ManageTrackdays APIServer={APIServer} allTrackdaysFULL={allTrackdaysFULL} allUsers={allUsers} fetchAPIData={fetchAPIData} />}
                     {activeTab == 'markPaid' && <MarkPaid APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdaysFULL={allTrackdaysFULL} />}
                     {activeTab == 'trackdaySummary' && <TrackdaySummary allUsers={allUsers} allTrackdaysFULL={allTrackdaysFULL} />}
-                  
-             
+
+
 
 
                 </div>
@@ -170,7 +149,7 @@ const ControlPanel = ({ APIServer }) => {
                 <div className={styles.CPMenuMobile}>
                     <button className={activeTab == 'profile' ? styles.selected : undefined} onClick={() => setActiveTab('profile')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined ${activeTab == 'profile' ? styles.selected : undefined}`}> person </span></button>
                     <button className={activeTab == 'trackdays' ? styles.selected : undefined} onClick={() => setActiveTab('trackdays')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined ${activeTab == 'trackdays' ? styles.selected : undefined}`}> calendar_month </span></button>
-                    {(loggedInUser.memberType == 'staff' || loggedInUser.memberType == 'admin') && <button className={activeTab == 'adminSelect' ? styles.selected : undefined} onClick={() => setActiveTab('adminSelect')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined ${activeTab == 'adminSelect' ? styles.selected : undefined}`}> shield_person </span></button>}
+                    {(loggedInUser.memberType == 'staff' || loggedInUser.memberType == 'admin') && <button className={activeTab == 'staffTools' ? styles.selected : undefined} onClick={() => setActiveTab('staffTools')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined ${activeTab == 'staffTools' ? styles.selected : undefined}`}> shield_person </span></button>}
                     <button className={activeTab == 'garage' ? styles.selected : undefined} onClick={() => setActiveTab('garage')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined ${activeTab == 'garage' ? styles.selected : undefined}`}> garage_home </span></button>
                     <button onClick={() => setActiveModal({ type: 'logoutConfirm' })}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined`}> logout </span></button>
                 </div>
