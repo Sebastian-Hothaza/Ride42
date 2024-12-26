@@ -1,4 +1,4 @@
-import styles from './stylesheets/CPDash_AdminSelect.module.css'
+import styles from './stylesheets/AdminSelect.module.css'
 import ScrollToTop from "../../components/ScrollToTop";
 import ControlPanel from '../ControlPanel';
 

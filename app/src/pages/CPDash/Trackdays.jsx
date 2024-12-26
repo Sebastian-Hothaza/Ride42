@@ -4,7 +4,7 @@ import ScrollToTop from "../../components/ScrollToTop";
 import Modal from "../../components/Modal";
 import Loading from '../../components/Loading';
 
-import styles from './stylesheets/CPDash_Trackdays.module.css'
+import styles from './stylesheets/Trackdays.module.css'
 import modalStyles from '../../components/stylesheets/Modal.module.css'
 
 import checkmark from './../../assets/checkmark.png'
@@ -197,20 +197,20 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			<ScrollToTop />
 			<div className={styles.content}>
 				<h1>Book a Trackday</h1>
-				<form id="CPDash_Trackdays_bookTrackday" onSubmit={(e) => handleBookTrackdaySubmit(e)}>
+				<form id="Trackdays_bookTrackday" onSubmit={(e) => handleBookTrackdaySubmit(e)}>
 
 
 					<div className={styles.dateAndPayment}>
 						<div className={styles.inputPairing}>
 							<label htmlFor="date">Date:</label>
-							<select name="date" id="date" form="CPDash_Trackdays_bookTrackday" required>
+							<select name="date" id="date" form="Trackdays_bookTrackday" required>
 								<option key="dateNone" value="">----- Choose date -----</option>
 								{allTrackdays && allTrackdays.map((trackday) => <option key={trackday.id} value={trackday.id}>{trackday.prettyDate}</option>)}
 							</select>
 						</div>
 						<div className={styles.inputPairing}>
 							<label htmlFor="paymentMethod">Payment Method:</label>
-							<select name="paymentMethod" id="paymentMethod" form="CPDash_Trackdays_bookTrackday" required>
+							<select name="paymentMethod" id="paymentMethod" form="Trackdays_bookTrackday" required>
 								<option key="paymentNone" value="">--- Choose Payment Method ---</option>
 								{userInfo.credits && <option key="credit" value="credit">Use trackday credit (Remaining: {userInfo.credits})</option>}
 								<option key="etransfer" value="etransfer">Interac E-Transfer</option>

@@ -1,29 +1,26 @@
 import { useState, useEffect } from "react";
 import ScrollToTop from "../../components/ScrollToTop";
 
+import Loading from '../../components/Loading';
+import Scanner from '../../components/Scanner';
 
 import modalStyles from '../../components/stylesheets/Modal.module.css';
 import checkmark from './../../assets/checkmark.png';
 import errormark from './../../assets/error.png';
-import Loading from '../../components/Loading';
 import Modal from "../../components/Modal";
 
+import styles from './stylesheets/MarryQR.module.css'
 
-import styles from './stylesheets/CPDash_DeleteQR.module.css'
 
-
-const DeleteQR = ({ allUsers, APIServer, fetchAPIData, }) => {
+const MarryQR = ({ allUsers, APIServer, fetchAPIData, }) => {
 
 
     const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
 
     const [curUser, setCurUser] = useState('')
-    const [curQR, setCurQR] = useState('')
-    const [hasQRID, setHasQRID] = useState(true);
+    const [curBike, setCurBike] = useState('')
 
-    
-
-
+ 
     if (!allUsers) {
         return null;
     } else {
@@ -31,61 +28,44 @@ const DeleteQR = ({ allUsers, APIServer, fetchAPIData, }) => {
     }
 
 
-    
-    async function handleDeleteQR(e) {
-        e.preventDefault();
-        setActiveModal({ type: 'loading', msg: 'Deleting QR' }); // Show loading modal
+    //router.put('/QR/:QRID/:userID/:bikeID', userController.marryQR)
+    async function handleMarryQR(scanData, scanner) {
+        const QRID = scanData.replace("https://Ride42.ca/QR/", "")
+        setActiveModal({ type: 'loading', msg: 'Verifying user' }); // Show loading modal
         try {
-            const response = await fetch(APIServer + 'QR/' + e.target.qrid.value, {
-                method: 'DELETE',
+            const response = await fetch(APIServer + 'QR/' + QRID + '/' + curUser._id + '/' + curBike._id, {
+                method: 'PUT',
                 credentials: "include",
                 headers: {
                     'Content-type': 'application/json; charset=UTF-8',
                 }
             })
             if (response.ok) {
-				setActiveModal({ type: 'success', msg: 'QR Deleted' });
+				setActiveModal({ type: 'success', msg: 'QR Assigned' });
 				setTimeout(() => setActiveModal(''), 1500)
 			} else {
 				const data = await response.json();
 				setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
 			}
-
-
-
-
-
         } catch (err) {
             setActiveModal({ type: 'failure', msg: 'API Failure' })
             console.log(err.message)
         }
     }
 
-    // Returns the QRID of a bike if it exists, otherwise returns empty and notifies user that selected user/bike does not have a QRID
-    function getQRID(garageItem){
-        if (garageItem.QRID){
-            setHasQRID(true);
-            return garageItem.QRID;
-        }else{
-            setHasQRID(false);
-            return '';
-        }
-       
-    }
- 
+
 
     return (
         <>
             <ScrollToTop />
             <div className={styles.content}>
-                <h1>Delete QR</h1>
+                <h1>Assign QR</h1>
+                <form>
 
-                <form onSubmit={(e) => handleDeleteQR(e)}>
-
-                    
+                    {/* Select curUser */}
                     <div className={styles.inputPairing}>
                         <label htmlFor="user">Select User:</label>
-                        <select className='capitalizeEach' name="user" id="user" onChange={() => { setCurUser(allUsers.find((candidateUser) => candidateUser._id === user.value)) }}>
+                        <select className='capitalizeEach' name="user" id="user" onChange={() => { setCurUser(allUsers.find((candidateUser) => candidateUser._id === user.value)) }} required>
                             <option key="none" value=""></option>
                             {allUsers && allUsers.map((user) => <option className='capitalizeEach' key={user._id} value={user._id} >{user.firstName}, {user.lastName}</option>)}
                         </select>
@@ -94,25 +74,20 @@ const DeleteQR = ({ allUsers, APIServer, fetchAPIData, }) => {
                     {curUser &&
                         <div className={styles.inputPairing}>
                             <label htmlFor="bike">Select Bike:</label>
-                            <select className='capitalizeEach' name="bike" id="bike" onChange={() => { setCurQR(getQRID(curUser.garage.find((garageItem) => garageItem._id === bike.value))) }}>
+                            <select className='capitalizeEach' name="bike" id="bike" onChange={() => { setCurBike((curUser.garage.find((garageItem) => garageItem._id === bike.value)).bike) }} required>
                                 <option key="none" value=""></option>
                                 {curUser && curUser.garage.map((garageItem) => <option className='capitalizeEach' key={garageItem._id} value={garageItem._id}>{garageItem.bike.year} {garageItem.bike.make} {garageItem.bike.model}</option>)}
                             </select>
                         </div>
                     }
 
-                    {!hasQRID && 
-                        <div>USER NO HAS QRID</div>
+                    {curBike &&
+                        <>
+                            <div>Scan {curUser.group} sticker below:</div>
+                            <Scanner onDecodeEnd={handleMarryQR} />
+                        </>
+
                     }
-
-                    <div>--- OR ---</div>
-
-                    <div className={styles.inputPairing}>
-                        <label htmlFor="qrid">QR id to delete:</label>
-                        <input type="text" name="qrid" id="qrid" onChange={() => { setCurQR(qrid.value) }} value={curQR} required></input>
-                        <button>Delete</button>
-                    </div>
-                    
 
 
 
@@ -135,10 +110,8 @@ const DeleteQR = ({ allUsers, APIServer, fetchAPIData, }) => {
                 {activeModal.msg}
                 <button className='actionButton' onClick={() => setActiveModal('')}>Close</button>
             </Modal>
-
-
         </>
     );
 };
 
-export default DeleteQR;
+export default MarryQR;

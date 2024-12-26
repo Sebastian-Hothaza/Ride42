@@ -5,7 +5,7 @@ import Modal from "../../components/Modal";
 import Loading from '../../components/Loading';
 import Scanner from '../../components/Scanner';
 
-import styles from './stylesheets/CPDash_Verify.module.css'
+import styles from './stylesheets/Verify.module.css'
 import modalStyles from '../../components/stylesheets/Modal.module.css'
 
 import checkmark from './../../assets/checkmark.png'

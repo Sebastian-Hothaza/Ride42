@@ -1,12 +1,12 @@
 import { useState } from "react";
-import ScrollToTop from "../../components/ScrollToTop";
 
 
 
-import styles from './stylesheets/CPDash_TrackdaySummary.module.css'
+
+import styles from './stylesheets/CheckInManual.module.css'
 
 
-const TrackdaySummary = ({ allUsers, allTrackdaysFULL }) => {
+const CheckInManual = ({ allUsers, allTrackdaysFULL }) => {
 
 	const [selectedTrackdayId, setSelectedTrackdayId] = useState(''); // Tracks what the current working trackdayId is 
 
@@ -16,11 +16,10 @@ const TrackdaySummary = ({ allUsers, allTrackdaysFULL }) => {
 		return null;
 	} else {
 		allUsers.sort((a, b) => (a.firstName > b.firstName) ? 1 : ((b.firstName > a.firstName) ? -1 : 0))
-		allTrackdaysFULL = allTrackdaysFULL.filter(trackday => trackday.status != "archived"); // exclude archived trackdays
 		allTrackdaysFULL.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
 	}
 
-	// Augment prettydate of allTrackdays to be a nice format
+	// Augment prettydate of allTrackdays to be a nice format. TODO: Move this to after we have the selected trackday for improved efficiency
 	allTrackdaysFULL.forEach((trackday) => {
 		const date = new Date(trackday.date)
 		const weekday = date.toLocaleString('default', { weekday: 'short' })
@@ -37,15 +36,14 @@ const TrackdaySummary = ({ allUsers, allTrackdaysFULL }) => {
 		selectedTrackday.members.sort((a, b) => (a.user.firstName > b.user.firstName) ? 1 : ((b.user.firstName > a.user.firstName) ? -1 : 0))
 	}
 
-
 	// Download CSV file
 	function download() {
-		let result = `Some text here\n`
-
+		let result = `group,name,checkin,waiver,paid\n`
+		selectedTrackday.members.forEach((memberEntry)=>result+=`${allUsers.find((user)=>user._id === memberEntry.user._id).group},${memberEntry.user.firstName} ${memberEntry.user.lastName},,${allUsers.find((user)=>user._id === memberEntry.user._id).waiver?`✔️`:``},${memberEntry.paid? `✔️`:``}\n`)
 		const link = window.document.createElement('a');
 		const file = new Blob([result], { type: 'text/csv' });
 		link.href = URL.createObjectURL(file);
-		link.download = `${selectedTrackday.prettyDate}_Summary.csv`;
+		link.download = `${selectedTrackday.prettyDate}_CheckIn.csv`;
 		document.body.appendChild(link);
 		link.click();
 	}
@@ -53,7 +51,7 @@ const TrackdaySummary = ({ allUsers, allTrackdaysFULL }) => {
 	return (
 		<>
 			<div className={styles.content}>
-				<h1>Trackday Summary-
+				<h1>Check in sheet for trackday-
 					<form>
 						<div className={styles.inputPairing}>
 							<select name="trackday" id="trackday" onChange={() => setSelectedTrackdayId(trackday.value)} required>
@@ -63,10 +61,10 @@ const TrackdaySummary = ({ allUsers, allTrackdaysFULL }) => {
 						</div>
 					</form>
 				</h1>
-				{selectedTrackday && <button onClick={() => download()}>Download Summary</button>}
+				{selectedTrackday && <button onClick={() => download()}>Download Check In Sheet</button>}
 			</div>
 		</>
 	);
 };
 
-export default TrackdaySummary;
+export default CheckInManual;

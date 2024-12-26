@@ -4,7 +4,7 @@ import ScrollToTop from "../../components/ScrollToTop";
 import Modal from "../../components/Modal";
 import Loading from '../../components/Loading';
 
-import styles from './stylesheets/CPDash_ManageUsers.module.css'
+import styles from './stylesheets/ManageUsers.module.css'
 import modalStyles from '../../components/stylesheets/Modal.module.css'
 
 import checkmark from './../../assets/checkmark.png'

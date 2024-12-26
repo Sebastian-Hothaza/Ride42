@@ -5,27 +5,27 @@ import modalStyles from '../components/stylesheets/Modal.module.css'
 import { useOutletContext } from "react-router-dom";
 import Modal from "../components/Modal";
 import Loading from "../components/Loading";
-import CPDash_Trackdays from './CPDash/CPDash_Trackdays'
-import CPDash_Profile from './CPDash/CPDash_Profile'
-import CPDash_Garage from './CPDash/CPDash_Garage'
+import Trackdays from './CPDash/Trackdays'
+import Profile from './CPDash/Profile'
+import Garage from './CPDash/Garage'
 
-import CPDash_AdminSelect from './CPDash/CPDash_AdminSelect'
-import CPDash_Waiver from './CPDash/CPDash_Waiver'
-import CPDash_GateRegister from './CPDash/CPDash_GateRegister'
-import CPDash_WalkOn from './CPDash/CPDash_WalkOn'
-import CPDash_CheckIn from './CPDash/CPDash_CheckIn'
-import CPDash_Verify from './CPDash/CPDash_Verify'
+import AdminSelect from './CPDash/AdminSelect'
+import Waiver from './CPDash/Waiver'
+import GateRegister from './CPDash/GateRegister'
+import WalkOn from './CPDash/WalkOn'
+import CheckIn from './CPDash/CheckIn'
+import Verify from './CPDash/Verify'
 
-import CPDash_GenerateQR from './CPDash/CPDash_GenerateQR'
-import CPDash_MarryQR from './CPDash/CPDash_MarryQR'
-import CPDash_DeleteQR from './CPDash/CPDash_DeleteQR'
-import CPDash_ManageUsers from './CPDash/CPDash_ManageUsers'
-import CPDash_ManageTrackdays from './CPDash/CPDash_ManageTrackdays'
-import CPDash_MarkPaid from './CPDash/CPDash_MarkPaid'
-import CPDash_TrackdayState from './CPDash/CPDash_TrackdayState'
-import CPDash_TrackdaySummary from './CPDash/CPDash_TrackdaySummary'
-import CPDash_CheckInManual from './CPDash/CPDash_CheckInManual'
-import CPDash_Emailer from './CPDash/CPDash_Emailer'
+import GenerateQR from './CPDash/GenerateQR'
+import MarryQR from './CPDash/MarryQR'
+import DeleteQR from './CPDash/DeleteQR'
+import ManageUsers from './CPDash/ManageUsers'
+import ManageTrackdays from './CPDash/ManageTrackdays'
+import MarkPaid from './CPDash/MarkPaid'
+import TrackdayState from './CPDash/TrackdayState'
+import TrackdaySummary from './CPDash/TrackdaySummary'
+import CheckInManual from './CPDash/CheckInManual'
+import Emailer from './CPDash/Emailer'
 
 import fetchLogs from './logUtils';
 
@@ -149,28 +149,28 @@ const ControlPanel = ({ APIServer }) => {
                 </div>
                 <div className={styles.CPDash}>
                     {/* CPDash rendered based on active tab */}
-                    {activeTab == 'profile' && <CPDash_Profile APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} />}
-                    {activeTab == 'trackdays' && <CPDash_Trackdays APIServer={APIServer} userInfo={userInfo} allTrackdays={allTrackdays} userTrackdays={userTrackdays} fetchAPIData={fetchAPIData} setActiveTab={setActiveTab} />}
-                    {activeTab == 'garage' && <CPDash_Garage APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} setActiveTab={setActiveTab} />}
+                    {activeTab == 'profile' && <Profile APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} />}
+                    {activeTab == 'trackdays' && <Trackdays APIServer={APIServer} userInfo={userInfo} allTrackdays={allTrackdays} userTrackdays={userTrackdays} fetchAPIData={fetchAPIData} setActiveTab={setActiveTab} />}
+                    {activeTab == 'garage' && <Garage APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} setActiveTab={setActiveTab} />}
 
                     {/* STAFF */}
-                    {activeTab == 'adminSelect' && <CPDash_AdminSelect setActiveTab={setActiveTab} memberType={loggedInUser.memberType} APIServer={APIServer}/>}
-                    {activeTab == 'waiver' && <CPDash_Waiver APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} />}
-                    {activeTab == 'gateRegister' && <CPDash_GateRegister APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdays={allTrackdays} />}
-                    {activeTab == 'walkOn' && <CPDash_WalkOn APIServer={APIServer} fetchAPIData={fetchAPIData} allTrackdays={allTrackdays} />}
-                    {activeTab == 'trackdayState' && <CPDash_TrackdayState fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdays={allTrackdays} allTrackdaysFULL={allTrackdaysFULL} />}
-                    {activeTab == 'checkIn' && <CPDash_CheckIn APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers} />}
-                    {activeTab == 'verify' && <CPDash_Verify APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers} />}
+                    {activeTab == 'adminSelect' && <AdminSelect setActiveTab={setActiveTab} memberType={loggedInUser.memberType} APIServer={APIServer}/>}
+                    {activeTab == 'waiver' && <Waiver APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} />}
+                    {activeTab == 'gateRegister' && <GateRegister APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdays={allTrackdays} />}
+                    {activeTab == 'walkOn' && <WalkOn APIServer={APIServer} fetchAPIData={fetchAPIData} allTrackdays={allTrackdays} />}
+                    {activeTab == 'trackdayState' && <TrackdayState fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdays={allTrackdays} allTrackdaysFULL={allTrackdaysFULL} />}
+                    {activeTab == 'checkIn' && <CheckIn APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers} />}
+                    {activeTab == 'verify' && <Verify APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers} />}
                     {/* ADMIN */}
-                    {activeTab == 'generateQR' && <CPDash_GenerateQR APIServer={APIServer} />}
-                    {activeTab == 'marryQR' && <CPDash_MarryQR allUsers={allUsers} APIServer={APIServer} />}
-                    {activeTab == 'deleteQR' && <CPDash_DeleteQR allUsers={allUsers} APIServer={APIServer} />}
-                    {activeTab == 'manageUsers' && <CPDash_ManageUsers APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} />}
-                    {activeTab == 'manageTrackdays' && <CPDash_ManageTrackdays APIServer={APIServer} allTrackdaysFULL={allTrackdaysFULL} allUsers={allUsers} fetchAPIData={fetchAPIData} />}
-                    {activeTab == 'markPaid' && <CPDash_MarkPaid APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdaysFULL={allTrackdaysFULL} />}
-                    {activeTab == 'trackdaySummary' && <CPDash_TrackdaySummary allUsers={allUsers} allTrackdaysFULL={allTrackdaysFULL} />}
-                    {activeTab == 'checkInManual' && <CPDash_CheckInManual allUsers={allUsers} allTrackdaysFULL={allTrackdaysFULL} />}
-                    {activeTab == 'emailer' && <CPDash_Emailer APIServer={APIServer} />}
+                    {activeTab == 'generateQR' && <GenerateQR APIServer={APIServer} />}
+                    {activeTab == 'marryQR' && <MarryQR allUsers={allUsers} APIServer={APIServer} />}
+                    {activeTab == 'deleteQR' && <DeleteQR allUsers={allUsers} APIServer={APIServer} />}
+                    {activeTab == 'manageUsers' && <ManageUsers APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} />}
+                    {activeTab == 'manageTrackdays' && <ManageTrackdays APIServer={APIServer} allTrackdaysFULL={allTrackdaysFULL} allUsers={allUsers} fetchAPIData={fetchAPIData} />}
+                    {activeTab == 'markPaid' && <MarkPaid APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdaysFULL={allTrackdaysFULL} />}
+                    {activeTab == 'trackdaySummary' && <TrackdaySummary allUsers={allUsers} allTrackdaysFULL={allTrackdaysFULL} />}
+                    {activeTab == 'checkInManual' && <CheckInManual allUsers={allUsers} allTrackdaysFULL={allTrackdaysFULL} />}
+                    {activeTab == 'emailer' && <Emailer APIServer={APIServer} />}
 
 
                 </div>

@@ -3,7 +3,7 @@ import ScrollToTop from "../../components/ScrollToTop";
 
 import Loading from '../../components/Loading';
 
-import styles from './stylesheets/CPDash_TrackdayState.module.css'
+import styles from './stylesheets/TrackdayState.module.css'
 
 import checkmark from './../../assets/checkmark.png'
 import errormark from './../../assets/error.png'

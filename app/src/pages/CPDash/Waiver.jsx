@@ -4,7 +4,7 @@ import ScrollToTop from "../../components/ScrollToTop";
 import Modal from "../../components/Modal";
 import Loading from '../../components/Loading';
 
-import styles from './stylesheets/CPDash_Waiver.module.css'
+import styles from './stylesheets/Waiver.module.css'
 import modalStyles from '../../components/stylesheets/Modal.module.css'
 
 import checkmark from './../../assets/checkmark.png'
