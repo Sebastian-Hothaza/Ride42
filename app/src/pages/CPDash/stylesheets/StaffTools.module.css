@@ -1,23 +1,26 @@
 .content {
-    display: flex;
-    flex-direction: column;
-    gap: 3rem;
-    font-size: 1.25rem;
-    align-items: center;
+    margin-top: 30px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    row-gap: 50px;
+
 }
 
 .content button {
-    background-color: black;
-    color: white;
-    border: none;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+
     font-size: inherit;
-    border-radius: .2rem;
-    padding: 1rem .75rem;
-    width: 100%;
+    background-color: transparent;
+    border: none;
 }
 
-.importantButton {
-    background-color: var(--accent-color) !important;
-    font-weight: bold !important;
-    white-space: nowrap;
+@media (max-width: 850px) {
+    .content {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    }
 }
