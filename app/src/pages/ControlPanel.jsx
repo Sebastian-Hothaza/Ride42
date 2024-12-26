@@ -17,6 +17,8 @@ import Verify from './CPDash/Verify'
 
 import ManageQR from './CPDash/ManageQR'
 
+import ManageQR from './CPDash/ManageQR'
+
 import ManageUsers from './CPDash/ManageUsers'
 import ManageTrackdays from './CPDash/ManageTrackdays'
 import MarkPaid from './CPDash/MarkPaid'
@@ -129,7 +131,7 @@ const ControlPanel = ({ APIServer }) => {
                         {/* ADMIN */}
                         {(loggedInUser.memberType == 'admin') &&
                             <>
-                                <button className={activeTab == 'manageQR' ? styles.selected : undefined} onClick={() => setActiveTab('manageQR')}>Manage QR</button>
+                                <button className={activeTab == 'ManageQR' ? styles.selected : undefined} onClick={() => setActiveTab('ManageQR')}>Manage QR</button>
                                 <button className={activeTab == 'manageUsers' ? styles.selected : undefined} onClick={() => setActiveTab('manageUsers')}>Manage Users</button>
                                 <button className={activeTab == 'manageTrackdays' ? styles.selected : undefined} onClick={() => setActiveTab('manageTrackdays')}>Manage Trackdays</button>
                                 <button className={activeTab == 'markPaid' ? styles.selected : undefined} onClick={() => setActiveTab('markPaid')}>Mark Paid</button>
@@ -157,7 +159,7 @@ const ControlPanel = ({ APIServer }) => {
                     {activeTab == 'checkIn' && <CheckIn APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers} />}
                     {activeTab == 'verify' && <Verify APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers} />}
                     {/* ADMIN */}
-                    {activeTab == 'manageQR' && <ManageQR APIServer={APIServer} allUsers={allUsers} fetchAPIData={fetchAPIData} />}
+                    {activeTab == 'ManageQR' && <ManageQR APIServer={APIServer} allUsers={allUsers} fetchAPIData={fetchAPIData} />}
                     {activeTab == 'manageUsers' && <ManageUsers APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} />}
                     {activeTab == 'manageTrackdays' && <ManageTrackdays APIServer={APIServer} allTrackdaysFULL={allTrackdaysFULL} allUsers={allUsers} fetchAPIData={fetchAPIData} />}
                     {activeTab == 'markPaid' && <MarkPaid APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdaysFULL={allTrackdaysFULL} />}
