@@ -23,7 +23,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 	}
 
 	// Sort the members array if we are displaying a modal where members array will be presented
-	if (activeModal.trackday){
+	if (activeModal.trackday) {
 		activeModal.trackday.members.sort((a, b) => (a.user.firstName > b.user.firstName) ? 1 : ((b.user.firstName > a.user.firstName) ? -1 : 0))
 	}
 
@@ -155,6 +155,23 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 		}
 	}
 
+	// Download CSV file
+	function download(trackday) {
+		let result = `group,name,checkin,waiver,paid\n`
+		 //Sort alphabetically 
+		trackday.members.sort((a, b) => (a.user.firstName > b.user.firstName) ? 1 : ((b.user.firstName > a.user.firstName) ? -1 : 0))
+
+		trackday.members.forEach((memberEntry) => result += `${allUsers.find((user) => user._id === memberEntry.user._id).group},${memberEntry.user.firstName} ${memberEntry.user.lastName},,${allUsers.find((user) => user._id === memberEntry.user._id).waiver ? `✔️` : ``},${memberEntry.paid ? `✔️` : ``}\n`)
+		
+		// Prepare download file
+		const link = window.document.createElement('a');
+		const file = new Blob([result], { type: 'text/csv' });
+		link.href = URL.createObjectURL(file);
+		link.download = `${trackday.prettyDate}_CheckIn.csv`;
+		document.body.appendChild(link);
+		link.click();
+	}
+
 
 	return (
 		<>
@@ -173,6 +190,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 									<button className='actionButton' onClick={() => setActiveModal({ type: 'unregister', trackday: trackday })}>Remove User</button>
 									<button className='actionButton' onClick={() => setActiveModal({ type: 'editDetails', trackday: trackday })}>Edit</button>
 									<button className='actionButton' onClick={() => alert('not yet implemented; extreme caution needed as currently may break back end')}>Delete</button>
+									<button className='actionButton' onClick={() => download(trackday)}>Download Backup</button>
 								</div>
 							</div>
 						)
@@ -207,7 +225,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 							<label htmlFor="user">Select User:</label>
 							<select className='capitalizeEach' name="user" id="user" required>
 								<option key="none" value="">--- Select ---</option>
-								{activeModal.trackday && allUsers.filter((user)=>!activeModal.trackday.members.find((memberEntry)=> memberEntry.user._id === user._id)).map((user) => <option key={user._id} value={user._id}>{user.firstName}, {user.lastName}</option>)}
+								{activeModal.trackday && allUsers.filter((user) => !activeModal.trackday.members.find((memberEntry) => memberEntry.user._id === user._id)).map((user) => <option key={user._id} value={user._id}>{user.firstName}, {user.lastName}</option>)}
 							</select>
 						</div>
 
@@ -240,7 +258,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 							<select className='capitalizeEach' name="user" id="user" required>
 								<option key="none" value="">--- Select ---</option>
 								{activeModal.trackday && activeModal.trackday.members.map((memberEntry) => <option key={memberEntry.user._id} value={memberEntry.user._id}>{memberEntry.user.firstName}, {memberEntry.user.lastName}</option>)}
-							
+
 							</select>
 						</div>
 						<button className={`actionButton ${styles.confirmBtn}`} type="submit">Confirm</button>
