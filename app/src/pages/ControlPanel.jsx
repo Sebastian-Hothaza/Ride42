@@ -17,8 +17,6 @@ import Verify from './CPDash/Verify'
 
 import ManageQR from './CPDash/ManageQR'
 
-import ManageQR from './CPDash/ManageQR'
-
 import ManageUsers from './CPDash/ManageUsers'
 import ManageTrackdays from './CPDash/ManageTrackdays'
 import MarkPaid from './CPDash/MarkPaid'
