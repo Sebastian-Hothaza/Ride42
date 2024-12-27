@@ -20,7 +20,15 @@ const TrackdaySchema = new mongoose.Schema({
 				lastName:  		{ type: String, required: true, minLength: 2, maxLength: 50 },
 				group: 			{ type: String, required: true, enum: ["green", "yellow", "red"] }}],
 	status:	{ type: String, required: true, enum: ["regOpen", "regClosed", "cancelled", "archived"] },
-	layout:	{ type: String, required: true, enum: ["tbd", "technical", "Rtechnical", "alien", "Ralien", "modified", "Rmodified", "long"] }
+	layout:	{ type: String, required: true, enum: ["tbd", "technical", "Rtechnical", "alien", "Ralien", "modified", "Rmodified", "long"] },
+	costs:    [{ desc: { type: String, required: true, minLength: 2, maxLength: 100 },
+	             type: { type: String, required: true, enum: ["fixed", "variable"] },
+				 amount: { type: Number, required: true}}],
+	ticketPrice: {
+		preReg: { type: Number, required: true},
+		gate: { type: Number, required: true},
+		bundle: { type: Number, required: true},
+	}
 });
 
 // Export model
