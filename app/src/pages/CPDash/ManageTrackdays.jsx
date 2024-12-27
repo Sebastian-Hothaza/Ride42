@@ -97,7 +97,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 	}
 
 
-	async function handleEditDetailsSubmit(e, layout, status, date, trackdayID) {
+	async function handleEditDetailsSubmit(e, trackdayID) {
 		e.preventDefault();
 		setActiveModal({ type: 'loading', msg: 'Editing trackday' });
 		try {
@@ -108,9 +108,13 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 					'Content-type': 'application/json; charset=UTF-8',
 				},
 				body: JSON.stringify({
-					date: date + 'T14:00Z',
-					status: status,
-					layout: layout
+					date: e.target.date.value + 'T14:00Z',
+					status: e.target.status.value,
+					layout: e.target.layout.value,
+					rentalCost: e.target.rentalCost.value,
+					preRegTicketPrice: e.target.preRegTicketPrice.value,
+					gateTicketPrice: e.target.gateTicketPrice.value,
+					bundlePrice: e.target.bundlePrice.value
 				})
 			})
 			await fetchAPIData();
@@ -127,7 +131,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 		}
 	}
 
-	async function handleCreateTrackdaySubmit(e, date) {
+	async function handleCreateTrackdaySubmit(e) {
 		e.preventDefault();
 		setActiveModal({ type: 'loading', msg: 'Creating trackday' });
 		try {
@@ -138,7 +142,11 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 					'Content-type': 'application/json; charset=UTF-8',
 				},
 				body: JSON.stringify({
-					date: date + 'T14:00Z',
+					date: e.target.date.value + 'T14:00Z',
+					rentalCost: e.target.rentalCost.value,
+					preRegTicketPrice: e.target.preRegTicketPrice.value,
+					gateTicketPrice: e.target.gateTicketPrice.value,
+					bundlePrice: e.target.bundlePrice.value
 				})
 			})
 			await fetchAPIData();
@@ -158,11 +166,11 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 	// Download CSV file
 	function download(trackday) {
 		let result = `group,name,checkin,waiver,paid\n`
-		 //Sort alphabetically 
+		//Sort alphabetically 
 		trackday.members.sort((a, b) => (a.user.firstName > b.user.firstName) ? 1 : ((b.user.firstName > a.user.firstName) ? -1 : 0))
 
 		trackday.members.forEach((memberEntry) => result += `${allUsers.find((user) => user._id === memberEntry.user._id).group},${memberEntry.user.firstName} ${memberEntry.user.lastName},,${allUsers.find((user) => user._id === memberEntry.user._id).waiver ? `✔️` : ``},${memberEntry.paid ? `✔️` : ``}\n`)
-		
+
 		// Prepare download file
 		const link = window.document.createElement('a');
 		const file = new Blob([result], { type: 'text/csv' });
@@ -171,7 +179,6 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 		document.body.appendChild(link);
 		link.click();
 	}
-
 
 	return (
 		<>
@@ -270,7 +277,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 			<Modal open={activeModal.type === 'editDetails'}>
 				<>
 					<h2>Edit Trackday Details</h2>
-					<form onSubmit={(e) => handleEditDetailsSubmit(e, e.target.layout.value, e.target.status.value, e.target.date.value, activeModal.trackday._id)}>
+					<form onSubmit={(e) => handleEditDetailsSubmit(e, activeModal.trackday._id)}>
 
 						<div className={styles.inputPairing}>
 							<label htmlFor="group">Layout</label>
@@ -300,6 +307,19 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 							<input type='date' id="date" name="date" defaultValue={activeModal.trackday && activeModal.trackday.date.slice(0, 10)}></input>
 						</div>
 
+						<label htmlFor="rentalCost">Rental Cost</label>
+						<input type='number' id="rentalCost" name="rentalCost" defaultValue={activeModal.trackday && activeModal.trackday.costs.find((cost)=> cost.desc == 'rentalCost').amount} required></input>
+						
+						<label htmlFor="preRegTicketPrice">Advance Ticket Price</label>
+						<input type='number' id="preRegTicketPrice" name="preRegTicketPrice" defaultValue={activeModal.trackday && activeModal.trackday.ticketPrice.preReg} required></input>
+						
+						<label htmlFor="gateTicketPrice">Gate Ticket Price</label>
+						<input type='number' id="gateTicketPrice" name="gateTicketPrice" defaultValue={activeModal.trackday && activeModal.trackday.ticketPrice.gate} required></input>
+						
+						<label htmlFor="bundlePrice">Bundle Ticket Price</label>
+						<input type='number' id="bundlePrice" name="bundlePrice" defaultValue={activeModal.trackday && activeModal.trackday.ticketPrice.bundle} required></input>
+						
+
 						<button className={`actionButton ${styles.confirmBtn}`} type="submit">Confirm</button>
 						<button type="button" className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
 					</form>
@@ -309,12 +329,17 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 			<Modal open={activeModal.type === 'createTrackday'}>
 				<>
 					<h2>Create New Trackday</h2>
-					<form onSubmit={(e) => handleCreateTrackdaySubmit(e, e.target.date.value)}>
-
-
-
-						<input type='date' id="date" name="date"></input>
-
+					<form onSubmit={(e) => handleCreateTrackdaySubmit(e)}>
+						<label htmlFor="date">Date</label>
+						<input type='date' id="date" name="date" required></input>
+						<label htmlFor="rentalCost">Rental Cost</label>
+						<input type='number' id="rentalCost" name="rentalCost" required></input>
+						<label htmlFor="preRegTicketPrice">Advance Ticket Price</label>
+						<input type='number' id="preRegTicketPrice" name="preRegTicketPrice" required></input>
+						<label htmlFor="gateTicketPrice">Gate Ticket Price</label>
+						<input type='number' id="gateTicketPrice" name="gateTicketPrice" required></input>
+						<label htmlFor="bundlePrice">Bundle Ticket Price</label>
+						<input type='number' id="bundlePrice" name="bundlePrice" required></input>
 
 						<button className={`actionButton ${styles.confirmBtn}`} type="submit">Confirm</button>
 						<button type="button" className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
