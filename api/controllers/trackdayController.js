@@ -565,6 +565,10 @@ exports.trackday_getALL = [
 // ! Logged operation !
 exports.trackday_post = [
     body("date", "Date must be in YYYY-MM-DDThh:mmZ form where time is in UTC").isISO8601().bail().isLength({ min: 17, max: 17 }).escape(),
+    body("rentalCost", "Must provide track rental cost between 1-100000").trim().isInt({ min: 1, max: 100000 }).escape(),
+    body("preRegTicketPrice", "preRegTicketPrice must be between 1-1000").trim().isInt({ min: 1, max: 1000 }).escape(),
+    body("gateTicketPrice", "gateTicketPrice must be between 1-1000").trim().isInt({ min: 1, max: 1000 }).escape(),
+    body("bundlePrice", "bundlePrice must be between 1-1000").trim().isInt({ min: 1, max: 1000 }).escape(),
 
     controllerUtils.verifyJWT,
     controllerUtils.validateForm,
@@ -580,7 +584,9 @@ exports.trackday_post = [
                 members: [],
                 walkons: [],
                 status: 'regOpen',
-                layout: 'tbd'
+                layout: 'tbd',
+                costs: [{desc: 'rentalCost', type: 'fixed', amount: req.body.rentalCost}],
+                ticketPrice: {preReg: req.body.preRegTicketPrice, gate: req.body.gateTicketPrice, bundle: req.body.bundlePrice}
             })
             await trackday.save();
             logger.info({ message: "trackday created: " + trackday.id });
@@ -598,6 +604,10 @@ exports.trackday_put = [
     body("date", "Date must be in YYYY-MM-DDThh:mm form where time is in UTC").isISO8601().bail().isLength({ min: 17, max: 17 }).escape(),
     body("status", "Status must be one of: [regOpen, regClosed, cancelled, archived]").trim().isIn(["regOpen", "regClosed", "cancelled", "archived"]).escape(),
     body("layout", "Layout must be one of: [tbd, technical, Rtechnical, alien, Ralien, modified, Rmodified, long]").trim().isIn(["tbd", "technical", "Rtechnical", "alien", "Ralien", "modified", "Rmodified", "long"]).escape(),
+    body("rentalCost", "Must provide track rental cost between 1-100000").trim().isInt({ min: 1, max: 100000 }).escape(),
+    body("preRegTicketPrice", "preRegTicketPrice must be between 1-1000").trim().isInt({ min: 1, max: 1000 }).escape(),
+    body("gateTicketPrice", "gateTicketPrice must be between 1-1000").trim().isInt({ min: 1, max: 1000 }).escape(),
+    body("bundlePrice", "bundlePrice must be between 1-1000").trim().isInt({ min: 1, max: 1000 }).escape(),
 
     controllerUtils.verifyJWT,
     controllerUtils.validateForm,
@@ -620,6 +630,8 @@ exports.trackday_put = [
                 walkons: oldTrackday.walkons,
                 status: req.body.status,
                 layout: req.body.layout,
+                costs: [{desc: 'rentalCost', type: 'fixed', amount: req.body.rentalCost}],
+                ticketPrice: {preReg: req.body.preRegTicketPrice, gate: req.body.gateTicketPrice, bundle: req.body.bundlePrice},
                 _id: req.params.trackdayID
             })
             await Trackday.findByIdAndUpdate(req.params.trackdayID, trackday, {});
