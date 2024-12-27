@@ -145,7 +145,7 @@ async function loginUser(user, expectedResponseCode) {
 }
 
 async function addTrackday(date, adminCookie) {
-	const res = await request(app).post("/trackdays").set('Cookie', adminCookie).type("form").send({ 'date': date }).expect(201)
+	const res = await request(app).post("/trackdays").set('Cookie', adminCookie).type("form").send({ 'date': date, rentalCost: 1500, preRegTicketPrice: 170, gateTicketPrice: 190, bundlePrice: 150 }).expect(201)
 	return res;
 }
 

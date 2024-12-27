@@ -174,7 +174,7 @@ async function loginUser(userInfo) {
 }
 
 async function addTrackday(date) {
-	const res = await request(app).post("/trackdays").set('Cookie', adminCookie).type("form").send({ 'date': date }).expect(201)
+	const res = await request(app).post("/trackdays").set('Cookie', adminCookie).type("form").send({ 'date': date, rentalCost: 1500, preRegTicketPrice: 170, gateTicketPrice: 190, bundlePrice: 150 }).expect(201)
 	return res;
 }
 
@@ -259,7 +259,7 @@ describe('Testing trackday create', () => {
 		await request(app)
 			.post("/trackdays")
 			.set('Cookie', user1Cookie)
-			.type("form").send({ 'date': getFormattedDate(10) })
+			.type("form").send({ 'date': getFormattedDate(10), rentalCost: 1500, preRegTicketPrice: 170, gateTicketPrice: 190, bundlePrice: 150 })
 			.expect(403)
 	});
 
@@ -267,12 +267,12 @@ describe('Testing trackday create', () => {
 		await request(app)
 			.post("/trackdays")
 			.set('Cookie', adminCookie)
-			.type("form").send({ 'date': '2500-06-05T14:00Z' })
+			.type("form").send({ 'date': '2500-06-05T14:00Z', rentalCost: 1500, preRegTicketPrice: 170, gateTicketPrice: 190, bundlePrice: 150 })
 			.expect(201)
 		await request(app)
 			.post("/trackdays")
 			.set('Cookie', adminCookie)
-			.type("form").send({ 'date': '2500-07-07T14:00Z' })
+			.type("form").send({ 'date': '2500-07-07T14:00Z', rentalCost: 1500, preRegTicketPrice: 170, gateTicketPrice: 190, bundlePrice: 150 })
 			.expect(201)
 	});
 
@@ -280,12 +280,12 @@ describe('Testing trackday create', () => {
 		await request(app)
 			.post("/trackdays")
 			.set('Cookie', adminCookie)
-			.type("form").send({ 'date': '2500-06-05T14:00Z' })
+			.type("form").send({ 'date': '2500-06-05T14:00Z', rentalCost: 1500, preRegTicketPrice: 170, gateTicketPrice: 190, bundlePrice: 150 })
 			.expect(201)
 		await request(app)
 			.post("/trackdays")
 			.set('Cookie', adminCookie)
-			.type("form").send({ 'date': '2500-06-05T14:00Z' })
+			.type("form").send({ 'date': '2500-06-05T14:00Z', rentalCost: 1500, preRegTicketPrice: 170, gateTicketPrice: 190, bundlePrice: 150 })
 			.expect(409, { msg: ['Trackday with this date and time already exists'] })
 	});
 
@@ -293,7 +293,7 @@ describe('Testing trackday create', () => {
 		await request(app)
 			.post("/trackdays")
 			.set('Cookie', adminCookie)
-			.type("form").send({ 'date': getFormattedDate(10) })
+			.type('form').send({ 'date': getFormattedDate(10), rentalCost: 1500, preRegTicketPrice: 170, gateTicketPrice: 190, bundlePrice: 150 })
 			.expect(201)
 	});
 })
@@ -341,6 +341,7 @@ describe('Testing trackday read', () => {
 
 	test("get specific trackday from DB", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
+		const fetchedDate = await request(app).get('/trackdays/' + trackday.body.id).set('Cookie', adminCookie)
 		await request(app)
 			.get('/trackdays/' + trackday.body.id)
 			.set('Cookie', adminCookie)
@@ -351,11 +352,21 @@ describe('Testing trackday read', () => {
 				walkons: [],
 				status: 'regOpen',
 				layout: 'tbd',
-				guests: 0
+				guests: 0,
+				costs: [
+					{
+						desc: 'rentalCost',
+						type: 'fixed',
+						amount: 1500,
+						_id: fetchedDate.body.costs[0]._id
+					}
+				],
+				ticketPrice: { preReg: 170, gate: 190, bundle: 150 }
 			})
 	});
 	test("get all trackdays from DB", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
+		const fetchedDate = await request(app).get('/trackdays/' + trackday.body.id).set('Cookie', adminCookie)
 		await request(app)
 			.get('/trackdays')
 			.set('Cookie', adminCookie)
@@ -366,7 +377,16 @@ describe('Testing trackday read', () => {
 				walkons: [],
 				status: 'regOpen',
 				layout: 'tbd',
-				guests: 0
+				guests: 0,
+				costs: [
+					{
+						desc: 'rentalCost',
+						type: 'fixed',
+						amount: 1500,
+						_id: fetchedDate.body.costs[0]._id
+					}
+				],
+				ticketPrice: { preReg: 170, gate: 190, bundle: 150 }
 			}])
 	});
 })
@@ -377,7 +397,7 @@ describe('Testing trackday update', () => {
 		await request(app)
 			.put('/trackdays/invalid')
 			.set('Cookie', adminCookie)
-			.type('form').send({ date: getFormattedDate(10), guests: 0, status: 'regOpen', layout: 'technical' })
+			.type('form').send({ date: getFormattedDate(10), guests: 0, status: 'regOpen', layout: 'technical', rentalCost: 2000, preRegTicketPrice: 180, gateTicketPrice: 200, bundlePrice: 160 })
 			.expect(400, { msg: ['trackdayID is not a valid ObjectID'] })
 	});
 	test("update invalid trackdayID trackday", async () => {
@@ -385,7 +405,7 @@ describe('Testing trackday update', () => {
 		await request(app)
 			.put('/trackdays/' + '1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1')
 			.set('Cookie', adminCookie)
-			.type('form').send({ date: getFormattedDate(10), guests: 0, status: 'regOpen', layout: 'technical' })
+			.type('form').send({ date: getFormattedDate(10), guests: 0, status: 'regOpen', layout: 'technical', rentalCost: 2000, preRegTicketPrice: 180, gateTicketPrice: 200, bundlePrice: 160 })
 			.expect(404, { msg: ['Trackday does not exist'] })
 	});
 
@@ -426,7 +446,7 @@ describe('Testing trackday update', () => {
 		await request(app)
 			.put('/trackdays/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
-			.type('form').send({ date: getFormattedDate(10), guests: 5, status: 'regClosed', layout: 'technical' })
+			.type('form').send({ date: getFormattedDate(10), guests: 5, status: 'regClosed', layout: 'technical', rentalCost: 2000, preRegTicketPrice: 180, gateTicketPrice: 200, bundlePrice: 160 })
 			.expect(403)
 	});
 
@@ -438,31 +458,44 @@ describe('Testing trackday update', () => {
 		await request(app)
 			.put('/trackdays/' + trackday1.body.id)
 			.set('Cookie', adminCookie)
-			.type('form').send({ date: '2500-07-07T14:00Z', guests: 6, status: 'regClosed', layout: 'technical' })
+			.type('form').send({ date: '2500-07-07T14:00Z', guests: 6, status: 'regClosed', layout: 'technical', rentalCost: 2000, preRegTicketPrice: 180, gateTicketPrice: 200, bundlePrice: 160 })
 			.expect(409)
 	});
 
 	test("update trackday", async () => {
 		// Create trackday
-		const trackday = await addTrackday(getFormattedDate(10))
+		const trackday = await addTrackday(getFormattedDate(10));
+
 		// Update it
 		await request(app)
 			.put('/trackdays/' + trackday.body.id)
 			.set('Cookie', adminCookie)
-			.type('form').send({ date: getFormattedDate(15), status: 'regClosed', layout: 'technical' })
+			.type('form').send({ date: getFormattedDate(15), status: 'regClosed', layout: 'technical', rentalCost: 2000, preRegTicketPrice: 180, gateTicketPrice: 200, bundlePrice: 160 })
 			.expect(201)
 
 		// Check the updates were successful
+		const fetchedDate = await request(app).get('/trackdays/' + trackday.body.id).set('Cookie', adminCookie)
 		await request(app)
 			.get('/trackdays/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.expect(200, {
+				ticketPrice: { preReg: 180, gate: 200, bundle: 160 },
 				_id: trackday.body.id,
 				date: getFormattedDate(15).slice(0, getFormattedDate(15).length - 1) + ':00.000Z',
 				members: [],
 				walkons: [],
 				status: 'regClosed',
 				layout: 'technical',
+
+
+				costs: [
+					{
+						desc: 'rentalCost',
+						type: 'fixed',
+						amount: 2000,
+						_id: fetchedDate.body.costs[0]._id
+					}
+				],
 				guests: 0
 			})
 	});
@@ -640,7 +673,7 @@ describe('Testing registering', () => {
 		await request(app)
 			.put('/trackdays/' + trackday.body.id)
 			.set('Cookie', adminCookie)
-			.type('form').send({ date: getFormattedDate(10), guests: 5, status: 'regClosed', layout: 'technical' })
+			.type('form').send({ date: getFormattedDate(10), guests: 5, status: 'regClosed', layout: 'technical', rentalCost: 2000, preRegTicketPrice: 180, gateTicketPrice: 200, bundlePrice: 160 })
 			.expect(201)
 
 		// Register as user
@@ -1327,6 +1360,8 @@ describe('Testing un-registering', () => {
 
 
 		// Make sure trackday doesn't have any guests
+		const fetchedDate = await request(app).get('/trackdays/' + trackday.body.id).set('Cookie', adminCookie)
+
 		await request(app)
 			.get('/trackdays/' + trackday.body.id)
 			.set('Cookie', adminCookie)
@@ -1337,7 +1372,16 @@ describe('Testing un-registering', () => {
 				walkons: [],
 				guests: 0,
 				status: 'regOpen',
-				layout: 'tbd'
+				layout: 'tbd',
+				costs: [
+					{
+						desc: 'rentalCost',
+						type: 'fixed',
+						amount: 1500,
+						_id: fetchedDate.body.costs[0]._id
+					}
+				],
+				ticketPrice: { preReg: 170, gate: 190, bundle: 150 }
 			})
 
 	});
@@ -1568,7 +1612,7 @@ describe('Testing rescheduling', () => {
 		await request(app)
 			.put('/trackdays/' + trackday2.body.id)
 			.set('Cookie', adminCookie)
-			.type('form').send({ date: getFormattedDate(10), guests: 5, status: 'regClosed', layout: 'technical' })
+			.type('form').send({ date: getFormattedDate(10), guests: 5, status: 'regClosed', layout: 'technical', rentalCost: 2000, preRegTicketPrice: 180, gateTicketPrice: 200, bundlePrice: 160 })
 			.expect(201)
 
 		// As user
