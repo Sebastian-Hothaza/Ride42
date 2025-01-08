@@ -163,6 +163,7 @@ const ManageUsers = ({ APIServer, fetchAPIData, allUsers }) => {
                             <label htmlFor="memberType">Member Type:</label>
                             <select name="memberType" id="memberType" disabled={lockedUserInfo} value={user.memberType} onChange={(e) => setUser({ ...user, memberType: e.target.value })} required>
                                 <option key="regular" value="regular">Regular</option>
+                                <option key="coach" value="coach">Coach</option>
                                 <option key="staff" value="staff">Staff</option>
                                 <option key="admin" value="admin">Admin</option>
                             </select>
