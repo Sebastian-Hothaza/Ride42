@@ -65,5 +65,7 @@ router.get('/trackdays', trackdayController.trackday_getALL)
 router.post('/trackdays', trackdayController.trackday_post)
 router.put('/trackdays/:trackdayID', trackdayController.trackday_put)
 router.delete('/trackdays/:trackdayID', trackdayController.trackday_delete)
+router.post('/costs/:trackdayID', trackdayController.addCost)
+router.delete('/costs/:trackdayID/:costID', trackdayController.removeCost)
 
 module.exports = router;

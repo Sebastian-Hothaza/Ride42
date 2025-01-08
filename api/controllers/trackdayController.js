@@ -530,6 +530,58 @@ exports.updatePaid = [
     })
 ]
 
+// Adds a cost to a trackday
+exports.addCost = [
+    body("desc", "Description must contain 2-50 characters").trim().isLength({ min: 2, max: 50 }).escape(),
+    body("type", "Type must be one of: [fixed, variable]").trim().isIn(["fixed", "variable"]).escape(),
+    body("amount", "Must provide cost between -100000 to 100000").trim().isInt({ min: -100000, max: 100000 }).escape(),
+
+    controllerUtils.verifyJWT,
+    controllerUtils.validateForm,
+    controllerUtils.validateTrackdayID,
+
+    asyncHandler(async (req, res, next) => {
+        if (req.user.memberType === 'admin') {
+            const trackday = await Trackday.findById(req.params.trackdayID).exec();
+
+            // Check we dont already have a cost object with same description
+            if (trackday.costs.some((costObject)=> costObject.desc == req.body.desc)) return res.status(409).send({ msg: ['Cost object with this description already exists'] }); 
+
+            trackday.costs.push({
+                desc: req.body.desc,
+                type: req.body.type,
+                amount: req.body.amount
+            })
+            await trackday.save();
+            return res.sendStatus(201);
+        }
+        return res.sendStatus(403)
+    })
+]
+
+// Removes a cost from a trackday
+exports.removeCost = [
+  
+    controllerUtils.verifyJWT,
+    controllerUtils.validateTrackdayID,
+
+    asyncHandler(async (req, res, next) => {
+        if (req.user.memberType === 'admin') {
+            const trackday = await Trackday.findById(req.params.trackdayID).exec();
+
+            // Check cost object exists
+            if (!trackday.costs.some((costObject)=> costObject.id == req.params.costID)) return res.status(409).send({ msg: ['Cost object not found'] }); 
+
+            // Remove cost object
+            trackday.costs = trackday.costs.filter((costObject)=> costObject.id != req.params.costID)
+            await trackday.save();
+            
+            return res.sendStatus(200);
+        }
+        return res.sendStatus(403)
+    })
+]
+
 //////////////////////////////////////
 //              CRUD
 //////////////////////////////////////
@@ -585,8 +637,8 @@ exports.trackday_post = [
                 walkons: [],
                 status: 'regOpen',
                 layout: 'tbd',
-                costs: [{desc: 'rentalCost', type: 'fixed', amount: req.body.rentalCost}],
-                ticketPrice: {preReg: req.body.preRegTicketPrice, gate: req.body.gateTicketPrice, bundle: req.body.bundlePrice}
+                costs: [{ desc: 'rentalCost', type: 'fixed', amount: req.body.rentalCost }],
+                ticketPrice: { preReg: req.body.preRegTicketPrice, gate: req.body.gateTicketPrice, bundle: req.body.bundlePrice }
             })
             await trackday.save();
             logger.info({ message: "trackday created: " + trackday.id });
@@ -630,8 +682,8 @@ exports.trackday_put = [
                 walkons: oldTrackday.walkons,
                 status: req.body.status,
                 layout: req.body.layout,
-                costs: [{desc: 'rentalCost', type: 'fixed', amount: req.body.rentalCost}],
-                ticketPrice: {preReg: req.body.preRegTicketPrice, gate: req.body.gateTicketPrice, bundle: req.body.bundlePrice},
+                costs: [{ desc: 'rentalCost', type: 'fixed', amount: req.body.rentalCost }],
+                ticketPrice: { preReg: req.body.preRegTicketPrice, gate: req.body.gateTicketPrice, bundle: req.body.bundlePrice },
                 _id: req.params.trackdayID
             })
             await Trackday.findByIdAndUpdate(req.params.trackdayID, trackday, {});
