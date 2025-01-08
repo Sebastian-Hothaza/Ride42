@@ -3249,3 +3249,179 @@ describe('Testing updatePaid', () => {
 			}])
 	});
 })
+
+describe('Testing adding costs to trackday', () => {
+
+	test("invalid objectID trackday", async () => {
+		await request(app)
+			.post('/costs/invalid/')
+			.type('form').send({ desc: 'photographer', type: 'fixed', amount: 150 })
+			.set('Cookie', adminCookie)
+			.expect(400, { msg: ['trackdayID is not a valid ObjectID'] })
+	});
+	test("invalid trackdayID trackday", async () => {
+
+		const trackday = await addTrackday(getFormattedDate(10))
+		await request(app)
+			.post('/costs/' + '1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1')
+			.type('form').send({ desc: 'photographer', type: 'fixed', amount: 150 })
+			.set('Cookie', adminCookie)
+			.expect(404, { msg: ['Trackday does not exist'] })
+	});
+
+	test("missing fields", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		await request(app)
+			.post('/costs/' + trackday.body.id)
+			.set('Cookie', adminCookie)
+			.type('form').send({})
+			.expect(400)
+	});
+	test(" malformed fields", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		await request(app)
+			.post('/costs/' + trackday.body.id)
+			.set('Cookie', adminCookie)
+			.type('form').send({ desc: 'photographer', type: 'fixeda', amount: 150 })
+			.expect(400)
+	});
+
+	test("no JWT", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+		await request(app)
+			.post('/costs/' + trackday.body.id)
+			.expect(401)
+	});
+	test("not authorized", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		await request(app)
+			.post('/costs/' + trackday.body.id)
+			.type('form').send({ desc: 'photographer', type: 'fixed', amount: 150 })
+			.set('Cookie', user1Cookie)
+			.expect(403)
+	});
+
+	test('add cost to trackday - duplicate description', async () => {
+		// Create the trackday
+		const trackday = await addTrackday('2500-06-05T14:00Z', adminCookie)
+		// Add to cost
+		await request(app)
+			.post('/costs/' + trackday.body.id)
+			.type('form').send({ desc: 'photographer', type: 'fixed', amount: 150 })
+			.set('Cookie', adminCookie)
+			.expect(201)
+
+		// Add to cost duplicate
+		await request(app)
+			.post('/costs/' + trackday.body.id)
+			.type('form').send({ desc: 'photographer', type: 'fixed', amount: 200 })
+			.set('Cookie', adminCookie)
+			.expect(409)
+	});
+
+	test('add cost to trackday', async () => {
+		// Create the trackday
+		const trackday = await addTrackday('2500-06-05T14:00Z', adminCookie)
+		// Add to cost
+		await request(app)
+			.post('/costs/' + trackday.body.id)
+			.type('form').send({ desc: 'photographer', type: 'fixed', amount: 150 })
+			.set('Cookie', adminCookie)
+			.expect(201)
+		
+
+		// Verify correctness
+		const fetchedDate = await request(app).get('/trackdays/' + trackday.body.id).set('Cookie', adminCookie)
+		await request(app)
+			.get('/trackdays/' + trackday.body.id)
+			.set('Cookie', adminCookie)
+			.expect(200, {
+				_id: trackday.body.id,
+				date: '2500-06-05T14:00:00.000Z',
+				members: [],
+				walkons: [],
+				status: 'regOpen',
+				layout: 'tbd',
+				guests: 0,
+				costs: [
+					{
+						desc: 'rentalCost',
+						type: 'fixed',
+						amount: 1500,
+						_id: fetchedDate.body.costs[0]._id
+					},
+					{
+						desc: 'photographer',
+						type: 'fixed',
+						amount: 150,
+						_id: fetchedDate.body.costs[1]._id
+					}
+				],
+				ticketPrice: { preReg: 170, gate: 190, bundle: 150 }
+			})
+	});
+})
+
+describe('Removing costs from trackday', () => {
+	test("invalid objectID trackday", async () => {
+		await request(app)
+			.delete('/costs/invalid/someCostID')
+			.set('Cookie', adminCookie)
+			.expect(400, { msg: ['trackdayID is not a valid ObjectID'] })
+	});
+	test("invalid trackdayID trackday", async () => {
+
+		const trackday = await addTrackday(getFormattedDate(10))
+		await request(app)
+			.delete('/costs/' + '1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1' + '/someCostID')
+			.set('Cookie', adminCookie)
+			.expect(404, { msg: ['Trackday does not exist'] })
+	});
+
+
+	test("no JWT", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+		await request(app)
+			.delete('/costs/' + trackday.body.id + '/someCostID')
+			.expect(401)
+	});
+	test("not authorized", async () => {
+		const trackday = await addTrackday(getFormattedDate(10))
+
+		await request(app)
+			.delete('/costs/' + trackday.body.id + '/someCostID')
+			.set('Cookie', user1Cookie)
+			.expect(403)
+	});
+
+	test('remove cost from trackday - does not exist', async () => {
+		// Create the trackday
+		const trackday = await addTrackday('2500-06-05T14:00Z', adminCookie)
+
+		// Remove non-existant 
+		await request(app)
+			.delete('/costs/' + trackday.body.id + '/foobar')
+			.set('Cookie', adminCookie)
+			.expect(409)
+	});
+
+	test('remove cost from trackday', async () => {
+		// Create the trackday
+		const trackday = await addTrackday('2500-06-05T14:00Z', adminCookie)
+		// Add to cost
+		await request(app)
+			.post('/costs/' + trackday.body.id)
+			.type('form').send({ desc: 'photographer', type: 'fixed', amount: 150 })
+			.set('Cookie', adminCookie)
+			.expect(201)
+
+		const fetchedDate = await request(app).get('/trackdays/' + trackday.body.id).set('Cookie', adminCookie)
+		await request(app)
+			.delete('/costs/' + trackday.body.id + '/' + fetchedDate.body.costs[0]._id)
+			.set('Cookie', adminCookie)
+			.expect(200)
+	});
+})
