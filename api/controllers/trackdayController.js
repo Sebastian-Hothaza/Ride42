@@ -637,7 +637,7 @@ exports.trackday_post = [
                 walkons: [],
                 status: 'regOpen',
                 layout: 'tbd',
-                costs: [{ desc: 'rentalCost', type: 'fixed', amount: req.body.rentalCost }],
+                costs: [{ desc: 'trackRental', type: 'fixed', amount: req.body.rentalCost }],
                 ticketPrice: { preReg: req.body.preRegTicketPrice, gate: req.body.gateTicketPrice, bundle: req.body.bundlePrice }
             })
             await trackday.save();
@@ -682,7 +682,7 @@ exports.trackday_put = [
                 walkons: oldTrackday.walkons,
                 status: req.body.status,
                 layout: req.body.layout,
-                costs: [{ desc: 'rentalCost', type: 'fixed', amount: req.body.rentalCost }],
+                costs: [{ desc: 'trackRental', type: 'fixed', amount: req.body.rentalCost }],
                 ticketPrice: { preReg: req.body.preRegTicketPrice, gate: req.body.gateTicketPrice, bundle: req.body.bundlePrice },
                 _id: req.params.trackdayID
             })

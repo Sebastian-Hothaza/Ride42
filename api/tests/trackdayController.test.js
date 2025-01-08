@@ -355,7 +355,7 @@ describe('Testing trackday read', () => {
 				guests: 0,
 				costs: [
 					{
-						desc: 'rentalCost',
+						desc: 'trackRental',
 						type: 'fixed',
 						amount: 1500,
 						_id: fetchedDate.body.costs[0]._id
@@ -380,7 +380,7 @@ describe('Testing trackday read', () => {
 				guests: 0,
 				costs: [
 					{
-						desc: 'rentalCost',
+						desc: 'trackRental',
 						type: 'fixed',
 						amount: 1500,
 						_id: fetchedDate.body.costs[0]._id
@@ -490,7 +490,7 @@ describe('Testing trackday update', () => {
 
 				costs: [
 					{
-						desc: 'rentalCost',
+						desc: 'trackRental',
 						type: 'fixed',
 						amount: 2000,
 						_id: fetchedDate.body.costs[0]._id
@@ -1375,7 +1375,7 @@ describe('Testing un-registering', () => {
 				layout: 'tbd',
 				costs: [
 					{
-						desc: 'rentalCost',
+						desc: 'trackRental',
 						type: 'fixed',
 						amount: 1500,
 						_id: fetchedDate.body.costs[0]._id
@@ -3348,7 +3348,7 @@ describe('Testing adding costs to trackday', () => {
 				guests: 0,
 				costs: [
 					{
-						desc: 'rentalCost',
+						desc: 'trackRental',
 						type: 'fixed',
 						amount: 1500,
 						_id: fetchedDate.body.costs[0]._id
