@@ -255,7 +255,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 									<button className='actionButton' onClick={() => setActiveModal({ type: 'register', trackday: trackday })}>Add User</button>
 									<button className='actionButton' onClick={() => setActiveModal({ type: 'unregister', trackday: trackday })}>Remove User</button>
 									<button className='actionButton' onClick={() => {
-										setAdditionalCosts(trackday.costs.filter((costObject)=>costObject.desc != 'rentalCost'));
+										setAdditionalCosts(trackday.costs.filter((costObject)=>costObject.desc != 'trackRental'));
 										setActiveModal({ type: 'editDetails', trackday: trackday })
 									}}>Edit</button>
 									<button className='actionButton' onClick={() => alert('not yet implemented; extreme caution needed as currently may break back end')}>Delete</button>
@@ -370,7 +370,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 						</div>
 
 						<label htmlFor="rentalCost">Rental Cost</label>
-						<input type='number' id="rentalCost" name="rentalCost" defaultValue={activeModal.trackday && activeModal.trackday.costs.find((cost) => cost.desc == 'rentalCost').amount} required></input>
+						<input type='number' id="rentalCost" name="rentalCost" defaultValue={activeModal.trackday && activeModal.trackday.costs.find((cost) => cost.desc == 'trackRental').amount} required></input>
 
 
 
