@@ -58,6 +58,10 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 **Dump DB logs:** Submit a `GET` request to `/logs`. 
 
+**Add a cost to a trackday:** Submit a `POST` request to `'/costs/:trackdayID'`.
+
+**Remove a cost from a trackday:** Submit a `DELETE` request to `'/costs/:trackdayID/:costID'`
+
 
 
 ### Create
