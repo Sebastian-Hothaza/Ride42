@@ -668,7 +668,7 @@ exports.trackday_put = [
     asyncHandler(async (req, res, next) => {
 
         if (req.user.memberType === 'admin') {
-            const oldTrackday = await Trackday.findById(req.params.trackdayID).select('date members walkons').exec();
+            const oldTrackday = await Trackday.findById(req.params.trackdayID).select('date members walkons costs').exec();
 
             // Check for duplicates
             const duplicateTrackday = await Trackday.findOne({ date: { $eq: req.body.date } })
@@ -682,7 +682,7 @@ exports.trackday_put = [
                 walkons: oldTrackday.walkons,
                 status: req.body.status,
                 layout: req.body.layout,
-                costs: [{ desc: 'trackRental', type: 'fixed', amount: req.body.rentalCost }],
+                costs: oldTrackday.costs.filter((costObject)=>costObject.desc != 'trackRental').concat([{ desc: 'trackRental', type: 'fixed', amount: req.body.rentalCost }]),
                 ticketPrice: { preReg: req.body.preRegTicketPrice, gate: req.body.gateTicketPrice, bundle: req.body.bundlePrice },
                 _id: req.params.trackdayID
             })
