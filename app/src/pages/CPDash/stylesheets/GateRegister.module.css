@@ -1,9 +1,18 @@
 .content {
     display: flex;
-    flex-direction: column;
-    gap: 2rem;
+    flex-wrap: wrap;
+    gap: 2rem 5rem;
     font-size: 1.25rem;
+}
 
+.content h1 {
+    display: flex;
+    width: 100%;
+}
+
+.content h1 select {
+    font-size: inherit;
+    border: none;
 }
 
 .content form {
@@ -37,4 +46,18 @@
     background-color: var(--accent-color) !important;
     font-weight: bold !important;
     white-space: nowrap;
+}
+
+@media (max-width: 750px) {
+    .content h1 {
+        text-align: center;
+        flex-direction: column;
+        align-items: center;
+        font-size: 1.5rem;
+    }
+
+    .content h1 select {
+        font-size: 1.25rem;
+        text-align: center;
+    }
 }
