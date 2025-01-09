@@ -407,7 +407,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 					<form className={styles.createCost} onSubmit={(e) => handleaAddCost(e, activeModal.trackday._id)}>
 
 						<label htmlFor="desc">Description</label>
-						<input type='text' id="desc" name="desc" required></input>
+						<input type='text' autoComplete='off' id="desc" name="desc" required></input>
 
 						<label htmlFor="type">Cost Type</label>
 						<select name="type" id="type" required>
@@ -416,7 +416,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 						</select>
 
 						<label htmlFor="amount">Amount</label>
-						<input type='number' id="amount" name="amount" required></input>
+						<input type='number' step='0.01' autoComplete='off' id="amount" name="amount" required></input>
 
 						<button className={`actionButton ${styles.confirmBtn}`} type="submit">Add new cost</button>
 
