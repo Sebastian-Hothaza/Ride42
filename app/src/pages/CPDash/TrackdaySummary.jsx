@@ -9,16 +9,11 @@ import styles from './stylesheets/TrackdaySummary.module.css'
 const TrackdaySummary = ({ allUsers, allTrackdaysFULL }) => {
 
 	const [selectedTrackdayId, setSelectedTrackdayId] = useState(''); // Tracks what the current working trackdayId is 
+	const currentYear = new Date().getFullYear();
+	const [selectedYear, setSelectedYear] = useState(currentYear);
 
 	let selectedTrackday;
-
-	if (!allUsers || !allTrackdaysFULL) {
-		return null;
-	} else {
-		allUsers.sort((a, b) => (a.firstName > b.firstName) ? 1 : ((b.firstName > a.firstName) ? -1 : 0))
-		//allTrackdaysFULL = allTrackdaysFULL.filter(trackday => trackday.status != "archived"); // exclude archived trackdays
-		allTrackdaysFULL.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
-	}
+	let years = [];
 
 	// Augment prettydate of allTrackdays to be a nice format
 	allTrackdaysFULL.forEach((trackday) => {
@@ -27,8 +22,24 @@ const TrackdaySummary = ({ allUsers, allTrackdaysFULL }) => {
 		const month = date.toLocaleString('default', { month: 'long' })
 		const numericDay = date.toLocaleString('default', { day: 'numeric' })
 		const formattedDate = weekday + ' ' + month + ' ' + numericDay;
+		if (!years.includes(date.getFullYear())) years.push(date.getFullYear()) // Add year to years array
 		trackday.prettyDate = formattedDate;
 	})
+
+
+	if (!allUsers || !allTrackdaysFULL) {
+		return null;
+	} else {
+		allUsers.sort((a, b) => (a.firstName > b.firstName) ? 1 : ((b.firstName > a.firstName) ? -1 : 0))
+		// Only show trackdays for currently selected year
+		allTrackdaysFULL = allTrackdaysFULL.filter(trackday => {
+			const candidateTrackdayYear = new Date(trackday.date).getFullYear();
+			return candidateTrackdayYear == selectedYear;
+		});
+		allTrackdaysFULL.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
+	}
+
+
 
 
 	// Set the selected trackday and sort its members array. Augment object to include values for display
@@ -61,7 +72,7 @@ const TrackdaySummary = ({ allUsers, allTrackdaysFULL }) => {
 
 		// Add additional expenses
 		selectedTrackday.costs.filter((costObject) => costObject.amount > 0).map((costObject) => {
-			if (costObject.desc == 'BBQ'){
+			if (costObject.desc == 'BBQ') {
 				selectedTrackday.totalExpense += Math.round(costObject.amount * selectedTrackday.guests);
 			} else if (costObject.type == 'fixed') {
 				selectedTrackday.totalExpense += costObject.amount;
@@ -92,8 +103,16 @@ const TrackdaySummary = ({ allUsers, allTrackdaysFULL }) => {
 
 	return (
 		<>
+			<ScrollToTop />
 			<div className={styles.content}>
-				<h1>Trackday Summary-
+				<h1>Trackday Summary:
+					<form>
+						<div className={styles.inputPairing}>
+							<select name="yearSelect" id="yearSelect" defaultValue={selectedYear} onChange={() => { setSelectedTrackdayId(''); setSelectedYear(yearSelect.value) }} required>
+								{years.map((year) => <option value={year} key={year}>{year}</option>)}
+							</select>
+						</div>
+					</form>
 					<form>
 						<div className={styles.inputPairing}>
 							<select name="trackday" id="trackday" onChange={() => setSelectedTrackdayId(trackday.value)} required>

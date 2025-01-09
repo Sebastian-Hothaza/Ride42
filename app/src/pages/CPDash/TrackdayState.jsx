@@ -11,20 +11,15 @@ import errormark from './../../assets/error.png'
 const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL }) => {
 
 	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
+	const currentYear = new Date().getFullYear();
+	const [selectedYear, setSelectedYear] = useState(currentYear);
 	const [selectedTrackdayId, setSelectedTrackdayId] = useState(''); // Tracks what the current working trackdayId is 
 
 	let preRegistrations = 0;
 	let gateRegistrations = 0;
 	let selectedTrackday;
 	let trackdayRegNumbers;
-
-	if (!allUsers || !allTrackdaysFULL) {
-		return null;
-	} else {
-		allUsers.sort((a, b) => (a.firstName > b.firstName) ? 1 : ((b.firstName > a.firstName) ? -1 : 0))
-		//allTrackdaysFULL = allTrackdaysFULL.filter(trackday => trackday.status != "archived"); // exclude archived trackdays
-		allTrackdaysFULL.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
-	}
+	let years = [];
 
 	// Augment prettydate of allTrackdaysFULL to be a nice format
 	allTrackdaysFULL.forEach((trackday) => {
@@ -33,8 +28,24 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 		const month = date.toLocaleString('default', { month: 'long' })
 		const numericDay = date.toLocaleString('default', { day: 'numeric' })
 		const formattedDate = weekday + ' ' + month + ' ' + numericDay;
+		if (!years.includes(date.getFullYear())) years.push(date.getFullYear()) // Add year to years array
 		trackday.prettyDate = formattedDate;
 	})
+
+
+	if (!allUsers || !allTrackdaysFULL) {
+		return null;
+	} else {
+		allUsers.sort((a, b) => (a.firstName > b.firstName) ? 1 : ((b.firstName > a.firstName) ? -1 : 0))
+
+		// Only show trackdays for currently selected year
+		allTrackdaysFULL = allTrackdaysFULL.filter(trackday => {
+			const candidateTrackdayYear = new Date(trackday.date).getFullYear();
+			return candidateTrackdayYear == selectedYear;
+		}); 
+		allTrackdaysFULL.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
+	}
+
 
 
 	// Set the selected trackday and sort its members array
@@ -62,7 +73,14 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 		<>
 			<ScrollToTop />
 			<div className={styles.content}>
-				<h1>Trackday State-
+				<h1>Trackday State:
+					<form>
+						<div className={styles.inputPairing}>
+							<select name="yearSelect" id="yearSelect" defaultValue={selectedYear} onChange={() => {setSelectedTrackdayId(''); setSelectedYear(yearSelect.value)}} required>
+								{years.map((year) => <option value={year} key={year}>{year}</option>)}
+							</select>
+						</div>
+					</form>
 					<form>
 						<div className={styles.inputPairing}>
 							<select name="trackday" id="trackday" onChange={() => setSelectedTrackdayId(trackday.value)} required>
