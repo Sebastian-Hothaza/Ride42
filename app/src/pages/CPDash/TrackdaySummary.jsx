@@ -62,7 +62,7 @@ const TrackdaySummary = ({ allUsers, allTrackdaysFULL }) => {
 		// Add additional expenses
 		selectedTrackday.costs.filter((costObject) => costObject.amount > 0).map((costObject) => {
 			if (costObject.desc == 'BBQ'){
-				selectedTrackday.totalExpense += costObject.amount * selectedTrackday.guests;
+				selectedTrackday.totalExpense += Math.round(costObject.amount * selectedTrackday.guests);
 			} else if (costObject.type == 'fixed') {
 				selectedTrackday.totalExpense += costObject.amount;
 			} else {
@@ -147,7 +147,7 @@ const TrackdaySummary = ({ allUsers, allTrackdaysFULL }) => {
 										costObject.type == 'variable' ? <div >${costObject.amount} x {selectedTrackday.members.length + selectedTrackday.walkons.length}</div> : <div ></div>
 									}
 
-									{costObject.desc == 'BBQ' ? <div>${costObject.amount * selectedTrackday.guests}</div> :
+									{costObject.desc == 'BBQ' ? <div>${Math.round(costObject.amount * selectedTrackday.guests)}</div> :
 										costObject.type == 'variable' ? <div >${costObject.amount * (selectedTrackday.members.length + selectedTrackday.walkons.length)}</div> : <div>${costObject.amount}</div>
 									}
 
