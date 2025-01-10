@@ -15,10 +15,30 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 
 	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
 	const [additionalCosts, setAdditionalCosts] = useState([]); // Tracks what additional costs are which are displayed in modal, array of cost objects
+	const currentYear = new Date().getFullYear();
+	const [selectedYear, setSelectedYear] = useState(currentYear);
+
+	let years = [];
+
+	// Modify date of allTrackdaysFULL to be a nice format
+	allTrackdaysFULL.forEach((trackday) => {
+		const date = new Date(trackday.date)
+		const weekday = date.toLocaleString('default', { weekday: 'short' })
+		const month = date.toLocaleString('default', { month: 'long' })
+		const numericDay = date.toLocaleString('default', { day: 'numeric' })
+		const formattedDate = weekday + ' ' + month + ' ' + numericDay;
+		if (!years.includes(date.getFullYear())) years.push(date.getFullYear()) // Add year to years array
+		trackday.prettyDate = formattedDate;
+	})
 
 	if (!allUsers || !allTrackdaysFULL) {
 		return null;
 	} else {
+		// Only show trackdays for currently selected year
+		allTrackdaysFULL = allTrackdaysFULL.filter(trackday => {
+			const candidateTrackdayYear = new Date(trackday.date).getFullYear();
+			return candidateTrackdayYear == selectedYear;
+		});
 		allUsers.sort((a, b) => (a.firstName > b.firstName) ? 1 : ((b.firstName > a.firstName) ? -1 : 0))
 		allTrackdaysFULL.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
 	}
@@ -29,15 +49,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 	}
 
 
-	// Modify date of allTrackdaysFULL to be a nice format
-	allTrackdaysFULL.forEach((trackday) => {
-		const date = new Date(trackday.date)
-		const weekday = date.toLocaleString('default', { weekday: 'short' })
-		const month = date.toLocaleString('default', { month: 'long' })
-		const numericDay = date.toLocaleString('default', { day: 'numeric' })
-		const formattedDate = weekday + ' ' + month + ' ' + numericDay;
-		trackday.prettyDate = formattedDate;
-	})
+
 
 
 	async function handleRegisterSubmit(e, userID, trackdayID, paymentMethod) {
@@ -172,7 +184,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 				headers: {
 					'Content-type': 'application/json; charset=UTF-8',
 				},
-			
+
 			})
 			await fetchAPIData();
 			if (response.ok) {
@@ -224,7 +236,15 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 		<>
 			<ScrollToTop />
 			<div className={styles.content}>
-				<h1>Manage Trackdays</h1>
+				<h1>Manage Trackdays:
+					<form>
+						<div className={styles.inputPairing}>
+							<select name="yearSelect" id="yearSelect" defaultValue={selectedYear} onChange={() => { setSelectedYear(yearSelect.value) }} required>
+								{years.map((year) => <option value={year} key={year}>{year}</option>)}
+							</select>
+						</div>
+					</form>
+				</h1>
 				<div>
 					{allTrackdaysFULL.map((trackday) => {
 						return (
@@ -233,19 +253,19 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 									<div>{trackday.prettyDate} ({trackday.layout}) - {trackday.status}</div>
 								</div>
 								<div className={styles.tdControls}>
-									<button className='actionButton' onClick={() => setActiveModal({ type: 'register', trackday: trackday })}>Add User</button>
-									<button className='actionButton' onClick={() => setActiveModal({ type: 'unregister', trackday: trackday })}>Remove User</button>
-									<button className='actionButton' onClick={() => {
-										setAdditionalCosts(trackday.costs.filter((costObject)=>costObject.desc != 'trackRental'));
+									<button className={styles.editBtn} style={{color: '#00ee00'}}  onClick={() => setActiveModal({ type: 'register', trackday: trackday })}><span className='material-symbols-outlined'>person_add</span></button>
+									<button className={styles.editBtn} style={{color: '#ee0000'}} onClick={() => setActiveModal({ type: 'unregister', trackday: trackday })}><span className='material-symbols-outlined'>person_remove</span></button>
+									<button className={styles.editBtn} style={{color: '#0099ff'}} onClick={() => {
+										setAdditionalCosts(trackday.costs.filter((costObject) => costObject.desc != 'trackRental'));
 										setActiveModal({ type: 'editDetails', trackday: trackday })
-									}}>Edit</button>
-									<button className='actionButton' onClick={() => alert('not yet implemented; extreme caution needed as currently may break back end')}>Delete</button>
+									}}><span className='material-symbols-outlined'>edit</span></button>
+									<button className={styles.editBtn} style={{backgroundColor: '#bb0000'}}  onClick={() => alert('not yet implemented; extreme caution needed as currently may break back end')}><span className='material-symbols-outlined'>delete</span></button>
 								</div>
 							</div>
 						)
 					})}
 				</div>
-				<button className={styles.createButton} onClick={() => setActiveModal({ type: 'createTrackday' })}>Create Trackday</button>
+				{selectedYear == currentYear && <button className={styles.createButton} onClick={() => setActiveModal({ type: 'createTrackday' })}>Create Trackday</button>}
 			</div>
 
 			<Loading open={activeModal.type === 'loading'}>

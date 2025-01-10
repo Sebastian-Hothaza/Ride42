@@ -2,8 +2,57 @@
     display: flex;
     flex-direction: column;
     gap: 2rem;
-    font-size: 1.25rem;
 }
+
+.content h1 {
+    display: flex;
+    gap: .5rem;
+}
+
+.content h1 select {
+    font-size: inherit;
+    border: none;
+}
+
+.tdEntry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: whitesmoke;
+    padding: .75rem .25rem;
+    gap: 1rem;
+}
+
+.tdEntry:nth-child(odd) {
+    background-color: lightgray;
+}
+
+.tdControls {
+    display: flex;
+    gap: 1rem;
+}
+
+.editBtn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+
+    border: none;
+    background-color: black;
+    border-radius: 25%;
+    padding: 8px;
+    color: white;
+}
+
+.createButton {
+    composes: actionButton from global;
+    margin: auto;
+    background-color: var(--accent-color);
+}
+
+/* MODAL STYLING */
+
 
 .content form {
     display: flex;
@@ -22,68 +71,31 @@
 }
 
 
-
-.tdEntry {
-    display: flex;
-
-    justify-content: space-between;
-    align-items: center;
-    background-color: whitesmoke;
-    padding: 1rem;
-    gap: 1rem;
-}
-
-
-.tdControls {
-    display: flex;
-    gap: 1rem;
-}
-
-.tdControls button {
-    font-size: inherit;
-    padding: .5rem 1rem;
-}
-
 .confirmBtn {
     background-color: var(--accent-color) !important;
     font-weight: bold !important;
 }
 
 
-.tdEntry:nth-child(odd) {
-    background-color: lightgray;
-}
-
-.createButton {
-    composes: actionButton from global;
-    margin: auto;
-    background-color: var(--accent-color);
-}
 
 
-@media (max-width: 1000px) {
+
+
+
+@media (max-width: 750px) {
     .content h1 {
+        text-align: center;
+        flex-direction: column;
+        align-items: center;
+        font-size: 1.5rem;
+    }
+
+    .content h1 select {
         text-align: center;
     }
 
     .tdEntry {
         flex-direction: column;
-        padding: 3rem 0;
     }
-
-    .tdControls {
-        flex-direction: column;
-        align-items: center;
-        gap: .5rem;
-    }
-
-    .tdControls button{
-        min-width: 200px;
-
-    }
-
-
-
-
 
 }
