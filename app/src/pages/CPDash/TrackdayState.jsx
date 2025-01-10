@@ -42,7 +42,7 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 		allTrackdaysFULL = allTrackdaysFULL.filter(trackday => {
 			const candidateTrackdayYear = new Date(trackday.date).getFullYear();
 			return candidateTrackdayYear == selectedYear;
-		}); 
+		});
 		allTrackdaysFULL.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
 	}
 
@@ -76,7 +76,7 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 				<h1>Trackday State:
 					<form>
 						<div className={styles.inputPairing}>
-							<select name="yearSelect" id="yearSelect" defaultValue={selectedYear} onChange={() => {setSelectedTrackdayId(''); setSelectedYear(yearSelect.value)}} required>
+							<select name="yearSelect" id="yearSelect" defaultValue={selectedYear} onChange={() => { setSelectedTrackdayId(''); setSelectedYear(yearSelect.value) }} required>
 								{years.map((year) => <option value={year} key={year}>{year}</option>)}
 							</select>
 						</div>
@@ -96,44 +96,47 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 					<>
 						<div className={styles.tdSummary}>
 							<h2>Trackday Summary</h2>
-							<div className={styles.groupSummary}>
-								<div className={styles.summaryEntry}>
-									<div>Green</div>
-									<div>{trackdayRegNumbers.green}</div>
-								</div>
-								<div className={styles.summaryEntry}>
-									<div>Yellow</div>
-									<div>{trackdayRegNumbers.yellow}</div>
-								</div>
-								<div className={styles.summaryEntry}>
-									<div>Red</div>
-									<div>{trackdayRegNumbers.red}</div>
-								</div>
-								<div className={styles.summaryEntry}>
-									<div style={{ fontWeight: 'bold' }}>Total</div>
-									<div style={{ fontWeight: 'bold' }}>{trackdayRegNumbers.green + trackdayRegNumbers.yellow + trackdayRegNumbers.red}</div>
-								</div>
-							</div>
+
+
+
 
 							<div className={styles.regSummary}>
-								<div className={styles.summaryEntry}>
-									<div>Pre-Registrations</div>
+								<div className={styles.regSummaryEntry}>
+									<div>Pre-Reg: </div>
 									<div>{preRegistrations}</div>
 								</div>
-								<div className={styles.summaryEntry}>
-									<div>Gate Registrations</div>
+								<div className={styles.regSummaryEntry}>
+									<div>Gate: </div>
 									<div>{gateRegistrations}</div>
 								</div>
-								<div className={styles.summaryEntry}>
-									<div>Walk Ons</div>
+								<div className={styles.regSummaryEntry}>
+									<div>Walk Ons: </div>
 									<div>{selectedTrackday.walkons.length}</div>
 								</div>
-								<div className={styles.summaryEntry}>
-									<div>Guests</div>
+								<div className={styles.regSummaryEntry}>
+									<div>Guests: </div>
 									<div>{selectedTrackday.guests}</div>
 								</div>
 							</div>
+
+							<div className={styles.groupSummary}>
+								<div className={styles.groupSummaryEntry}>
+									<div style={{ backgroundColor: '#58e86c' }}>{trackdayRegNumbers.green}</div>
+								</div>
+								<div className={styles.groupSummaryEntry}>
+									<div style={{ backgroundColor: '#f5f50c' }}>{trackdayRegNumbers.yellow}</div>
+								</div>
+								<div className={styles.groupSummaryEntry}>
+									<div style={{ backgroundColor: '#f75757' }}>{trackdayRegNumbers.red}</div>
+								</div>
+								<div className={styles.groupSummaryEntry}>
+									<div style={{ fontWeight: 'bold', fontSize: '2rem'}}>{trackdayRegNumbers.green + trackdayRegNumbers.yellow + trackdayRegNumbers.red}</div>
+								</div>
+							</div>
+
 						</div>
+
+						{/* TD RIDERS */}
 
 						<div className={styles.tdRiders}>
 							<h2>Riders</h2>
