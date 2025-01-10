@@ -180,11 +180,41 @@ const ManageQR = ({ APIServer, allUsers, fetchAPIData, }) => {
         const container = document.getElementById('stickerContainer');
         if (container && container.hasChildNodes()) downloadAllImages();
     }, [b64Arr]);
-    
+
     return (
         <>
             <ScrollToTop />
             <div className={styles.content}>
+
+                {/* ASSIGN QR */}
+                <div className={styles.QRCell}>
+                    <h2>Assign QR</h2>
+                    <form>
+                        {/* Select curUserAssign */}
+                        <label htmlFor="userAssign">Select User:</label>
+                        <select className='capitalizeEach' name="userAssign" id="userAssign" onChange={() => { setCurUserAssign(allUsers.find((candidateUser) => candidateUser._id === userAssign.value)); setCurBikeAssign('') }} required>
+                            <option key="none" value='' ></option>
+                            {allUsers && allUsers.map((user) => <option className='capitalizeEach' key={user._id} value={user._id} >{user.firstName}, {user.lastName}</option>)}
+                        </select>
+
+                        {curUserAssign &&
+                            <>
+                                <label htmlFor="bikeAssign">Select Bike:</label>
+                                <select className='capitalizeEach' name="bikeAssign" id="bikeAssign" onChange={() => { setCurBikeAssign(bikeAssign.value ? (curUserAssign.garage.find((garageItem) => garageItem._id === bikeAssign.value)).bike : '') }} required>
+                                    <option key="none" value='' ></option>
+                                    {curUserAssign && curUserAssign.garage.map((garageItem) => <option className='capitalizeEach' key={garageItem._id} value={garageItem._id}>{garageItem.bike.year} {garageItem.bike.make} {garageItem.bike.model}</option>)}
+                                </select>
+                            </>
+                        }
+
+                        {curBikeAssign &&
+                            <>
+                                <div>Scan {curUserAssign.group} sticker below:</div>
+                                <Scanner onDecodeEnd={handleMarryQR} />
+                            </>
+                        }
+                    </form>
+                </div>
 
                 {/* GENERATE DECALS */}
                 <div className={styles.QRCell}>
@@ -212,9 +242,9 @@ const ManageQR = ({ APIServer, allUsers, fetchAPIData, }) => {
                         </select>
 
                         {curUserDelete &&
-                            < >
+                            <>
                                 <label htmlFor="bikeDelete">Select Bike:</label>
-                                <select className='capitalizeEach' name="bikeDelete" id="bikeDelete" onChange={() => { setCurQRDelete(bikeDelete.value? getQRID(curUserDelete.garage.find((garageItem) => garageItem._id === bikeDelete.value)): '') }}>
+                                <select className='capitalizeEach' name="bikeDelete" id="bikeDelete" onChange={() => { setCurQRDelete(bikeDelete.value ? getQRID(curUserDelete.garage.find((garageItem) => garageItem._id === bikeDelete.value)) : '') }}>
                                     <option key="none" value=''></option>
                                     {curUserDelete && curUserDelete.garage.map((garageItem) => <option className='capitalizeEach' key={garageItem._id} value={garageItem._id}>{garageItem.bike.year} {garageItem.bike.make} {garageItem.bike.model}</option>)}
                                 </select>
@@ -232,47 +262,10 @@ const ManageQR = ({ APIServer, allUsers, fetchAPIData, }) => {
                     </form>
                 </div>
 
-                {/* ASSIGN QR */}
-                <div className={styles.QRCell}>
-                    <h2>Assign QR</h2>
-                    <form>
-                        {/* Select curUserAssign */}
-                        <div className={styles.inputPairing}>
-                            <label htmlFor="userAssign">Select User:</label>
-                            <select className='capitalizeEach' name="userAssign" id="userAssign" onChange={() => { setCurUserAssign(allUsers.find((candidateUser) => candidateUser._id === userAssign.value)); setCurBikeAssign('') }} required>
-                                <option key="none" value='' ></option>
-                                {allUsers && allUsers.map((user) => <option className='capitalizeEach' key={user._id} value={user._id} >{user.firstName}, {user.lastName}</option>)}
-                            </select>
-                        </div>
 
-                        {curUserAssign &&
-                            <div className={styles.inputPairing}>
-                                <label htmlFor="bikeAssign">Select Bike:</label>
-                                <select className='capitalizeEach' name="bikeAssign" id="bikeAssign" onChange={() => { setCurBikeAssign(bikeAssign.value? (curUserAssign.garage.find((garageItem) => garageItem._id === bikeAssign.value)).bike : '') }} required>
-                                    <option key="none" value='' ></option>
-                                    {curUserAssign && curUserAssign.garage.map((garageItem) => <option className='capitalizeEach' key={garageItem._id} value={garageItem._id}>{garageItem.bike.year} {garageItem.bike.make} {garageItem.bike.model}</option>)}
-                                </select>
-                            </div>
-                        }
-
-                        {curBikeAssign &&
-                            <>
-                                <div>Scan {curUserAssign.group} sticker below:</div>
-                                <Scanner onDecodeEnd={handleMarryQR} />
-                            </>
-                        }
-                    </form>
-                </div>
 
                 {/* CONTENT END */}
             </div>
-
-
-
-
-
-
-
 
             {b64Arr &&
                 <div id='stickerContainer' className={styles.stickerContainer}>

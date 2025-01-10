@@ -66,30 +66,14 @@
 
 
 
-@media (max-width: 1000px) {
-    .content h1 {
-        text-align: center;
-        font-size: 2rem;
+@media (max-width: 850px) {
+    .content{
+        flex-direction: column;
+        gap: 5rem;
     }
+
     .content h2{
-        font-size: 1.5rem;
-    }
-
-
-    .allBikes {
-        grid-template-columns: 1fr;
-    }
-
-    .content form{
         margin: auto;
-
+        margin-bottom: 2rem;
     }
-
-    .content form select {
-        font-size: 1rem;
-        text-align: center;
-        max-width: 250px;
-    }
-
-   
 }
