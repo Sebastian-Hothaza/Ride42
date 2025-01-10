@@ -28,6 +28,7 @@ const Router = () => {
 				{ path: "/faq", element: <Faq /> },
 				{ path: "/shop", element: <Shop /> },
 				{ path: "/dashboard/*", element: <Dashboard /> },
+				{ path: "/QR/*", element: <Dashboard /> },
 				{ path: "/register", element: <Register /> },
 				{ path: "/passwordreset/:userID/:token", element: <PasswordReset/> },
 			],
