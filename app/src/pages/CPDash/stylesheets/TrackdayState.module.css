@@ -36,11 +36,10 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    
 
     border: none;
     background-color: black;
-    border-radius: 50%;
+    border-radius: 25%;
     padding: 8px;
     color: white;
 }
@@ -194,7 +193,6 @@
     }
 
     .content h1 select {
-        font-size: 1.25rem;
         text-align: center;
     }
 
