@@ -220,25 +220,6 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 		}
 	}
 
-
-
-	// Download CSV file
-	function download(trackday) {
-		let result = `group,name,checkin,waiver,paid\n`
-		//Sort alphabetically 
-		trackday.members.sort((a, b) => (a.user.firstName > b.user.firstName) ? 1 : ((b.user.firstName > a.user.firstName) ? -1 : 0))
-
-		trackday.members.forEach((memberEntry) => result += `${allUsers.find((user) => user._id === memberEntry.user._id).group},${memberEntry.user.firstName} ${memberEntry.user.lastName},,${allUsers.find((user) => user._id === memberEntry.user._id).waiver ? `✔️` : ``},${memberEntry.paid ? `✔️` : ``}\n`)
-
-		// Prepare download file
-		const link = window.document.createElement('a');
-		const file = new Blob([result], { type: 'text/csv' });
-		link.href = URL.createObjectURL(file);
-		link.download = `${trackday.prettyDate}_CheckIn.csv`;
-		document.body.appendChild(link);
-		link.click();
-	}
-
 	return (
 		<>
 			<ScrollToTop />
@@ -259,7 +240,6 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 										setActiveModal({ type: 'editDetails', trackday: trackday })
 									}}>Edit</button>
 									<button className='actionButton' onClick={() => alert('not yet implemented; extreme caution needed as currently may break back end')}>Delete</button>
-									<button className='actionButton' onClick={() => download(trackday)}>Download Backup</button>
 								</div>
 							</div>
 						)
