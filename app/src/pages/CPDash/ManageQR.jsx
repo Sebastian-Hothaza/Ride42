@@ -17,15 +17,12 @@ const ManageQR = ({ APIServer, allUsers, fetchAPIData, }) => {
     const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
     const [b64Arr, setb64Arr] = useState([]);
 
-
     const [curUserDelete, setCurUserDelete] = useState('')
     const [curQRDelete, setCurQRDelete] = useState('')
 
     const [curUserAssign, setCurUserAssign] = useState('')
     const [curBikeAssign, setCurBikeAssign] = useState('')
 
-
-    
     const [hasQRID, setHasQRID] = useState(true);
 
     if (!allUsers) {
@@ -83,6 +80,7 @@ const ManageQR = ({ APIServer, allUsers, fetchAPIData, }) => {
             setActiveModal({ type: 'failure', msg: 'API Failure' })
             console.log(err.message)
         }
+        e.target.reset();
     }
 
     async function generateQR(text) {
@@ -182,103 +180,99 @@ const ManageQR = ({ APIServer, allUsers, fetchAPIData, }) => {
         const container = document.getElementById('stickerContainer');
         if (container && container.hasChildNodes()) downloadAllImages();
     }, [b64Arr]);
-
+    
     return (
         <>
             <ScrollToTop />
             <div className={styles.content}>
-                <h2>Generate Codes</h2>
-                <form onSubmit={(e) => handleGenerateQRSubmit(e)}>
-                    <label htmlFor="greenQR">Green QR Codes:</label>
-                    <input type="number" id="greenQR" name="greenQR" ></input>
-                    <label htmlFor="yellowQR">Yellow QR Codes:</label>
-                    <input type="number" id="yellowQR" name="yellowQR" ></input>
-                    <label htmlFor="redQR">Red QR Codes:</label>
-                    <input type="number" id="redQR" name="redQR" ></input>
-                    <button className={styles.confirmBtn} type="submit">Generate QRs</button>
-                </form>
-            </div>
-            <div className={styles.content}>
-                <h2>Delete Code</h2>
 
-                <form onSubmit={(e) => handleDeleteQR(e)}>
+                {/* GENERATE DECALS */}
+                <div className={styles.QRCell}>
+                    <h2>Generate Decals</h2>
+                    <form onSubmit={(e) => handleGenerateQRSubmit(e)}>
+                        <label htmlFor="greenQR">Green QR Codes:</label>
+                        <input type="number" id="greenQR" name="greenQR" ></input>
+                        <label htmlFor="yellowQR">Yellow QR Codes:</label>
+                        <input type="number" id="yellowQR" name="yellowQR" ></input>
+                        <label htmlFor="redQR">Red QR Codes:</label>
+                        <input type="number" id="redQR" name="redQR" ></input>
+                        <button className={styles.confirmBtn} type="submit">Generate QRs</button>
+                    </form>
+                </div>
 
+                {/* DELETE QR CODES */}
+                <div className={styles.QRCell}>
+                    <h2>Delete QR Code</h2>
+                    <form onSubmit={(e) => handleDeleteQR(e)}>
 
-                    <div className={styles.inputPairing}>
                         <label htmlFor="userDelete">Select User:</label>
                         <select className='capitalizeEach' name="userDelete" id="userDelete" onChange={() => { setCurUserDelete(allUsers.find((candidateUser) => candidateUser._id === userDelete.value)) }}>
-                            <option key="none" value=""></option>
+                            <option key="none" value=''></option>
                             {allUsers && allUsers.map((user) => <option className='capitalizeEach' key={user._id} value={user._id} >{user.firstName}, {user.lastName}</option>)}
                         </select>
-                    </div>
 
-                    {curUserDelete &&
-                        <div className={styles.inputPairing}>
-                            <label htmlFor="bikeDelete">Select Bike:</label>
-                            <select className='capitalizeEach' name="bikeDelete" id="bikeDelete" onChange={() => { setCurQRDelete(getQRID(curUserDelete.garage.find((garageItem) => garageItem._id === bikeDelete.value))) }}>
-                                <option key="none" value=""></option>
-                                {curUserDelete && curUserDelete.garage.map((garageItem) => <option className='capitalizeEach' key={garageItem._id} value={garageItem._id}>{garageItem.bike.year} {garageItem.bike.make} {garageItem.bike.model}</option>)}
-                            </select>
-                        </div>
-                    }
+                        {curUserDelete &&
+                            < >
+                                <label htmlFor="bikeDelete">Select Bike:</label>
+                                <select className='capitalizeEach' name="bikeDelete" id="bikeDelete" onChange={() => { setCurQRDelete(bikeDelete.value? getQRID(curUserDelete.garage.find((garageItem) => garageItem._id === bikeDelete.value)): '') }}>
+                                    <option key="none" value=''></option>
+                                    {curUserDelete && curUserDelete.garage.map((garageItem) => <option className='capitalizeEach' key={garageItem._id} value={garageItem._id}>{garageItem.bike.year} {garageItem.bike.make} {garageItem.bike.model}</option>)}
+                                </select>
+                            </>
+                        }
 
-                    {!hasQRID &&
-                        <div>USER NO HAS QRID</div>
-                    }
+                        {!hasQRID &&
+                            <div style={{ color: 'red', textAlign: 'center' }}><strong>- NO QRID EXISTS -</strong></div>
+                        }
 
-                    <div>--- OR ---</div>
-
-                    <div className={styles.inputPairing}>
                         <label htmlFor="qrid">QR id to delete:</label>
-                        <input type="text" name="qrid" id="qrid" onChange={() => { setCurQRDelete(qrid.value) }} value={curQRDelete} required></input>
-                        <button>Delete</button>
-                    </div>
+                        <input type="text" autoComplete="off" name="qrid" id="qrid" onChange={() => { setCurQRDelete(qrid.value) }} value={curQRDelete} required></input>
+                        <button type="submit">Delete</button>
 
+                    </form>
+                </div>
 
-
-
-                </form>
-
-
-            </div>
-
-            <div className={styles.content}>
-                <h1>Assign QR</h1>
-                <form>
-
-                    {/* Select curUserAssign */}
-                    <div className={styles.inputPairing}>
-                        <label htmlFor="userAssign">Select User:</label>
-                        <select className='capitalizeEach' name="userAssign" id="userAssign" onChange={() => { setCurUserAssign(allUsers.find((candidateUser) => candidateUser._id === userAssign.value)) }} required>
-                            <option key="none" value=""></option>
-                            {allUsers && allUsers.map((user) => <option className='capitalizeEach' key={user._id} value={user._id} >{user.firstName}, {user.lastName}</option>)}
-                        </select>
-                    </div>
-
-                    {curUserAssign &&
+                {/* ASSIGN QR */}
+                <div className={styles.QRCell}>
+                    <h2>Assign QR</h2>
+                    <form>
+                        {/* Select curUserAssign */}
                         <div className={styles.inputPairing}>
-                            <label htmlFor="bikeAssign">Select Bike:</label>
-                            <select className='capitalizeEach' name="bikeAssign" id="bikeAssign" onChange={() => { setCurBikeAssign((curUserAssign.garage.find((garageItem) => garageItem._id === bikeAssign.value)).bike) }} required>
-                                <option key="none" value=""></option>
-                                {curUserAssign && curUserAssign.garage.map((garageItem) => <option className='capitalizeEach' key={garageItem._id} value={garageItem._id}>{garageItem.bike.year} {garageItem.bike.make} {garageItem.bike.model}</option>)}
+                            <label htmlFor="userAssign">Select User:</label>
+                            <select className='capitalizeEach' name="userAssign" id="userAssign" onChange={() => { setCurUserAssign(allUsers.find((candidateUser) => candidateUser._id === userAssign.value)); setCurBikeAssign('') }} required>
+                                <option key="none" value='' ></option>
+                                {allUsers && allUsers.map((user) => <option className='capitalizeEach' key={user._id} value={user._id} >{user.firstName}, {user.lastName}</option>)}
                             </select>
                         </div>
-                    }
 
-                    {curBikeAssign &&
-                        <>
-                            <div>Scan {curUserAssign.group} sticker below:</div>
-                            <Scanner onDecodeEnd={handleMarryQR} />
-                        </>
+                        {curUserAssign &&
+                            <div className={styles.inputPairing}>
+                                <label htmlFor="bikeAssign">Select Bike:</label>
+                                <select className='capitalizeEach' name="bikeAssign" id="bikeAssign" onChange={() => { setCurBikeAssign(bikeAssign.value? (curUserAssign.garage.find((garageItem) => garageItem._id === bikeAssign.value)).bike : '') }} required>
+                                    <option key="none" value='' ></option>
+                                    {curUserAssign && curUserAssign.garage.map((garageItem) => <option className='capitalizeEach' key={garageItem._id} value={garageItem._id}>{garageItem.bike.year} {garageItem.bike.make} {garageItem.bike.model}</option>)}
+                                </select>
+                            </div>
+                        }
 
-                    }
+                        {curBikeAssign &&
+                            <>
+                                <div>Scan {curUserAssign.group} sticker below:</div>
+                                <Scanner onDecodeEnd={handleMarryQR} />
+                            </>
+                        }
+                    </form>
+                </div>
 
-
-
-                </form>
-
-
+                {/* CONTENT END */}
             </div>
+
+
+
+
+
+
+
 
             {b64Arr &&
                 <div id='stickerContainer' className={styles.stickerContainer}>

@@ -1,18 +1,6 @@
 .content {
     display: flex;
-    flex-direction: column;
-    gap: 2rem;
-    font-size: 1.25rem;
-}
-
-.content form select {
-    font-size: inherit;
-    max-width: 400px;
-}
-
-.content .bikeEntry img{
-    height: 200px;
-    width: 200px;
+    justify-content: space-between;
 }
 
 .content button {
@@ -22,20 +10,23 @@
     font-size: inherit;
     border-radius: .2rem;
     padding: .5rem 2rem;
+    margin-top: 1rem;
 }
 
-
-.allBikes{
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    row-gap: 5rem;
-}
-
-.bikeEntry{
+.QRCell {
     display: flex;
     flex-direction: column;
-    align-items: center;
 
+}
+
+.QRCell>h2{
+    margin-bottom: 20px;
+}
+
+.QRCell > form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 /* STICKER */
@@ -70,6 +61,10 @@
     border-radius: 50%;
     margin-right: 2rem;
 }
+
+
+
+
 
 @media (max-width: 1000px) {
     .content h1 {
