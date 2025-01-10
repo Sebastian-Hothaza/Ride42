@@ -264,6 +264,10 @@
         margin-top: .5rem;
     }
 
+    .userName > div {
+        max-width: none;
+    }
+
     .paymentBox{
         display: flex;
         gap: .25rem;
