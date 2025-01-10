@@ -145,7 +145,7 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 									<div>{gateRegistrations + selectedTrackday.walkons.length}</div>
 								</div>
 								<div className={styles.regSummaryEntry}>
-									<div>Guests: </div>
+									<div>BBQ: </div>
 									<div>{selectedTrackday.guests}</div>
 								</div>
 								<div className={styles.regSummaryEntry}>
@@ -234,148 +234,67 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 
 						</div>
 						{/* MOBILE */}
-						{/* <div className={styles.tdRiders_Mobile}>
-							<h2>Riders</h2>
-							<h3>Green Group</h3>
+						<div className={styles.tdRiders_Mobile}>
+							<h2>Riders ({trackdayRegNumbers.green + trackdayRegNumbers.yellow + trackdayRegNumbers.red})</h2>
+							<h3>Green Group ({trackdayRegNumbers.green})</h3>
 
-							{selectedTrackday.members.filter((memberEntry) => memberEntry.user.group === 'green').map((memberEntry) => {
+							{consolidatedArray.filter((memberEntry) => memberEntry.user.group === 'green').map((memberEntry) => {
 								return (
-									<Fragment key={memberEntry.user._id}>
-										<div className="capitalizeEach">{memberEntry.user.firstName}, {memberEntry.user.lastName}</div>
-										<div className={styles.memberDetail}>
-											<div>{memberEntry.paymentMethod}</div>
-											<div className={styles.statusEntry}>
-												Paid
-												{memberEntry.paid ? <img src={checkmark}></img> : <img src={errormark}></img>}
-											</div>
-											<div className={styles.statusEntry}>
-												Waiver
-												{memberEntry.user.waiver ? <img src={waiverMissing}></img> : <img src={errormark}></img>}
-											</div>
-											<div className={styles.statusEntry}>
-												Checked In
-												{memberEntry.checkedIn.length ? <img src={checkmark}></img> : <img src={errormark}></img>}
-											</div>
+									<div className={styles.userEntry_Mobile} key={memberEntry.user._id}>
+										<div className={styles.userName}>
+											<div className="capitalizeEach">{memberEntry.user.firstName}, {memberEntry.user.lastName}</div>
+											{memberEntry.user.waiver ? <div></div> : <img src={waiverMissing}></img>}
 										</div>
-									</Fragment>
-								)
-							})}
-							{selectedTrackday.walkons.filter((user) => user.group === 'green').map((user) => {
-								return (
-									<Fragment key={user._id}>
-										<div className="capitalizeEach">{user.firstName}, {user.lastName}</div>
-										<div className={styles.memberDetail}>
-											<div>Walk On</div>
-											<div className={styles.statusEntry}>
-												Paid
-												<img src={checkmark}></img>
+										<div className={styles.userInfo}>
+											<div className={styles.paymentBox}>
+												{memberEntry.paid ? <img src={paid}></img> : <img src={unpaid}></img>}
+												<div>{memberEntry.paymentMethod}</div>
 											</div>
-											<div className={styles.statusEntry}>
-												Waiver
-												<img src={checkmark}></img>
-											</div>
-											<div className={styles.statusEntry}>
-												Checked In
-												<img src={checkmark}></img>
-											</div>
+											{memberEntry.checkedIn.length ? <img src={checkedIn}></img> : <img src={notCheckedIn}></img>}
 										</div>
-									</Fragment>
+									</div>
 								)
 							})}
 
-							<h3>Yellow Group</h3>
 
-							{selectedTrackday.members.filter((memberEntry) => memberEntry.user.group === 'yellow').map((memberEntry) => {
+							<h3>Yellow Group ({trackdayRegNumbers.yellow})</h3>
+							{consolidatedArray.filter((memberEntry) => memberEntry.user.group === 'yellow').map((memberEntry) => {
 								return (
-									<Fragment key={memberEntry.user._id}>
-										<div className="capitalizeEach">{memberEntry.user.firstName}, {memberEntry.user.lastName}</div>
-										<div className={styles.memberDetail}>
-											<div>{memberEntry.paymentMethod}</div>
-											<div className={styles.statusEntry}>
-												Paid
-												{memberEntry.paid ? <img src={checkmark}></img> : <img src={errormark}></img>}
-											</div>
-											<div className={styles.statusEntry}>
-												Waiver
-												{memberEntry.user.waiver ? <img src={checkmark}></img> : <img src={errormark}></img>}
-											</div>
-											<div className={styles.statusEntry}>
-												Checked In
-												{memberEntry.checkedIn.length ? <img src={checkmark}></img> : <img src={errormark}></img>}
-											</div>
+									<div className={styles.userEntry_Mobile} key={memberEntry.user._id}>
+										<div className={styles.userName}>
+											<div className="capitalizeEach">{memberEntry.user.firstName}, {memberEntry.user.lastName}</div>
+											{memberEntry.user.waiver ? <div></div> : <img src={waiverMissing}></img>}
 										</div>
-									</Fragment>
-								)
-							})}
-							{selectedTrackday.walkons.filter((user) => user.group === 'yellow').map((user) => {
-								return (
-									<Fragment key={user._id}>
-										<div className="capitalizeEach">{user.firstName}, {user.lastName}</div>
-										<div className={styles.memberDetail}>
-											<div>Walk On</div>
-											<div className={styles.statusEntry}>
-												Paid
-												<img src={checkmark}></img>
+										<div className={styles.userInfo}>
+											<div className={styles.paymentBox}>
+												{memberEntry.paid ? <img src={paid}></img> : <img src={unpaid}></img>}
+												<div>{memberEntry.paymentMethod}</div>
 											</div>
-											<div className={styles.statusEntry}>
-												Waiver
-												<img src={checkmark}></img>
-											</div>
-											<div className={styles.statusEntry}>
-												Checked In
-												<img src={checkmark}></img>
-											</div>
+											{memberEntry.checkedIn.length ? <img src={checkedIn}></img> : <img src={notCheckedIn}></img>}
 										</div>
-									</Fragment>
+									</div>
 								)
 							})}
 
-							<h3>Red Group</h3>
-							{selectedTrackday.members.filter((memberEntry) => memberEntry.user.group === 'red').map((memberEntry) => {
+							<h3>Red Group ({trackdayRegNumbers.red})</h3>
+							{consolidatedArray.filter((memberEntry) => memberEntry.user.group === 'red').map((memberEntry) => {
 								return (
-									<Fragment key={memberEntry.user._id}>
-										<div className="capitalizeEach">{memberEntry.user.firstName}, {memberEntry.user.lastName}</div>
-										<div className={styles.memberDetail}>
-											<div>{memberEntry.paymentMethod}</div>
-											<div className={styles.statusEntry}>
-												Paid
-												{memberEntry.paid ? <img src={checkmark}></img> : <img src={errormark}></img>}
-											</div>
-											<div className={styles.statusEntry}>
-												Waiver
-												{memberEntry.user.waiver ? <img src={checkmark}></img> : <img src={errormark}></img>}
-											</div>
-											<div className={styles.statusEntry}>
-												Checked In
-												{memberEntry.checkedIn.length ? <img src={checkmark}></img> : <img src={errormark}></img>}
-											</div>
+									<div className={styles.userEntry_Mobile} key={memberEntry.user._id}>
+										<div className={styles.userName}>
+											<div className="capitalizeEach">{memberEntry.user.firstName}, {memberEntry.user.lastName}</div>
+											{memberEntry.user.waiver ? <div></div> : <img src={waiverMissing}></img>}
 										</div>
-									</Fragment>
+										<div className={styles.userInfo}>
+											<div className={styles.paymentBox}>
+												{memberEntry.paid ? <img src={paid}></img> : <img src={unpaid}></img>}
+												<div>{memberEntry.paymentMethod}</div>
+											</div>
+											{memberEntry.checkedIn.length ? <img src={checkedIn}></img> : <img src={notCheckedIn}></img>}
+										</div>
+									</div>
 								)
 							})}
-							{selectedTrackday.walkons.filter((user) => user.group === 'red').map((user) => {
-								return (
-									<Fragment key={user._id}>
-										<div className="capitalizeEach">{user.firstName}, {user.lastName}</div>
-										<div className={styles.memberDetail}>
-											<div>Walk On</div>
-											<div className={styles.statusEntry}>
-												Paid
-												<img src={checkmark}></img>
-											</div>
-											<div className={styles.statusEntry}>
-												Waiver
-												<img src={checkmark}></img>
-											</div>
-											<div className={styles.statusEntry}>
-												Checked In
-												<img src={checkmark}></img>
-											</div>
-										</div>
-									</Fragment>
-								)
-							})}
-						</div> */}
+						</div>
 					</>
 				}
 

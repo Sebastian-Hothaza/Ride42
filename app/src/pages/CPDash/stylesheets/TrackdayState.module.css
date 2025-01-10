@@ -209,11 +209,16 @@
     }
 
     
-
     .regSummary {
         display: grid;
         grid-template-columns: 1fr 1fr;
+        row-gap: .5rem;
     }
+    
+    .regSummary > :nth-child(2n) {
+        justify-content: right;
+    }
+    
 
     .groupSummary {
         margin-top: 1rem;
@@ -233,31 +238,24 @@
         margin: auto;
     }
 
-    .tdRiders_Mobile h3 {
-        margin: 1rem 0;
-    }
-
     .tdRiders_Mobile img {
         height: 25px;
         justify-self: center;
     }
 
-    .tdRiders_Mobile .memberDetail {
-        display: grid;
-        grid-template-columns: auto auto;
+    .tdRiders_Mobile .userEntry_Mobile {
+        padding: 1rem 0;
         border-bottom: dashed 1px black;
-        row-gap: .5rem;
-        column-gap: 2rem;
-        margin: 1rem 0;
-        padding-bottom: 1rem;
-
-
     }
 
-    .tdRiders_Mobile .statusEntry {
+    .userInfo {
         display: flex;
         justify-content: space-between;
-        align-items: center;
+        margin-top: .5rem;
+    }
 
+    .paymentBox{
+        display: flex;
+        gap: .25rem;
     }
 }
