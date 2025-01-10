@@ -93,6 +93,37 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 	}
 
 
+	// Download CSV file
+	function download(trackday) {
+		let result = `NOTE: This is best used when copied into XLS doc so that tabs display correctly\n\n`
+		//Sort alphabetically 
+		trackday.members.sort((a, b) => (a.user.firstName > b.user.firstName) ? 1 : ((b.user.firstName > a.user.firstName) ? -1 : 0))
+
+		// Build results
+		result += `GREEN GROUP\nName\tWaiver\tPaid\tCheckIn\n`;
+		trackday.members.filter(memberEntry => memberEntry.user.group == 'green').forEach((memberEntry) => {
+			result += `${memberEntry.user.firstName} ${memberEntry.user.lastName}\t${allUsers.find((user) => user._id === memberEntry.user._id).waiver ? `✔` : ``}\t${memberEntry.paid ? `✔` : ``}\n`
+		})
+		result+=`\n`
+		result += `YELLOW GROUP\nName\tWaiver\tPaid\tCheckIn\n`;
+		trackday.members.filter(memberEntry => memberEntry.user.group == 'yellow').forEach((memberEntry) => {
+			result += `${memberEntry.user.firstName} ${memberEntry.user.lastName}\t${allUsers.find((user) => user._id === memberEntry.user._id).waiver ? `✔` : ``}\t${memberEntry.paid ? `✔` : ``}\n`
+		})
+		result+=`\n`
+		result += `RED GROUP\nName\tWaiver\tPaid\tCheckIn\n`;
+		trackday.members.filter(memberEntry => memberEntry.user.group == 'red').forEach((memberEntry) => {
+			result += `${memberEntry.user.firstName} ${memberEntry.user.lastName}\t${allUsers.find((user) => user._id === memberEntry.user._id).waiver ? `✔` : ``}\t${memberEntry.paid ? `✔` : ``}\n`
+		})
+
+		// Prepare download file
+		const link = window.document.createElement('a');
+		const file = new Blob([result], { type: 'text/csv' });
+		link.href = URL.createObjectURL(file);
+		link.download = `${trackday.prettyDate}_CheckIn.csv`;
+		document.body.appendChild(link);
+		link.click();
+	}
+
 
 	async function handleRefresh() {
 		setActiveModal({ type: 'loading', msg: 'Refreshing data' });
@@ -128,7 +159,11 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 							</select>
 						</div>
 					</form>
-					<button id={styles.refreshBtn} onClick={() => handleRefresh()}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined `}>refresh</span></button>
+					<div className={styles.topButtons} >
+						{selectedTrackday && <button className={styles.stateBtn} onClick={() => download(selectedTrackday)}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined `}>export_notes</span></button>}
+						<button className={styles.stateBtn} onClick={() => handleRefresh()}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined `}>refresh</span></button>
+					</div>
+
 				</h1>
 
 				{selectedTrackday &&
