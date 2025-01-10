@@ -6,7 +6,12 @@ import Loading from '../../components/Loading';
 import styles from './stylesheets/TrackdayState.module.css'
 
 import checkmark from './../../assets/checkmark.png'
+import waiverMissing from './../../assets/waiver_missing.png'
 import errormark from './../../assets/error.png'
+import paid from './../../assets/paid.png'
+import unpaid from './../../assets/unpaid.png'
+import checkedIn from './../../assets/checkedIn.png'
+import notCheckedIn from './../../assets/notCheckedIn.png'
 
 const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL }) => {
 
@@ -19,7 +24,12 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 	let gateRegistrations = 0;
 	let selectedTrackday;
 	let trackdayRegNumbers;
+	let numGridLines;
 	let years = [];
+	let consolidatedArray = []; // Includes both users from members array AND walkons array for consolidated printing
+
+	let linesPrinted = { green: 0, yellow: 0, red: 0 };
+
 
 	// Augment prettydate of allTrackdaysFULL to be a nice format
 	allTrackdaysFULL.forEach((trackday) => {
@@ -36,8 +46,6 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 	if (!allUsers || !allTrackdaysFULL) {
 		return null;
 	} else {
-		allUsers.sort((a, b) => (a.firstName > b.firstName) ? 1 : ((b.firstName > a.firstName) ? -1 : 0))
-
 		// Only show trackdays for currently selected year
 		allTrackdaysFULL = allTrackdaysFULL.filter(trackday => {
 			const candidateTrackdayYear = new Date(trackday.date).getFullYear();
@@ -48,10 +56,10 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 
 
 
-	// Set the selected trackday and sort its members array
+	// Set the selected trackday 
 	if (selectedTrackdayId) {
 		selectedTrackday = allTrackdaysFULL.find((td) => td._id === selectedTrackdayId)
-		selectedTrackday.members.sort((a, b) => (a.user.firstName > b.user.firstName) ? 1 : ((b.user.firstName > a.user.firstName) ? -1 : 0))
+
 	}
 
 
@@ -60,13 +68,44 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 		selectedTrackday.members.forEach((memberEntry) => memberEntry.paymentMethod === 'gate' ? gateRegistrations++ : preRegistrations++)
 		// Used to determine number of riders in each group
 		trackdayRegNumbers = allTrackdays.find((td) => td.id === selectedTrackday._id)
+		// Get number of lines grid will have
+		numGridLines = Math.max(trackdayRegNumbers.green, trackdayRegNumbers.yellow, trackdayRegNumbers.red);
+
+		// Augment walkons to include params needed for printing
+		selectedTrackday.walkons.forEach((walkOnEntry) => {
+			walkOnEntry.user = {
+				_id: walkOnEntry._id,
+				firstName: walkOnEntry.firstName,
+				lastName: walkOnEntry.lastName,
+				group: walkOnEntry.group,
+				waiver: true,
+			}
+			walkOnEntry.paid = true;
+			walkOnEntry.paymentMethod = 'WalkOn'
+			walkOnEntry.checkedIn = ['foobar']
+		})
+
+		// Prepare consolidated array for printing
+		consolidatedArray = selectedTrackday.members.concat(selectedTrackday.walkons).sort((a, b) => (a.user.firstName.toLowerCase() > b.user.firstName.toLowerCase()) ? 1 : ((b.user.firstName.toLowerCase() > a.user.firstName.toLowerCase()) ? -1 : 0))
+
+		// If trackday being shown is archived, we can ignore waiver
+		if (selectedTrackday.status == 'archived') consolidatedArray.forEach((entry) => entry.user.waiver = true)
 	}
+
+
 
 	async function handleRefresh() {
 		setActiveModal({ type: 'loading', msg: 'Refreshing data' });
 		await fetchAPIData();
 		setActiveModal('');
 	}
+
+
+	function printBlanks(num) {
+		return Array.from({ length: num }, (_, index) => <div className={`${styles.userEntry} ${styles.blankLine}`} key={index}></div>);
+	}
+
+
 
 
 	return (
@@ -96,10 +135,6 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 					<>
 						<div className={styles.tdSummary}>
 							<h2>Trackday Summary</h2>
-
-
-
-
 							<div className={styles.regSummary}>
 								<div className={styles.regSummaryEntry}>
 									<div>Pre-Reg: </div>
@@ -107,123 +142,99 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 								</div>
 								<div className={styles.regSummaryEntry}>
 									<div>Gate: </div>
-									<div>{gateRegistrations}</div>
-								</div>
-								<div className={styles.regSummaryEntry}>
-									<div>Walk Ons: </div>
-									<div>{selectedTrackday.walkons.length}</div>
+									<div>{gateRegistrations + selectedTrackday.walkons.length}</div>
 								</div>
 								<div className={styles.regSummaryEntry}>
 									<div>Guests: </div>
 									<div>{selectedTrackday.guests}</div>
 								</div>
+								<div className={styles.regSummaryEntry}>
+									<div>Staff: </div>
+									<div>{selectedTrackday.members.filter((member) => member.user.memberType != 'regular').length}</div>
+								</div>
 							</div>
 
-							<div className={styles.groupSummary}>
-								<div className={styles.groupSummaryEntry}>
-									<div style={{ backgroundColor: '#58e86c' }}>{trackdayRegNumbers.green}</div>
-								</div>
-								<div className={styles.groupSummaryEntry}>
-									<div style={{ backgroundColor: '#f5f50c' }}>{trackdayRegNumbers.yellow}</div>
-								</div>
-								<div className={styles.groupSummaryEntry}>
-									<div style={{ backgroundColor: '#f75757' }}>{trackdayRegNumbers.red}</div>
-								</div>
-								<div className={styles.groupSummaryEntry}>
-									<div style={{ fontWeight: 'bold', fontSize: '2rem'}}>{trackdayRegNumbers.green + trackdayRegNumbers.yellow + trackdayRegNumbers.red}</div>
-								</div>
-							</div>
+
 
 						</div>
 
 						{/* TD RIDERS */}
 
 						<div className={styles.tdRiders}>
-							<h2>Riders</h2>
-							<div style={{ fontWeight: 'bold' }}>Name</div>
-							<div style={{ fontWeight: 'bold' }}>Waiver</div>
-							<div style={{ fontWeight: 'bold' }}>Payment Method</div>
-							<div style={{ fontWeight: 'bold' }}>Paid</div>
-							<div style={{ fontWeight: 'bold' }}>Checked In</div>
-							<h3>Green Group</h3>
+							<h1>Riders ({trackdayRegNumbers.green + trackdayRegNumbers.yellow + trackdayRegNumbers.red})</h1>
+							<h2>Green Group ({trackdayRegNumbers.green})</h2>
+							<h2>Yellow Group ({trackdayRegNumbers.yellow})</h2>
+							<h2>Red Group ({trackdayRegNumbers.red})</h2>
 
-							{selectedTrackday.members.filter((memberEntry) => memberEntry.user.group === 'green').map((memberEntry) => {
-								return (
-									<Fragment key={memberEntry.user._id}>
-										<div className="capitalizeEach">{memberEntry.user.firstName}, {memberEntry.user.lastName}</div>
-										{memberEntry.user.waiver ? <img src={checkmark}></img> : <img src={errormark}></img>}
-										<div>{memberEntry.paymentMethod}</div>
-										{memberEntry.paid ? <img src={checkmark}></img> : <img src={errormark}></img>}
-										{memberEntry.checkedIn.length ? <img src={checkmark}></img> : <img src={errormark}></img>}
-									</Fragment>
-								)
-							})}
-							{selectedTrackday.walkons.filter((user) => user.group === 'green').map((user) => {
-								return (
-									<Fragment key={user.firstName + user.lastName + user.group}>
-										<div className="capitalizeEach">{user.firstName}, {user.lastName}</div>
-										<img src={checkmark}></img>
-										<div>Walk On</div>
-										<img src={checkmark}></img>
-										<img src={checkmark}></img>
-									</Fragment>
-								)
-							})}
-							<span className={styles.divisor}></span>
 
-							<h3>Yellow Group</h3>
+							<div className={styles.groupCell}>
+								{consolidatedArray.filter((memberEntry) => memberEntry.user.group === 'green').map((memberEntry) => {
+									linesPrinted.green++;
+									return (
+										<div className={styles.userEntry} key={memberEntry.user._id}>
+											<div className={styles.userName}>
+												<div className="capitalizeEach">{memberEntry.user.firstName}, {memberEntry.user.lastName}</div>
+												{memberEntry.user.waiver ? <div></div> : <img src={waiverMissing}></img>}
+											</div>
+											<div className={styles.userInfo}>
+												{memberEntry.paid ? <img src={paid}></img> : <img src={unpaid}></img>}
+												<div>{memberEntry.paymentMethod}</div>
+												{memberEntry.checkedIn.length ? <img src={checkedIn}></img> : <img src={notCheckedIn}></img>}
+											</div>
+										</div>
+									)
+								})}
+								{printBlanks(numGridLines - linesPrinted.green)}
+							</div>
 
-							{selectedTrackday.members.filter((memberEntry) => memberEntry.user.group === 'yellow').map((memberEntry) => {
-								return (
-									<Fragment key={memberEntry.user._id}>
-										<div className="capitalizeEach">{memberEntry.user.firstName}, {memberEntry.user.lastName}</div>
-										{memberEntry.user.waiver ? <img src={checkmark}></img> : <img src={errormark}></img>}
-										<div>{memberEntry.paymentMethod}</div>
-										{memberEntry.paid ? <img src={checkmark}></img> : <img src={errormark}></img>}
-										{memberEntry.checkedIn.length ? <img src={checkmark}></img> : <img src={errormark}></img>}
-									</Fragment>
-								)
-							})}
-							{selectedTrackday.walkons.filter((user) => user.group === 'yellow').map((user) => {
-								return (
-									<Fragment key={user.firstName + user.lastName + user.group}>
-										<div className="capitalizeEach">{user.firstName}, {user.lastName}</div>
-										<img src={checkmark}></img>
-										<div>Walk On</div>
-										<img src={checkmark}></img>
-										<img src={checkmark}></img>
-									</Fragment>
-								)
-							})}
-							<span className={styles.divisor}></span>
-							<h3>Red Group</h3>
 
-							{selectedTrackday.members.filter((memberEntry) => memberEntry.user.group === 'red').map((memberEntry) => {
-								return (
-									<Fragment key={memberEntry.user._id}>
-										<div className="capitalizeEach">{memberEntry.user.firstName}, {memberEntry.user.lastName}</div>
-										{memberEntry.user.waiver ? <img src={checkmark}></img> : <img src={errormark}></img>}
-										<div>{memberEntry.paymentMethod}</div>
-										{memberEntry.paid ? <img src={checkmark}></img> : <img src={errormark}></img>}
-										{memberEntry.checkedIn.length ? <img src={checkmark}></img> : <img src={errormark}></img>}
-									</Fragment>
-								)
-							})}
-							{selectedTrackday.walkons.filter((user) => user.group === 'red').map((user) => {
-								return (
-									<Fragment key={user.firstName + user.lastName + user.group}>
-										<div className="capitalizeEach">{user.firstName}, {user.lastName}</div>
-										<img src={checkmark}></img>
-										<div>Walk On</div>
-										<img src={checkmark}></img>
-										<img src={checkmark}></img>
-									</Fragment>
-								)
-							})}
-							<span className={styles.divisor}></span>
+							<div className={styles.groupCell}>
+								{consolidatedArray.filter((memberEntry) => memberEntry.user.group === 'yellow').map((memberEntry) => {
+									linesPrinted.yellow++;
+									return (
+										<div className={styles.userEntry} key={memberEntry.user._id}>
+											<div className={styles.userName}>
+												<div className="capitalizeEach">{memberEntry.user.firstName}, {memberEntry.user.lastName}</div>
+												{memberEntry.user.waiver ? <div></div> : <img src={waiverMissing}></img>}
+											</div>
+											<div className={styles.userInfo}>
+												{memberEntry.paid ? <img src={paid}></img> : <img src={unpaid}></img>}
+												<div>{memberEntry.paymentMethod}</div>
+												{memberEntry.checkedIn.length ? <img src={checkedIn}></img> : <img src={notCheckedIn}></img>}
+											</div>
+										</div>
+									)
+								})}
+								{printBlanks(numGridLines - linesPrinted.yellow)}
+							</div>
+
+
+
+							<div className={styles.groupCell}>
+								{consolidatedArray.filter((memberEntry) => memberEntry.user.group === 'red').map((memberEntry) => {
+									linesPrinted.red++;
+									return (
+										<div className={styles.userEntry} key={memberEntry.user._id}>
+											<div className={styles.userName}>
+												<div className="capitalizeEach">{memberEntry.user.firstName}, {memberEntry.user.lastName}</div>
+												{memberEntry.user.waiver ? <div></div> : <img src={waiverMissing}></img>}
+											</div>
+											<div className={styles.userInfo}>
+												{memberEntry.paid ? <img src={paid}></img> : <img src={unpaid}></img>}
+												<div>{memberEntry.paymentMethod}</div>
+												{memberEntry.checkedIn.length ? <img src={checkedIn}></img> : <img src={notCheckedIn}></img>}
+											</div>
+										</div>
+									)
+								})}
+								{printBlanks(numGridLines - linesPrinted.red)}
+
+							</div>
+
+
 						</div>
 						{/* MOBILE */}
-						<div className={styles.tdRiders_Mobile}>
+						{/* <div className={styles.tdRiders_Mobile}>
 							<h2>Riders</h2>
 							<h3>Green Group</h3>
 
@@ -239,7 +250,7 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 											</div>
 											<div className={styles.statusEntry}>
 												Waiver
-												{memberEntry.user.waiver ? <img src={checkmark}></img> : <img src={errormark}></img>}
+												{memberEntry.user.waiver ? <img src={waiverMissing}></img> : <img src={errormark}></img>}
 											</div>
 											<div className={styles.statusEntry}>
 												Checked In
@@ -364,11 +375,11 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 									</Fragment>
 								)
 							})}
-						</div>
+						</div> */}
 					</>
 				}
 
-			</div>
+			</div >
 
 
 			<Loading open={activeModal.type === 'loading'}>
