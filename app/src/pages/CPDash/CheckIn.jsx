@@ -49,19 +49,33 @@ const CheckIn = ({ APIServer, allTrackdays, allUsers }) => {
     // NOTE: handleCheckIn is called by scanner
     async function handleCheckIn(scanData, scanner) {
         let user, bike, APIURL;
+        // Build API URL
         if (scanData.includes('https://ride42.ca/dashboard/')) {
             const [userID, bikeID] = scanData.replace("https://ride42.ca/dashboard/", "").split("/");
-            user = allUsers.find((user) => user._id === userID)
-            bike = user.garage.find((garageItem) => garageItem.bike._id === bikeID).bike
-            APIURL = APIServer + 'checkin/' + user._id + '/' + selectedTrackdayRef.current.id + '/' + bike._id;
+            try {
+                user = allUsers.find((user) => user._id === userID)
+                bike = user.garage.find((garageItem) => garageItem.bike._id === bikeID).bike
+                APIURL = APIServer + 'checkin/' + user._id + '/' + selectedTrackdayRef.current.id + '/' + bike._id;
+            } catch (err) {
+                console.error(err);
+                setActiveModal({ type: 'failure', msg: 'no user/bike tied to this QR', scanner: scanner });
+                return;
+            }
         } else {
             const QRID = scanData.replace("https://Ride42.ca/QR/", "")
-            user = allUsers.find(user => {
-                const garageItem = user.garage.find(item => item.QRID === QRID);
-                if (garageItem) bike = garageItem.bike
-                return garageItem ? user : undefined;
-            });
-            APIURL = APIServer + 'checkin/' + QRID + '/' + selectedTrackdayRef.current.id;
+            try {
+                let garageItem;
+                user = allUsers.find(user => {
+                    garageItem = user.garage.find(item => item.QRID === QRID);
+                    return garageItem? user : undefined;
+                });
+                bike = garageItem.bike
+                APIURL = APIServer + 'checkin/' + QRID + '/' + selectedTrackdayRef.current.id;
+            } catch (err) {
+                console.error(err);
+                setActiveModal({ type: 'failure', msg: 'no user/bike tied to this QR', scanner: scanner });
+                return;
+            }
         }
 
         setActiveModal({ type: 'loading', msg: 'Checking user in' });
