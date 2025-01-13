@@ -177,7 +177,7 @@ const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
                                     {eligibleUsers.length == 0 && <option key='empty' value=''>No entries found</option>}
                                 </select>
 
-                                <button className={styles.confirmBtn} type="submit">Gate Register</button>
+                                <button className='confirmBtn' type="submit">Gate Register</button>
                             </form>
                         </div>
 
@@ -203,7 +203,7 @@ const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
                                         <option key="red" value="red">Red</option>
                                     </select>
                                 </div>
-                                <button className={styles.confirmBtn} type="submit">Register Walk-On</button>
+                                <button className='confirmBtn' type="submit">Register Walk-On</button>
                             </form>
                         </div>
 

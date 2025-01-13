@@ -169,7 +169,7 @@ const ControlPanel = ({ APIServer }) => {
             <Modal open={activeModal.type === 'logoutConfirm'}>
                 <>
                     Are you sure you want to log out?
-                    <button className={`actionButton ${modalStyles.confirmBtn}`} onClick={() => handleLogout()}>Yes</button>
+                    <button className={`actionButton confirmBtn`} onClick={() => handleLogout()}>Yes</button>
                     <button className='actionButton' onClick={() => setActiveModal('')}>No</button>
                 </>
             </Modal>

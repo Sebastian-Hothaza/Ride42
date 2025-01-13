@@ -216,7 +216,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 							{!lockedUserInfo ?
 								<div className={styles.confirmContainer}>
 									<button type="button" onClick={() => setLockedUserInfo(true)}>Cancel</button>								
-									<button className={styles.confirmBtn} type="submit">Confirm</button>
+									<button className='confirmBtn' type="submit">Confirm</button>
 								</div>
 								: <button type="button" onClick={() => setLockedUserInfo(false)}>Edit Personal Info</button>}
 						</div>
@@ -236,7 +236,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 							<input type="password" id="newPasswordConfirm" name="newPasswordConfirm" required onInput={checkPswMatches}></input>
 						</div>
 						<div id={styles.changePswBtn} >
-							<button className={styles.confirmBtn} type="submit">Change Password</button>
+							<button className='confirmBtn' type="submit">Change Password</button>
 						</div>
 					</form>
 				</div>
@@ -266,7 +266,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 							<option key="none" value="">---Select---</option>
 							{groupChange.map((item) => <option key={item.value} value={item.value}>{item.displayValue}</option>)}
 						</select>
-						<button className={`actionButton ${styles.confirmBtn}`} type="submit">Confirm</button>
+						<button className={`actionButton confirmBtn`} type="submit">Confirm</button>
 						<button type="button" className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
 					</form>
 				</>

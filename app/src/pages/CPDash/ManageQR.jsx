@@ -226,7 +226,7 @@ const ManageQR = ({ APIServer, allUsers, fetchAPIData, }) => {
                         <input type="number" id="yellowQR" name="yellowQR" ></input>
                         <label htmlFor="redQR">Red QR Codes:</label>
                         <input type="number" id="redQR" name="redQR" ></input>
-                        <button className={styles.confirmBtn} type="submit">Generate QRs</button>
+                        <button className='actionButton confirmBtn' type="submit">Generate QRs</button>
                     </form>
                 </div>
 
@@ -257,7 +257,7 @@ const ManageQR = ({ APIServer, allUsers, fetchAPIData, }) => {
 
                         <label htmlFor="qrid">QR id to delete:</label>
                         <input type="text" autoComplete="off" name="qrid" id="qrid" onChange={() => { setCurQRDelete(qrid.value) }} value={curQRDelete} required></input>
-                        <button type="submit">Delete</button>
+                        <button className='actionButton confirmBtn' type="submit">Delete</button>
 
                     </form>
                 </div>

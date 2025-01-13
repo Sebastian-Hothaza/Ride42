@@ -189,7 +189,7 @@ const ManageUsers = ({ APIServer, fetchAPIData, allUsers }) => {
                             {!lockedUserInfo ?
                                 <div className={styles.confirmContainer}>
                                     <button type="button" onClick={() => setLockedUserInfo(true)}>Cancel</button>
-                                    <button className={styles.confirmBtn} type="submit">Confirm</button>
+                                    <button className='confirmBtn' type="submit">Confirm</button>
                                 </div>
                                 : <button type="button" onClick={() => setLockedUserInfo(false)}>Edit User Info</button>}
                         </div>
@@ -203,7 +203,7 @@ const ManageUsers = ({ APIServer, fetchAPIData, allUsers }) => {
                         </div>
 
                         <div id={styles.changePswBtn} >
-                            <button className={styles.confirmBtn} type="submit">Set New Password</button>
+                            <button className='confirmBtn' type="submit">Set New Password</button>
                         </div>
                     </form>
 

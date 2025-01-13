@@ -78,7 +78,7 @@ const Waiver = ({ APIServer, fetchAPIData, allUsers }) => {
                         {eligibleUsers.length == 0 && <option key='empty' value=''>No entries found</option>}
                     </select>
 
-                    <button className={styles.confirmBtn} type="submit">Update Waiver</button>
+                    <button className='confirmBtn' type="submit">Update Waiver</button>
                 </form>
             </div>
             <Loading open={activeModal.type === 'loading'}>
@@ -102,7 +102,7 @@ const Waiver = ({ APIServer, fetchAPIData, allUsers }) => {
             <Modal open={activeModal.type === 'confirmWaiver'}>
                 <>
                     Does the waiver contain: Name, Date, Initials, Signature?
-                    <button className={`actionButton ${styles.confirmBtn}`} onClick={() => handleWaiverSubmit(activeModal.userID)}>Yes</button>
+                    <button className={`actionButton confirmBtn`} onClick={() => handleWaiverSubmit(activeModal.userID)}>Yes</button>
                     <button className='actionButton' onClick={() => setActiveModal('')}>No</button>
                 </>
             </Modal>

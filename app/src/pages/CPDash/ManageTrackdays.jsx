@@ -311,7 +311,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 
 
 
-						<button className={`actionButton ${styles.confirmBtn}`} type="submit">Confirm</button>
+						<button className={`actionButton confirmBtn`} type="submit">Confirm</button>
 						<button type="button" className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
 					</form>
 				</>
@@ -330,7 +330,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 
 							</select>
 						</div>
-						<button className={`actionButton ${styles.confirmBtn}`} type="submit">Confirm</button>
+						<button className={`actionButton confirmBtn`} type="submit">Confirm</button>
 						<button type="button" className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
 					</form>
 				</>
@@ -388,7 +388,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 
 
 
-						<button className={`actionButton ${styles.confirmBtn}`} type="submit">Confirm</button>
+						<button className={`actionButton confirmBtn`} type="submit">Confirm</button>
 						<button type="button" className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
 					</form>
 
@@ -418,7 +418,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 						<label htmlFor="amount">Amount</label>
 						<input type='number' step='0.01' autoComplete='off' id="amount" name="amount" required></input>
 
-						<button className={`actionButton ${styles.confirmBtn}`} type="submit">Add new cost</button>
+						<button className={`actionButton confirmBtn`} type="submit">Add new cost</button>
 
 					</form>
 				</>
@@ -439,7 +439,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 						<label htmlFor="bundlePrice">Bundle Ticket Price</label>
 						<input type='number' id="bundlePrice" name="bundlePrice" required></input>
 
-						<button className={`actionButton ${styles.confirmBtn}`} type="submit">Confirm</button>
+						<button className={`actionButton confirmBtn`} type="submit">Confirm</button>
 						<button type="button" className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
 					</form>
 				</>

@@ -275,7 +275,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 						</div>
 
 					</div>
-					<button className={styles.confirmBtn} id={styles.registerBtn} type="submit">Register</button>
+					<button className='confirmBtn' id={styles.registerBtn} type="submit">Register</button>
 				</form>
 
 
@@ -328,7 +328,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			<Modal open={activeModal.type === 'cancel'}>
 				<>
 					Are you sure you want to cancel this trackday?
-					<button className={`actionButton ${styles.confirmBtn}`} onClick={() => handleCancelTrackdaySubmit(activeModal.trackday.id)}>Yes, cancel it</button>
+					<button className={`actionButton confirmBtn`} onClick={() => handleCancelTrackdaySubmit(activeModal.trackday.id)}>Yes, cancel it</button>
 					<button className='actionButton' onClick={() => setActiveModal('')}>No, keep it</button>
 				</>
 			</Modal>
@@ -343,7 +343,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 							<option key="none" value="">--- Select ---</option>
 							{allTrackdays && allTrackdays.map((item) => <option key={item.value} value={item.value}>{item.displayValue}</option>)}
 						</select>
-						<button className={`actionButton ${styles.confirmBtn}`} type="submit">Confirm</button>
+						<button className={`actionButton confirmBtn`} type="submit">Confirm</button>
 						<button type="button" className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
 					</form>
 				</>

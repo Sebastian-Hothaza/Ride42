@@ -80,7 +80,7 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 							<div key={garageItem.bike._id} className={styles.bikeEntry}>
 								<div className='capitalizeEach' >{garageItem.bike.year} {garageItem.bike.make} <span className='capitalizeAll'>{garageItem.bike.model}</span></div>
 								<div className={styles.bikeControls}>
-									<button className={styles.confirmBtn} onClick={(e) => handleRemoveBike(garageItem.bike._id)}>Remove Bike</button>
+									<button className='confirmBtn' onClick={(e) => handleRemoveBike(garageItem.bike._id)}>Remove Bike</button>
 								</div>
 
 							</div>
@@ -107,7 +107,7 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 
 
 
-					<button className={styles.confirmBtn} type="submit">Add Bike</button>
+					<button className='confirmBtn' type="submit">Add Bike</button>
 				</form>
 
 			</div>
@@ -132,7 +132,7 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 			<Modal open={activeModal.type === 'addBikeConfirm'}>
 				<>
 					Your bike has been added to your garage. Please collect your QR sticker at the next trackday.
-					<button className={`actionButton ${styles.confirmBtn}`} onClick={()=>setActiveTab('trackdays')}>Go to My Trackdays</button>
+					<button className={`actionButton confirmBtn`} onClick={()=>setActiveTab('trackdays')}>Go to My Trackdays</button>
 					<button className='actionButton' onClick={()=>setActiveModal('')}>Stay in garage</button>
 				</>
 			</Modal>
