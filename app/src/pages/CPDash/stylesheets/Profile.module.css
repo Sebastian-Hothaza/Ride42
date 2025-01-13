@@ -74,6 +74,22 @@
     justify-content: flex-end;
 }
 
+#changePswForm input{
+    width: auto;
+}
+
+
+
+#changePswForm > div{
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+#changePswForm label{
+    white-space: nowrap;
+}
+
 @media (max-width: 1000px) {
     .inputSection {
         grid-template-columns: 1fr;
@@ -116,6 +132,10 @@
     #changePswBtn{
 
         justify-content: center;
+    }
+
+    #changePswForm > div{
+        flex-direction: column;
     }
 
     .content h1{

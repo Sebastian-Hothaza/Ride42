@@ -15,7 +15,7 @@ import errormark from './../../assets/error.png'
 const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 
 	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
-	
+
 	const [lockedUserInfo, setLockedUserInfo] = useState(true); // Tracks if we are editing fields
 
 
@@ -86,7 +86,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 				const data = await response.json();
 				setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
 			}
-		} catch (err) { 
+		} catch (err) {
 			setActiveModal({ type: 'failure', msg: 'API Failure' })
 			console.log(err.message)
 		}
@@ -117,7 +117,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 				const data = await response.json();
 				setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
 			}
-		} catch (err) { 
+		} catch (err) {
 			setActiveModal({ type: 'failure', msg: 'API Failure' })
 			console.log(err.message)
 		}
@@ -143,7 +143,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 				const data = await response.json();
 				setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
 			}
-		} catch (err) { 
+		} catch (err) {
 			setActiveModal({ type: 'failure', msg: 'API Failure' })
 			console.log(err.message)
 		}
@@ -215,30 +215,18 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 						<div className={styles.btnContainer} >
 							{!lockedUserInfo ?
 								<div className={styles.confirmContainer}>
-									<button type="button" onClick={() => setLockedUserInfo(true)}>Cancel</button>								
+									<button type="button" onClick={() => setLockedUserInfo(true)}>Cancel</button>
 									<button className='confirmBtn' type="submit">Confirm</button>
 								</div>
-								: <button type="button" onClick={() => setLockedUserInfo(false)}>Edit Personal Info</button>}
+								: <div >
+									<button type="button" onClick={() => setLockedUserInfo(false)}>Edit Personal Info</button>
+									<br></br><br></br>
+									<button type="button" onClick={() => setActiveModal({ type: 'changePassword' })}>Change Password</button>
+								</div>}
 						</div>
 					</form>
 
-					<form className={styles.inputSection} onSubmit={(e) => handleChangePasswordSubmit(e)}>
-						<div className={styles.inputPairing}>
-							<label htmlFor="oldPassword">Old Password:</label>
-							<input type="password" id="oldPassword" name="oldPassword" required></input>
-						</div>
-						<div className={styles.inputPairing}>
-							<label htmlFor="newPassword">New Password:</label>
-							<input type="password" id="newPassword" name="newPassword" required onInput={checkPswFormat}></input>
-						</div>
-						<div className={styles.inputPairing}>
-							<label htmlFor="newPasswordConfirm">Confirm New Password:</label>
-							<input type="password" id="newPasswordConfirm" name="newPasswordConfirm" required onInput={checkPswMatches}></input>
-						</div>
-						<div id={styles.changePswBtn} >
-							<button className='confirmBtn' type="submit">Change Password</button>
-						</div>
-					</form>
+
 				</div>
 			}
 			<Loading open={activeModal.type === 'loading'}>
@@ -259,17 +247,37 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 			</Modal>
 
 			<Modal open={activeModal.type === 'selectGroup'}>
-				<>
-					Which group?
-					<form onSubmit={(e) => handleUserGroupSubmit(e, e.target.result.value)}>
-						<select name="result" id="result" required>
-							<option key="none" value="">---Select---</option>
-							{groupChange.map((item) => <option key={item.value} value={item.value}>{item.displayValue}</option>)}
-						</select>
-						<button className={`actionButton confirmBtn`} type="submit">Confirm</button>
-						<button type="button" className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
-					</form>
-				</>
+				<form onSubmit={(e) => handleUserGroupSubmit(e, e.target.result.value)}>
+					<h2>Change group</h2>
+					<select name="result" id="result" required>
+						<option key="none" value=""></option>
+						{groupChange.map((item) => <option key={item.value} value={item.value}>{item.displayValue}</option>)}
+					</select>
+					<button className={`actionButton confirmBtn`} type="submit">Confirm</button>
+					<button type="button" className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
+				</form>
+
+			</Modal>
+
+			<Modal open={activeModal.type === 'changePassword'}>
+				<form id={styles.changePswForm} onSubmit={(e) => handleChangePasswordSubmit(e)}>
+					<div>
+						<label htmlFor="oldPassword">Old Password:</label>
+						<input type="password" id="oldPassword" name="oldPassword" required></input>
+					</div>
+					<div>
+						<label htmlFor="newPassword">New Password:</label>
+						<input type="password" id="newPassword" name="newPassword" required onInput={checkPswFormat}></input>
+					</div>
+					<div>
+						<label htmlFor="newPasswordConfirm">Confirm New Password:</label>
+						<input type="password" id="newPasswordConfirm" name="newPasswordConfirm" required onInput={checkPswMatches}></input>
+					</div>
+					<div>
+						<button className={`actionButton`} type="button" onClick={() => setActiveModal('')}>Cancel</button>
+						<button className={`actionButton confirmBtn`} type="submit">Change Password</button>
+					</div>
+				</form>
 			</Modal>
 
 		</>
