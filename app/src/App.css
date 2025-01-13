@@ -22,9 +22,14 @@ body {
 .actionButton {
     background-color: black;
     color: white;
-    border-radius: .5rem;
+    border-radius: 10px;
     font-size: 1.5rem;
-    padding: 1rem 3rem;
+    padding: 0.5rem 2rem;
+}
+
+.confirmBtn{
+    background-color: var(--accent-color) !important;
+    font-weight: bold;
 }
 
 .active {
