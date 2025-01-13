@@ -50,7 +50,6 @@
 
 .content form input {
     font-size: inherit;
-
     width: 200px;
 }
 
@@ -60,7 +59,11 @@
     align-items: center;
     gap: .5rem;
     width: 100%;
-    
+}
+
+#addBikeModal label{
+    min-width: 100px;
+    text-align: left;
 }
 
 .confirmBtn {

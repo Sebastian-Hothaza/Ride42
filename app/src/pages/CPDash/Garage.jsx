@@ -55,7 +55,7 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 			await fetchAPIData();
 			e.target.reset();
 			if (response.ok) {
-				setActiveModal({ type: 'addBikeConfirm'});
+				setActiveModal({ type: 'addBikeConfirm' });
 			} else {
 				const data = await response.json();
 				setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
@@ -90,25 +90,7 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 
 
 
-				<form onSubmit={(e) => handleAddBike(e)}>
-
-					<div className={styles.inputPairing}>
-						<label htmlFor="year">Year:</label>
-						<input type="number" id="year" name="year" required min={1900} max={2100}></input>
-					</div>
-					<div className={styles.inputPairing}>
-						<label htmlFor="make">Make:</label>
-						<input type="text" id="make" name="make" required minLength={2} maxLength={50}></input>
-					</div>
-					<div className={styles.inputPairing}>
-						<label htmlFor="model">Model:</label>
-						<input type="text" id="model" name="model" required minLength={2} maxLength={50}></input>
-					</div>
-
-
-
-					<button className='confirmBtn' type="submit">Add Bike</button>
-				</form>
+				<button style={{ width: 'auto', margin: 'auto' }} onClick={() => setActiveModal({ type: 'addBike' })}>Add Bike</button>
 
 			</div>
 
@@ -132,9 +114,34 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 			<Modal open={activeModal.type === 'addBikeConfirm'}>
 				<>
 					Your bike has been added to your garage. Please collect your QR sticker at the next trackday.
-					<button className={`actionButton confirmBtn`} onClick={()=>setActiveTab('trackdays')}>Go to My Trackdays</button>
-					<button className='actionButton' onClick={()=>setActiveModal('')}>Stay in garage</button>
+					<button className={`actionButton confirmBtn`} onClick={() => setActiveTab('trackdays')}>Go to My Trackdays</button>
+					<button className='actionButton' onClick={() => setActiveModal('')}>Stay in garage</button>
 				</>
+			</Modal>
+
+			<Modal open={activeModal.type === 'addBike'}>
+
+				<form id={styles.addBikeModal} onSubmit={(e) => handleAddBike(e)}>
+					<h2>Add new bike</h2>
+					<div className={styles.inputPairing}>
+						<label htmlFor="year">Year:</label>
+						<input type="number" id="year" name="year" required min={1900} max={2100}></input>
+					</div>
+					<div className={styles.inputPairing}>
+						<label htmlFor="make">Make:</label>
+						<input type="text" id="make" name="make" required minLength={2} maxLength={50}></input>
+					</div>
+					<div className={styles.inputPairing}>
+						<label htmlFor="model">Model:</label>
+						<input type="text" id="model" name="model" required minLength={2} maxLength={50}></input>
+					</div>
+
+
+
+					<button className={`actionButton confirmBtn`} type="submit">Add Bike</button>
+					<button className='actionButton' type="button" onClick={() => setActiveModal('')}>Cancel</button>
+				</form>
+
 			</Modal>
 
 
