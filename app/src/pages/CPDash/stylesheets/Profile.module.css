@@ -64,11 +64,6 @@
     min-width: 120px;
 }
 
-.confirmBtn{
-    background-color: var(--accent-color) !important;
-    font-weight: bold !important;
-}
-
 .btnContainer{
     grid-column: span 2;
     margin: auto;
