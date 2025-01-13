@@ -12,7 +12,6 @@ import errormark from './../../assets/error.png'
 
 
 const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
-
 	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
 
 	async function handleRemoveBike(bikeID) {
@@ -66,32 +65,22 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 		}
 	}
 
-
 	return (
 		<>
 			<ScrollToTop />
 			<div className={styles.content}>
 				<h1>My Bikes</h1>
-
-
 				<div className={styles.allBikes}>
 					{userInfo.garage && userInfo.garage.map((garageItem) => {
 						return (
 							<div key={garageItem.bike._id} className={styles.bikeEntry}>
 								<div className='capitalizeEach' >{garageItem.bike.year} {garageItem.bike.make} <span className='capitalizeAll'>{garageItem.bike.model}</span></div>
-								<div className={styles.bikeControls}>
-									<button className='confirmBtn' onClick={(e) => handleRemoveBike(garageItem.bike._id)}>Remove Bike</button>
-								</div>
-
+								<button className='confirmBtn' onClick={(e) => handleRemoveBike(garageItem.bike._id)}>Remove Bike</button>
 							</div>
 						)
 					})}
 				</div>
-
-
-
 				<button style={{ width: 'auto', margin: 'auto' }} onClick={() => setActiveModal({ type: 'addBike' })}>Add Bike</button>
-
 			</div>
 
 			<Loading open={activeModal.type === 'loading'}>
@@ -122,16 +111,15 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 			<Modal open={activeModal.type === 'addBike'}>
 
 				<form id={styles.addBikeModal} onSubmit={(e) => handleAddBike(e)}>
-					<h2>Add new bike</h2>
-					<div className={styles.inputPairing}>
+					<div>
 						<label htmlFor="year">Year:</label>
 						<input type="number" id="year" name="year" required min={1900} max={2100}></input>
 					</div>
-					<div className={styles.inputPairing}>
+					<div>
 						<label htmlFor="make">Make:</label>
 						<input type="text" id="make" name="make" required minLength={2} maxLength={50}></input>
 					</div>
-					<div className={styles.inputPairing}>
+					<div>
 						<label htmlFor="model">Model:</label>
 						<input type="text" id="model" name="model" required minLength={2} maxLength={50}></input>
 					</div>
