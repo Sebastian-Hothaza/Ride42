@@ -11,6 +11,7 @@ import checkmark from './../../assets/checkmark.png'
 import errormark from './../../assets/error.png'
 
 
+
 const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }) => {
 
 	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
@@ -175,7 +176,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 		}
 	}
 
-	async function handleaRemoveCost(trackdayID, costID) {
+	async function handleRemoveCost(trackdayID, costID) {
 		setActiveModal({ type: 'loading', msg: 'Removing cost from trackday' });
 		try {
 			const response = await fetch(APIServer + 'costs/' + trackdayID + '/' + costID, {
@@ -198,6 +199,10 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 			setActiveModal({ type: 'failure', msg: 'API Failure' })
 			console.log(err.message)
 		}
+	}
+
+	async function handleDeleteTrackday(trackdayID){
+		alert('not yet implemented; extreme caution needed as currently may break back end', trackdayID);
 	}
 
 	async function handleCreateTrackdaySubmit(e) {
@@ -238,7 +243,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 			<div className={styles.content}>
 				<h1>Manage Trackdays:
 					<form>
-						<div className={styles.inputPairing}>
+						<div>
 							<select name="yearSelect" id="yearSelect" defaultValue={selectedYear} onChange={() => { setSelectedYear(yearSelect.value) }} required>
 								{years.map((year) => <option value={year} key={year}>{year}</option>)}
 							</select>
@@ -253,13 +258,13 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 									<div>{trackday.prettyDate} ({trackday.layout}) - {trackday.status}</div>
 								</div>
 								<div className={styles.tdControls}>
-									<button className={styles.editBtn} style={{color: '#00ee00'}}  onClick={() => setActiveModal({ type: 'register', trackday: trackday })}><span className='material-symbols-outlined'>person_add</span></button>
-									<button className={styles.editBtn} style={{color: '#ee0000'}} onClick={() => setActiveModal({ type: 'unregister', trackday: trackday })}><span className='material-symbols-outlined'>person_remove</span></button>
-									<button className={styles.editBtn} style={{color: '#0099ff'}} onClick={() => {
+									<button className={styles.editBtn} style={{ color: '#00ee00' }} onClick={() => setActiveModal({ type: 'register', trackday: trackday })}><span className='material-symbols-outlined'>person_add</span></button>
+									<button className={styles.editBtn} style={{ color: '#ee0000' }} onClick={() => setActiveModal({ type: 'unregister', trackday: trackday })}><span className='material-symbols-outlined'>person_remove</span></button>
+									<button className={styles.editBtn} style={{ color: '#0099ff' }} onClick={() => {
 										setAdditionalCosts(trackday.costs.filter((costObject) => costObject.desc != 'trackRental'));
 										setActiveModal({ type: 'editDetails', trackday: trackday })
 									}}><span className='material-symbols-outlined'>edit</span></button>
-									<button className={styles.editBtn} style={{backgroundColor: '#bb0000'}}  onClick={() => alert('not yet implemented; extreme caution needed as currently may break back end')}><span className='material-symbols-outlined'>delete</span></button>
+									<button className={styles.editBtn} style={{ backgroundColor: '#bb0000' }} onClick={() => setActiveModal({ type: 'deleteTrackday', trackday: trackday })}><span className='material-symbols-outlined'>delete</span></button>
 								</div>
 							</div>
 						)
@@ -289,28 +294,19 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 				<>
 					<h2>Register User</h2>
 					<form onSubmit={(e) => handleRegisterSubmit(e, e.target.user.value, activeModal.trackday._id, e.target.paymentMethod.value,)}>
-
-						<div className={styles.inputPairing}>
-							<label htmlFor="user">Select User:</label>
-							<select className='capitalizeEach' name="user" id="user" required>
-								<option key="none" value="">--- Select ---</option>
-								{activeModal.trackday && allUsers.filter((user) => !activeModal.trackday.members.find((memberEntry) => memberEntry.user._id === user._id)).map((user) => <option key={user._id} value={user._id}>{user.firstName}, {user.lastName}</option>)}
-							</select>
-						</div>
-
-						<div className={styles.inputPairing}>
-							<label htmlFor="paymentMethod">Payment Method:</label>
-							<select name="paymentMethod" id="paymentMethod" required>
-								<option key="paymentNone" value="">--- Choose Payment Method ---</option>
-								<option key="etransfer" value="etransfer">Interac E-Transfer</option>
-								<option key="creditCard" value="creditCard">Credit Card</option>
-								<option key="credit" value="credit">Use trackday credit</option>
-								<option key="gate" value="gate">Gate</option>
-							</select>
-						</div>
-
-
-
+						<label htmlFor="user">Select User:</label>
+						<select className='capitalizeEach' name="user" id="user" required>
+							<option key="none" value=""></option>
+							{activeModal.trackday && allUsers.filter((user) => !activeModal.trackday.members.find((memberEntry) => memberEntry.user._id === user._id)).map((user) => <option key={user._id} value={user._id}>{user.firstName}, {user.lastName}</option>)}
+						</select>
+						<label htmlFor="paymentMethod">Payment Method:</label>
+						<select name="paymentMethod" id="paymentMethod" required>
+							<option key="paymentNone" value=""></option>
+							<option key="etransfer" value="etransfer">Interac E-Transfer</option>
+							<option key="creditCard" value="creditCard">Credit Card</option>
+							<option key="credit" value="credit">Use trackday credit</option>
+							<option key="gate" value="gate">Gate</option>
+						</select>
 						<button className={`actionButton confirmBtn`} type="submit">Confirm</button>
 						<button type="button" className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
 					</form>
@@ -322,14 +318,14 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 					<h2>Un-register User</h2>
 					<form onSubmit={(e) => handleUnRegisterSubmit(e, e.target.user.value, activeModal.trackday._id)}>
 
-						<div className={styles.inputPairing}>
-							<label htmlFor="user">Select User:</label>
-							<select className='capitalizeEach' name="user" id="user" required>
-								<option key="none" value="">--- Select ---</option>
-								{activeModal.trackday && activeModal.trackday.members.map((memberEntry) => <option key={memberEntry.user._id} value={memberEntry.user._id}>{memberEntry.user.firstName}, {memberEntry.user.lastName}</option>)}
 
-							</select>
-						</div>
+						<label htmlFor="user">Select User:</label>
+						<select className='capitalizeEach' name="user" id="user" required>
+							<option key="none" value=""></option>
+							{activeModal.trackday && activeModal.trackday.members.map((memberEntry) => <option key={memberEntry.user._id} value={memberEntry.user._id}>{memberEntry.user.firstName}, {memberEntry.user.lastName}</option>)}
+
+						</select>
+
 						<button className={`actionButton confirmBtn`} type="submit">Confirm</button>
 						<button type="button" className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
 					</form>
@@ -339,9 +335,12 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 			<Modal open={activeModal.type === 'editDetails'}>
 				<>
 					<h2>Edit Trackday Details</h2>
-					<form onSubmit={(e) => handleEditDetailsSubmit(e, activeModal.trackday._id)}>
-
-						<div className={styles.inputPairing}>
+					<form id={styles.editTrackdayForm} onSubmit={(e) => handleEditDetailsSubmit(e, activeModal.trackday._id)}>
+						<div>
+							<label htmlFor="user">Date</label>
+							<input type='date' id="date" name="date" defaultValue={activeModal.trackday && activeModal.trackday.date.slice(0, 10)}></input>
+						</div>
+						<div>
 							<label htmlFor="group">Layout</label>
 							<select name="layout" id="layout" defaultValue={activeModal.trackday && activeModal.trackday.layout} required>
 								<option key="technical" value="technical">Technical</option>
@@ -354,8 +353,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 								<option key="tbd" value="tbd">tbd</option>
 							</select>
 						</div>
-
-						<div className={styles.inputPairing}>
+						<div>
 							<label htmlFor="group">Status</label>
 							<select name="status" id="status" defaultValue={activeModal.trackday && activeModal.trackday.status} required>
 								<option key="regOpen" value="regOpen">Registration Open</option>
@@ -364,63 +362,68 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 								<option key="archived" value="archived">Archive</option>
 							</select>
 						</div>
-						<div className={styles.inputPairing}>
-							<label htmlFor="user">Date</label>
-							<input type='date' id="date" name="date" defaultValue={activeModal.trackday && activeModal.trackday.date.slice(0, 10)}></input>
+						<div>
+							<label htmlFor="rentalCost">Rental Cost($)</label>
+							<input type='number' id="rentalCost" name="rentalCost" defaultValue={activeModal.trackday && activeModal.trackday.costs.find((cost) => cost.desc == 'trackRental').amount} required></input>
 						</div>
-
-						<label htmlFor="rentalCost">Rental Cost</label>
-						<input type='number' id="rentalCost" name="rentalCost" defaultValue={activeModal.trackday && activeModal.trackday.costs.find((cost) => cost.desc == 'trackRental').amount} required></input>
-
-
-
-						<label htmlFor="preRegTicketPrice">Advance</label>
-						<input type='number' id="preRegTicketPrice" name="preRegTicketPrice" defaultValue={activeModal.trackday && activeModal.trackday.ticketPrice.preReg} required></input>
-
-						<label htmlFor="gateTicketPrice">Gate</label>
-						<input type='number' id="gateTicketPrice" name="gateTicketPrice" defaultValue={activeModal.trackday && activeModal.trackday.ticketPrice.gate} required></input>
-
-						<label htmlFor="bundlePrice">Bundle</label>
-						<input type='number' id="bundlePrice" name="bundlePrice" defaultValue={activeModal.trackday && activeModal.trackday.ticketPrice.bundle} required></input>
-
-
-
-
-
-
-						<button className={`actionButton confirmBtn`} type="submit">Confirm</button>
+						<div>
+							<label htmlFor="preRegTicketPrice">Advance($)</label>
+							<input type='number' id="preRegTicketPrice" name="preRegTicketPrice" defaultValue={activeModal.trackday && activeModal.trackday.ticketPrice.preReg} required></input>
+						</div>
+						<div>
+							<label htmlFor="gateTicketPrice">Gate($)</label>
+							<input type='number' id="gateTicketPrice" name="gateTicketPrice" defaultValue={activeModal.trackday && activeModal.trackday.ticketPrice.gate} required></input>
+						</div>
+						<div>
+							<label htmlFor="bundlePrice">Bundle($)</label>
+							<input type='number' id="bundlePrice" name="bundlePrice" defaultValue={activeModal.trackday && activeModal.trackday.ticketPrice.bundle} required></input>
+						</div>
+						<div></div>
 						<button type="button" className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
+						<button className={`actionButton confirmBtn`} type="submit">Confirm</button>
+
 					</form>
 
 
 					<h2>Additional Costs</h2>
-					<div>
+
+					<form id={styles.editCostsForm} onSubmit={(e) => handleaAddCost(e, activeModal.trackday._id)}>
+						<div>
+							<label htmlFor="desc">Description</label>
+							<input type='text' autoComplete='off' id="desc" name="desc" required></input>
+						</div>
+						<div>
+							<label htmlFor="type">Type</label>
+							<select name="type" id="type" required>
+								<option key="fixed" value="fixed">Fixed</option>
+								<option key="variable" value="variable">Variable</option>
+							</select>
+						</div>
+						<div>
+							<label htmlFor="amount">Amount($)</label>
+							<input type='number' step='0.01' autoComplete='off' id="amount" name="amount" required></input>
+						</div>
+						<button className='actionButton' type="submit">Add cost</button>
+
+					</form>
+					<div id={styles.additionalCostsList}>
 						{additionalCosts.map((costObject) => {
 							return (
 								<div key={costObject.desc}>
-									{costObject.desc},{costObject.type},{costObject.amount}<button onClick={() => handleaRemoveCost(activeModal.trackday._id, costObject._id)}>DELME</button>
+									<div key={costObject.desc}>{costObject.desc}, ${costObject.amount}{costObject.type == 'variable' && '/person'}</div>
+									<button className={ `actionButton confirmBtn`}onClick={() => handleRemoveCost(activeModal.trackday._id, costObject._id)}><span className='material-symbols-outlined'>delete</span></button>
 								</div>
 							)
 						})}
 					</div>
+				</>
+			</Modal>
 
-					<form className={styles.createCost} onSubmit={(e) => handleaAddCost(e, activeModal.trackday._id)}>
-
-						<label htmlFor="desc">Description</label>
-						<input type='text' autoComplete='off' id="desc" name="desc" required></input>
-
-						<label htmlFor="type">Cost Type</label>
-						<select name="type" id="type" required>
-							<option key="fixed" value="fixed">Fixed</option>
-							<option key="variable" value="variable">Variable</option>
-						</select>
-
-						<label htmlFor="amount">Amount</label>
-						<input type='number' step='0.01' autoComplete='off' id="amount" name="amount" required></input>
-
-						<button className={`actionButton confirmBtn`} type="submit">Add new cost</button>
-
-					</form>
+			<Modal open={activeModal.type === 'deleteTrackday'}>
+				<>
+					Are you sure you want to delete this trackday?
+					<button className={`actionButton confirmBtn`} onClick={() => handleDeleteTrackday(activeModal.trackday.id)}>Delete</button>
+					<button className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
 				</>
 			</Modal>
 

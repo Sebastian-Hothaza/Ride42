@@ -36,7 +36,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    
+
 
     border: none;
     background-color: black;
@@ -52,28 +52,77 @@
 }
 
 /* MODAL STYLING */
+#editTrackdayForm {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    font-size: 1rem;
+}
 
+#editTrackdayForm button,
+#editCostsForm button {
+    font-size: 1rem;
+}
 
-.content form {
+/* Label/inout pairings */
+#editTrackdayForm>div {
+    display: flex;
+}
+
+/* Form labels */
+#editTrackdayForm label {
+    min-width: 150px;
+    text-align: left;
+}
+
+/* Add COSTS FORM */
+#editCostsForm {
+    font-size: 1rem;
+    flex-direction: row;
+    align-items: center;
+    border-bottom: dashed 2px black;
+    padding-bottom: 1rem;
+}
+
+/* Label/inout pairings */
+#editCostsForm>div {
+    display: flex;
+    gap: .25rem;
+}
+
+#editCostsForm input {
+    min-width: auto;
+    width: 120px;
+}
+
+#editCostsForm select {
+    width: auto;
+}
+
+#editCostsForm button {
+    min-width: auto;
+    padding: 3px 10px;
+    white-space: nowrap;
+}
+
+/* Additional costs lists */
+#additionalCostsList {
     display: flex;
     flex-direction: column;
-}
-
-.inputPairing {
-    display: flex;
-    align-items: center;
-    font-size: inherit;
     gap: .5rem;
+    width: 100%;
 }
 
-.inputPairing select {
-    min-width: 100px;
+#additionalCostsList>div {
+    display: flex;
+    justify-content: space-between;
 }
 
-
-.confirmBtn {
-    background-color: var(--accent-color) !important;
-    font-weight: bold !important;
+#additionalCostsList button {
+    padding: 6px;
+    border-radius: 50%;
+    min-width: auto;
+    border: none;
+    display: flex;
 }
 
 
@@ -96,6 +145,30 @@
 
     .tdEntry {
         flex-direction: column;
+    }
+
+    #editTrackdayForm {
+        grid-template-columns: 1fr;
+    }
+
+    #editCostsForm {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    /* Label/inout pairings */
+    #editCostsForm>div {
+        justify-content: space-between;
+        background-color: beige;
+        width: 100%;
+    }
+
+    #editCostsForm input {
+        width: 130px;
+    }
+
+    #editCostsForm select {
+        width: 138px;
     }
 
 }
