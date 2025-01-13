@@ -4,12 +4,6 @@
 }
 
 .content button {
-    background-color: var(--accent-color);
-    color: white;
-    border: none;
-    font-size: inherit;
-    border-radius: .2rem;
-    padding: .5rem 2rem;
     margin-top: 1rem;
 }
 
