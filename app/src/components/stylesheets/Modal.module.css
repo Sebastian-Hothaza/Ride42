@@ -4,7 +4,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, .85);
+    background-color: rgba(0, 0, 0, .9);
     z-index: 1000;
 }
 
@@ -65,17 +65,18 @@
     overflow-y: auto;
 }
 
+/* Notification modals */
 .modal:has(> .modalNotif){
     color: white;
     background-color: transparent;
     font-size: 2rem;
 }
 
+/* Form modals */
 .modal form{
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center;
     gap: 1rem;
 }
 
@@ -87,29 +88,22 @@
 .modal form select{
     font-size: inherit;
     width: 100%;
-    text-align: center;
-}
-
-.confirmBtn{
-    background-color: var(--accent-color) !important;
 }
 
 .modal button{
-    width: 300px;
+    min-width: 200px;
 }
 
 
-
-
 #modalCheckmarkIMG{
-    height: 200px;
-    width: 200px;
+    height: 150px;
+    width: 150px;
 }
 
 @media (max-width: 850px) {
     #modalCheckmarkIMG{
-        height: 125px;
-        width: 125px;
+        height: 100px;
+        width: 100px;
     }
 }
 
