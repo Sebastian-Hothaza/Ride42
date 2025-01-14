@@ -136,39 +136,60 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 
 	// Download CSV file
 	function download(trackday) {
-		let result = `NOTE: This is best used when copied into XLS doc so that tabs display correctly\n\n`
+		let outputText = `NOTE: This is best used when copied into XLS doc so that tabs display correctly\n\n`
 		if (showFinancials) {
-			result += 'TODO FINANCIAL'
-		} else {
-			//Sort alphabetically 
-			trackday.members.sort((a, b) => (a.user.firstName > b.user.firstName) ? 1 : ((b.user.firstName > a.user.firstName) ? -1 : 0))
+			outputText += `Revenue\n`
+			outputText += `Pre-Reg Ticket Sales\t$${selectedTrackday.preRegPrice} x ${selectedTrackday.preRegQty}\t$${selectedTrackday.preRegPrice * selectedTrackday.preRegQty}\n`
+			outputText += `Gate Ticket Sales\t$${selectedTrackday.gatePrice} x ${selectedTrackday.gateQty}\t$${selectedTrackday.gatePrice * selectedTrackday.gateQty}\n`
+			outputText += `Bundle Ticket Sales\t$${selectedTrackday.bundlePrice} x ${selectedTrackday.bundleQty}\t$${selectedTrackday.bundlePrice * selectedTrackday.bundleQty}\n`
+			selectedTrackday.costs.filter((costObject) => costObject.amount < 0).forEach((costObject) => {
+				outputText += `${costObject.desc}\t`
+				outputText += costObject.type == 'variable' ? `$${costObject.amount * -1} x ${selectedTrackday.members.length + selectedTrackday.walkons.length}\t` : `\t`;
+				outputText += costObject.type == 'variable' ? `$${costObject.amount * -1 * (selectedTrackday.members.length + selectedTrackday.walkons.length)}\n` : `$${costObject.amount * -1}\n`
+			})
+			outputText += `Total Revenue\t\t$${selectedTrackday.totalRevenue}\n\n`
 
-			// Build results
-			result += `GREEN GROUP\nName\tWaiver\tPaid\tCheckIn\n`;
+
+			outputText += `Expenses\n`
+			outputText += `Track Rental\t\t$${selectedTrackday.costs.find((costObject) => costObject.desc == 'trackRental').amount}\n`
+			selectedTrackday.costs.filter((costObject) => costObject.amount > 0 && costObject.desc != 'trackRental').forEach((costObject) => {
+				outputText += `${costObject.desc}\t`
+				if (costObject.desc == 'BBQ') {
+					outputText += `$${costObject.amount} x ${selectedTrackday.guests}\t`
+					outputText += costObject.type == 'variable' ? `$${costObject.amount * selectedTrackday.guests}\n` : `${costObject.amount}\n`
+				} else {
+					outputText += costObject.type == 'variable' ? `$${costObject.amount} x ${selectedTrackday.members.length + selectedTrackday.walkons.length}\t` : `\t`;
+					outputText += costObject.type == 'variable' ? `$${costObject.amount * (selectedTrackday.members.length + selectedTrackday.walkons.length)}\n` : `${costObject.amount}\n`
+				}
+			})
+			outputText += `Total Expenses\t\t$${selectedTrackday.totalExpense}\n\n`
+
+
+			outputText += `Profit\t\t$${selectedTrackday.totalRevenue-selectedTrackday.totalExpense}\n`
+		} else {
+			outputText += `GREEN GROUP\nName\tWaiver\tPaid\tCheckIn\n`;
 			trackday.members.filter(memberEntry => memberEntry.user.group == 'green').forEach((memberEntry) => {
-				result += `${memberEntry.user.firstName} ${memberEntry.user.lastName}\t${allUsers.find((user) => user._id === memberEntry.user._id).waiver ? `✔` : ``}\t${memberEntry.paid ? `✔` : ``}\n`
+				outputText += `${memberEntry.user.firstName} ${memberEntry.user.lastName}\t${allUsers.find((user) => user._id === memberEntry.user._id).waiver ? `✔` : ``}\t${memberEntry.paid ? `✔` : ``}\n`
 			})
-			result += `\n`
-			result += `YELLOW GROUP\nName\tWaiver\tPaid\tCheckIn\n`;
+			outputText += `\n`
+			outputText += `YELLOW GROUP\nName\tWaiver\tPaid\tCheckIn\n`;
 			trackday.members.filter(memberEntry => memberEntry.user.group == 'yellow').forEach((memberEntry) => {
-				result += `${memberEntry.user.firstName} ${memberEntry.user.lastName}\t${allUsers.find((user) => user._id === memberEntry.user._id).waiver ? `✔` : ``}\t${memberEntry.paid ? `✔` : ``}\n`
+				outputText += `${memberEntry.user.firstName} ${memberEntry.user.lastName}\t${allUsers.find((user) => user._id === memberEntry.user._id).waiver ? `✔` : ``}\t${memberEntry.paid ? `✔` : ``}\n`
 			})
-			result += `\n`
-			result += `RED GROUP\nName\tWaiver\tPaid\tCheckIn\n`;
+			outputText += `\n`
+			outputText += `RED GROUP\nName\tWaiver\tPaid\tCheckIn\n`;
 			trackday.members.filter(memberEntry => memberEntry.user.group == 'red').forEach((memberEntry) => {
-				result += `${memberEntry.user.firstName} ${memberEntry.user.lastName}\t${allUsers.find((user) => user._id === memberEntry.user._id).waiver ? `✔` : ``}\t${memberEntry.paid ? `✔` : ``}\n`
+				outputText += `${memberEntry.user.firstName} ${memberEntry.user.lastName}\t${allUsers.find((user) => user._id === memberEntry.user._id).waiver ? `✔` : ``}\t${memberEntry.paid ? `✔` : ``}\n`
 			})
 		}
 
 		// Prepare download file
 		const link = window.document.createElement('a');
-		const file = new Blob([result], { type: 'text/csv' });
+		const file = new Blob([outputText], { type: 'text/csv' });
 		link.href = URL.createObjectURL(file);
 		link.download = showFinancials ? `${trackday.prettyDate}_Financials.csv` : `${trackday.prettyDate}_CheckIn.csv`;
 		document.body.appendChild(link);
 		link.click();
-
-
 	}
 
 
