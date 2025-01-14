@@ -1,13 +1,11 @@
 .content {
     margin-top: 30px;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(5, minmax(200px, 1fr));
     row-gap: 50px;
-
 }
 
 .content button {
-
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -20,8 +18,10 @@
     border: none;
 }
 
+
+
 @media (max-width: 850px) {
     .content {
-        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        grid-template-columns: repeat(2, minmax(100px, 1fr));
     }
 }

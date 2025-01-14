@@ -1,6 +1,6 @@
 import styles from './stylesheets/StaffTools.module.css'
 import ScrollToTop from "../../components/ScrollToTop";
-import ControlPanel from '../ControlPanel';
+
 
 import waiver from '../../assets/staffTools/waiver.png'
 import checkin from '../../assets/staffTools/checkin.png'
@@ -9,7 +9,6 @@ import gate from '../../assets/staffTools/gate.png'
 import manageUsers from '../../assets/staffTools/manageUsers.png'
 import manageQR from '../../assets/staffTools/manageQR.png'
 import paid from '../../assets/staffTools/paid.png'
-import report from '../../assets/staffTools/report.png'
 import server from '../../assets/staffTools/server.png'
 import state from '../../assets/staffTools/state.png'
 import verify from '../../assets/staffTools/verify.png'
@@ -38,7 +37,6 @@ const staffTools = ({ setActiveTab, memberType, APIServer }) => {
                         <button onClick={() => setActiveTab('manageUsers')}><img src={manageUsers}></img>Manage Users</button>
                         <button onClick={() => setActiveTab('manageTrackdays')}><img src={manageTrackdays}></img>Manage Trackdays</button>
                         <button onClick={() => setActiveTab('markPaid')}><img src={paid}></img>Mark Paid</button>
-                        <button onClick={() => setActiveTab('trackdaySummary')}><img src={report}></img>Financial Summary</button>
                         <button onClick={() => fetchLogs(APIServer)}><img src={server}></img>Server Logs</button>
                     </>
                 }
