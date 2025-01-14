@@ -124,7 +124,7 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 		// Add additional expenses
 		selectedTrackday.costs.filter((costObject) => costObject.amount > 0).map((costObject) => {
 			if (costObject.desc == 'BBQ') {
-				selectedTrackday.totalExpense += Math.round(costObject.amount * selectedTrackday.guests);
+				selectedTrackday.totalExpense += costObject.amount * selectedTrackday.guests;
 			} else if (costObject.type == 'fixed') {
 				selectedTrackday.totalExpense += costObject.amount;
 			} else {
@@ -164,7 +164,7 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 		const link = window.document.createElement('a');
 		const file = new Blob([result], { type: 'text/csv' });
 		link.href = URL.createObjectURL(file);
-		link.download = showFinancials? `${trackday.prettyDate}_Financials.csv` : `${trackday.prettyDate}_CheckIn.csv`;
+		link.download = showFinancials ? `${trackday.prettyDate}_Financials.csv` : `${trackday.prettyDate}_CheckIn.csv`;
 		document.body.appendChild(link);
 		link.click();
 
@@ -215,68 +215,157 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 					</div>}
 				</h1>
 
-
-
 				{selectedTrackday && (showFinancials ?
-					<div className={styles.reportGrid}>
-						<h2>Revenue</h2>
+					<>
+						<div className={styles.reportGrid}>
+							<h2>Revenue</h2>
 
-						<div>Pre-Reg Ticket Sales</div>
-						<div>${selectedTrackday.preRegPrice} x {selectedTrackday.preRegQty}</div>
-						<div>${selectedTrackday.preRegPrice * selectedTrackday.preRegQty}</div>
+							<div>Pre-Reg Ticket Sales</div>
+							<div>${selectedTrackday.preRegPrice} x {selectedTrackday.preRegQty}</div>
+							<div style={{ textAlign: 'right' }}>${selectedTrackday.preRegPrice * selectedTrackday.preRegQty}</div>
 
-						<div>Gate Ticket Sales</div>
-						<div>${selectedTrackday.gatePrice} x {selectedTrackday.gateQty}</div>
-						<div>${selectedTrackday.gatePrice * selectedTrackday.gateQty}</div>
+							<div>Gate Ticket Sales</div>
+							<div>${selectedTrackday.gatePrice} x {selectedTrackday.gateQty}</div>
+							<div style={{ textAlign: 'right' }}>${selectedTrackday.gatePrice * selectedTrackday.gateQty}</div>
 
-						<div>Bundle Ticket Sales</div>
-						<div>${selectedTrackday.bundlePrice} x {selectedTrackday.bundleQty}</div>
-						<div>${selectedTrackday.bundlePrice * selectedTrackday.bundleQty}</div>
+							<div>Bundle Ticket Sales</div>
+							<div>${selectedTrackday.bundlePrice} x {selectedTrackday.bundleQty}</div>
+							<div style={{ textAlign: 'right' }}>${selectedTrackday.bundlePrice * selectedTrackday.bundleQty}</div>
 
-						{selectedTrackday.costs.filter((costObject) => costObject.amount < 0).map((costObject) => {
-							return (
-								<Fragment key={costObject._id}>
-									<div >{costObject.desc}</div>
-									{costObject.type == 'variable' ? <div >${costObject.amount * -1} x {selectedTrackday.members.length + selectedTrackday.walkons.length}</div> : <div ></div>}
-									{costObject.type == 'variable' ? <div >${costObject.amount * -1 * (selectedTrackday.members.length + selectedTrackday.walkons.length)}</div> : <div>${costObject.amount * -1}</div>}
-								</Fragment>
-							)
-						})}
+							{selectedTrackday.costs.filter((costObject) => costObject.amount < 0).map((costObject) => {
+								return (
+									<Fragment key={costObject._id}>
+										<div >{costObject.desc}</div>
+										{costObject.type == 'variable' ? <div>${(costObject.amount * -1).toFixed(2)} x {selectedTrackday.members.length + selectedTrackday.walkons.length}</div> : <div></div>}
+										{costObject.type == 'variable' ? <div style={{ textAlign: 'right' }}>${Math.round(costObject.amount * -1 * (selectedTrackday.members.length + selectedTrackday.walkons.length))}</div> :
+											<div style={{ textAlign: 'right' }}>${Math.round(costObject.amount * -1)}</div>}
+									</Fragment>
+								)
+							})}
 
-						<h3>Total Revenue</h3>
-						<h3> </h3>
-						<h3>${selectedTrackday.totalRevenue}</h3>
+							<h3>Total Revenue</h3>
+							<h3></h3>
+							<h3 style={{ textAlign: 'right' }}>${Math.round(selectedTrackday.totalRevenue)}</h3>
 
-						<h2>Expenses</h2>
-						<div>Track Rental</div>
-						<div></div>
-						<div>${selectedTrackday.costs.find((costObject) => costObject.desc == 'trackRental').amount}</div>
+							<h2>Expenses</h2>
+							<div>Track Rental</div>
+							<div></div>
+							<div style={{ textAlign: 'right' }}>${selectedTrackday.costs.find((costObject) => costObject.desc == 'trackRental').amount}</div>
 
-						{selectedTrackday.costs.filter((costObject) => costObject.amount > 0 && costObject.desc != 'trackRental').map((costObject) => {
-							return (
-								<Fragment key={costObject._id}>
-									<div >{costObject.desc}</div>
-									{costObject.desc == 'BBQ' ? <div>${costObject.amount} x {selectedTrackday.guests}</div> :
-										costObject.type == 'variable' ? <div >${costObject.amount} x {selectedTrackday.members.length + selectedTrackday.walkons.length}</div> : <div ></div>
-									}
+							{selectedTrackday.costs.filter((costObject) => costObject.amount > 0 && costObject.desc != 'trackRental').map((costObject) => {
+								return (
+									<Fragment key={costObject._id}>
+										<div >{costObject.desc}</div>
+										{costObject.desc == 'BBQ' ? <div>${(costObject.amount).toFixed(2)} x {selectedTrackday.guests}</div> :
+											costObject.type == 'variable' ? <div >${(costObject.amount).toFixed(2)} x {selectedTrackday.members.length + selectedTrackday.walkons.length}</div> : <div ></div>
+										}
+										{costObject.desc == 'BBQ' ? <div style={{ textAlign: 'right' }}>${Math.round(costObject.amount * selectedTrackday.guests)}</div> :
+											costObject.type == 'variable' ? <div style={{ textAlign: 'right' }}>${Math.round(costObject.amount * (selectedTrackday.members.length + selectedTrackday.walkons.length))}</div> : <div style={{ textAlign: 'right' }}>${Math.round(costObject.amount)}</div>
+										}
 
-									{costObject.desc == 'BBQ' ? <div>${Math.round(costObject.amount * selectedTrackday.guests)}</div> :
-										costObject.type == 'variable' ? <div >${costObject.amount * (selectedTrackday.members.length + selectedTrackday.walkons.length)}</div> : <div>${costObject.amount}</div>
-									}
+
+									</Fragment>
+								)
+							})}
+
+							<h3>Total Expenses</h3>
+							<h3></h3>
+							<h3 style={{ textAlign: 'right' }}>${Math.round(selectedTrackday.totalExpense)}</h3>
+
+							<h3>Profit</h3>
+							<h3></h3>
+							<h3 style={{ textAlign: 'right' }}>${Math.round(selectedTrackday.totalRevenue - selectedTrackday.totalExpense)}</h3>
+						</div>
+
+						{/* MOBILE */}
+
+						<div className={styles.reportGrid_Mobile}>
+							<h2>Revenue</h2>
+
+							<div className={styles.lineEntry}>
+								<div>Pre-Reg Ticket Sales</div>
+								<div className={styles.price}>
+									<div><em>${selectedTrackday.preRegPrice} x {selectedTrackday.preRegQty}</em></div>
+									<div style={{ textAlign: 'right' }}>${selectedTrackday.preRegPrice * selectedTrackday.preRegQty}</div>
+								</div>
+							</div>
+
+							<div className={styles.lineEntry}>
+								<div>Gate Ticket Sales</div>
+								<div className={styles.price}>
+									<div><em>${selectedTrackday.gatePrice} x {selectedTrackday.gateQty}</em></div>
+									<div style={{ textAlign: 'right' }}>${selectedTrackday.gatePrice * selectedTrackday.gateQty}</div>
+								</div>
+							</div>
+
+							<div className={styles.lineEntry}>
+								<div>Bundle Ticket Sales</div>
+								<div className={styles.price}>
+									<div><em>${selectedTrackday.bundlePrice} x {selectedTrackday.bundleQty}</em></div>
+									<div style={{ textAlign: 'right' }}>${selectedTrackday.bundlePrice * selectedTrackday.bundleQty}</div>
+								</div>
+							</div>
 
 
-								</Fragment>
-							)
-						})}
+							{selectedTrackday.costs.filter((costObject) => costObject.amount < 0).map((costObject) => {
+								return (
+									<div className={styles.lineEntry} key={costObject._id}>
+										<div >{costObject.desc}</div>
+										<div className={styles.price}>
+											{costObject.type == 'variable' ? <div>${(costObject.amount * -1).toFixed(2)} x {selectedTrackday.members.length + selectedTrackday.walkons.length}</div> : <div></div>}
+											{costObject.type == 'variable' ? <div style={{ textAlign: 'right' }}>${Math.round(costObject.amount * -1 * (selectedTrackday.members.length + selectedTrackday.walkons.length))}</div> :
+												<div style={{ textAlign: 'right' }}>${Math.round(costObject.amount * -1)}</div>}
+										</div>
 
-						<h3>Total Expenses</h3>
-						<h3> </h3>
-						<h3>${selectedTrackday.totalExpense}</h3>
+									</div>
+								)
+							})}
 
-						<h3>Profit</h3>
-						<h3> </h3>
-						<h3>${selectedTrackday.totalRevenue - selectedTrackday.totalExpense}</h3>
-					</div>
+
+							<div className={styles.lineTotal}>
+								<h3>Total Revenue</h3>
+								<h3 style={{ textAlign: 'right' }}>${Math.round(selectedTrackday.totalRevenue)}</h3>
+							</div>
+
+
+							<h2>Expenses</h2>
+							<div className={styles.lineEntry}>
+								<div>Track Rental</div>
+								<div className={styles.price}>
+									<div></div>
+									<div style={{ textAlign: 'right' }}>${selectedTrackday.costs.find((costObject) => costObject.desc == 'trackRental').amount}</div>
+								</div>
+							</div>
+
+
+							{selectedTrackday.costs.filter((costObject) => costObject.amount > 0 && costObject.desc != 'trackRental').map((costObject) => {
+								return (
+									<div className={styles.lineEntry} key={costObject._id}>
+										<div >{costObject.desc}</div>
+										<div className={styles.price}>
+											{costObject.desc == 'BBQ' ? <div>${(costObject.amount).toFixed(2)} x {selectedTrackday.guests}</div> :
+												costObject.type == 'variable' ? <div >${(costObject.amount).toFixed(2)} x {selectedTrackday.members.length + selectedTrackday.walkons.length}</div> : <div ></div>
+											}
+											{costObject.desc == 'BBQ' ? <div style={{ textAlign: 'right' }}>${Math.round(costObject.amount * selectedTrackday.guests)}</div> :
+												costObject.type == 'variable' ? <div style={{ textAlign: 'right' }}>${Math.round(costObject.amount * (selectedTrackday.members.length + selectedTrackday.walkons.length))}</div> : <div style={{ textAlign: 'right' }}>${Math.round(costObject.amount)}</div>
+											}
+										</div>
+									</div>
+								)
+							})}
+
+							<div className={styles.lineTotal}>
+								<h3>Total Expenses</h3>
+								<h3 style={{ textAlign: 'right' }}>${Math.round(selectedTrackday.totalExpense)}</h3>
+							</div>
+
+							<div className={styles.lineTotal}>
+								<h3>Profit</h3>
+								<h3 style={{ textAlign: 'right' }}>${Math.round(selectedTrackday.totalRevenue - selectedTrackday.totalExpense)}</h3>
+							</div>
+
+						</div>
+					</>
 					:
 					<>
 						<div className={styles.tdSummary}>
