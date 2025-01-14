@@ -15,10 +15,11 @@ import notCheckedIn from './../../assets/notCheckedIn.png'
 
 const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL }) => {
 
-	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
+	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown (in this case just spinner modal for refresh)
 	const currentYear = new Date().getFullYear();
 	const [selectedYear, setSelectedYear] = useState(currentYear);
-	const [selectedTrackdayId, setSelectedTrackdayId] = useState(''); // Tracks what the current working trackdayId is 
+	const [selectedTrackdayId, setSelectedTrackdayId] = useState(''); // Tracks what the current working trackdayId is
+	const [showFinancials, setShowFinancials] = useState(false); // When set to true, shows financials instead of state 
 
 	let preRegistrations = 0;
 	let gateRegistrations = 0;
@@ -56,14 +57,16 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 
 
 
-	// Set the selected trackday 
+	// Set the selected trackday and sort its members array. Augment object to include values for state display and financial display
 	if (selectedTrackdayId) {
 		selectedTrackday = allTrackdaysFULL.find((td) => td._id === selectedTrackdayId)
+		selectedTrackday.members.sort((a, b) => (a.user.firstName > b.user.firstName) ? 1 : ((b.user.firstName > a.user.firstName) ? -1 : 0))
 
-	}
 
+		// ------------------
+		//   STATE DISPLAY
+		// ------------------
 
-	if (selectedTrackday) {
 		// Get registration break down.
 		selectedTrackday.members.forEach((memberEntry) => memberEntry.paymentMethod === 'gate' ? gateRegistrations++ : preRegistrations++)
 		// Used to determine number of riders in each group
@@ -90,38 +93,82 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 
 		// If trackday being shown is archived, we can ignore waiver
 		if (selectedTrackday.status == 'archived') consolidatedArray.forEach((entry) => entry.user.waiver = true)
+
+		// ---------------------
+		//   FINANCIAL DISPLAY
+		// ---------------------
+
+		// Adding ticket prices
+		selectedTrackday.preRegPrice = selectedTrackday.ticketPrice.preReg;
+		selectedTrackday.gatePrice = selectedTrackday.ticketPrice.gate;
+		selectedTrackday.bundlePrice = selectedTrackday.ticketPrice.bundle;
+
+		// Adding ticket quantities
+		selectedTrackday.preRegQty = selectedTrackday.members.filter((member) => member.paymentMethod == 'etransfer' || member.paymentMethod == 'creditCard').length;
+		selectedTrackday.gateQty = selectedTrackday.members.filter((member) => member.paymentMethod == 'gate').length + selectedTrackday.walkons.length;
+		selectedTrackday.bundleQty = selectedTrackday.members.filter((member) => member.paymentMethod == 'credit' && member.user.memberType == 'regular').length;
+
+		// Totals
+		selectedTrackday.totalRevenue = (selectedTrackday.preRegPrice * selectedTrackday.preRegQty) + (selectedTrackday.gatePrice * selectedTrackday.gateQty) + (selectedTrackday.bundlePrice * selectedTrackday.bundleQty)
+		selectedTrackday.totalExpense = 0;
+
+		// Add additional revenue
+		selectedTrackday.costs.filter((costObject) => costObject.amount < 0).map((costObject) => {
+			if (costObject.type == 'fixed') {
+				selectedTrackday.totalRevenue += costObject.amount * -1;
+			} else {
+				selectedTrackday.totalRevenue += costObject.amount * -1 * (selectedTrackday.members.length + selectedTrackday.walkons.length);
+			}
+		})
+
+		// Add additional expenses
+		selectedTrackday.costs.filter((costObject) => costObject.amount > 0).map((costObject) => {
+			if (costObject.desc == 'BBQ') {
+				selectedTrackday.totalExpense += Math.round(costObject.amount * selectedTrackday.guests);
+			} else if (costObject.type == 'fixed') {
+				selectedTrackday.totalExpense += costObject.amount;
+			} else {
+				selectedTrackday.totalExpense += costObject.amount * (selectedTrackday.members.length + selectedTrackday.walkons.length);
+			}
+		})
 	}
 
 
 	// Download CSV file
 	function download(trackday) {
 		let result = `NOTE: This is best used when copied into XLS doc so that tabs display correctly\n\n`
-		//Sort alphabetically 
-		trackday.members.sort((a, b) => (a.user.firstName > b.user.firstName) ? 1 : ((b.user.firstName > a.user.firstName) ? -1 : 0))
+		if (showFinancials) {
+			result += 'TODO FINANCIAL'
+		} else {
+			//Sort alphabetically 
+			trackday.members.sort((a, b) => (a.user.firstName > b.user.firstName) ? 1 : ((b.user.firstName > a.user.firstName) ? -1 : 0))
 
-		// Build results
-		result += `GREEN GROUP\nName\tWaiver\tPaid\tCheckIn\n`;
-		trackday.members.filter(memberEntry => memberEntry.user.group == 'green').forEach((memberEntry) => {
-			result += `${memberEntry.user.firstName} ${memberEntry.user.lastName}\t${allUsers.find((user) => user._id === memberEntry.user._id).waiver ? `✔` : ``}\t${memberEntry.paid ? `✔` : ``}\n`
-		})
-		result+=`\n`
-		result += `YELLOW GROUP\nName\tWaiver\tPaid\tCheckIn\n`;
-		trackday.members.filter(memberEntry => memberEntry.user.group == 'yellow').forEach((memberEntry) => {
-			result += `${memberEntry.user.firstName} ${memberEntry.user.lastName}\t${allUsers.find((user) => user._id === memberEntry.user._id).waiver ? `✔` : ``}\t${memberEntry.paid ? `✔` : ``}\n`
-		})
-		result+=`\n`
-		result += `RED GROUP\nName\tWaiver\tPaid\tCheckIn\n`;
-		trackday.members.filter(memberEntry => memberEntry.user.group == 'red').forEach((memberEntry) => {
-			result += `${memberEntry.user.firstName} ${memberEntry.user.lastName}\t${allUsers.find((user) => user._id === memberEntry.user._id).waiver ? `✔` : ``}\t${memberEntry.paid ? `✔` : ``}\n`
-		})
+			// Build results
+			result += `GREEN GROUP\nName\tWaiver\tPaid\tCheckIn\n`;
+			trackday.members.filter(memberEntry => memberEntry.user.group == 'green').forEach((memberEntry) => {
+				result += `${memberEntry.user.firstName} ${memberEntry.user.lastName}\t${allUsers.find((user) => user._id === memberEntry.user._id).waiver ? `✔` : ``}\t${memberEntry.paid ? `✔` : ``}\n`
+			})
+			result += `\n`
+			result += `YELLOW GROUP\nName\tWaiver\tPaid\tCheckIn\n`;
+			trackday.members.filter(memberEntry => memberEntry.user.group == 'yellow').forEach((memberEntry) => {
+				result += `${memberEntry.user.firstName} ${memberEntry.user.lastName}\t${allUsers.find((user) => user._id === memberEntry.user._id).waiver ? `✔` : ``}\t${memberEntry.paid ? `✔` : ``}\n`
+			})
+			result += `\n`
+			result += `RED GROUP\nName\tWaiver\tPaid\tCheckIn\n`;
+			trackday.members.filter(memberEntry => memberEntry.user.group == 'red').forEach((memberEntry) => {
+				result += `${memberEntry.user.firstName} ${memberEntry.user.lastName}\t${allUsers.find((user) => user._id === memberEntry.user._id).waiver ? `✔` : ``}\t${memberEntry.paid ? `✔` : ``}\n`
+			})
+		}
 
 		// Prepare download file
 		const link = window.document.createElement('a');
 		const file = new Blob([result], { type: 'text/csv' });
 		link.href = URL.createObjectURL(file);
-		link.download = `${trackday.prettyDate}_CheckIn.csv`;
+		link.download = showFinancials? `${trackday.prettyDate}_Financials.csv` : `${trackday.prettyDate}_CheckIn.csv`;
 		document.body.appendChild(link);
 		link.click();
+
+
 	}
 
 
@@ -154,19 +201,83 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 					<form>
 						<div className={styles.inputPairing}>
 							<select name="trackday" id="trackday" onChange={() => setSelectedTrackdayId(trackday.value)} required>
-								<option style={{ textAlign: 'center' }} key="none" value="">---Select---</option>
+								<option style={{ textAlign: 'center' }} key="none" value="">--- Select ---</option>
 								{allTrackdaysFULL.map((trackday) => <option key={trackday._id} value={trackday._id}>{trackday.prettyDate}</option>)}
 							</select>
 						</div>
 					</form>
-					<div className={styles.topButtons} >
-						{selectedTrackday && <button className={styles.stateBtn} onClick={() => download(selectedTrackday)}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined `}>export_notes</span></button>}
+					{selectedTrackday && <div className={styles.topButtons} >
+						{showFinancials ?
+							<button className={styles.stateBtn} onClick={() => setShowFinancials(false)}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined `}>event</span></button> :
+							<button className={styles.stateBtn} onClick={() => setShowFinancials(true)}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined `}>savings</span></button>}
+						<button className={styles.stateBtn} onClick={() => download(selectedTrackday)}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined `}>export_notes</span></button>
 						<button className={styles.stateBtn} onClick={() => handleRefresh()}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined `}>refresh</span></button>
-					</div>
-
+					</div>}
 				</h1>
 
-				{selectedTrackday &&
+
+
+				{selectedTrackday && (showFinancials ?
+					<div className={styles.reportGrid}>
+						<h2>Revenue</h2>
+
+						<div>Pre-Reg Ticket Sales</div>
+						<div>${selectedTrackday.preRegPrice} x {selectedTrackday.preRegQty}</div>
+						<div>${selectedTrackday.preRegPrice * selectedTrackday.preRegQty}</div>
+
+						<div>Gate Ticket Sales</div>
+						<div>${selectedTrackday.gatePrice} x {selectedTrackday.gateQty}</div>
+						<div>${selectedTrackday.gatePrice * selectedTrackday.gateQty}</div>
+
+						<div>Bundle Ticket Sales</div>
+						<div>${selectedTrackday.bundlePrice} x {selectedTrackday.bundleQty}</div>
+						<div>${selectedTrackday.bundlePrice * selectedTrackday.bundleQty}</div>
+
+						{selectedTrackday.costs.filter((costObject) => costObject.amount < 0).map((costObject) => {
+							return (
+								<Fragment key={costObject._id}>
+									<div >{costObject.desc}</div>
+									{costObject.type == 'variable' ? <div >${costObject.amount * -1} x {selectedTrackday.members.length + selectedTrackday.walkons.length}</div> : <div ></div>}
+									{costObject.type == 'variable' ? <div >${costObject.amount * -1 * (selectedTrackday.members.length + selectedTrackday.walkons.length)}</div> : <div>${costObject.amount * -1}</div>}
+								</Fragment>
+							)
+						})}
+
+						<h3>Total Revenue</h3>
+						<h3> </h3>
+						<h3>${selectedTrackday.totalRevenue}</h3>
+
+						<h2>Expenses</h2>
+						<div>Track Rental</div>
+						<div></div>
+						<div>${selectedTrackday.costs.find((costObject) => costObject.desc == 'trackRental').amount}</div>
+
+						{selectedTrackday.costs.filter((costObject) => costObject.amount > 0 && costObject.desc != 'trackRental').map((costObject) => {
+							return (
+								<Fragment key={costObject._id}>
+									<div >{costObject.desc}</div>
+									{costObject.desc == 'BBQ' ? <div>${costObject.amount} x {selectedTrackday.guests}</div> :
+										costObject.type == 'variable' ? <div >${costObject.amount} x {selectedTrackday.members.length + selectedTrackday.walkons.length}</div> : <div ></div>
+									}
+
+									{costObject.desc == 'BBQ' ? <div>${Math.round(costObject.amount * selectedTrackday.guests)}</div> :
+										costObject.type == 'variable' ? <div >${costObject.amount * (selectedTrackday.members.length + selectedTrackday.walkons.length)}</div> : <div>${costObject.amount}</div>
+									}
+
+
+								</Fragment>
+							)
+						})}
+
+						<h3>Total Expenses</h3>
+						<h3> </h3>
+						<h3>${selectedTrackday.totalExpense}</h3>
+
+						<h3>Profit</h3>
+						<h3> </h3>
+						<h3>${selectedTrackday.totalRevenue - selectedTrackday.totalExpense}</h3>
+					</div>
+					:
 					<>
 						<div className={styles.tdSummary}>
 							<h2>Trackday Summary</h2>
@@ -331,7 +442,12 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 							})}
 						</div>
 					</>
-				}
+				)}
+
+
+
+
+
 
 			</div >
 
