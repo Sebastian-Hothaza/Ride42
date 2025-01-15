@@ -13,9 +13,6 @@ import server from '../../assets/staffTools/server.png'
 import state from '../../assets/staffTools/state.png'
 import verify from '../../assets/staffTools/verify.png'
 
-
-import fetchLogs from '../logUtils';
-
 const staffTools = ({ setActiveTab, memberType, APIServer }) => {
     return (
         <>
@@ -37,7 +34,7 @@ const staffTools = ({ setActiveTab, memberType, APIServer }) => {
                         <button onClick={() => setActiveTab('manageUsers')}><img src={manageUsers}></img>Manage Users</button>
                         <button onClick={() => setActiveTab('manageTrackdays')}><img src={manageTrackdays}></img>Manage Trackdays</button>
                         <button onClick={() => setActiveTab('markPaid')}><img src={paid}></img>Mark Paid</button>
-                        <button onClick={() => fetchLogs(APIServer)}><img src={server}></img>Server Logs</button>
+                        <button onClick={() => setActiveTab('serverLogs')}><img src={server}></img>Server Logs</button>
                     </>
                 }
             </div>
