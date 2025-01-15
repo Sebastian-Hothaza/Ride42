@@ -43,6 +43,7 @@
 @media (max-width: 850px) {
     #logWindow {
         grid-template-columns: 1fr;
+        height: 40vh;
     }
 
     #logWindow>div:nth-child(3n){
