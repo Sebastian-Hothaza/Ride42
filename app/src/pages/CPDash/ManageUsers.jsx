@@ -78,6 +78,27 @@ const ManageUsers = ({ APIServer, fetchAPIData, allUsers }) => {
         e.target.reset();
 	}
 
+    async function handleDeleteUser(userID){
+		setActiveModal({ type: 'loading', msg: 'Deleting user' });
+		try {
+			const response = await fetch(APIServer + 'users/' + userID, {
+				method: 'DELETE',
+				credentials: "include",
+			})
+			await fetchAPIData();
+			if (response.ok) {
+				setActiveModal({ type: 'success', msg: 'User deleted' });
+				setTimeout(() => setActiveModal(''), 1500)
+			} else {
+				const data = await response.json();
+				setActiveModal({ type: 'failure', msg: data.msg })
+			}
+		} catch (err) {
+			setActiveModal({ type: 'failure', msg: 'API Failure' })
+			console.log(err.message)
+		}
+	}
+
     if (!allUsers) {
         return null;
     } else {
@@ -207,12 +228,19 @@ const ManageUsers = ({ APIServer, fetchAPIData, allUsers }) => {
                         </div>
                     </form>
 
-                    <button style={{ margin: 'auto', backgroundColor: 'red' }} onClick={() => alert('not yet implemented; extreme caution needed as currently may break back end')}>Delete User</button>
+                    <button style={{ margin: 'auto', backgroundColor: 'red' }} onClick={() => setActiveModal({ type: 'deleteUser', user: user })}>Delete User</button>
 
                 </>}
 
             </div>
 
+			<Modal open={activeModal.type === 'deleteUser'}>
+				<>
+					Are you sure you want to delete this user?
+					<button className={`actionButton confirmBtn`} onClick={() => handleDeleteUser(activeModal.user._id)}>Delete</button>
+					<button className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
+				</>
+			</Modal>
 
             <Loading open={activeModal.type === 'loading'}>
                 {activeModal.msg}
