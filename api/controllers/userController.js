@@ -101,7 +101,7 @@ exports.updatePassword = [
     asyncHandler(async (req, res, next) => {
         if (req.user.memberType === 'admin' || req.user.id === req.params.userID) {
             bcrypt.hash(req.body.newPassword, 10, async (err, hashedPassword) => {
-                if (err) logger.error({message: "bcrypt error"})
+                if (err) logger.error({ message: "bcrypt error" })
                 let user = await User.findById(req.params.userID).exec();
 
                 // Verify old Password
@@ -138,7 +138,7 @@ exports.requestPasswordResetLink = [
 
             // Email link to user
             sendEmail(req.body.email, "Reset Your Ride42 Password", mailTemplates.passwordResetLink, { name: user.firstName, link: `https://Ride42.ca/passwordreset/${user._id}/${resetToken}` })
-            logger.info({message: `Password reset link generated for ${user.firstName} ${user.lastName}`})
+            logger.info({ message: `Password reset link generated for ${user.firstName} ${user.lastName}` })
             return res.sendStatus(200)
         }
         return res.status(403).json({ msg: ['No user exists with this email'] });
@@ -157,12 +157,12 @@ exports.resetPassword = [
         try {
             const payload = jwt.verify(req.params.token, process.env.JWT_ACCESS_CODE);
             bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
-                if (err) logger.error({message: "bcrypt error"})
+                if (err) logger.error({ message: "bcrypt error" })
                 let user = await User.findById(payload.id).exec();
                 user.password = hashedPassword;
                 await user.save();
                 sendEmail(user.contact.email, "Your Password has been updated", mailTemplates.passwordChange, { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) })
-                logger.info({message: `Password reset for user ${user.firstName} ${user.lastName}`})
+                logger.info({ message: `Password reset for user ${user.firstName} ${user.lastName}` })
                 res.sendStatus(200);
             })
         } catch {
@@ -286,7 +286,7 @@ exports.generateQRs = [
                 await qr.save();
                 qrGen.push({ id: qr.id })
             }
-            logger.info({message: `Generared ${req.body.qty} QR Codes`})
+            logger.info({ message: `Generared ${req.body.qty} QR Codes` })
             return res.status(201).json(qrGen);
         }
         return res.sendStatus(403)
@@ -321,16 +321,16 @@ exports.marryQR = [
         if (req.user.memberType === 'admin') {
             const qr = await QR.findById(req.params.QRID).populate('user').exec();
             const user = await User.findById(req.params.userID).populate('garage.bike').exec();
-            const bikeToMarry = user.garage.find((garageItem) => garageItem.bike.equals(req.params.bikeID));          
+            const bikeToMarry = user.garage.find((garageItem) => garageItem.bike.equals(req.params.bikeID));
 
             if (!bikeToMarry) return res.status(404).send({ msg: ['this bike does not exist in your garage'] })
             if (bikeToMarry.QRID == req.params.QRID) return res.status(400).send({ msg: ['This QR is already attached to you'] })
-            if (qr.bike) return res.status(400).send({ msg: ['This QR is attached to '+qr.user.firstName+' '+qr.user.lastName] })
+            if (qr.bike) return res.status(400).send({ msg: ['This QR is attached to ' + qr.user.firstName + ' ' + qr.user.lastName] })
 
 
             // Check for old QR and if one exists, delete it
             if (bikeToMarry.QRID) await QR.findByIdAndDelete(bikeToMarry.QRID);
-                
+
             // Update QR
             qr.user = req.params.userID;
             qr.bike = req.params.bikeID;
@@ -339,7 +339,7 @@ exports.marryQR = [
             // Updates the users QRID for the bike that has just been married
             bikeToMarry.QRID = qr;
             await user.save();
-            logger.info({message: `Married QR Code ${req.params.QRID} to ${user.firstName} ${user.lastName}'s ${bikeToMarry.bike.year} ${bikeToMarry.bike.make} ${bikeToMarry.bike.model}`})
+            logger.info({ message: `Married QR Code ${req.params.QRID} to ${user.firstName} ${user.lastName}'s ${bikeToMarry.bike.year} ${bikeToMarry.bike.make} ${bikeToMarry.bike.model}` })
             return res.status(201).json({ id: qr.id });
         }
         return res.sendStatus(403)
@@ -367,7 +367,7 @@ exports.deleteQR = [
 
             // Remove QR item from DB
             await QR.findByIdAndDelete(req.params.QRID);
-            logger.info({message: `Deleted QR Code ${req.params.QRID}`})
+            logger.info({ message: `Deleted QR Code ${req.params.QRID}` })
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
@@ -385,7 +385,7 @@ exports.markWaiver = [
             const user = await User.findById(req.params.userID).exec();
             user.waiver = true;
             await user.save();
-            logger.info({message: `Marked waiver for ${user.firstName} ${user.lastName} as signed`})
+            logger.info({ message: `Marked waiver for ${user.firstName} ${user.lastName} as signed` })
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
@@ -480,7 +480,7 @@ exports.user_post = [
             })
             await user.save();
             sendEmail(user.contact.email, "Welcome to Ride42", mailTemplates.welcomeUser, { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) })
-            logger.info({message: `Created user ${user.firstName} ${user.lastName}`})
+            logger.info({ message: `Created user ${user.firstName} ${user.lastName}` })
             return res.status(201).json({ id: user.id });
         })
     }),
@@ -572,8 +572,18 @@ exports.user_delete = [
 
     asyncHandler(async (req, res, next) => {
         if (req.user.memberType === 'admin') {
+
+            // Make sure user is not registered for any trackdays (past, present OR future)
+            const hasDays = await Trackday.countDocuments({ members: { $elemMatch: { user: { $eq: req.params.userID } } } }).exec();
+            if (hasDays) return res.status(400).send({ msg: 'User has trackdays they are registered for' })
+
+            // Make sure there are no active QRs for this user
+            const hasQR = await QR.countDocuments({ user: req.params.userID }).exec();
+            if (hasQR) return res.status(400).send({ msg: 'User has QRs associated with account' })
+
+            // Delete user
             await User.findByIdAndDelete(req.params.userID);
-            logger.info({message: `Deleted user ${req.params.userID}`})
+            logger.info({ message: `Deleted user ${req.params.userID}` })
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
@@ -630,7 +640,7 @@ exports.admin = [
                 password: hashedPassword
             })
             await user.save();
-            logger.warn({message: `Created admin ${user.firstName} ${user.lastName}`})
+            logger.warn({ message: `Created admin ${user.firstName} ${user.lastName}` })
             return res.status(201).json({ id: user.id });
         })
     }),
