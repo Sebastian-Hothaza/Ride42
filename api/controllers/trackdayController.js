@@ -704,7 +704,7 @@ exports.trackday_delete = [
         if (req.user.memberType === 'admin') {
             // Make sure trackday has no members
             const trackday = await Trackday.findById(req.params.trackdayID).exec();
-            if (trackday.members.length) return res.status(400).send({ msg: 'Trackday has registered users' })
+            if (trackday.members.length) return res.status(400).send({ msg: ['Trackday has registered users'] })
 
             await Trackday.findByIdAndDelete(req.params.trackdayID);
             logger.info({ message: "trackday deleted: " + req.params.trackdayID });

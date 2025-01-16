@@ -575,11 +575,11 @@ exports.user_delete = [
 
             // Make sure user is not registered for any trackdays (past, present OR future)
             const hasDays = await Trackday.countDocuments({ members: { $elemMatch: { user: { $eq: req.params.userID } } } }).exec();
-            if (hasDays) return res.status(400).send({ msg: 'User has trackdays they are registered for' })
+            if (hasDays) return res.status(400).send({ msg: ['User has trackdays they are registered for'] })
 
             // Make sure there are no active QRs for this user
             const hasQR = await QR.countDocuments({ user: req.params.userID }).exec();
-            if (hasQR) return res.status(400).send({ msg: 'User has QRs associated with account' })
+            if (hasQR) return res.status(400).send({ msg: ['User has QRs associated with account'] })
 
             // Delete user
             await User.findByIdAndDelete(req.params.userID);
