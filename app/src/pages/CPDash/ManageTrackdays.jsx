@@ -202,7 +202,24 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 	}
 
 	async function handleDeleteTrackday(trackdayID){
-		alert('not yet implemented; extreme caution needed as currently may break back end', trackdayID);
+		setActiveModal({ type: 'loading', msg: 'Deleting trackday' });
+		try {
+			const response = await fetch(APIServer + 'trackdays/' + trackdayID, {
+				method: 'DELETE',
+				credentials: "include",
+			})
+			await fetchAPIData();
+			if (response.ok) {
+				setActiveModal({ type: 'success', msg: 'Trackday deleted' });
+				setTimeout(() => setActiveModal(''), 1500)
+			} else {
+				const data = await response.json();
+				setActiveModal({ type: 'failure', msg: data.msg })
+			}
+		} catch (err) {
+			setActiveModal({ type: 'failure', msg: 'API Failure' })
+			console.log(err.message)
+		}
 	}
 
 	async function handleCreateTrackdaySubmit(e) {
@@ -422,7 +439,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 			<Modal open={activeModal.type === 'deleteTrackday'}>
 				<>
 					Are you sure you want to delete this trackday?
-					<button className={`actionButton confirmBtn`} onClick={() => handleDeleteTrackday(activeModal.trackday.id)}>Delete</button>
+					<button className={`actionButton confirmBtn`} onClick={() => handleDeleteTrackday(activeModal.trackday._id)}>Delete</button>
 					<button className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
 				</>
 			</Modal>
