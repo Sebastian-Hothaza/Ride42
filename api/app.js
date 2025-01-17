@@ -15,7 +15,7 @@ if (simulateSlowNetwork) {
   const sleep = (ms) => new Promise(
     resolve => setTimeout(resolve, ms));
   app.use(async (req, res, next) => {
-    logger.warn({message: 'server delayed by ' + delay + ' ms'})
+    logger.warn({ message: 'server delayed by ' + delay + ' ms' })
     await sleep(delay)
     next();
   })
@@ -28,14 +28,19 @@ app.use(cors({
   origin: process.env.NODE_ENV === 'production' ? "https://ride42.ca" : "http://localhost:5173", credentials: true,
 }));
 
-app.use('/', router);
+// Do not parse webhook with json since raw body is needed
+app.use((req, res, next) => {
+  if (!req.originalUrl.startsWith('/stripeWebhook')) {
+    express.json()(req, res, next);
+  } else {
+    next();
+  }
+});
 
-// NOTE: We must define webhook before applying the express.json middleware since we need the raw body to validate the signature 
-router.post('/stripeWebhook', express.raw({ type: 'application/json' }), require('./controllers/userController').stripeWebhook)
-
-app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+app.use('/', router); // Sends request to router to handle, should be last middleware before error handling
 
 
 // catch 404 and forward to error handler
