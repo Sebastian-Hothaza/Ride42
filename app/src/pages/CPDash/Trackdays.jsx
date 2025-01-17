@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ScrollToTop from "../../components/ScrollToTop";
 
 import Modal from "../../components/Modal";
@@ -10,6 +10,9 @@ import modalStyles from '../../components/stylesheets/Modal.module.css'
 import checkmark from './../../assets/checkmark.png'
 import errormark from './../../assets/error.png'
 
+import { loadStripe } from "@stripe/stripe-js"
+import { Elements } from "@stripe/react-stripe-js"
+
 
 // TODO; remove hardcoded 6 days restriction
 
@@ -17,7 +20,8 @@ import errormark from './../../assets/error.png'
 const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPIData, setActiveTab }) => {
 
 	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
-
+	const [stripePromise, setStripePromise] = useState(null); //Stripe promise that resolves to stripe object
+	const [clientSecret, setClientSecret] = useState(''); //Client secret used to initialize elements
 
 
 	// Returns true if a user is registered for a specified trackday ID
@@ -84,8 +88,27 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 	}
 
 
+	// Fetch stripe config on page load
+	useEffect(() => {
+		async function fetchStripeConfig() {
+			try {
 
-
+				const response = await fetch(APIServer + 'stripeConfig')
+				const data = await response.json();
+				if (response.ok) {
+					setStripePromise(loadStripe(data.publishableKey));
+				} else {
+                    console.error(data.msg.join('\n'));
+                    return data.msg.join('\n');
+                }
+			} catch (err) {
+				setActiveModal({ type: 'failure', msg: 'API Failure' })
+				console.log(err.message)
+			}
+		}
+		fetchStripeConfig();
+		
+	}, []);
 
 
 
@@ -175,7 +198,10 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 		}
 	}
 
-
+	async function handlePay(){
+		// Create paymentIntent
+		
+	}
 
 
 
@@ -294,8 +320,9 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 									<div className={styles.tdControls}>
 										{/* These buttons should not be shown if trackday is in past */}
 										{canModify(trackday) && <>
+											{trackday.paymentMethod == 'creditCard' && !trackday.paid && <button onClick={() => handlePay()}>Pay</button>}
 											<button onClick={() => setActiveModal({ type: 'reschedule', trackday: trackday })}>Reschedule</button>
-											<button onClick={() => setActiveModal({ type: 'cancel', trackday: trackday })}>Cancel Trackday</button>
+											<button onClick={() => setActiveModal({ type: 'cancel', trackday: trackday })}>Cancel</button>
 										</>}
 									</div>
 								</div>
