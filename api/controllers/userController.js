@@ -439,7 +439,6 @@ exports.createPaymentIntent = [
 // Called by stripe after a paymentIntent is successful. PUBLIC.
 // For testing, use: stripe listen --forward-to localhost:3000/stripeWebhook
 // when stripe generates webhook, it'll do so in test-environment and as long as local listener is setup, it'll forward to localhost
-// TODO: Add functionality to update user credits and trackday members by modularizing markPaid
 exports.stripeWebhook = asyncHandler(async (req, res, next) => {
     const stripeSignature = req.headers['stripe-signature'];
 
@@ -456,10 +455,21 @@ exports.stripeWebhook = asyncHandler(async (req, res, next) => {
     if (event.type == 'payment_intent.succeeded') {
         const paymentIntentSucceeded = event.data.object; // Where things like metaData is stored
 
-
         if (paymentIntentSucceeded.metadata.firstName) {
-            // TODO: Update user to mark as paid
-            logger.info({ message: `Stripe payment ${paymentIntentSucceeded.status} for ${paymentIntentSucceeded.metadata.firstName} ${paymentIntentSucceeded.metadata.lastName} for trackday on ${paymentIntentSucceeded.metadata.date}` })
+            const trackday = await Trackday.findById(paymentIntentSucceeded.metadata.trackdayID).populate('members.user', '-password -refreshToken -__v').exec();
+            const memberEntry = trackday.members.find((member) => member.user.equals(paymentIntentSucceeded.metadata.userID));
+
+            // Check that user we want to mark as paid is actually registered for the trackday
+            if (!memberEntry) logger.error({ message: `Can't mark ${paymentIntentSucceeded.metadata.firstName} ${paymentIntentSucceeded.metadata.lastName} as paid since not registered for trackday on ${paymentIntentSucceeded.metadata.date}` })
+
+            if (memberEntry.paid) {
+                logger.error({ message: `Can't mark ${paymentIntentSucceeded.metadata.firstName} ${paymentIntentSucceeded.metadata.lastName} as paid since already marked paid for trackday on ${paymentIntentSucceeded.metadata.date}` })
+            } else {
+                // Update paid status
+                memberEntry.paid = true;
+                await trackday.save()
+                logger.info({ message: `Stripe payment ${paymentIntentSucceeded.status} for ${paymentIntentSucceeded.metadata.firstName} ${paymentIntentSucceeded.metadata.lastName} for trackday on ${paymentIntentSucceeded.metadata.date}` })
+            }
         } else {
             logger.warn({ message: `DEBUG USE ONLY! Payment ${paymentIntentSucceeded.status}` })
         }
