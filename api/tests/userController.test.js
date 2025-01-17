@@ -2207,3 +2207,93 @@ describe('Mark user as having waiver signed', () => {
 		expect(fetchedUser.body.waiver).toBe(true)
 	});
 })
+
+describe.only('Creating payment intents', () => {
+	test("create paymentIntent for invalid objectID user", async () => {
+		const user = await addUser(user1, 201)
+		const loginRes = await loginUser(user1, 200)
+
+
+		await request(app)
+			.post("/paymentIntent/invalid/sometrackdayID")
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(400, { msg: ['userID is not a valid ObjectID'] })
+	});
+	test("create paymentIntent for invalid userID user", async () => {
+		const user = await addUser(user1, 201)
+		const loginRes = await loginUser(user1, 200)
+
+		await request(app)
+			.post('/paymentIntent/' + '1' + user.body.id.slice(1, user.body.id.length - 1) + '1' + '/sometrackdayID')
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(404, { msg: ['User does not exist'] })
+	});
+	test("create paymentIntent for invalid objectID trackday", async () => {
+		const user = await addUser(user1, 201)
+		const loginRes = await loginUser(user1, 200)
+
+		await request(app)
+			.post("/paymentIntent/" + user.body.id + "/invalid")
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(400, { msg: ['trackdayID is not a valid ObjectID'] })
+	});
+	test("create paymentIntent for invalid trackdayID trackday", async () => {
+		const user = await addUser(user1, 201);
+		const admin = await addUser(userAdmin, 201);
+		const loginRes_ADMIN = await loginUser(userAdmin, 200);
+		const loginRes = await loginUser(user1, 200)
+
+		// Create the trackday
+		const trackday = await addTrackday(getFormattedDate(3), loginRes_ADMIN.headers['set-cookie'])
+		await request(app)
+			.post("/paymentIntent/" + user.body.id + '/' + '1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1')
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(404, { msg: ['Trackday does not exist'] })
+	});
+
+	test("create paymentIntent - no JWT", async () => {
+		const user = await addUser(user1, 201);
+		const admin = await addUser(userAdmin, 201);
+		const loginRes_ADMIN = await loginUser(userAdmin, 200);
+		const loginRes = await loginUser(user1, 200)
+
+		// Create the trackday
+		const trackday = await addTrackday(getFormattedDate(3), loginRes_ADMIN.headers['set-cookie'])
+
+		// Create the paymentIntent
+		await request(app)
+			.post("/paymentIntent/" + user.body.id + '/' + trackday.body.id)
+			.expect(401)
+	});
+	test("create paymentIntent - unauthorized", async () => {
+		const user = await addUser(user1, 201);
+		const admin = await addUser(userAdmin, 201);
+		const loginRes_ADMIN = await loginUser(userAdmin, 200);
+		const loginRes = await loginUser(user1, 200)
+
+		// Create the trackday
+		const trackday = await addTrackday(getFormattedDate(3), loginRes_ADMIN.headers['set-cookie'])
+
+		// Create the paymentIntent
+		await request(app)
+			.post("/paymentIntent/" + user.body.id + '/' + trackday.body.id)
+			.set('Cookie', loginRes_ADMIN.headers['set-cookie'])
+			.expect(403)
+	});
+
+	test("create paymentIntent", async () => {
+		const user = await addUser(user1, 201);
+		const admin = await addUser(userAdmin, 201);
+		const loginRes_ADMIN = await loginUser(userAdmin, 200);
+		const loginRes = await loginUser(user1, 200)
+
+		// Create the trackday
+		const trackday = await addTrackday(getFormattedDate(3), loginRes_ADMIN.headers['set-cookie'])
+
+		// Create the paymentIntent
+		const paymentIntent = await request(app)
+			.post("/paymentIntent/" + user.body.id + '/' + trackday.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201)
+	})
+})
