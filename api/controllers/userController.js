@@ -439,7 +439,28 @@ exports.createPaymentIntent = [
 // Called by stripe after a paymentIntent is successful. PUBLIC.
 // TODO: Add functionality to update user credits and trackday members by modularizing markPaid
 exports.stripeWebhook = asyncHandler(async (req, res, next) => {
-    res.sendStatus(200);
+    const stripeSignature = req.headers['stripe-signature'];
+
+    let event;
+
+    try {
+        event = stripe.webhooks.constructEvent(req.body, stripeSignature, process.env.STRIPE_WEBHOOK_SECRET);
+    } catch (e) {
+        logger.error({ message: `Webhook Error: ${e.message}` })
+        return res.status(400).send(`Webhook Error: ${e.message}`);
+    }
+
+    // Handle the event
+    if (event.type == 'payment_intent.succeeded') {
+        const paymentIntentSucceeded = event.data.object; // Where things like metaData is stored
+
+        // TODO: Update user to mark as paid
+        
+  
+        logger.info({ message: `Payment ${paymentIntentSucceeded.status}` })
+    }
+
+    return res.sendStatus(200);
 })
 
 //////////////////////////////////////
