@@ -1,7 +1,8 @@
 const express = require('express');
 require("./mongoConfig")
 const logger = require('./logger');
-
+const router = require('./routes/index');
+const cookieParser = require('cookie-parser')
 
 
 const app = express();
@@ -27,16 +28,14 @@ app.use(cors({
   origin: process.env.NODE_ENV === 'production' ? "https://ride42.ca" : "http://localhost:5173", credentials: true,
 }));
 
+app.use('/', router);
+
+// NOTE: We must define webhook before applying the express.json middleware since we need the raw body to validate the signature 
+router.post('/stripeWebhook', express.raw({ type: 'application/json' }), require('./controllers/userController').stripeWebhook)
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
-const cookieParser = require('cookie-parser')
 app.use(cookieParser());
-
-// ROUTER
-const router = require('./routes/index');
-app.use('/', router);
 
 
 // catch 404 and forward to error handler
