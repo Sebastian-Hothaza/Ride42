@@ -20,6 +20,9 @@ router.get('/logs', [
     })
 ])
 
+// Stripe config (PUBLIC)
+router.get('/stripeConfig', (req, res)=>res.status(200).send({publishableKey: process.env.STRIPE_PUBLISHABLE_KEY}))
+
 // Users
 router.post('/login', userController.login)
 router.get('/verify/:userID/:trackdayID/:bikeID', userController.verify)
@@ -36,6 +39,8 @@ router.get('/QR', userController.getQR)
 router.put('/QR/:QRID/:userID/:bikeID', userController.marryQR)
 router.delete('/QR/:QRID', userController.deleteQR)
 router.post('/waiver/:userID', userController.markWaiver)
+router.post('/paymentIntent/:userID/:trackdayID', userController.createPaymentIntent)
+router.post('/stripeWebhook', userController.stripeWebhook)
 
 
 router.get('/users/:userID', userController.user_get)
