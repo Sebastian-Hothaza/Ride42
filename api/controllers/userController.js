@@ -36,6 +36,11 @@ const logger = require('../logger');
     --------------------------------------- FOR LATER REVIEW ---------------------------------------
 */
 
+
+// Initialize stripe with secret key. This is what allows us to interact with the stripe API
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY, { apiVersion: "2024-06-20", });
+
+
 // Logs in a user. PUBLIC. Returns httpOnly cookie containing JWT token.
 exports.login = [
     body("email", "Email must be in format of samplename@sampledomain.com").trim().isEmail().escape(),
@@ -392,6 +397,51 @@ exports.markWaiver = [
     })
 ]
 
+// Creates a paymentIntent on stripe backend for a specified user and trackday.
+// ! Logged operation !
+exports.createPaymentIntent = [
+    controllerUtils.verifyJWT,
+    controllerUtils.validateUserID,
+    controllerUtils.validateTrackdayID,
+
+    asyncHandler(async (req, res, next) => {
+        const user = await User.findById(req.params.userID).exec();
+        const trackday = await Trackday.findById(req.params.trackdayID).exec();
+        if (req.user.id === req.params.userID) {
+            const formattedDate = new Date(trackday.date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            try {
+                const paymentIntent = await stripe.paymentIntents.create({
+                    amount: (Number(trackday.ticketPrice.preReg) + 5) * 100,
+                    currency: 'cad',
+                    payment_method_types: ['card'],
+                    metadata: {
+                        userID: req.params.userID,
+                        trackdayID: req.params.trackdayID,
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        date: formattedDate
+                    }
+                });
+                logger.info({ message: `Payment intent generated on stripe backend for ${user.firstName} ${user.lastName} for trackday on ${formattedDate}` })
+                return res.status(201).json({ clientSecret: paymentIntent.client_secret });
+            } catch (e) {
+                return res.status(404).send({ msg: [e.message] })
+            }
+        }
+        return res.sendStatus(403)
+    })
+]
+
+// Called by stripe after a paymentIntent is successful. PUBLIC.
+// TODO: Add functionality to update user credits and trackday members by modularizing markPaid
+exports.stripeWebhook = asyncHandler(async (req, res, next) => {
+    res.sendStatus(200);
+})
+
 //////////////////////////////////////
 //              CRUD
 //////////////////////////////////////
@@ -512,8 +562,8 @@ exports.user_put = [
 
     asyncHandler(async (req, res, next) => {
         // JWT is valid. Verify user is allowed to access this resource and update the object
-        // If user attempts to tamper with unauthorized fields, return 403
 
+        // If user attempts to tamper with unauthorized fields, return 403
         if (req.user.memberType !== 'admin' &&
             (req.body.firstName || req.body.lastName ||
                 req.body.credits || req.body.memberType)) return res.sendStatus(403)
