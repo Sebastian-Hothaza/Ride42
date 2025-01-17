@@ -62,6 +62,10 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 **Remove a cost from a trackday:** Submit a `DELETE` request to `'/costs/:trackdayID/:costID'`
 
+**Get stripe publishable key (PUBLIC):** Submit a `GET` request to `'/stripeConfig'`
+
+**Create stripe payment intention:** Submit a `POST` request to `'/paymentIntent/:userID/:trackdayID'`
+
 
 
 ### Create
