@@ -40,6 +40,7 @@ router.put('/QR/:QRID/:userID/:bikeID', userController.marryQR)
 router.delete('/QR/:QRID', userController.deleteQR)
 router.post('/waiver/:userID', userController.markWaiver)
 router.post('/paymentIntent/:userID/:trackdayID', userController.createPaymentIntent)
+router.post('/stripeWebhook', express.raw({ type: 'application/json' }), userController.stripeWebhook)
 
 
 router.get('/users/:userID', userController.user_get)
