@@ -243,13 +243,11 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 			setIsProcessing(true);
 
-			// TODO: We arent using error here
+		
 			const { error, paymentIntent } = await stripe.confirmPayment({
 				elements,
 				redirect: 'if_required',
 			});
-
-			
 
 			if (paymentIntent && paymentIntent.status === 'succeeded') {
 				setActiveModal({ type: 'success', msg: 'Payment complete' });
@@ -259,8 +257,11 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 				setTimeout(async () => {
 					await fetchAPIData();
 				}, 3000);
-			} else {
+			} else if (error){
+				setActiveModal({ type: 'failure', msg: `Payment Failed: ${error.message}` });
 				console.error(error);
+			}else{
+				console.error('Unknown state');
 			}
 			setIsProcessing(false);
 
