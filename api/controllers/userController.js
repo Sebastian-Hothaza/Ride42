@@ -407,6 +407,7 @@ exports.createPaymentIntent = [
     asyncHandler(async (req, res, next) => {
         const user = await User.findById(req.params.userID).exec();
         const trackday = await Trackday.findById(req.params.trackdayID).exec();
+        const STRIPE_FEE = 5;
         if (req.user.id === req.params.userID) {
             const formattedDate = new Date(trackday.date).toLocaleDateString('en-US', {
                 year: 'numeric',
@@ -415,7 +416,7 @@ exports.createPaymentIntent = [
             });
             try {
                 const paymentIntent = await stripe.paymentIntents.create({
-                    amount: (Number(trackday.ticketPrice.preReg) + 5) * 100,
+                    amount: (Number(trackday.ticketPrice.preReg) + STRIPE_FEE) * 100,
                     currency: 'cad',
                     payment_method_types: ['card'],
                     metadata: {
