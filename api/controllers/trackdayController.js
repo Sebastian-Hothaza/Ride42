@@ -440,6 +440,7 @@ exports.presentTrackdays = async (req, res, next) => {
         result.push({
             id: trackday.id,
             date: trackday.date,
+            ticketPrice: trackday.ticketPrice,
             status: trackday.status,
             layout: trackday.layout,
             green: getRegDetails(trackday).green,
@@ -466,6 +467,7 @@ exports.presentTrackdaysForUser = [
             result.push({
                 id: trackday.id,
                 date: trackday.date,
+                ticketPrice: trackday.ticketPrice,
                 status: trackday.status,
                 layout: trackday.layout,
                 green: getRegDetails(trackday).green,
