@@ -11,7 +11,7 @@ import checkmark from './../../assets/checkmark.png'
 import errormark from './../../assets/error.png'
 
 import { loadStripe } from "@stripe/stripe-js"
-import { Elements } from "@stripe/react-stripe-js"
+import { useElements, Elements, useStripe, PaymentElement } from "@stripe/react-stripe-js"
 
 
 // TODO; remove hardcoded 6 days restriction
@@ -20,8 +20,9 @@ import { Elements } from "@stripe/react-stripe-js"
 const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPIData, setActiveTab }) => {
 
 	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
-	const [stripePromise, setStripePromise] = useState(null); //Stripe promise that resolves to stripe object
+	const [stripePromise, setStripePromise] = useState(null); //Stripe promise that resolves to stripe object. Not guaranteed valid!
 	const [clientSecret, setClientSecret] = useState(''); //Client secret used to initialize elements
+
 
 
 	// Returns true if a user is registered for a specified trackday ID
@@ -56,8 +57,8 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 		})
 
 		// exclude archived trackdays
-		userTrackdays = userTrackdays.filter(trackday => trackday.status != "archived"); 
-		
+		userTrackdays = userTrackdays.filter(trackday => trackday.status != "archived");
+
 		// Sort trackdays as order may not be correct when received from back end. (Ie. backend can add trackdays out of order - no guarantee)
 		allTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
 		userTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
@@ -89,25 +90,24 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 
 	// Fetch stripe config on page load
-	useEffect(() => {
-		async function fetchStripeConfig() {
-			try {
-
-				const response = await fetch(APIServer + 'stripeConfig')
-				const data = await response.json();
-				if (response.ok) {
-					setStripePromise(loadStripe(data.publishableKey));
-				} else {
-                    console.error(data.msg.join('\n'));
-                    return data.msg.join('\n');
-                }
-			} catch (err) {
-				setActiveModal({ type: 'failure', msg: 'API Failure' })
-				console.log(err.message)
+	// Gets publishable key from server and sets stripePromise. 
+	async function fetchStripeConfig() {
+		try {
+			const response = await fetch(APIServer + 'stripeConfig')
+			const data = await response.json();
+			if (response.ok) {
+				setStripePromise(loadStripe(data.publishableKey)); // loadStripe will work even if key is invalid!
+			} else {
+				console.error(data.msg.join('\n'));
+				return data.msg.join('\n');
 			}
+		} catch (err) {
+			setActiveModal({ type: 'failure', msg: 'API Failure' })
+			console.error(err.message)
 		}
+	}
+	useEffect(() => {
 		fetchStripeConfig();
-		
 	}, []);
 
 
@@ -198,14 +198,92 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 		}
 	}
 
-	async function handlePay(){
-		// Create paymentIntent
-		
+	// Creates paymentIntent and sets clientSecret. Uses trackdayID to set the intent price.
+	// Opens paymentModal which renders Elements and Checkout component
+	// TODO: Error handling when publishable key is invalid
+	async function handlePay(user, trackday) {
+		setActiveModal({ type: 'loading', msg: 'Creating payment intent' });
+		try {
+			const response = await fetch(APIServer + 'paymentIntent/' + user._id + '/' + trackday.id, {
+				method: 'POST',
+				credentials: "include",
+				headers: {
+					'Content-type': 'application/json; charset=UTF-8',
+				},
+				body: JSON.stringify({})
+			})
+			const data = await response.json();
+			if (response.ok) {
+				setClientSecret(data.clientSecret);
+				setActiveModal({ type: 'paymentModal', trackday: trackday });
+			} else {
+				setActiveModal({ type: 'failure', msg: 'Failed to create\npayment intent' })
+				console.error(data.msg);
+			}
+		} catch (err) {
+			setActiveModal({ type: 'failure', msg: 'API Failure' })
+			console.log(err.message)
+		}
 	}
 
+	// Checkout component
+	const CheckoutForm = () => {
+		const [isProcessing, setIsProcessing] = useState(false); //Tracks if payment is processing
+		const [isPaymentElementReady, setIsPaymentElementReady] = useState(false);
+		const STRIPE_FEE = 5; // Compensate for stripe fee
+
+		
+		const stripe = useStripe();
+		const elements = useElements();
 
 
+		const handleSubmit = async (event) => {
+			event.preventDefault();
+			if (!stripe || !elements) return;	// Stripe.js has not loaded yet. Make sure to disable form submission until Stripe.js has loaded.
 
+			setIsProcessing(true);
+
+			// TODO: We arent using error here
+			const { error, paymentIntent } = await stripe.confirmPayment({
+				elements,
+				redirect: 'if_required',
+			});
+
+			
+
+			if (paymentIntent && paymentIntent.status === 'succeeded') {
+				setActiveModal({ type: 'success', msg: 'Payment complete' });
+				setTimeout(() => setActiveModal(''), 2000)
+				activeModal.trackday.paid = true; // Marked for immediate UI update
+				// We need a time delay to allow stripe to call webhook which updates the DB
+				setTimeout(async () => {
+					await fetchAPIData();
+				}, 3000);
+			} else {
+				console.error(error);
+			}
+			setIsProcessing(false);
+
+		};
+		
+		return (
+			<form id={styles.paymentForm} onSubmit={handleSubmit}>
+				<PaymentElement onReady={() => setIsPaymentElementReady(true)} />
+
+				{isPaymentElementReady &&
+					<>
+						{isProcessing ? <div>Processing...</div> :
+							<>
+								<button className="actionButton confirmBtn" disabled={isProcessing} id="submit">Pay ${activeModal.trackday.ticketPrice.preReg + STRIPE_FEE} Now</button>
+								<button className="actionButton" onClick={() => setActiveModal('')}>Cancel</button>
+							</>
+						}
+
+					</>
+				}
+			</form>
+		)
+	}
 
 	// If user has no bikes in garage, don't allow any trackday management
 	if (userInfo && !userInfo.garage.length) {
@@ -315,12 +393,27 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 									{/* INFO */}
 									<div>{trackday.prettyDate}</div>
 									{/* Paid Status */}
-									{trackday.paid ? <div>PAID</div> : <div>UNPAID</div>}
+									<div>
+										{(() => {
+											switch (trackday.paymentMethod) {
+												case 'etransfer':
+													return trackday.paid ? <div>E-Transfer received</div> : <div>E-Transfer not received</div>;
+												case 'creditCard':
+													return trackday.paid ? <div>Credit card payment received</div> : <div>Credit card payment not received</div>;
+												case 'credit':
+													return <div>Used credit</div>;
+												case 'gate':
+													return <div>Registered at gate</div>;
+												default:
+													return <div>Payment Method Unknown</div>;
+											}
+										})()}
+									</div>
 									{/* Reschedule/Cancel controls */}
 									<div className={styles.tdControls}>
-										{/* These buttons should not be shown if trackday is in past */}
-										{canModify(trackday) && <>
-											{trackday.paymentMethod == 'creditCard' && !trackday.paid && <button onClick={() => handlePay()}>Pay</button>}
+										{/* These buttons should not be shown if trackday is in past OR for gate registrations */}
+										{canModify(trackday) && trackday.paymentMethod != 'gate' && <>
+											{trackday.paymentMethod == 'creditCard' && !trackday.paid && <button onClick={() => handlePay(userInfo, trackday)}>Pay Now</button>}
 											<button onClick={() => setActiveModal({ type: 'reschedule', trackday: trackday })}>Reschedule</button>
 											<button onClick={() => setActiveModal({ type: 'cancel', trackday: trackday })}>Cancel</button>
 										</>}
@@ -377,7 +470,11 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			</Modal>
 
 
-
+			<Modal open={activeModal.type === 'paymentModal'}>
+				<Elements stripe={stripePromise} options={{ clientSecret: clientSecret }}>
+					<CheckoutForm />
+				</Elements>
+			</Modal>
 
 
 
