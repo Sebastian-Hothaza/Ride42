@@ -800,6 +800,7 @@ describe('Testing registering', () => {
 			.expect(200, [{
 				id: trackday.body.id,
 				date: getFormattedDate(2).slice(0, getFormattedDate(2).length - 1) + ':00.000Z',
+				ticketPrice: { preReg: 170, gate: 190, bundle: 150 },
 				status: 'regOpen',
 				layout: 'tbd',
 				green: 0,
@@ -856,6 +857,7 @@ describe('Testing registering', () => {
 			.expect(200, [{
 				id: trackday.body.id,
 				date: '2500-06-05T14:00:00.000Z',
+				ticketPrice: { preReg: 170, gate: 190, bundle: 150 },
 				status: 'regOpen',
 				layout: 'tbd',
 				green: 0,
@@ -945,6 +947,7 @@ describe('Testing registering', () => {
 			.expect(200, [{
 				id: trackday.body.id,
 				date: '2500-06-05T14:00:00.000Z',
+				ticketPrice: { preReg: 170, gate: 190, bundle: 150 },
 				status: 'regOpen',
 				layout: 'tbd',
 				green: 0,
@@ -1065,6 +1068,7 @@ describe('Testing registering', () => {
 			.expect(200, [{
 				id: trackday.body.id,
 				date: '2500-06-05T14:00:00.000Z',
+				ticketPrice: { preReg: 170, gate: 190, bundle: 150 },
 				status: 'regOpen',
 				layout: 'tbd',
 				green: 0,
@@ -1387,7 +1391,7 @@ describe('Testing un-registering', () => {
 	});
 })
 
-describe('Testing rescheduling', () => {
+describe.only('Testing rescheduling', () => {
 	test("invalid objectID trackday", async () => {
 		await request(app)
 			.put('/register/' + user1.body.id + '/invalid/invalid')
@@ -1772,6 +1776,7 @@ describe('Testing rescheduling', () => {
 			.expect(200, [{
 				id: trackday1.body.id,
 				date: getFormattedDate(15).slice(0, getFormattedDate(10).length - 1) + ':00.000Z',
+				ticketPrice: { preReg: 170, gate: 190, bundle: 150 },
 				status: 'regOpen',
 				layout: 'tbd',
 				green: 0,
@@ -1792,6 +1797,7 @@ describe('Testing rescheduling', () => {
 			{
 				id: trackday2.body.id,
 				date: getFormattedDate(30).slice(0, getFormattedDate(10).length - 1) + ':00.000Z',
+				ticketPrice: { preReg: 170, gate: 190, bundle: 150 },
 				status: 'regOpen',
 				layout: 'tbd',
 				green: 0,
@@ -1901,6 +1907,7 @@ describe('Testing walkons', () => {
 			.expect(200, [{
 				id: trackday.body.id,
 				date: '2500-06-05T14:00:00.000Z',
+				ticketPrice: { preReg: 170, gate: 190, bundle: 150 },
 				status: 'regOpen',
 				layout: 'tbd',
 				green: 0,
@@ -2785,6 +2792,7 @@ describe('Testing presentTrackdays', () => {
 			.expect(200, [{
 				id: trackday1.body.id,
 				date: getFormattedDate(10).slice(0, getFormattedDate(10).length - 1) + ':00.000Z',
+				ticketPrice: { preReg: 170, gate: 190, bundle: 150 },
 				status: 'regOpen',
 				layout: 'tbd',
 				green: 0,
@@ -2805,6 +2813,7 @@ describe('Testing presentTrackdays', () => {
 			{
 				id: trackday2.body.id,
 				date: getFormattedDate(15).slice(0, getFormattedDate(15).length - 1) + ':00.000Z',
+				ticketPrice: { preReg: 170, gate: 190, bundle: 150 },
 				status: 'regOpen',
 				layout: 'tbd',
 				green: 0,
@@ -2852,6 +2861,7 @@ describe('Testing presentTrackdays', () => {
 			.expect(200, [{
 				id: trackday.body.id,
 				date: getFormattedDate(10).slice(0, getFormattedDate(10).length - 1) + ':00.000Z',
+				ticketPrice: { preReg: 170, gate: 190, bundle: 150 },
 				status: 'regOpen',
 				layout: 'tbd',
 				green: 0,
@@ -2918,6 +2928,7 @@ describe('Testing presentTrackdaysForUser', () => {
 			.expect(200, [{
 				id: trackday.body.id,
 				date: '2500-06-05T14:00:00.000Z',
+				ticketPrice: { preReg: 170, gate: 190, bundle: 150 },
 				status: 'regOpen',
 				layout: 'tbd',
 				green: 0,
@@ -2972,6 +2983,7 @@ describe('Testing presentTrackdaysForUser', () => {
 			.expect(200, [{
 				id: trackday1.body.id,
 				date: '2500-06-05T14:00:00.000Z',
+				ticketPrice: { preReg: 170, gate: 190, bundle: 150 },
 				status: 'regOpen',
 				layout: 'tbd',
 				green: 0,
@@ -2994,6 +3006,7 @@ describe('Testing presentTrackdaysForUser', () => {
 			{
 				id: trackday2.body.id,
 				date: '2500-07-07T14:00:00.000Z',
+				ticketPrice: { preReg: 170, gate: 190, bundle: 150 },
 				status: 'regOpen',
 				layout: 'tbd',
 				green: 0,
@@ -3228,6 +3241,7 @@ describe('Testing updatePaid', () => {
 			.expect(200, [{
 				id: trackday.body.id,
 				date: '2500-06-05T14:00:00.000Z',
+				ticketPrice: { preReg: 170, gate: 190, bundle: 150 },
 				status: 'regOpen',
 				layout: 'tbd',
 				green: 0,
