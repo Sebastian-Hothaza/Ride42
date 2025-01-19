@@ -110,7 +110,7 @@ function setupMailListener() {
 					const trackdayDB = await Trackday.findById(trackday.id).populate('members.user', '-password -refreshToken -__v').exec();
 					const memberEntry = trackdayDB.members.find((member) => member.user.equals(user.id));
 					memberEntry.paid = !memberEntry.paid
-					logger.info({ message: `E-transfer payment applied for ${memberEntry.user.firstName} ${memberEntry.user.lastName} for Trackday on ${trackdayDB.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' })}` });
+					logger.info({ message: `E-transfer payment applied for ${memberEntry.user.firstName} ${memberEntry.user.lastName} for trackday on ${trackdayDB.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' })}` });
 					await sendEmail(memberEntry.user.contact.email, "Payment Confirmation", mailTemplates.notifyPaid, {
 						name: memberEntry.user.firstName.charAt(0).toUpperCase() + memberEntry.user.firstName.slice(1),
 						date: trackdayDB.date.toLocaleString('default', {
@@ -135,7 +135,7 @@ function setupMailListener() {
 					if (err) logger.error({ message: 'Failed to move email to processed folder' });
 				});
 				
-				logger.error({ message: `No payments have been applied. Remaining balance: $${pmtBalance}` });
+				logger.error({ message: `No payments have been applied for ${user.firstName} ${user.lastName}. Remaining balance: $${pmtBalance}` });
 			}
 		} catch (err) {
 			logger.error({ message: 'Error processing email'});
