@@ -98,11 +98,11 @@ const registerTrackday =
 		Hello {name}, <br /> <br />
 		You are now registered for the trackday on {date}.<br />
 		<br />
-		Your payment must be received at least 7 days prior to your trackday. Payments may take up to 5 days to be reflected in your dashboard.<br />
+		Your payment must be received at least 7 days prior to your trackday.<br />
 		<br />
-		E-transfers should be sent to payments@ride42.ca.
+		E-transfers should be sent to payments@ride42.ca. It may take up to 5 days for your dashboard to reflect your payment.<br />
 		<br />
-		Credit card payments can be made <a href="https://buy.stripe.com/5kA7w6aV1aR91UI145"><strong>using this link.</strong></a>.
+		Credit card payments can be made directly in your dashboard.</a>.
 		<br />
 		If you have not completed a waiver yet, you can print one out <a href="https://drive.google.com/file/d/1UzJK9AUoWWt9Ol0Yl95JTrmOD50xu7hv/view"><strong>here</strong></a> to make your morning check in process faster.<br />
 		<br />
