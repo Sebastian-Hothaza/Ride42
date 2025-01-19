@@ -16,7 +16,7 @@ async function getUser(mail) {
 		// Try to find user by scraping subject line
 		logger.debug({ message: 'Could not find user by email. Attempting to find user by scraping subject line' });
 		const fullName = mail.text.match(/Sent From: (.+)/i)[1].toLowerCase();
-		
+
 		// Go thru all users in the DB and attempt to match the scraped full name
 		const allUsers = await User.find().select('-password -refreshToken -__v').exec();
 		for (const candidateUser of allUsers) {
@@ -26,12 +26,12 @@ async function getUser(mail) {
 			}
 		};
 	}
-	user? logger.debug({ message: `User: ${user.firstName} ${user.lastName}` }) : logger.error({ message: 'Could not find user to attach E-Transfer payment to' });
+	user ? logger.debug({ message: `User: ${user.firstName} ${user.lastName}` }) : logger.error({ message: 'Could not find user to attach E-Transfer payment to' });
 	return user;
 }
 
 function getAmount(emailText) {
-	const receivedAmount = emailText.match(/Amount: \$([0-9,]+\.\d{2}) \(CAD\)/)[1]; 
+	const receivedAmount = emailText.match(/Amount: \$([0-9,]+\.\d{2}) \(CAD\)/)[1];
 	logger.debug({ message: `received $${receivedAmount}` });
 	return receivedAmount;
 }
@@ -63,8 +63,15 @@ function setupMailListener() {
 		try {
 			// Determine the user from the email
 			const user = await getUser(mail);
-			if (!user) return;
-			
+			if (!user) {
+				logger.error({ message: 'Could not find user to associate with e-transfer' });
+				// Move the email to the TODO folder
+				mailListener.imap.move(attributes.uid, "INBOX/Payments/TODO", (err) => {
+					if (err) logger.error({ message: 'Failed to move email to processed folder' });
+				});
+				return;
+			};
+
 			// Determine the e-transfer amount recevied
 			let pmtBalance = getAmount(mail.text);
 
@@ -134,11 +141,11 @@ function setupMailListener() {
 				mailListener.imap.move(attributes.uid, "INBOX/Payments/TODO", (err) => {
 					if (err) logger.error({ message: 'Failed to move email to processed folder' });
 				});
-				
+
 				logger.error({ message: `No payments have been applied for ${user.firstName} ${user.lastName}. Remaining balance: $${pmtBalance}` });
 			}
 		} catch (err) {
-			logger.error({ message: 'Error processing email'});
+			logger.error({ message: 'Error processing email' });
 		}
 	});
 
