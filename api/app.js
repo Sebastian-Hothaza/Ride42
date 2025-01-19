@@ -7,7 +7,13 @@ const setupMailListener = require('./mailListener'); // Import the mailListener 
 
 
 const app = express();
-setupMailListener();
+
+// Only activate the mail Listener in production.
+// Otherwise risk of 2 listeners running which causes issues.
+// If wanting to test mailListener, need to shut it down on API
+// Mail listener listens for incoming e-transfer notification emails in INBOX/Payments.
+// It attempts to process them to auto-mark e-transfer users as paid
+if (process.env.NODE_ENV === 'production') setupMailListener();
 
 // Simulate slow network
 const simulateSlowNetwork = false;
