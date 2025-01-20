@@ -31,7 +31,7 @@ async function getUser(mail) {
 }
 
 function getAmount(emailText) {
-	const receivedAmount = emailText.match(/Amount: \$([0-9,]+\.\d{2}) \(CAD\)/)[1];
+	const receivedAmount = emailText.match(/Amount:\s*\$([0-9,]+\.\d{2})\s*\(CAD\)/i)[1];
 	logger.debug({ message: `received $${receivedAmount}` });
 	return receivedAmount;
 }
