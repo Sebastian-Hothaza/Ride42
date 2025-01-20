@@ -25,7 +25,7 @@ const welcomeUser =
 	`<body>
 	<div class="default-style">
 	<h3>Hello {name},</h3>
-	I wanted to take a moment to welcome you to Ride42, tell you a bit about myself and explain how our trackdays are run!
+	I wanted to take a moment to welcome you to Ride42, tell you a bit about myself and explain how our trackdays are run! 😊
 
 
 	<h3>Welcome to Ride42!</h3>
@@ -44,13 +44,13 @@ const welcomeUser =
 	roads were not the place to be riding a bike like that! I started doing trackdays in 2016 and fell in love with the sport. However, I found the trackdays to be very impersonal; you show up, ride, go home. I wanted something more, I wanted a community 
 	atmosphere where everyone feels welcome, engaged and valued. This is the experience that Ride42 strives to deliver. <br></br>
 	Outside of running trackdays, I enjoy racing in our national series (CSBK) as well as our regional series (SOAR & RACE) in the Pro Supersport category. I couldn't stop myself with just road bikes! I spend quite a bit of time riding trails with my KTM 
-	and am looking into competing at the 2025 Corduroy Enduro. You can follow me on Instagram <a href="https://www.instagram.com/42Seb">@42Seb</a> and view my YouTube channel <a href="https://www.youtube.com/@seb42">here.</a>
+	and am looking into competing at the Corduroy Enduro. You can follow me on Instagram <a href="https://www.instagram.com/42Seb">@42Seb</a> and view my YouTube channel <a href="https://www.youtube.com/@seb42">here.</a>
 
 	<br></br>
 	
-	Now is a great time to head over to your dashboard, add your bike to your garage, and book some trackdays! Please also take a few minutes to explore our site including the rules and shop tabs.<br></br>
+	Now is a great time to head over to your dashboard, add your bike to your garage, and book some trackdays! Please also take a few minutes to explore our site including the rules and shop tabs. 🚀<br></br>
 	<br></br>
-	Welcome to the best trackday experience, Welcome to Ride42!
+	Welcome to the best trackday experience, Welcome to Ride42! 🔥
 	
 	</div>
 	${signature}
@@ -61,7 +61,7 @@ const updateUser =
 	<div class="default-style">
 		Hello {name}, <br />
 		<br />
-		Your account details have been updated.<br />
+		⚠️Your account details have been updated⚠️<br />
 		<br />
 		If you did not make any recent changes, please contact us immediately.
 	</div>
@@ -73,7 +73,7 @@ const passwordChange =
 	<div class="default-style">
 		Hello {name}, <br />
 		<br />
-		Your password has been updated.<br /> 
+		⚠️Your password has been updated⚠️<br /> 
 		<br />
 		If you did not request this password change, please contact us immediately.
 	</div>
@@ -85,28 +85,71 @@ const passwordResetLink =
 	<div class="default-style">
 		Hello {name}, <br />
 		<br />
+
 		<a href={link}><strong>Click here to reset your password.</strong></a><br />
 		<br />
-		If you did not request a password reset, please contact us immediately.
+
+		⚠️If you did not request a password reset, please contact us immediately.⚠️
 	</div>
 	${signature}
 </body>`
 
-const registerTrackday =
+const registerTrackday_credit =
 	`<body>
 	<div class="default-style">
-		Hello {name}, <br /> <br />
-		You are now registered for the trackday on {date}.<br />
+		Hello {name}, <br />
 		<br />
-		Your payment must be received at least 7 days prior to your trackday.<br />
+
+		You are now registered for the trackday on {date} using your trackday credit. ✅<br />
 		<br />
-		E-transfers should be sent to payments@ride42.ca. It may take up to 5 days for your dashboard to reflect your payment.<br />
+
+		⚠️<i>Please note: If you do not attend on {date} without first cancelling your trackday through your dashboard, your credit will still be considered redeemed. With trackday credits, you can cancel up to the night before the trackday.</i><br />
 		<br />
-		Credit card payments can be made directly in your dashboard.</a>.
+
+		If you already have a QR sticker on your bike and have signed a waiver this year, you can skip morning check in and go directly to bike tech 😊<br />
 		<br />
-		If you have not completed a waiver yet, you can print one out <a href="https://drive.google.com/file/d/1UzJK9AUoWWt9Ol0Yl95JTrmOD50xu7hv/view"><strong>here</strong></a> to make your morning check in process faster.<br />
+
+		We look forward to seeing you on track soon! 🚀
+	</div>
+	${signature}
+</body>`
+
+const registerTrackday_etransfer =
+	`<body> 
+	<div class="default-style">
+		Hello {name}, <br />
 		<br />
-		We look forward to seeing you on track soon!
+
+		You are now registered for the trackday on {date}. ✅<br />
+		<br />
+
+		E-transfers should be sent to pay@ride42.ca. If you registered for multiple days, you can send a single payment. Payments will be applied to your trackdays in chronological order. It may take up to 5 days for your dashboard to reflect your payment.<br />
+		<br />
+
+		If you already have a QR sticker on your bike and have signed a waiver this year, you can skip morning check in and go directly to bike tech 😊<br />
+		<br />
+
+		We look forward to seeing you on track soon! 🚀
+	</div>
+	${signature}
+</body>`
+
+const registerTrackday_creditcard =
+	`<body>
+	<div class="default-style">
+		Hello {name}, <br />
+		<br />
+
+		You are now registered for the trackday on {date}. ✅<br />
+		<br />
+
+		You can submit your credit card payment directly in your dashboard.<br />
+		<br />
+
+		If you already have a QR sticker on your bike and have signed a waiver this year, you can skip morning check in and go directly to bike tech 😊<br />
+		<br />
+
+		We look forward to seeing you on track soon! 🚀
 	</div>
 	${signature}
 </body>`
@@ -114,11 +157,16 @@ const registerTrackday =
 const unregisterTrackday =
 	`<body>
 	<div class="default-style">
-		Hello {name}, <br /> <br />
-		We have cancelled your trackday on {date}.<br /> <br />
+		Hello {name}, <br />
+		<br />
+
+		We have cancelled your trackday on {date}. 🥹<br />
+		<br />
+
 		If you paid with a trackday credit, it has been added back to your account. Otherwise, you should receive a refund within 5 business days.<br />
 		<br />
-		We are sorry to hear you couldn't make it out this time and hope to see you again soon!
+
+		We are sorry to hear you couldn't make it out this time and hope to see you again soon! 😊
 	</div>
 	${signature}
 </body>`
@@ -126,7 +174,14 @@ const unregisterTrackday =
 const unregisterTrackday_admin =
 	`<body>
 	<div class="default-style">
-		User {name} has cancelled trackday on {date}. Refund MAY be required; check to make sure.
+		User {fname} {lname} has cancelled trackday on {date}.<br />
+		<br />
+
+		Payment Method: {paymentMethod}<br />
+		Paid: {paid}<br />
+		<br />
+		
+		⚠️Refund may be required⚠️
 	</div>
 </body>`
 
@@ -134,9 +189,9 @@ const rescheduleTrackday =
 	`<body>
 	<div class="default-style">
 		Hello {name}, <br /> <br />
-		Your trackday on {dateOLD} has been re-scheduled to {dateNEW}.<br /> 
+		Your trackday on {dateOLD} has been re-scheduled to {dateNEW}. ✅<br /> 
 		<br />
-		We look forward to seeing you on track soon!
+		We look forward to seeing you on track soon! 🚀
 	</div>
 	${signature}
 </body>`
@@ -145,13 +200,13 @@ const notifyPaid =
 	`<body>
 	<div class="default-style">
 		Hello {name}, <br /> <br />
-		Your payment for the {date} trackday has been processed.<br />
+		Your payment for the {date} trackday has been processed. ✅<br />
 		<br />
-		We look forward to seeing you on track soon!
+		We look forward to seeing you on track soon! 🚀
 	</div>
 	${signature}
 </body>`
 
 
 
-module.exports = { welcomeUser, updateUser, passwordChange, passwordResetLink, registerTrackday, unregisterTrackday, unregisterTrackday_admin, rescheduleTrackday, notifyPaid };
+module.exports = { welcomeUser, updateUser, passwordChange, passwordResetLink, registerTrackday_credit, registerTrackday_etransfer, registerTrackday_creditcard, unregisterTrackday, unregisterTrackday_admin, rescheduleTrackday, notifyPaid };
