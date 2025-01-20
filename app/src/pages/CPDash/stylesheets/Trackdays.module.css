@@ -160,6 +160,11 @@ form label {
     background-color: rgb(230, 230, 230);
 }
 
+
+.paymentElement{
+    width: 100%;
+}
+
 @media (max-width: 1400px) {
     .dateAndPayment {
         flex-direction: column;
