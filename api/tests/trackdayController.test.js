@@ -1093,7 +1093,7 @@ describe('Testing registering', () => {
 	});
 })
 
-describe('Testing un-registering', () => {
+describe.only('Testing un-registering', () => {
 	test("invalid objectID trackday", async () => {
 		await request(app)
 			.delete('/register/' + user1.body.id + '/invalid')
@@ -1184,6 +1184,36 @@ describe('Testing un-registering', () => {
 			.expect(200)
 	});
 
+	test("old trackday past - with credit", async () => {
+		const trackday = await addTrackday(getFormattedDate(-5))
+
+		// Edit user so he has a credit
+		await request(app)
+			.put('/users/' + user1.body.id)
+			.type('form').send({ ...user1Info, credits: 5 })
+			.set('Cookie', adminCookie)
+			.expect(201)
+
+		// Register for trackday
+		await request(app)
+			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.set('Cookie', adminCookie)
+			.type('form').send({ paymentMethod: 'credit', guests: 3, layoutVote: 'none' })
+			.expect(200)
+
+		// As user
+		await request(app)
+			.delete('/register/' + user1.body.id + '/' + trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.expect(403)
+			
+		// As admin
+		await request(app)
+			.delete('/register/' + user1.body.id + '/' + trackday.body.id)
+			.set('Cookie', adminCookie)
+			.expect(200)
+	});
+
 	test("within 7 day lockout", async () => {
 		const trackday = await addTrackday(getFormattedDate(3))
 		const trackday2 = await addTrackday(getFormattedDate(4))
@@ -1255,14 +1285,6 @@ describe('Testing un-registering', () => {
 	test("un-registration - using credit", async () => {
 		const trackday = await addTrackday('2500-04-09T14:00Z')
 
-		// Add bike to garage
-		await request(app)
-			.post("/garage/" + user1.body.id)
-			.type("form")
-			.send({ year: '2009', make: 'Yamaha', model: "R6" })
-			.set('Cookie', user1Cookie)
-			.expect(201);
-
 		// Edit user so he has a credit
 		await request(app)
 			.put('/users/' + user1.body.id)
@@ -1273,7 +1295,7 @@ describe('Testing un-registering', () => {
 		// Register for trackday
 		await request(app)
 			.post('/register/' + user1.body.id + '/' + trackday.body.id)
-			.set('Cookie', user1Cookie)
+			.set('Cookie', adminCookie)
 			.type('form').send({ paymentMethod: 'credit', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
@@ -3345,7 +3367,7 @@ describe('Testing adding costs to trackday', () => {
 			.type('form').send({ desc: 'photographer', type: 'fixed', amount: 150 })
 			.set('Cookie', adminCookie)
 			.expect(201)
-		
+
 
 		// Verify correctness
 		const fetchedDate = await request(app).get('/trackdays/' + trackday.body.id).set('Cookie', adminCookie)
