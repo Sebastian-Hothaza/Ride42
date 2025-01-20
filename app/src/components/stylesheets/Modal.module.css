@@ -10,7 +10,7 @@
 
 
 
-.spinnerContainer{
+.spinnerContainer {
     position: fixed;
     top: 0;
     bottom: 0;
@@ -32,7 +32,7 @@
 .loader {
     width: 80px;
     height: 80px;
- 
+
     border: 15px solid #EAF0F6;
     border-radius: 50%;
     border-top: 15px solid var(--accent-color);
@@ -41,7 +41,7 @@
 }
 
 
-.modal{
+.modal {
     position: fixed;
     top: 50%;
     left: 50%;
@@ -49,64 +49,81 @@
     background-color: #FFF;
     padding: 2rem;
     z-index: 1000;
-    
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+
     font-size: 1.5rem;
     text-align: center;
 
     display: flex;
     flex-direction: column;
- 
-    align-items: center;
     gap: 1rem;
-
-    white-space: pre-line;
-
+    white-space: pre-line; /* Preserves newlines */
     max-height: 80vh;
-    overflow-y: auto;
+    overflow: auto;
+    word-wrap: break-word;
+}
+
+.noScroll {
+    overflow: hidden;
 }
 
 /* Notification modals */
-.modal:has(> .modalNotif){
+.modal:has(> .modalNotif) {
     color: white;
     background-color: transparent;
     font-size: 2rem;
+    align-items: center;
 }
 
 /* Form modals */
-.modal form{
+.modal form {
+    margin: auto 0;  /* Center content vertically */
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
     gap: 1rem;
 }
 
-.modal form input{
+.modal form input {
     font-size: inherit;
     width: 100%;
 }
 
-.modal form select{
+.modal form select {
     font-size: inherit;
     width: 100%;
 }
 
-.modal button{
-    min-width: 200px;
+.modal button {
+    width: 100%;
 }
 
 
-#modalCheckmarkIMG{
+#modalCheckmarkIMG {
     height: 150px;
     width: 150px;
 }
 
 @media (max-width: 850px) {
-    #modalCheckmarkIMG{
+    #modalCheckmarkIMG {
         height: 100px;
         width: 100px;
     }
 }
 
+
+/* Modal should take up entire screen on mobile */
+@media (max-width: 450px) {
+    .modal {
+        top: var(--toolbar-thickness);
+        left: 0%;
+        transform: none;
+        width: 100%;
+        height: calc(100vh - 2*var(--toolbar-thickness));
+        padding: 15px;
+    }
+}
 
 
 
@@ -114,6 +131,7 @@
     0% {
         transform: rotate(0deg);
     }
+
     100% {
         transform: rotate(360deg);
     }
