@@ -309,14 +309,14 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 						<div className={styles.inputPairing}>
 							<label htmlFor="date">Date:</label>
 							<select name="date" id="date" form="Trackdays_bookTrackday" required>
-								<option key="dateNone" value="">----- Choose date -----</option>
+								<option key="dateNone" value="">- Choose date -</option>
 								{allTrackdays && allTrackdays.map((trackday) => <option key={trackday.id} value={trackday.id}>{trackday.prettyDate}</option>)}
 							</select>
 						</div>
 						<div className={styles.inputPairing}>
 							<label htmlFor="paymentMethod">Payment Method:</label>
 							<select name="paymentMethod" id="paymentMethod" form="Trackdays_bookTrackday" required>
-								<option key="paymentNone" value="">--- Choose Payment Method ---</option>
+								<option key="paymentNone" value="">- Choose Payment Method -</option>
 								{userInfo.credits && <option key="credit" value="credit">Use trackday credit (Remaining: {userInfo.credits})</option>}
 								<option key="etransfer" value="etransfer">Interac E-Transfer</option>
 								<option key="creditCard" value="creditCard">Credit Card(+$5)</option>
@@ -447,27 +447,28 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 
 			<Modal open={activeModal.type === 'cancel'}>
-				<>
-					Are you sure?
+				<form>
+					<h3>Are you sure?</h3>
 					<button className={`actionButton confirmBtn`} onClick={() => handleCancelTrackdaySubmit(activeModal.trackday.id)}>Yes, cancel trackday</button>
 					<button className='actionButton' onClick={() => setActiveModal('')}>No, keep it</button>
-				</>
+				</form>
 			</Modal>
 
 
 
 			<Modal open={activeModal.type === 'reschedule'}>
-				<>
-					Which day do you want to reschedule to?
-					<form onSubmit={(e) => handleRescheduleSubmit(e, activeModal.trackday.id, e.target.result.value)}>
-						<select name="result" id="result" required>
-							<option key="none" value=""></option>
-							{allTrackdays && allTrackdays.map((item) => <option key={item.value} value={item.value}>{item.displayValue}</option>)}
-						</select>
-						<button className={`actionButton confirmBtn`} type="submit">Confirm</button>
-						<button type="button" className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
-					</form>
-				</>
+
+
+				<form onSubmit={(e) => handleRescheduleSubmit(e, activeModal.trackday.id, e.target.result.value)}>
+					<h3>Which day do you want to reschedule to?</h3>
+					<select name="result" id="result" required>
+						<option key="none" value=""></option>
+						{allTrackdays && allTrackdays.map((item) => <option key={item.value} value={item.value}>{item.displayValue}</option>)}
+					</select>
+					<button className={`actionButton confirmBtn`} type="submit">Confirm</button>
+					<button type="button" className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
+				</form>
+
 			</Modal>
 
 

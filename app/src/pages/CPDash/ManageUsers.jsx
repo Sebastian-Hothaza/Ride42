@@ -235,11 +235,11 @@ const ManageUsers = ({ APIServer, fetchAPIData, allUsers }) => {
             </div>
 
 			<Modal open={activeModal.type === 'deleteUser'}>
-				<>
-					Are you sure you want to delete this user?
+				<form>
+					<h3>Are you sure you want to delete this user?</h3>
 					<button className={`actionButton confirmBtn`} onClick={() => handleDeleteUser(activeModal.user._id)}>Delete</button>
 					<button className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
-				</>
+				</form>
 			</Modal>
 
             <Loading open={activeModal.type === 'loading'}>

@@ -201,7 +201,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 		}
 	}
 
-	async function handleDeleteTrackday(trackdayID){
+	async function handleDeleteTrackday(trackdayID) {
 		setActiveModal({ type: 'loading', msg: 'Deleting trackday' });
 		try {
 			const response = await fetch(APIServer + 'trackdays/' + trackdayID, {
@@ -308,45 +308,46 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 			</Modal>
 
 			<Modal open={activeModal.type === 'register'}>
-				<>
+
+
+				<form onSubmit={(e) => handleRegisterSubmit(e, e.target.user.value, activeModal.trackday._id, e.target.paymentMethod.value,)}>
 					<h2>Register User</h2>
-					<form onSubmit={(e) => handleRegisterSubmit(e, e.target.user.value, activeModal.trackday._id, e.target.paymentMethod.value,)}>
-						<label htmlFor="user">Select User:</label>
-						<select className='capitalizeEach' name="user" id="user" required>
-							<option key="none" value=""></option>
-							{activeModal.trackday && allUsers.filter((user) => !activeModal.trackday.members.find((memberEntry) => memberEntry.user._id === user._id)).map((user) => <option key={user._id} value={user._id}>{user.firstName}, {user.lastName}</option>)}
-						</select>
-						<label htmlFor="paymentMethod">Payment Method:</label>
-						<select name="paymentMethod" id="paymentMethod" required>
-							<option key="paymentNone" value=""></option>
-							<option key="etransfer" value="etransfer">Interac E-Transfer</option>
-							<option key="creditCard" value="creditCard">Credit Card</option>
-							<option key="credit" value="credit">Use trackday credit</option>
-							<option key="gate" value="gate">Gate</option>
-						</select>
-						<button className={`actionButton confirmBtn`} type="submit">Confirm</button>
-						<button type="button" className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
-					</form>
-				</>
+					<label htmlFor="user">Select User:</label>
+					<select className='capitalizeEach' name="user" id="user" required>
+						<option key="none" value=""></option>
+						{activeModal.trackday && allUsers.filter((user) => !activeModal.trackday.members.find((memberEntry) => memberEntry.user._id === user._id)).map((user) => <option key={user._id} value={user._id}>{user.firstName}, {user.lastName}</option>)}
+					</select>
+					<label htmlFor="paymentMethod">Payment Method:</label>
+					<select name="paymentMethod" id="paymentMethod" required>
+						<option key="paymentNone" value=""></option>
+						<option key="etransfer" value="etransfer">Interac E-Transfer</option>
+						<option key="creditCard" value="creditCard">Credit Card</option>
+						<option key="credit" value="credit">Use trackday credit</option>
+						<option key="gate" value="gate">Gate</option>
+					</select>
+					<button className={`actionButton confirmBtn`} type="submit">Confirm</button>
+					<button type="button" className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
+				</form>
+
 			</Modal>
 
 			<Modal open={activeModal.type === 'unregister'}>
-				<>
+
+
+				<form onSubmit={(e) => handleUnRegisterSubmit(e, e.target.user.value, activeModal.trackday._id)}>
+
 					<h2>Un-register User</h2>
-					<form onSubmit={(e) => handleUnRegisterSubmit(e, e.target.user.value, activeModal.trackday._id)}>
+					<label htmlFor="user">Select User:</label>
+					<select className='capitalizeEach' name="user" id="user" required>
+						<option key="none" value=""></option>
+						{activeModal.trackday && activeModal.trackday.members.map((memberEntry) => <option key={memberEntry.user._id} value={memberEntry.user._id}>{memberEntry.user.firstName}, {memberEntry.user.lastName}</option>)}
 
+					</select>
 
-						<label htmlFor="user">Select User:</label>
-						<select className='capitalizeEach' name="user" id="user" required>
-							<option key="none" value=""></option>
-							{activeModal.trackday && activeModal.trackday.members.map((memberEntry) => <option key={memberEntry.user._id} value={memberEntry.user._id}>{memberEntry.user.firstName}, {memberEntry.user.lastName}</option>)}
+					<button className={`actionButton confirmBtn`} type="submit">Confirm</button>
+					<button type="button" className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
+				</form>
 
-						</select>
-
-						<button className={`actionButton confirmBtn`} type="submit">Confirm</button>
-						<button type="button" className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
-					</form>
-				</>
 			</Modal>
 
 			<Modal open={activeModal.type === 'editDetails'}>
@@ -428,7 +429,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 							return (
 								<div key={costObject.desc}>
 									<div key={costObject.desc}>{costObject.desc}, ${costObject.amount}{costObject.type == 'variable' && '/person'}</div>
-									<button className={ `actionButton confirmBtn`}onClick={() => handleRemoveCost(activeModal.trackday._id, costObject._id)}><span className='material-symbols-outlined'>delete</span></button>
+									<button className={`actionButton confirmBtn`} onClick={() => handleRemoveCost(activeModal.trackday._id, costObject._id)}><span className='material-symbols-outlined'>delete</span></button>
 								</div>
 							)
 						})}
@@ -437,11 +438,11 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 			</Modal>
 
 			<Modal open={activeModal.type === 'deleteTrackday'}>
-				<>
-					Are you sure you want to delete this trackday?
+				<form>
+					<h3>Are you sure you want to delete this trackday?</h3>
 					<button className={`actionButton confirmBtn`} onClick={() => handleDeleteTrackday(activeModal.trackday._id)}>Delete</button>
 					<button className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
-				</>
+				</form>
 			</Modal>
 
 			<Modal open={activeModal.type === 'createTrackday'}>
