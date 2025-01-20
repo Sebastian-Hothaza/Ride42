@@ -172,11 +172,28 @@ exports.register = [
 
 
             await trackday.save();
-            if (req.body.paymentMethod !== 'gate') { //We do not send email on gate registrations
-                sendEmail(user.contact.email, "Ride42 Trackday Registration Confirmation", mailTemplates.registerTrackday,
-                    { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) })
+
+            const prettyDate = trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' });
+            let selectedMailTemplate = '';
+
+            switch (req.body.paymentMethod) {
+                case 'credit':
+                    selectedMailTemplate = mailTemplates.registerTrackday_credit;
+                    break;
+                case 'etransfer':
+                    selectedMailTemplate = mailTemplates.registerTrackday_etransfer;
+                    break;
+                case 'creditCard':
+                    selectedMailTemplate = mailTemplates.registerTrackday_creditcard;
+                    break;
             }
-            logger.info({ message: "Booked trackday for " + user.firstName + ' ' + user.lastName + ' on ' + trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) });
+
+
+            if (req.body.paymentMethod !== 'gate') { //We do not send email on gate registrations
+                sendEmail(user.contact.email, "Ride42 Trackday Registration Confirmation", selectedMailTemplate,
+                    { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: prettyDate })
+            }
+            logger.info({ message: "Booked trackday for " + user.firstName + ' ' + user.lastName + ' on ' + prettyDate });
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
@@ -225,15 +242,24 @@ exports.unregister = [
                 await user.save();
             }
             await trackday.save();
+
+            const prettyDate = trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' });
+
             // Send email to user
             sendEmail(user.contact.email, "Ride42 Trackday Cancellation Confirmation", mailTemplates.unregisterTrackday,
-                { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) })
+                { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: prettyDate })
             // Notify admin only if payment wasn't made with credit (credit is auto refunded)
             if (memberEntry.paymentMethod !== 'credit') {
                 sendEmail(process.env.ADMIN_EMAIL, "TRACKDAY CANCELATION", mailTemplates.unregisterTrackday_admin,
-                    { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) })
+                    {
+                        fname: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1),
+                        lname: user.lastName.charAt(0).toUpperCase() + user.lastName.slice(1),
+                        date: prettyDate,
+                        paymentMethod: memberEntry.paymentMethod,
+                        paid: memberEntry.paid
+                    })
             }
-            logger.info({ message: "Cancelled trackday for " + user.firstName + ' ' + user.lastName + ' on ' + trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) });
+            logger.info({ message: "Cancelled trackday for " + user.firstName + ' ' + user.lastName + ' on ' + prettyDate });
 
             return res.sendStatus(200);
         }
@@ -547,7 +573,7 @@ exports.addCost = [
             const trackday = await Trackday.findById(req.params.trackdayID).exec();
 
             // Check we dont already have a cost object with same description
-            if (trackday.costs.some((costObject)=> costObject.desc == req.body.desc)) return res.status(409).send({ msg: ['Cost object with this description already exists'] }); 
+            if (trackday.costs.some((costObject) => costObject.desc == req.body.desc)) return res.status(409).send({ msg: ['Cost object with this description already exists'] });
 
             trackday.costs.push({
                 desc: req.body.desc,
@@ -563,7 +589,6 @@ exports.addCost = [
 
 // Removes a cost from a trackday
 exports.removeCost = [
-  
     controllerUtils.verifyJWT,
     controllerUtils.validateTrackdayID,
 
@@ -572,12 +597,11 @@ exports.removeCost = [
             const trackday = await Trackday.findById(req.params.trackdayID).exec();
 
             // Check cost object exists
-            if (!trackday.costs.some((costObject)=> costObject.id == req.params.costID)) return res.status(409).send({ msg: ['Cost object not found'] }); 
+            if (!trackday.costs.some((costObject) => costObject.id == req.params.costID)) return res.status(409).send({ msg: ['Cost object not found'] });
 
             // Remove cost object
-            trackday.costs = trackday.costs.filter((costObject)=> costObject.id != req.params.costID)
+            trackday.costs = trackday.costs.filter((costObject) => costObject.id != req.params.costID)
             await trackday.save();
-            
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
@@ -684,7 +708,7 @@ exports.trackday_put = [
                 walkons: oldTrackday.walkons,
                 status: req.body.status,
                 layout: req.body.layout,
-                costs: oldTrackday.costs.filter((costObject)=>costObject.desc != 'trackRental').concat([{ desc: 'trackRental', type: 'fixed', amount: req.body.rentalCost }]),
+                costs: oldTrackday.costs.filter((costObject) => costObject.desc != 'trackRental').concat([{ desc: 'trackRental', type: 'fixed', amount: req.body.rentalCost }]),
                 ticketPrice: { preReg: req.body.preRegTicketPrice, gate: req.body.gateTicketPrice, bundle: req.body.bundlePrice },
                 _id: req.params.trackdayID
             })
