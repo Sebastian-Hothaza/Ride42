@@ -67,7 +67,6 @@ function setupMailListener() {
 			// Determine the user from the email
 			const user = await getUser(mail);
 			if (!user) {
-				logger.error({ message: 'Could not find user to associate with e-transfer' });
 				// Move the email to the TODO folder
 				mailListener.imap.move(attributes.uid, "INBOX/Payments/TODO", (err) => {
 					if (err) logger.error({ message: 'Failed to move email to processed folder' });
