@@ -1093,7 +1093,7 @@ describe('Testing registering', () => {
 	});
 })
 
-describe.only('Testing un-registering', () => {
+describe('Testing un-registering', () => {
 	test("invalid objectID trackday", async () => {
 		await request(app)
 			.delete('/register/' + user1.body.id + '/invalid')
