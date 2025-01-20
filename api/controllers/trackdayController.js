@@ -250,7 +250,7 @@ exports.unregister = [
                 { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: prettyDate })
             // Notify admin only if payment wasn't made with credit (credit is auto refunded)
             if (memberEntry.paymentMethod !== 'credit') {
-                sendEmail(process.env.ADMIN_EMAIL, "TRACKDAY CANCELATION", mailTemplates.unregisterTrackday_admin,
+                sendEmail(process.env.ADMIN_EMAIL, "Trackday Cancellation - Refund may be required", mailTemplates.unregisterTrackday_admin,
                     {
                         fname: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1),
                         lname: user.lastName.charAt(0).toUpperCase() + user.lastName.slice(1),
