@@ -260,23 +260,17 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 			</Modal>
 
 			<Modal open={activeModal.type === 'changePassword'}>
-				<form id={styles.changePswForm} onSubmit={(e) => handleChangePasswordSubmit(e)}>
-					<div>
-						<label htmlFor="oldPassword">Old Password:</label>
-						<input type="password" id="oldPassword" name="oldPassword" required></input>
-					</div>
-					<div>
-						<label htmlFor="newPassword">New Password:</label>
-						<input type="password" id="newPassword" name="newPassword" required onInput={checkPswFormat}></input>
-					</div>
-					<div>
-						<label htmlFor="newPasswordConfirm">Confirm New Password:</label>
-						<input type="password" id="newPasswordConfirm" name="newPasswordConfirm" required onInput={checkPswMatches}></input>
-					</div>
-					<div>
-						<button className={`actionButton`} type="button" onClick={() => setActiveModal('')}>Cancel</button>
-						<button className={`actionButton confirmBtn`} type="submit">Change Password</button>
-					</div>
+				<form onSubmit={(e) => handleChangePasswordSubmit(e)}>
+					<label htmlFor="oldPassword">Old Password:</label>
+					<input type="password" id="oldPassword" name="oldPassword" required></input>
+					<label htmlFor="newPassword">New Password:</label>
+					<input type="password" id="newPassword" name="newPassword" required onInput={checkPswFormat}></input>
+					<label htmlFor="newPasswordConfirm">Confirm New Password:</label>
+					<input type="password" id="newPasswordConfirm" name="newPasswordConfirm" required onInput={checkPswMatches}></input>
+
+					<button className={`actionButton`} type="button" onClick={() => setActiveModal('')}>Cancel</button>
+					<button className={`actionButton confirmBtn`} type="submit">Change Password</button>
+
 				</form>
 			</Modal>
 

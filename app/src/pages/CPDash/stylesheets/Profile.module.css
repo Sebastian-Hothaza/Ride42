@@ -74,21 +74,11 @@
     justify-content: flex-end;
 }
 
-#changePswForm input{
-    width: auto;
-}
 
 
 
-#changePswForm > div{
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-}
 
-#changePswForm label{
-    white-space: nowrap;
-}
+
 
 @media (max-width: 1000px) {
     .inputSection {
@@ -103,12 +93,12 @@
 
     .inputPairing input{
         min-width: 200px;
-        width: 100%;
+        width: 95%;
     }
 
     .inputPairing select{
         min-width: 208px;
-        width: calc(100% + 8px);
+        width: calc(95% + 8px);
     }
 
     .btnContainer{
