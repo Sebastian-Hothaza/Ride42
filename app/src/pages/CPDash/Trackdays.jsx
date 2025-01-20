@@ -23,8 +23,6 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 	const [stripePromise, setStripePromise] = useState(null); //Stripe promise that resolves to stripe object. Not guaranteed valid!
 	const [clientSecret, setClientSecret] = useState(''); //Client secret used to initialize elements
 
-
-
 	// Returns true if a user is registered for a specified trackday ID
 	function userRegistered(trackdayID) {
 		for (let i = 0; i < userTrackdays.length; i++) {
@@ -232,7 +230,9 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 		const [isPaymentElementReady, setIsPaymentElementReady] = useState(false);
 		const STRIPE_FEE = 5; // Compensate for stripe fee
 
-		
+
+
+
 		const stripe = useStripe();
 		const elements = useElements();
 
@@ -243,7 +243,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 			setIsProcessing(true);
 
-		
+
 			const { error, paymentIntent } = await stripe.confirmPayment({
 				elements,
 				redirect: 'if_required',
@@ -257,19 +257,19 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 				setTimeout(async () => {
 					await fetchAPIData();
 				}, 3000);
-			} else if (error){
+			} else if (error) {
 				setActiveModal({ type: 'failure', msg: `Payment Failed: ${error.message}` });
 				console.error(error);
-			}else{
+			} else {
 				console.error('Unknown state');
 			}
 			setIsProcessing(false);
 
 		};
-		
+
 		return (
 			<form id={styles.paymentForm} onSubmit={handleSubmit}>
-				<PaymentElement onReady={() => setIsPaymentElementReady(true)} />
+				<PaymentElement className={styles.paymentElement} onReady={() => setIsPaymentElementReady(true)} />
 
 				{isPaymentElementReady &&
 					<>
@@ -398,9 +398,9 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 										{(() => {
 											switch (trackday.paymentMethod) {
 												case 'etransfer':
-													return trackday.paid ? <div>E-Transfer received</div> : <div style={{color: `var(--accent-color)`}}>E-Transfer not received</div>;
+													return trackday.paid ? <div>E-Transfer received</div> : <div style={{ color: `var(--accent-color)` }}>E-Transfer not received</div>;
 												case 'creditCard':
-													return trackday.paid ? <div>Credit card payment received</div> : <div style={{color: `var(--accent-color)`}}>Credit card payment not received</div>;
+													return trackday.paid ? <div>Credit card payment received</div> : <div style={{ color: `var(--accent-color)` }}>Credit card payment not received</div>;
 												case 'credit':
 													return <div>Used credit</div>;
 												case 'gate':
@@ -448,8 +448,8 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 			<Modal open={activeModal.type === 'cancel'}>
 				<>
-					Are you sure you want to cancel this trackday?
-					<button className={`actionButton confirmBtn`} onClick={() => handleCancelTrackdaySubmit(activeModal.trackday.id)}>Yes, cancel it</button>
+					Are you sure?
+					<button className={`actionButton confirmBtn`} onClick={() => handleCancelTrackdaySubmit(activeModal.trackday.id)}>Yes, cancel trackday</button>
 					<button className='actionButton' onClick={() => setActiveModal('')}>No, keep it</button>
 				</>
 			</Modal>
@@ -461,7 +461,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 					Which day do you want to reschedule to?
 					<form onSubmit={(e) => handleRescheduleSubmit(e, activeModal.trackday.id, e.target.result.value)}>
 						<select name="result" id="result" required>
-							<option key="none" value="">--- Select ---</option>
+							<option key="none" value=""></option>
 							{allTrackdays && allTrackdays.map((item) => <option key={item.value} value={item.value}>{item.displayValue}</option>)}
 						</select>
 						<button className={`actionButton confirmBtn`} type="submit">Confirm</button>
