@@ -31,18 +31,8 @@
 }
 
 
-.content form {
-    display: flex;
-    gap: 2rem;
-    font-size: 1.25rem;
-    margin: auto;
-}
 
 
-#addBikeModal label{
-    min-width: 100px;
-    text-align: left;
-}
 
 .confirmBtn {
     background-color: var(--accent-color) !important;
@@ -56,26 +46,9 @@
         align-items: center;
         gap: .5rem;
     }
-
-    .content form {
-        flex-direction: column;
-        gap: 0;
-    }
-
-    .content form input {
-        width: 180px;
-    }
-
-    .content h1 {
-        text-align: center;
-    }
-
-    form .confirmBtn {
-        margin-top: 2rem;
-    }
-
 }
 
+/* NOT modal buttons */
 @media (max-width: 450px) {
     .content button {
         font-size: 1rem;

@@ -110,19 +110,19 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 
 			<Modal open={activeModal.type === 'addBike'}>
 
-				<form id={styles.addBikeModal} onSubmit={(e) => handleAddBike(e)}>
-					<div>
-						<label htmlFor="year">Year:</label>
-						<input type="number" id="year" name="year" required min={1900} max={2100}></input>
-					</div>
-					<div>
-						<label htmlFor="make">Make:</label>
-						<input type="text" id="make" name="make" required minLength={2} maxLength={50}></input>
-					</div>
-					<div>
-						<label htmlFor="model">Model:</label>
-						<input type="text" id="model" name="model" required minLength={2} maxLength={50}></input>
-					</div>
+				<form onSubmit={(e) => handleAddBike(e)}>
+
+					<label htmlFor="year">Year:</label>
+					<input type="number" id="year" name="year" required min={1900} max={2100}></input>
+
+
+					<label htmlFor="make">Make:</label>
+					<input type="text" id="make" name="make" required minLength={2} maxLength={50}></input>
+
+
+					<label htmlFor="model">Model:</label>
+					<input type="text" id="model" name="model" required minLength={2} maxLength={50}></input>
+
 
 
 
