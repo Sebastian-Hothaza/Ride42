@@ -58,6 +58,9 @@ function setupMailListener() {
 
 	mailListener.start();
 
+	mailListener.on("server:connected", function () {
+		logger.debug({ message: 'MailListener active...' });
+	});
 
 	mailListener.on("mail", async function (mail, seqno, attributes) {
 		try {
