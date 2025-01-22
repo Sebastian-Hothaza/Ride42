@@ -127,6 +127,16 @@ button:hover {
 
 
 
+
+
+}
+
+@media (max-width: 750px) {
+    .CPDash {
+        padding: 0 1rem;
+        box-shadow: none;
+        background-color: transparent;
+    }
 }
 
 
