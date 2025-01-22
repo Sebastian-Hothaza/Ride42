@@ -4,16 +4,25 @@ const logger = require('./logger');
 const router = require('./routes/index');
 const cookieParser = require('cookie-parser')
 const setupMailListener = require('./mailListener'); // Import the mailListener setup function
+const os = require('os'); // required to get machine name
+
 
 
 const app = express();
 
-// Only activate the mail Listener in production.
+// Only activate the mail Listener on correspondingfly machine.
 // Otherwise risk of 2 listeners running which causes issues.
 // If wanting to test mailListener, need to shut it down on API
 // Mail listener listens for incoming e-transfer notification emails in INBOX/Payments.
 // It attempts to process them to auto-mark e-transfer users as paid
-if (process.env.NODE_ENV === 'production') setupMailListener();
+const machineName = os.hostname();
+if (machineName === process.env.MAIL_LISTENER_MACHINE){
+	logger.warn({ message: `Machine ${machineName} is listening for mail.` });
+	setupMailListener();
+}
+
+
+
 
 // Simulate slow network
 const simulateSlowNetwork = false;
