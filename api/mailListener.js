@@ -147,7 +147,7 @@ function setupMailListener() {
 				logger.error({ message: `No payments have been applied for ${user.firstName} ${user.lastName}. Remaining balance: $${pmtBalance}` });
 			}
 		} catch (err) {
-			logger.error({ message: 'Error processing email' });
+			logger.error({ message: `Error processing email: ${err.message}` });
 			// Move the email to the TODO folder
 			mailListener.imap.move(attributes.uid, "INBOX/Payments/TODO", (err) => {
 				if (err) logger.error({ message: 'Failed to move email to processed folder' });
