@@ -46,6 +46,13 @@ const ServerLogs = ({ APIServer }) => {
         fetchLogs();
     }, [APIServer]);
 
+    useEffect(() => {
+        const logWindow = document.getElementById(styles.logWindow);
+        if (logWindow) {
+            logWindow.scrollTop = logWindow.scrollHeight;
+        }
+    }, [logs]);
+
     function handleCheckboxChange(level) {
         setLevelFilter((prevFilters) =>
             prevFilters.includes(level)
