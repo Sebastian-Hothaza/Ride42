@@ -10,7 +10,7 @@ import modalStyles from '../components/stylesheets/Modal.module.css'
 
 import errormark from './../assets/error.png'
 
-const Login = ({APIServer}) => {
+const Login = ({ APIServer }) => {
     const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
     const { handleLogin, loginErrorMsg } = useOutletContext();
 
@@ -28,27 +28,37 @@ const Login = ({APIServer}) => {
         setActiveModal({ type: 'loading', msg: 'Generating your link...' });
         const formData = new FormData(e.target);
         try {
-			const response = await fetch(APIServer + 'resetpassword', {
-				method: 'POST',
-				headers: {
-					'Content-type': 'application/json; charset=UTF-8',
-				},
+            const response = await fetch(APIServer + 'resetpassword', {
+                method: 'POST',
+                headers: {
+                    'Content-type': 'application/json; charset=UTF-8',
+                },
                 body: JSON.stringify(Object.fromEntries(formData))
-			})
-			if (response.ok) {
-				setActiveModal({type: 'pswResetConfirm'})
-			} else {
-				const data = await response.json();
-				setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
-			}
-		} catch (err) {
-			setActiveModal({ type: 'failure', msg: 'API Failure' })
-			console.log(err.message)
-		}
-        
+            })
+            if (response.ok) {
+                setActiveModal({ type: 'pswResetConfirm' })
+            } else {
+                const data = await response.json();
+                setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
+            }
+        } catch (err) {
+            setActiveModal({ type: 'failure', msg: 'API Failure' })
+            console.log(err.message)
+        }
+
     }
 
-   
+
+
+    function getToolbarHeight() {
+        const root = document.documentElement;
+        const toolBarHeight = getComputedStyle(root).getPropertyValue('--toolbar-thickness');
+        const rootFontSize = parseFloat(getComputedStyle(root).fontSize); // Get root font size in pixels
+        const toolBarHeightInPixels = parseFloat(toolBarHeight) * rootFontSize; // Convert rem to pixels
+        return toolBarHeightInPixels;
+    };
+
+    console.log('toolBarHeightInPixels:', getToolbarHeight())
 
     return (
         <>
@@ -78,10 +88,20 @@ const Login = ({APIServer}) => {
                         <form onSubmit={(e) => handleLoginSubmit(e)} >
                             <input type="email" name="email" placeholder="email" required />
                             <input type="password" name="password" placeholder="password" required />
-                            <a style={{color: 'blue', cursor: "pointer", alignSelf: 'flex-start'}} onClick={() => setActiveModal({ type: 'pswReset' })}>Forgot Password</a>
+                            <a style={{ color: 'blue', cursor: "pointer", alignSelf: 'flex-start' }} onClick={() => setActiveModal({ type: 'pswReset' })}>Forgot Password</a>
                             {loginErrorMsg && <div className="errorText">{loginErrorMsg}</div>}
                             <button id={styles.logInBtn} type="submit">Log In</button>
-                            <button id={styles.scrollBtn} type="button" className="actionButton" onClick={() => document.getElementById('loginCard').scrollIntoView()}>Not yet a member?</button>
+                            <button id={styles.scrollBtn} type="button" className="actionButton" onClick={() => {
+                                const element = document.getElementById('loginCard');
+                                const offset = -1.5 * getToolbarHeight();
+                                const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+                                const offsetPosition = elementPosition + offset;
+
+                                window.scrollTo({
+                                    top: offsetPosition,
+                                    behavior: 'smooth'
+                                });
+                            }}>Not yet a member?</button>
                         </form>
                     </div>
 
@@ -100,14 +120,14 @@ const Login = ({APIServer}) => {
             </Modal>
 
             <Modal open={activeModal.type === 'pswReset'}>
-               
+
                 <div>Email associated with your account</div>
                 <form onSubmit={(e) => handlePasswordResetRequest(e)} >
                     <input type="email" name="email" placeholder="email" required />
                     <button id={styles.logInBtn} type="submit" className='actionButton'>Reset Password</button>
                     <button className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
                 </form>
-                
+
             </Modal>
 
             <Modal open={activeModal.type === 'pswResetConfirm'}>
