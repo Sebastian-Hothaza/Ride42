@@ -1,23 +1,21 @@
-# fly.toml app configuration file generated for ride42api on 2024-03-31T21:10:22-04:00
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
 app = 'ride42api'
 primary_region = 'yyz'
 
-[build]
+# DO NOT STORE SENSITIVE ENV HERE! Use fly secrets instead.
+[env]
+  MAIL_LISTENER_MACHINE="3287356b0e4668"
+  STRIPE_FEE=5
+  DAYS_LOCKOUT=7
+  LATE_ALLOWANCE_HOURS=12
+  GROUP_CAPACITY=25
 
 [http_service]
   internal_port = 443
   force_https = true
-  auto_stop_machines = false
-  auto_start_machines = true
-  min_machines_running = 1
   processes = ['app']
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
 
 [[vm]]
   size = 'shared-cpu-1x'
-
-[deploy]
-  machines = 1
