@@ -148,6 +148,10 @@ function setupMailListener() {
 			}
 		} catch (err) {
 			logger.error({ message: 'Error processing email' });
+			// Move the email to the TODO folder
+			mailListener.imap.move(attributes.uid, "INBOX/Payments/TODO", (err) => {
+				if (err) logger.error({ message: 'Failed to move email to processed folder' });
+			});
 		}
 	});
 
