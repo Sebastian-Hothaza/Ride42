@@ -14,7 +14,7 @@ const app = express();
 // It attempts to process them to auto-mark e-transfer users as paid
 const machineName = os.hostname();
 if (machineName === process.env.MAIL_LISTENER_MACHINE) {
-	logger.warn({ message: `Machine ${machineName} is listening for mail.` });
+	logger.debug({ message: `Machine ${machineName} is listening for mail.` });
 	setupMailListener();
 }
 
