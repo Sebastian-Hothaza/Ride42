@@ -15,7 +15,8 @@ primary_region = 'yyz'
   processes = ['app']
   auto_stop_machines = "stop"
   auto_start_machines = true
-  min_machines_running = 0
+  min_machines_running = 1
+  # TODO: Test if seeting above to 0 causes issues
 
 [[vm]]
   size = 'shared-cpu-1x'
