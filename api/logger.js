@@ -31,6 +31,8 @@ if (process.env.NODE_ENV === 'production') {
         tryReconnect: true,
         level: 'info' // Minimum log level to store; we dont want to store debug info
     }));
+    // Add console transport for debug level
+    logger.add(new winston.transports.Console({ level: 'debug', format: winston.format.colorize({ all: true }) }));
 } else {
     logger.add(new winston.transports.Console({ format: winston.format.colorize({ all: true }) }));
     if (process.env.NODE_ENV === 'test') logger.level = 'warn'; // Supress console of info messages
