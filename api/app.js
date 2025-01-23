@@ -1,12 +1,9 @@
 const express = require('express');
-require("./mongoConfig")
-const logger = require('./logger');
+
 const router = require('./routes/index');
 const cookieParser = require('cookie-parser')
 const setupMailListener = require('./mailListener'); // Import the mailListener setup function
 const os = require('os'); // required to get machine name
-
-
 
 const app = express();
 
@@ -20,12 +17,6 @@ if (machineName === process.env.MAIL_LISTENER_MACHINE) {
 	logger.warn({ message: `Machine ${machineName} is listening for mail.` });
 	setupMailListener();
 }
-
-process.on('SIGINT', () => {
-	console.log('Received SIGINT, shutting down gracefully...');
-	process.exit(0);
-});
-
 
 // Simulate slow network
 const simulateSlowNetwork = false;
