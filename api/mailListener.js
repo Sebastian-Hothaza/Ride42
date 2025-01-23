@@ -14,7 +14,7 @@ async function getUser(mail) {
 	let user = await User.findOne({ 'contact.email': userEmail }).select('-password -refreshToken -__v').exec();
 	if (!user) {
 		// Try to find user by scraping subject line
-		logger.debug({ message: 'Could not find user by email. Attempting to find user by scraping subject line' });
+		if (process.env.NODE_ENV === 'development') logger.debug({ message: 'Could not find user by email. Attempting to find user by scraping subject line' });
 		const fullName = mail.text.match(/Sent From: (.+)/i)[1].toLowerCase();
 
 		// Go thru all users in the DB and attempt to match the scraped full name
@@ -26,13 +26,17 @@ async function getUser(mail) {
 			}
 		};
 	}
-	user ? logger.debug({ message: `User: ${user.firstName} ${user.lastName}` }) : logger.error({ message: 'Could not find user to attach E-Transfer payment to' });
+	if (user){
+		if (process.env.NODE_ENV === 'development') logger.debug({ message: `User: ${user.firstName} ${user.lastName}` })
+	}else{
+		logger.error({ message: 'Could not find user to attach E-Transfer payment to' });
+	}
 	return user;
 }
 
 function getAmount(emailText) {
 	const receivedAmount = emailText.match(/Amount:\s*\$([0-9,]+\.\d{2})\s*\(CAD\)/i)[1];
-	logger.debug({ message: `received $${receivedAmount}` });
+	if (process.env.NODE_ENV === 'development') logger.debug({ message: `received $${receivedAmount}` });
 	return receivedAmount;
 }
 
@@ -57,10 +61,6 @@ function setupMailListener() {
 	});
 
 	mailListener.start();
-
-	mailListener.on("server:connected", function () {
-		logger.debug({ message: 'MailListener active...' });
-	});
 
 	mailListener.on("mail", async function (mail, seqno, attributes) {
 		try {
