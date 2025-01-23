@@ -6,6 +6,8 @@ require('dotenv').config();
 const app = require('../app');
 const debug = require('debug')('api:server');
 const http = require('http');
+const logger = require('../logger');
+const mongoose = require('../mongoConfig');
 
 /**
  * Get port from environment and store in Express.
@@ -87,3 +89,22 @@ function onListening() {
     : 'port ' + addr.port;
   debug('Listening on ' + bind);
 }
+
+
+
+
+process.on('SIGINT', async () => {
+
+  try {
+    logger.debug({ message: 'Disconnecting Mongoose...' });
+    await mongoose.disconnect();
+    logger.debug({ message: 'Disconnecting Mongoose...OK' });
+    server.close(() => {
+      logger.debug({ message: 'Closed server' });
+      process.exit(0);
+    });
+  } catch (err) {
+    logger.error({ message: 'Disconnecting Mongoose...FAIL: ' + err.message });
+    process.exit(1);
+  }
+});
