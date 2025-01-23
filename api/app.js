@@ -1,5 +1,5 @@
 const express = require('express');
-
+const logger = require('./logger');
 const router = require('./routes/index');
 const cookieParser = require('cookie-parser')
 const setupMailListener = require('./mailListener'); // Import the mailListener setup function
