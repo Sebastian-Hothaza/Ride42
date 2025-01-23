@@ -1,7 +1,7 @@
 #logWindow {
     background: linear-gradient(to bottom right, #000060, #000000);
     color: #73d784;
-    height: 60vh;
+    height: 50vh;
     overflow: auto;
     display: grid;
     grid-template-columns: 300px 60px auto;
