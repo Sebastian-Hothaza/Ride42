@@ -16,12 +16,15 @@ const app = express();
 // Mail listener listens for incoming e-transfer notification emails in INBOX/Payments.
 // It attempts to process them to auto-mark e-transfer users as paid
 const machineName = os.hostname();
-if (machineName === process.env.MAIL_LISTENER_MACHINE){
+if (machineName === process.env.MAIL_LISTENER_MACHINE) {
 	logger.warn({ message: `Machine ${machineName} is listening for mail.` });
 	setupMailListener();
 }
 
-
+process.on('SIGINT', () => {
+	console.log('Received SIGINT, shutting down gracefully...');
+	process.exit(0);
+});
 
 
 // Simulate slow network
