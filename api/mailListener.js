@@ -6,9 +6,9 @@ const mailTemplates = require('./mailer_templates')
 const User = require('./models/User');
 const Trackday = require('./models/Trackday');
 
-// TODO: Implement a locking mechanism to allow multiple instance of the app to run without conflict.
-// Currently, if two instances of the server app are running (Ie. 2 fly machines), they will both attempt to move the email to the processed folder, causing unexpected behaviour.
-// Current solution is to only have one fly machine running.
+const MAX_RESTART = 10; // Max number of tries to restart listener when encounter an error
+let numRestarts = 0;
+
 async function getUser(mail) {
 	userEmail = mail.headers.get('reply-to').value[0].address;
 	let user = await User.findOne({ 'contact.email': userEmail }).select('-password -refreshToken -__v').exec();
@@ -26,9 +26,9 @@ async function getUser(mail) {
 			}
 		};
 	}
-	if (user){
+	if (user) {
 		if (process.env.NODE_ENV === 'development') logger.debug({ message: `User: ${user.firstName} ${user.lastName}` })
-	}else{
+	} else {
 		logger.error({ message: 'Could not find user to attach E-Transfer payment to' });
 	}
 	return user;
@@ -156,7 +156,14 @@ function setupMailListener() {
 	});
 
 	mailListener.on("error", function (err) {
-		logger.error({ message: 'mailListener error' });
+		if (numRestarts < MAX_RESTART) {
+			setTimeout(() => {
+				mailListener.start();
+				numRestarts++;
+			}, 5000); // 5 second delay
+		} else {
+			logger.error({ message: `mailListener error: ${err.message}. Failed to restart service` });
+		}
 	});
 
 	mailListener.on("disconnected", function () {
