@@ -1,10 +1,12 @@
-import { Link } from "react-router-dom";
+import { useOutletContext, NavLink } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 import Card from "../components/Card"
 
 import about from '../assets/about.png'
 import offer from '../assets/offer.jpg'
 import bundle from '../assets/bundle.jpg'
+import cancelled from '../assets/cancelled.jpg'
 
 import raceway from '../assets/raceway.png'
 import partners from '../assets/partners.png'
@@ -13,10 +15,43 @@ import styles from './stylesheets/Home.module.css'
 
 
 const Home = () => {
+	const CANCELLATION_NOTICE = false; // Set to true to display cancellation notice.
+
+	const [nextTrackday, setNextTrackday] = useState('');
+	let daysAway, hoursAway; // Tracks how many days and hours away the next trackday is
+	const { APIServer } = useOutletContext();
+	async function fetchAPIData() {
+		try {
+			const response = await fetch(APIServer + 'presentTrackdays');
+			if (!response.ok) throw new Error("Failed to get API Data for presentTrackdays")
+			const data = await response.json();
+			setNextTrackday(data.filter(day => new Date(day.date) >= new Date()).sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))[0]);
+		} catch (err) {
+			console.log(err.message)
+		}
+	}
+
+	useEffect(() => {
+		fetchAPIData();
+	}, [])
+
+	if (nextTrackday) {
+		const timeDifference = new Date(nextTrackday.date) - new Date();
+		daysAway = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+		hoursAway = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+	}
+
+	const HTML_Cancellation = <div>
+		<h1>The trackday on XXX has been cancelled.</h1>
+		<br></br>
+		<p>If you paid via trackday credit, your credit has been added back to your account.</p>
+		<br></br>
+		<p>If you paid via E-Transfer or Credit Card, we will send you an email shortly.</p>
+	</div>
 
 	const HTML_Bundle = <div>
-		<h2>Rider friendly bundles are now available for purchase! 🚀</h2>
-		<h3> What makes these 3-day bundles friendly? 😁</h3>
+		<h2>Last chance to get your bundle; form closes Friday February 28! 🚀</h2>
+		<h3> What makes these 3-day bundles awesome? 😁</h3>
 		<br></br>
 		<ul>
 			<li>Save $120 vs registering at gate for each date individually</li>
@@ -63,16 +98,18 @@ const Home = () => {
 
 	return (
 		<>
-			<div className={styles.heroImage}>
-				<div className={styles.heroText}>
-					{/* ADD HERO TEXT NOTE HERE */}
-				</div>
+			<div id={styles.hero}>
+				{!CANCELLATION_NOTICE && <div id={styles.heroText}>
+					{nextTrackday ? <div>Next Trackday in... {daysAway} days, {hoursAway} hours</div> : <div>Next Trackday in...</div>}
+					<NavLink className={styles.bookBtn} style={{ backgroundColor: 'var(--accent-color)' }} to="/dashboard">Book Now!</NavLink>
+				</div>}
 			</div>
 			<div className="content" id={styles.firstCard}>
+				{CANCELLATION_NOTICE && <Card heading='Cancellation Notice' body={HTML_Cancellation} img={cancelled} inverted={false} />}
 				<Card heading='2025 Season Bundle' body={HTML_Bundle} img={bundle} inverted={false} />
 				<Card heading='About Us' body={HTML_AboutUs} img={about} inverted={true} />
 				<Card heading='What We Offer' body={HTML_Offer} img={offer} inverted={false} />
-				<div className={styles.imageContainer}>
+				<div id={styles.partnersContainer}>
 					<img src={partners} alt="Picture of our partners" />
 					<img src={raceway} alt="Picture of Grand Bend Track" />
 				</div>
