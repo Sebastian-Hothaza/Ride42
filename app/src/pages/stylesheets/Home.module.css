@@ -1,4 +1,7 @@
-.heroImage {
+#hero {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     background-image: linear-gradient(rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15)), url('../../assets/cover.jpg');
     height: 350px;
     background-position: center;
@@ -7,7 +10,23 @@
     margin-top: var(--toolbar-thickness);
 }
 
-.imageContainer {
+#heroText {
+    background-color: rgba(0, 0, 0, 0.75);
+    color: white;
+    font-size: 1.5rem;
+    text-align: center;
+    padding: 40px 200px; 
+    margin: 0 10px;
+    border-radius: 1rem;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1rem;
+   
+}
+
+#partnersContainer {
     display: flex;
     justify-content: space-between;
     width: 100%;
@@ -28,11 +47,15 @@ img {
 
 @media (max-width: 850px) {
 
-    .heroImage {
+    #hero {
         height: 250px;
     }
-    .imageContainer {
+    #partnersContainer {
         flex-direction: column;
+    }
+
+    #heroText{
+        padding: 10px 20px; 
     }
 
     /* This is required since content adds margin to account for Navbar. On home page, navbar has already been accounted for */
