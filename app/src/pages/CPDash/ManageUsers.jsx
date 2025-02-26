@@ -21,83 +21,83 @@ const ManageUsers = ({ APIServer, fetchAPIData, allUsers }) => {
 
 
     async function handleUserInfoSubmit(e) {
-		e.preventDefault();
-		e.target.phone.value = e.target.phone.value.replace(/[^0-9]/g, '');
-		e.target.EmergencyPhone.value = e.target.EmergencyPhone.value.replace(/[^0-9]/g, '');
-		setActiveModal({ type: 'loading', msg: 'Updating users profile' });
-		const formData = new FormData(e.target);
-		try {
-			const response = await fetch(APIServer + 'users/' + user._id, {
-				method: 'PUT',
-				credentials: "include",
-				headers: {
-					'Content-type': 'application/json; charset=UTF-8',
-				},
-				body: JSON.stringify(Object.fromEntries(formData))
-			})
-			await fetchAPIData();
-			if (response.ok) {
-				setLockedUserInfo(true)
-				setActiveModal({ type: 'success', msg: 'Profile updated' });
-				setTimeout(() => setActiveModal(''), 1500)
-			} else {
-				const data = await response.json();
-				setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
-			}
-		} catch (err) { 
-			setActiveModal({ type: 'failure', msg: 'API Failure' })
-			console.log(err.message)
-		}
-	}
+        e.preventDefault();
+        e.target.phone.value = e.target.phone.value.replace(/[^0-9]/g, '');
+        e.target.EmergencyPhone.value = e.target.EmergencyPhone.value.replace(/[^0-9]/g, '');
+        setActiveModal({ type: 'loading', msg: 'Updating users profile' });
+        const formData = new FormData(e.target);
+        try {
+            const response = await fetch(APIServer + 'users/' + user._id, {
+                method: 'PUT',
+                credentials: "include",
+                headers: {
+                    'Content-type': 'application/json; charset=UTF-8',
+                },
+                body: JSON.stringify(Object.fromEntries(formData))
+            })
+            await fetchAPIData();
+            if (response.ok) {
+                setLockedUserInfo(true)
+                setActiveModal({ type: 'success', msg: 'Profile updated' });
+                setTimeout(() => setActiveModal(''), 1500)
+            } else {
+                const data = await response.json();
+                setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
+            }
+        } catch (err) {
+            setActiveModal({ type: 'failure', msg: 'API Failure' })
+            console.log(err.message)
+        }
+    }
 
     async function handlePasswordSubmit(e) {
-		e.preventDefault();
-		setActiveModal({ type: 'loading', msg: 'Updating user password' });
-		const formData = new FormData(e.target);
+        e.preventDefault();
+        setActiveModal({ type: 'loading', msg: 'Updating user password' });
+        const formData = new FormData(e.target);
         formData.append("oldPassword", 'xxxx1111'); // Old password not required when admin submits password change request
-		try {
-			const response = await fetch(APIServer + 'password/' + user._id, {
-				method: 'PUT',
-				credentials: "include",
-				headers: {
-					'Content-type': 'application/json; charset=UTF-8',
-				},
-				body: JSON.stringify(Object.fromEntries(formData))
-			})
-			if (response.ok) {
-				setActiveModal({ type: 'success', msg: 'Password updated' });
-				setTimeout(() => setActiveModal(''), 1500)
-			} else {
-				const data = await response.json();
-				setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
-			}
-		} catch (err) { 
-			setActiveModal({ type: 'failure', msg: 'API Failure' })
-			console.log(err.message)
-		}
+        try {
+            const response = await fetch(APIServer + 'password/' + user._id, {
+                method: 'PUT',
+                credentials: "include",
+                headers: {
+                    'Content-type': 'application/json; charset=UTF-8',
+                },
+                body: JSON.stringify(Object.fromEntries(formData))
+            })
+            if (response.ok) {
+                setActiveModal({ type: 'success', msg: 'Password updated' });
+                setTimeout(() => setActiveModal(''), 1500)
+            } else {
+                const data = await response.json();
+                setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
+            }
+        } catch (err) {
+            setActiveModal({ type: 'failure', msg: 'API Failure' })
+            console.log(err.message)
+        }
         e.target.reset();
-	}
+    }
 
-    async function handleDeleteUser(userID){
-		setActiveModal({ type: 'loading', msg: 'Deleting user' });
-		try {
-			const response = await fetch(APIServer + 'users/' + userID, {
-				method: 'DELETE',
-				credentials: "include",
-			})
-			await fetchAPIData();
-			if (response.ok) {
-				setActiveModal({ type: 'success', msg: 'User deleted' });
-				setTimeout(() => setActiveModal(''), 1500)
-			} else {
-				const data = await response.json();
-				setActiveModal({ type: 'failure', msg: data.msg })
-			}
-		} catch (err) {
-			setActiveModal({ type: 'failure', msg: 'API Failure' })
-			console.log(err.message)
-		}
-	}
+    async function handleDeleteUser(userID) {
+        setActiveModal({ type: 'loading', msg: 'Deleting user' });
+        try {
+            const response = await fetch(APIServer + 'users/' + userID, {
+                method: 'DELETE',
+                credentials: "include",
+            })
+            await fetchAPIData();
+            if (response.ok) {
+                setActiveModal({ type: 'success', msg: 'User deleted' });
+                setTimeout(() => setActiveModal(''), 1500)
+            } else {
+                const data = await response.json();
+                setActiveModal({ type: 'failure', msg: data.msg })
+            }
+        } catch (err) {
+            setActiveModal({ type: 'failure', msg: 'API Failure' })
+            console.log(err.message)
+        }
+    }
 
     if (!allUsers) {
         return null;
@@ -108,14 +108,15 @@ const ManageUsers = ({ APIServer, fetchAPIData, allUsers }) => {
         <>
             <ScrollToTop />
             <div className={styles.content}>
-                <h1>Manage User-
-                    <form>
-                        <select className='capitalizeEach' name="result" id="result" onChange={() => setUser(allUsers.find((user) => user._id === result.value))}>
+                <h1>Manage User</h1>
+                <form>
+                    <input list="userList" className='capitalizeEach' name="result" id="result" onChange={() => setUser(allUsers.find((user) => user._id === result.value))}/>
+                        <datalist id="userList">
                             <option style={{ textAlign: 'center' }} key="none" value="">-------Select-------</option>
                             {allUsers.map((user) => <option key={user._id} value={user._id}>{user.firstName}, {user.lastName}</option>)}
-                        </select>
-                    </form>
-                </h1>
+                        </datalist>
+                </form>
+
 
 
 
@@ -127,7 +128,7 @@ const ManageUsers = ({ APIServer, fetchAPIData, allUsers }) => {
                         </div>
                         <div className={styles.inputPairing}>
                             <label htmlFor="lastName">Last Name:</label>
-                            <input className='capitalizeEach' type="text" id="lastName" name="lastName" disabled={lockedUserInfo} value={user.lastName} onChange={(e) => setUser({ ...user, lastName: e.target.value })}required></input>
+                            <input className='capitalizeEach' type="text" id="lastName" name="lastName" disabled={lockedUserInfo} value={user.lastName} onChange={(e) => setUser({ ...user, lastName: e.target.value })} required></input>
                         </div>
                         <div className={styles.inputPairing}>
                             <label htmlFor="email">Email:</label>
@@ -145,12 +146,12 @@ const ManageUsers = ({ APIServer, fetchAPIData, allUsers }) => {
 
                         <div className={styles.inputPairing}>
                             <label htmlFor="city">City:</label>
-                            <input className='capitalizeEach' type="text" id="city" name="city" disabled={lockedUserInfo} value={user.contact.city} onChange={(e) => setUser({ ...user, contact: { ...user.contact, city: e.target.value } })}required minLength={2} maxLength={50}></input>
+                            <input className='capitalizeEach' type="text" id="city" name="city" disabled={lockedUserInfo} value={user.contact.city} onChange={(e) => setUser({ ...user, contact: { ...user.contact, city: e.target.value } })} required minLength={2} maxLength={50}></input>
                         </div>
 
                         <div className={styles.inputPairing}>
                             <label htmlFor="province">Province:</label>
-                            <select name="province" id="province" disabled={lockedUserInfo} value={user.contact.province} onChange={(e) => setUser({ ...user, contact: { ...user.contact, province: e.target.value } })}required>
+                            <select name="province" id="province" disabled={lockedUserInfo} value={user.contact.province} onChange={(e) => setUser({ ...user, contact: { ...user.contact, province: e.target.value } })} required>
                                 <option key="ontario" value="ontario">Ontario</option>
                                 <option key="quebec" value="quebec">Quebec</option>
                                 <option key="other" value="other">Other</option>
@@ -234,13 +235,13 @@ const ManageUsers = ({ APIServer, fetchAPIData, allUsers }) => {
 
             </div>
 
-			<Modal open={activeModal.type === 'deleteUser'}>
-				<form>
-					<h3>Are you sure you want to delete this user?</h3>
-					<button className={`actionButton confirmBtn`} onClick={() => handleDeleteUser(activeModal.user._id)}>Delete</button>
-					<button className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
-				</form>
-			</Modal>
+            <Modal open={activeModal.type === 'deleteUser'}>
+                <form>
+                    <h3>Are you sure you want to delete this user?</h3>
+                    <button className={`actionButton confirmBtn`} onClick={() => handleDeleteUser(activeModal.user._id)}>Delete</button>
+                    <button className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
+                </form>
+            </Modal>
 
             <Loading open={activeModal.type === 'loading'}>
                 {activeModal.msg}
