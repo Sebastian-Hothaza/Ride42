@@ -108,14 +108,14 @@ const ManageUsers = ({ APIServer, fetchAPIData, allUsers }) => {
         <>
             <ScrollToTop />
             <div className={styles.content}>
-                <h1>Manage User</h1>
-                <form>
-                    <input list="userList" className='capitalizeEach' name="result" id="result" onChange={() => setUser(allUsers.find((user) => user._id === result.value))}/>
-                        <datalist id="userList">
+                <h1>Manage User-
+                    <form>
+                        <select className='capitalizeEach' name="result" id="result" onChange={() => setUser(allUsers.find((user) => user._id === result.value))}>
                             <option style={{ textAlign: 'center' }} key="none" value="">-------Select-------</option>
                             {allUsers.map((user) => <option key={user._id} value={user._id}>{user.firstName}, {user.lastName}</option>)}
-                        </datalist>
-                </form>
+                        </select>
+                    </form>
+                </h1>
 
 
 
