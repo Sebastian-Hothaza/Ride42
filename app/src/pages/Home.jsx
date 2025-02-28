@@ -50,7 +50,7 @@ const Home = () => {
 	</div>
 
 	const HTML_Bundle = <div>
-		<h2>Last chance to get your bundle; form closes Friday February 28! 🚀</h2>
+		<h2>Last chance to get your bundle; form closes TODAY! 🚀</h2>
 		<h3> What makes these 3-day bundles awesome? 😁</h3>
 		<br></br>
 		<ul>
