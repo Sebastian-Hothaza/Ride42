@@ -106,7 +106,7 @@ const Home = () => {
 			</div>
 			<div className="content" id={styles.firstCard}>
 				{CANCELLATION_NOTICE && <Card heading='Cancellation Notice' body={HTML_Cancellation} img={cancelled} inverted={false} />}
-				<Card heading='2025 Season Bundle' body={HTML_Bundle} img={bundle} inverted={false} />
+				{/* <Card heading='2025 Season Bundle' body={HTML_Bundle} img={bundle} inverted={false} /> */}
 				<Card heading='About Us' body={HTML_AboutUs} img={about} inverted={true} />
 				<Card heading='What We Offer' body={HTML_Offer} img={offer} inverted={false} />
 				<div id={styles.partnersContainer}>
