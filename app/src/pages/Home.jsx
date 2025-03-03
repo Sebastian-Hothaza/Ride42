@@ -6,6 +6,7 @@ import Card from "../components/Card"
 import about from '../assets/about.png'
 import offer from '../assets/offer.jpg'
 import bundle from '../assets/bundle.jpg'
+import helite from '../assets/helite.png'
 import cancelled from '../assets/cancelled.jpg'
 
 import raceway from '../assets/raceway.png'
@@ -62,6 +63,24 @@ const Home = () => {
 		<button className={styles.bookBtn} onClick={() => window.open('https://docs.google.com/forms/d/e/1FAIpQLSceY0VQfJmDCMTTNq0RWReTi3kn3Jih9MQo71RLqDcTBKVOTQ/viewform?usp=sf_link', '_blank')}>Get your bundle now!</button>
 	</div>
 
+	const HTML_Helite = <div>
+		<h2>⚠️Order is now live⚠️</h2>
+		<h3>Place your order soon to get your HELITE Airbag in time for the 2025 season</h3>
+		<br></br>
+		<ul>
+			<li>French company with a history of making quality airbag systems for motorcyclists. Airbags are made in France.</li>
+			<li>Internal system; no chance of crash rash/tear that you have with any external systems</li>
+			<li>Electronic; no tether to connect. System uses IMU to detect crash/deploy</li>
+			<li>Cartridge based. Have a crash? Pop in a new cartridge and you are good to go. No need to ship out.</li>
+			<li>Competitive price offering excellent value. NOT subscription based.</li>
+		</ul>
+		<br></br>
+		<em>Compatible exclusively with PLUS airbag-ready suits designed for the HELITE system</em>
+		<br></br>
+		<br></br>
+		<button className={styles.bookBtn} onClick={() => window.open('https://forms.gle/KrAhu3yAobndZwnVA', '_blank')}>Order your Airbag</button>
+	</div>
+
 	const HTML_AboutUs = <p>
 		Ride42 primarily focuses on running motorcycle trackdays at Grand Bend Motorplex. Many riders begin their motorcycle journey on the street
 		and soon realize the danger of exploring the limits of their machine on public roads with other road users, unknown road surface conditions and no run off
@@ -107,6 +126,7 @@ const Home = () => {
 			<div className="content" id={styles.firstCard}>
 				{CANCELLATION_NOTICE && <Card heading='Cancellation Notice' body={HTML_Cancellation} img={cancelled} inverted={false} />}
 				{/* <Card heading='2025 Season Bundle' body={HTML_Bundle} img={bundle} inverted={false} /> */}
+				<Card heading='HELITE Airbags' body={HTML_Helite} img={helite} inverted={false} /> 
 				<Card heading='About Us' body={HTML_AboutUs} img={about} inverted={true} />
 				<Card heading='What We Offer' body={HTML_Offer} img={offer} inverted={false} />
 				<div id={styles.partnersContainer}>
