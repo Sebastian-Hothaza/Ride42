@@ -8,7 +8,8 @@ async function main() {
       await mongoose.connect(process.env.MONGODB_URI);
       logger.debug({ message: 'Mongoose connected to MongoDB' });
     } catch (err) {
-      logger.error({ message: 'Error connecting to MongoDB' + err.message });
+      console.log('Error connecting to MongoDB: ' + err.message); // In case mongoDB connection fails, logger wont properly log info
+      logger.error({ message: 'Error connecting to MongoDB: ' + err.message });
     }
   }
 }
