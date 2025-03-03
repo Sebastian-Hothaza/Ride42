@@ -27,6 +27,14 @@ const debugFilter = winston.format((info, opts) => {
 
 // Log to console in dev, stream to mongoDB in prod
 if (process.env.NODE_ENV === 'production') {
+    // Add console transport for debug level
+    logger.add(new winston.transports.Console({
+        level: 'debug', format: winston.format.combine(
+            debugFilter(),
+            winston.format.colorize({ all: true })
+        )
+    }));
+
     // Add mongoDB transport
     logger.add(new winston.transports.MongoDB({
         db: process.env.MONGODB_URI,
@@ -37,13 +45,6 @@ if (process.env.NODE_ENV === 'production') {
         level: 'info' // Minimum log level to store; we dont want to store debug info
     }));
 
-    // Add console transport for debug level
-    logger.add(new winston.transports.Console({
-        level: 'debug', format: winston.format.combine(
-            debugFilter(),
-            winston.format.colorize({ all: true })
-        )
-    }));
 } else {
     logger.add(new winston.transports.Console({ format: winston.format.colorize({ all: true }) }));
     if (process.env.NODE_ENV === 'test') logger.level = 'warn'; // Supress console of info messages
