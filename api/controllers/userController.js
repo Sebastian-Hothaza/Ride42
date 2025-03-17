@@ -84,7 +84,7 @@ exports.login = [
                 })
 
                 // Attach JWT in response body
-                return res.status(200).json({ id: user.id, firstName: user.firstName, memberType: user.memberType });
+                return res.status(200).json({ id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.contact.email, memberType: user.memberType });
             } else {
                 return res.status(403).json({ msg: ['Incorrect Password'] });
             }
