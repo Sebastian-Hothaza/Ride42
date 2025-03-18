@@ -7,6 +7,7 @@ import about from '../assets/about.png'
 import offer from '../assets/offer.jpg'
 import bundle from '../assets/bundle.jpg'
 import helite from '../assets/helite.png'
+import pirelli from '../assets/pirelli.png'
 import cancelled from '../assets/cancelled.jpg'
 
 import raceway from '../assets/raceway.png'
@@ -81,6 +82,24 @@ const Home = () => {
 		<button className={styles.bookBtn} onClick={() => window.open('https://forms.gle/KrAhu3yAobndZwnVA', '_blank')}>Order your Airbag</button>
 	</div>
 
+	const HTML_Pirelli = <div>
+		<h2>Place your order soon to guarantee delivery before track season starts!</h2>
+		<br></br>
+		<h3>Various sizes and compounds available</h3>
+		<br></br>
+		<ul>
+			<li><b>SuperCorsa SC3 DOT:</b> Street-legal semi slicks perfect for trackday duty and street use. Warmers not required</li>
+			<li><b>SuperCorsa Diablo SuperBike Slicks:</b> Competition grade slicks for riders wanting the most out of their tires.</li>
+		</ul>
+		<br></br>
+		<br></br>
+		<br></br>
+		<em>Prices may change in the summer. Current pricing is unchanged from 2024; great opportunity to stock up!</em>
+		<br></br>
+		<br></br>
+		<NavLink className={styles.bookBtn} style={{ backgroundColor: 'var(--accent-color)' }} to="/shop">Take me to the Ride42 Shop!</NavLink>
+	</div>
+
 	const HTML_AboutUs = <p>
 		Ride42 primarily focuses on running motorcycle trackdays at Grand Bend Motorplex. Many riders begin their motorcycle journey on the street
 		and soon realize the danger of exploring the limits of their machine on public roads with other road users, unknown road surface conditions and no run off
@@ -127,6 +146,7 @@ const Home = () => {
 				{CANCELLATION_NOTICE && <Card heading='Cancellation Notice' body={HTML_Cancellation} img={cancelled} inverted={false} />}
 				{/* <Card heading='2025 Season Bundle' body={HTML_Bundle} img={bundle} inverted={false} /> */}
 				{/* <Card heading='HELITE Airbags' body={HTML_Helite} img={helite} inverted={false} />  */}
+				<Card heading='Pirelli Spring Order' body={HTML_Pirelli} img={pirelli} inverted={false} />
 				<Card heading='About Us' body={HTML_AboutUs} img={about} inverted={true} />
 				<Card heading='What We Offer' body={HTML_Offer} img={offer} inverted={false} />
 				<div id={styles.partnersContainer}>
