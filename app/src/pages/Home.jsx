@@ -97,7 +97,7 @@ const Home = () => {
 		<em>Prices may change in the summer. Current pricing is unchanged from 2024; great opportunity to stock up!</em>
 		<br></br>
 		<br></br>
-		<NavLink className={styles.bookBtn} style={{ backgroundColor: 'var(--accent-color)' }} to="/shop">Take me to the Ride42 Shop!</NavLink>
+		<NavLink className={styles.bookBtn} style={{ backgroundColor: 'var(--accent-color)' }} to="/shop">Shop Now!</NavLink>
 	</div>
 
 	const HTML_AboutUs = <p>
