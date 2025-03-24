@@ -2208,7 +2208,7 @@ describe('Mark user as having waiver signed', () => {
 	});
 })
 
-describe.only('Creating payment intents', () => {
+describe('Creating payment intents', () => {
 	test("create paymentIntent for invalid objectID user", async () => {
 		const user = await addUser(user1, 201)
 		const loginRes = await loginUser(user1, 200)
