@@ -28,13 +28,16 @@ const Rules = () => {
 
 	const HTML_GearRules = <div className={styles.rulesCard}>
 		<p>Nobody wants to think about crashing, but having the right gear can make all the difference. We take safety seriously and require your gear to meet our standards.</p>
-		<br></br><br></br>
+		<br></br>
 		<ul>
 			<li>Leather jacket and pants; either 1-piece or 2-piece with zipper attaching torso to pant. Leather gear has a lifespan! Over many years of sweat and UV damage, leather begins to break down. Gear must be in good condition.</li>
 			<li>Gauntlet style leather gloves; no exposed skin</li>
 			<li>Riding boots that cover the ankle</li>
 			<li>Full face helmet (SNELL or equivalent ECE rating recommended)</li>
 		</ul>
+		<br></br>
+		<h2>No gear? No problem!</h2><br></br>
+		<p>We have partnered with Racer5 to supply rental gear; just bring your bike and helmet! If this is something you'd like to take advantage of, simply send us an email and we'll get you more info & suited up! 😎</p>
 	</div>
 
 	const HTML_OurPolicies = <div className={styles.rulesCard}>
