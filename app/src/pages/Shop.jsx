@@ -16,11 +16,11 @@ const Shop = () => {
 
 		tireURL = `https://docs.google.com/forms/d/e/1FAIpQLSedERHrr-2ouj_Hn6JomVSXdawlV1wKG7t2F4ZrLKqpxELFhQ/viewform?usp=pp_url&entry.2139803447=${firstName}&entry.1577286330=${lastName}&entry.955192668=${email}`;
 		gearURL = "https://docs.google.com/forms/d/e/1FAIpQLScGL_Dlr5OdkSkfqasaE85daJwk4oNZ_lyWVmWqHjWWEElHiQ/viewform?usp=sf_link";
-		helmetURL = "https://www.eurorace.ca/kyt";
+		helmetURL = `https://docs.google.com/forms/d/e/1FAIpQLSd36rEVj5fDhajftdxEJZo5JvITdleA2hyyzlk5wEWRKuKn8w/viewform?usp=dialog&entry.138391781=${firstName}&entry.1628435625=${lastName}&entry.211925348=${email}`;
 	}catch(error){
 		tireURL = "https://docs.google.com/forms/d/e/1FAIpQLSedERHrr-2ouj_Hn6JomVSXdawlV1wKG7t2F4ZrLKqpxELFhQ/viewform?usp=sf_link";
 		gearURL = "https://docs.google.com/forms/d/e/1FAIpQLScGL_Dlr5OdkSkfqasaE85daJwk4oNZ_lyWVmWqHjWWEElHiQ/viewform?usp=sf_link";
-		helmetURL = "https://www.eurorace.ca/kyt";
+		helmetURL = "https://docs.google.com/forms/d/e/1FAIpQLSd36rEVj5fDhajftdxEJZo5JvITdleA2hyyzlk5wEWRKuKn8w/viewform?usp=dialog";
 	}
 
 	return (
