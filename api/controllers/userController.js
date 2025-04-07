@@ -165,6 +165,7 @@ exports.resetPassword = [
                 if (err) logger.error({ message: "bcrypt error" })
                 let user = await User.findById(payload.id).exec();
                 user.password = hashedPassword;
+                user.refreshToken = null; // Invalidate old refresh token. Access token will naturally expire
                 await user.save();
                 sendEmail(user.contact.email, "Your Password has been updated", mailTemplates.passwordChange, { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) })
                 logger.info({ message: `Password reset for user ${user.firstName} ${user.lastName}` })
