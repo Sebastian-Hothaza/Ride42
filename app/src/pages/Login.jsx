@@ -58,8 +58,6 @@ const Login = ({ APIServer }) => {
         return toolBarHeightInPixels;
     };
 
-    console.log('toolBarHeightInPixels:', getToolbarHeight())
-
     return (
         <>
             <ScrollToTop />
