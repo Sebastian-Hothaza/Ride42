@@ -160,7 +160,7 @@ function TrackdayInfo() {
 		</div>
 		<br></br>
 		<br></br>
-		<div>E-Transfers should be sent to payments@ride42.ca</div>
+		<div>E-Transfers should be sent to pay@ride42.ca</div>
 		<br></br>
 		<span style={{ fontStyle: 'italic' }}>Gate registrations are space permitting and BBQ lunch is not guaranteed.</span>
 	</div>
