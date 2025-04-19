@@ -135,7 +135,7 @@ exports.requestPasswordResetLink = [
 
     asyncHandler(async (req, res, next) => {
         // Check that there exists a user with this email
-        const user = await User.findOne({ 'contact.email': { $eq: req.body.email } }).exec();
+        const user = await User.findOne({ 'contact.email': { $regex: req.body.email, $options: 'i' } }).exec();
 
         if (user) {
             // Create JWT
@@ -144,6 +144,14 @@ exports.requestPasswordResetLink = [
             // Email link to user
             sendEmail(req.body.email, "Reset Your Ride42 Password", mailTemplates.passwordResetLink, { name: user.firstName, link: `https://Ride42.ca/passwordreset/${user._id}/${resetToken}` })
             logger.info({ message: `Password reset link generated for ${user.firstName} ${user.lastName}` })
+
+            // Clear the users existing password and refresh token
+            // Security concern: Login operation MUST receive a password to prevent empty string vulnerability
+            const hashedEmptyPassword = await bcrypt.hash("", 10);
+            user.password = hashedEmptyPassword;
+            user.refreshToken = null; // Access token will naturally expire
+            await user.save();
+
             return res.sendStatus(200)
         }
         return res.status(403).json({ msg: ['No user exists with this email'] });
@@ -165,7 +173,7 @@ exports.resetPassword = [
                 if (err) logger.error({ message: "bcrypt error" })
                 let user = await User.findById(payload.id).exec();
                 user.password = hashedPassword;
-                user.refreshToken = null; // Invalidate old refresh token. Access token will naturally expire
+
                 await user.save();
                 sendEmail(user.contact.email, "Your Password has been updated", mailTemplates.passwordChange, { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) })
                 logger.info({ message: `Password reset for user ${user.firstName} ${user.lastName}` })
@@ -411,7 +419,7 @@ exports.createPaymentIntent = [
 
         // Do not create intent if key params are not available
         if (!user || !trackday || !process.env.STRIPE_FEE) return res.status(400).send({ msg: 'Missing key information to create paymentIntent' })
- 
+
         if (req.user.id === req.params.userID) {
             const formattedDate = new Date(trackday.date).toLocaleDateString('en-US', {
                 year: 'numeric',
