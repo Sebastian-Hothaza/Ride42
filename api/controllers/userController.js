@@ -405,7 +405,7 @@ exports.waiverSubmit = asyncHandler(async (req, res, next) => {
         await sendEmail(
             'waiver@ride42.ca', // Recipient
             `2025_Waiver_${name.toUpperCase()}`, // Subject
-            '', // HTML email body
+            'See attached waiver', // HTML email body
             {}, // Arguments for template (if needed)
             [
                 {
