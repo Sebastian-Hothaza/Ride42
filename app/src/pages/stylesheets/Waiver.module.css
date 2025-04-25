@@ -1,0 +1,73 @@
+.waiverCard h2{
+    text-align: center;
+}
+
+.waiverCard h3{
+    text-align: center;
+}
+
+.waiverCard .highlight{
+    background-color: yellow;
+    padding: .25em .5em;
+}
+
+.waiverCard ol li {
+    margin-bottom: 1em;
+}
+
+.waiverCard .signatureContainer{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1em;
+}
+
+
+
+.signatureContainer input, .signatureContainer label{
+    width: 20em;
+    font-size: 1.25em;
+}
+
+
+.signaturePad .buttonContainer{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.buttonContainer button{
+    font-size: 1em;
+}
+
+.signaturePad canvas{
+    border: 1px solid #767676;
+    display: block;
+    margin-bottom: 1em;
+
+}
+
+
+
+
+@media (max-width: 1200px) {
+
+    .signatureContainer input, .signatureContainer label{
+        width: 15em;
+        font-size: 1em;
+    }
+    
+    .waiverCard  .signatureContainer{
+        flex-direction: column;
+        justify-content: center;
+        gap: 1.5em;
+    }
+
+    .waiverPairing{
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+
+
+}
