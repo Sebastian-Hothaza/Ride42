@@ -41,42 +41,44 @@ const Rules = () => {
 	</div>
 
 	const HTML_OurPolicies = <div className={styles.rulesCard}>
-		<p>
-		Please familiarize yourself with our policies. If you have any questions, please email us at <a href="mailto: info@ride42.ca">info@ride42.ca</a>
-		</p>
-	
+			<p>
+			Please familiarize yourself with our policies. If you have any questions, please email us at <a href="mailto: info@ride42.ca">info@ride42.ca</a>
+			</p>
+		
 
-		<h3>Passing Rules</h3>
-		<ul>
-			<li>Green (Novice): New-to-track riders. Passing permitted only on straights</li>
-			<li>Yellow (Intermediate): Developing track riders. Once bike in front of you has initiated their turn in, inside passing is restricted until after the apex. Outside passing permitted.</li>
-			<li>Red (Advanced): Experienced track riders and racers. Passing permitted anywhere; however this is a track day, not a race. Be respectful.</li>
-		</ul>
+			<h3>Passing Rules</h3>
+			<ul>
+				<li>Green (Novice): New-to-track riders. Passing permitted only on straights</li>
+				<li>Yellow (Intermediate): Developing track riders. Once bike in front of you has initiated their turn in, inside passing is restricted until after the apex. Outside passing permitted.</li>
+				<li>Red (Advanced): Experienced track riders and racers. Passing permitted anywhere; however this is a track day, not a race. Be respectful.</li>
+			</ul>
 
-		<h3>Pre-Registrations</h3>
-		<p>
-			Pre-Registrations are accessible to our members thru the member dashboard. A pre-registration is a trackday booking made at least 7 days before the event. Your payment <span style={{ fontWeight: 'bold' }}> must </span> also be
-			received at least 7 days before the event; otherwise your booking is void.
-		</p>
-		<h3>Pre-season bundles</h3>
-		<p>
-			Pre-season bundles are exempt from the 7 day requirements. However, it is still recommended to pre-book your days so that we can guarantee your spot and plan for your attendance. Bundles are for use solely by the purchaser
-			and for the season they were purchased in. If you pre-book a trackday, you are able to cancel/reschedule it anytime. However, if you pre-book a trackday and do not show up, your day will <span style={{ fontWeight: 'bold' }}> not </span> be credited.
-		</p>
+			<h3>Pre-Registrations</h3>
+			<p>
+				Pre-Registrations are accessible to our members thru the member dashboard. A pre-registration is a trackday booking made at least 7 days before the event. Your payment <span style={{ fontWeight: 'bold' }}> must </span> also be
+				received at least 7 days before the event; otherwise your booking is void.
+			</p>
+			<h3>Pre-season bundles</h3>
+			<p>
+				Pre-season bundles are exempt from the 7 day requirements. However, it is still recommended to pre-book your days so that we can guarantee your spot and plan for your attendance. Bundles are for use solely by the purchaser
+				and for the season they were purchased in. If you pre-book a trackday, you are able to cancel/reschedule it anytime. However, if you pre-book a trackday and do not show up, your day will <span style={{ fontWeight: 'bold' }}> not </span> be credited.
+			</p>
 
 
-		<h3>Rain dates, Reschedule & Refunds</h3>
-		<p>
-			We run rain or shine at our discretion. If we decide to cancel a trackday, a minimum 36 hour notice will be given via an email to all members who were pre-registered. The "Dates" section of the website will also be
-			updated to reflect the cancellation. <br></br>
-			You can reschedule or cancel your trackday through your member dashboard. You cannot reschedule/cancel a trackday once it is less than 7 days away.
-		</p>
+			<h3>Rain dates, Reschedule & Refunds</h3>
+			<p>
+				We run rain or shine at our discretion. If we decide to cancel a trackday, a minimum 36 hour notice will be given via an email to all members who were pre-registered. The "Dates" section of the website will also be
+				updated to reflect the cancellation. <br></br>
+				You can reschedule or cancel your trackday through your member dashboard. You cannot reschedule/cancel a trackday once it is less than 7 days away.
+			</p>
 
-		<h3>Ettiquete</h3>
-		<p>
-			Everyone is here with a common hobby and the desire to improve. Do not be afraid to ask for help & advice! Likewise, please be generous and pass on your skills to other riders. Be social and part of the community!
-		</p>
-	</div>
+			<h3>Ettiquete</h3>
+			<p>
+				Everyone is here with a common hobby and the desire to improve. Do not be afraid to ask for help & advice! Likewise, please be generous and pass on your skills to other riders. Be social and part of the community!
+			</p>
+			<br></br>
+			<h3><a href="/waiver" style={{color: 'blue'}}><b>Liability Waiver</b></a></h3>
+		</div>
 
 
 	return (
