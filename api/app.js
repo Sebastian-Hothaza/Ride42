@@ -7,6 +7,9 @@ const os = require('os'); // required to get machine name
 
 const app = express();
 
+app.use(express.json({ limit: '1mb' })); // Needed to allow pdf attachments
+
+
 // Only activate the mail Listener on correspondingfly machine.
 // Otherwise risk of 2 listeners running which causes issues.
 // If wanting to test mailListener, need to shut it down on API
