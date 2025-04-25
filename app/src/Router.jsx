@@ -13,7 +13,7 @@ import PasswordReset from "./pages/PasswordReset";
 import Waiver from "./pages/Waiver";
 
 import Construction from "./pages/Construction";
-const underConstruction = false; // Used to hide website content, routes accessible unless commented out
+const underConstruction = true; // Used to hide website content, routes accessible unless commented out
 
 const Router = () => {
 	const router = createBrowserRouter([
