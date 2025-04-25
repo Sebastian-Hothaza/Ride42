@@ -39,7 +39,7 @@ const Waiver = () => {
 	// Submit PDF
 	async function submit(name, date) {
 		if (!name || !date || signaturePadRef.current.isEmpty()) {
-			alert('Please add your full name & sign the waiver before submitting.');
+			setActiveModal({ type: 'failure', msg: 'Please add your full name & sign the waiver before submitting.' });
 			return;
 		}
 		setActiveModal({ type: 'loading', msg: 'Sending secure waiver pdf...' });
