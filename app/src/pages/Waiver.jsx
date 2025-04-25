@@ -1,21 +1,36 @@
-import { useOutletContext } from "react-router-dom";
+import { useOutletContext, useNavigate } from "react-router-dom";
 
-import React, { useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { jsPDF } from 'jspdf';
 import SignaturePad from 'signature_pad';
 
 
 import Card from "../components/Card"
+import Modal from "../components/Modal";
+import Loading from '../components/Loading';
+
 import styles from './stylesheets/Waiver.module.css'
+import modalStyles from '../components/stylesheets/Modal.module.css'
+
+import checkmark from './../assets/checkmark.png'
+import errormark from './../assets/error.png'
 
 
 const Waiver = () => {
+	const { loggedIn } = useOutletContext();
+	const { APIServer } = useOutletContext();
+	const navigate = useNavigate();
 	const canvasRef = useRef(null);
 	const signaturePadRef = useRef(null);
-	const { loggedIn } = useOutletContext();
+
 	const loggedInUser = JSON.parse(localStorage.getItem("user"))
 	const CURRENT_YEAR = '2025'; // Hardcoded year for the waiver; DO NOT FETCH DYNAMICALLY
 	const today = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+
+	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
+
+
+	if (!loggedIn) return window.location.replace('/dashboard');
 
 	// Initialize Signature Pad
 	React.useEffect(() => {
@@ -25,10 +40,10 @@ const Waiver = () => {
 		});
 	}, []);
 
-
-
 	// Submit PDF
 	async function submit(name, date) {
+		setActiveModal({ type: 'loading', msg: 'Sending secure waiver pdf...' });
+
 		const signatureImage = signaturePadRef.current.toDataURL(); // Get the signature as an image
 		const doc = new jsPDF(); // The default size is 'A4' (210mm x 297mm) in portrait orientation.
 
@@ -70,8 +85,8 @@ const Waiver = () => {
 
 		doc.setFontSize(12);
 
-		
-		
+
+
 		// Add signature
 		if (!signaturePadRef.current.isEmpty() && name) {
 			doc.text(`Name: ${name.toUpperCase()}`, 5, 285);
@@ -83,7 +98,7 @@ const Waiver = () => {
 			doc.line(135, 288, 205, 288); // Draw a line under the signature image
 
 			doc.setFont('helvetica', 'bold');
-			doc.text('I HAVE READ AND UNDERSTAND THIS AGREEMENT AND I AM AWARE THAT BY SIGNING THIS AGREEMENT I AM WAIVING CERTAIN SUBSTANTIAL LEGAL RIGHTS WHICH I AND MY HEIRS, NEXT OF KIN, EXECUTORS, ADMINISTRATORS AND ASSIGNS MAY HAVE AGAINST THE RELEASEES.', 5, 240, { maxWidth: 200 });	
+			doc.text('I HAVE READ AND UNDERSTAND THIS AGREEMENT AND I AM AWARE THAT BY SIGNING THIS AGREEMENT I AM WAIVING CERTAIN SUBSTANTIAL LEGAL RIGHTS WHICH I AND MY HEIRS, NEXT OF KIN, EXECUTORS, ADMINISTRATORS AND ASSIGNS MAY HAVE AGAINST THE RELEASEES.', 5, 240, { maxWidth: 200 });
 
 			doc.text('I SIGN THIS DOCUMENT VOLUNTARILY AND WITHOUT INDUCEMENT.', 5, 268);
 		} else {
@@ -91,11 +106,33 @@ const Waiver = () => {
 			return;
 		}
 
-		// Open the PDF in a new tab
-		const pdfUrl = doc.output('bloburl'); // Generate a blob URL for the PDF
-		window.open(pdfUrl, '_blank'); // Open the PDF in a new tab
+		// Send PDF to server
+		try {
+			const payload = {
+				waiver: doc.output('datauristring').split(',')[1], // Extract Base64 string
+				name,
+				date,
+			};
 
-		// TODO: API call with blob attached
+			const response = await fetch(APIServer + 'waiverSubmit', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(payload),
+			});
+
+			if (response.ok) {
+				setActiveModal({ type: 'success', msg: 'Waiver submitted & pending verification. Taking you to dashboard...' });
+				setTimeout(() => navigate("/dashboard"), 4000);
+			} else {
+				const data = await response.json();
+				setActiveModal({ type: 'failure', msg: data.msg.join('\n') });
+			}
+		} catch (err) {
+			setActiveModal({ type: 'failure', msg: 'API Failure' });
+			console.log(err.message);
+		}
 	}
 
 	const HTML_Waiver = <div className={styles.waiverCard} >
@@ -200,17 +237,30 @@ const Waiver = () => {
 		</div>
 	</div>
 
-
-
 	return (
 		<>
-			{loggedIn ?
-				<div className="content">
-					<Card heading='Liability Waiver' body={HTML_Waiver} inverted={false} />
-				</div>
-				:
-				window.location.replace('/dashboard')}
+			<div className="content">
+				<Card heading='Liability Waiver' body={HTML_Waiver} inverted={false} />
+			</div>
+
+			<Loading open={activeModal.type === 'loading'}>
+				{activeModal.msg}
+			</Loading>
+
+			<Modal open={activeModal.type === 'success'} >
+				<div className={modalStyles.modalNotif}></div>
+				<img id={modalStyles.modalCheckmarkIMG} src={checkmark} alt="checkmark icon" />
+				{activeModal.msg}
+			</Modal>
+
+			<Modal open={activeModal.type === 'failure'} >
+				<div className={modalStyles.modalNotif}></div>
+				<img id={modalStyles.modalCheckmarkIMG} src={errormark} alt="error icon" />
+				{activeModal.msg}
+				<button className='actionButton' onClick={() => setActiveModal('')}>Ok</button>
+			</Modal>
 		</>
+
 	);
 };
 
