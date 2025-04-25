@@ -38,6 +38,10 @@ const Waiver = () => {
 
 	// Submit PDF
 	async function submit(name, date) {
+		if (!name || !date || signaturePadRef.current.isEmpty()) {
+			alert('Please add your full name & sign the waiver before submitting.');
+			return;
+		}
 		setActiveModal({ type: 'loading', msg: 'Sending secure waiver pdf...' });
 
 		const signatureImage = signaturePadRef.current.toDataURL(); // Get the signature as an image
@@ -84,23 +88,19 @@ const Waiver = () => {
 
 
 		// Add signature
-		if (!signaturePadRef.current.isEmpty() && name) {
-			doc.text(`Name: ${name.toUpperCase()}`, 5, 285);
-			doc.text(`Date: ${date}`, 95, 285);
-			doc.addImage(signatureImage, 'PNG', 140, 270, 60, 20); // Adjust positioning and size
+		doc.text(`Name: ${name.toUpperCase()}`, 5, 285);
+		doc.text(`Date: ${date}`, 95, 285);
+		doc.addImage(signatureImage, 'PNG', 140, 270, 60, 20); // Adjust positioning and size
 
-			doc.setDrawColor(0, 0, 0); // Set color to black
-			doc.setLineWidth(0.5); // Set line width
-			doc.line(135, 288, 205, 288); // Draw a line under the signature image
+		doc.setDrawColor(0, 0, 0); // Set color to black
+		doc.setLineWidth(0.5); // Set line width
+		doc.line(135, 288, 205, 288); // Draw a line under the signature image
 
-			doc.setFont('helvetica', 'bold');
-			doc.text('I HAVE READ AND UNDERSTAND THIS AGREEMENT AND I AM AWARE THAT BY SIGNING THIS AGREEMENT I AM WAIVING CERTAIN SUBSTANTIAL LEGAL RIGHTS WHICH I AND MY HEIRS, NEXT OF KIN, EXECUTORS, ADMINISTRATORS AND ASSIGNS MAY HAVE AGAINST THE RELEASEES.', 5, 240, { maxWidth: 200 });
+		doc.setFont('helvetica', 'bold');
+		doc.text('I HAVE READ AND UNDERSTAND THIS AGREEMENT AND I AM AWARE THAT BY SIGNING THIS AGREEMENT I AM WAIVING CERTAIN SUBSTANTIAL LEGAL RIGHTS WHICH I AND MY HEIRS, NEXT OF KIN, EXECUTORS, ADMINISTRATORS AND ASSIGNS MAY HAVE AGAINST THE RELEASEES.', 5, 240, { maxWidth: 200 });
 
-			doc.text('I SIGN THIS DOCUMENT VOLUNTARILY AND WITHOUT INDUCEMENT.', 5, 268);
-		} else {
-			alert('Please add your full name & sign the waiver before submitting.');
-			return;
-		}
+		doc.text('I SIGN THIS DOCUMENT VOLUNTARILY AND WITHOUT INDUCEMENT.', 5, 268);
+
 
 		// Send PDF to server
 		try {
