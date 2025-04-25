@@ -388,6 +388,42 @@ exports.deleteQR = [
     })
 ]
 
+// Sends completed waiver to admin. PUBLIC
+exports.waiverSubmit = asyncHandler(async (req, res, next) => {
+    try {
+        // Access the Base64-encoded PDF from the request body
+        const { waiver, name } = req.body;
+
+        if (!waiver || !name) {
+            return res.status(400).send({ msg: 'Waiver or name is missing' });
+        }
+
+        // Decode the Base64 string into a Buffer
+        const pdfBuffer = Buffer.from(waiver, 'base64');
+
+        // Send the email with the PDF as an attachment
+        await sendEmail(
+            'waiver@ride42.ca', // Recipient
+            `2025_Waiver_${name.toUpperCase()}`, // Subject
+            '', // HTML email body
+            {}, // Arguments for template (if needed)
+            [
+                {
+                    filename: `2025_Waiver_${name.toUpperCase()}.pdf`, // File name for the attachment
+                    content: pdfBuffer, // File content as a Buffer
+                    contentType: 'application/pdf', // MIME type
+                },
+            ]
+        );
+
+        return res.sendStatus(200); // Respond with success
+    } catch (err) {
+        console.error('Error sending waiver email:', err.message);
+        return res.status(500).send({ msg: 'Failed to send waiver email' });
+    }
+});
+
+
 // Marks user as having waiver signed. Requires JWT with admin or staff.
 // ! Logged operation !
 exports.markWaiver = [
