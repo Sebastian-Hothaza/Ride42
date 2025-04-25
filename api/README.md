@@ -54,6 +54,8 @@ On a bad request, the server will respond with appropriate code and a JSON in th
 
 **Add walkon user to a trackday:** Submit a `POST` request to `'/walkons/:trackdayID'`.
 
+**Send completed waiver to admin(PUBLIC):** Submit a `POST` request to `'/waiverSubmit/`.
+
 **Mark user as having waiver completed:** Submit a `POST` request to `'/waiver/:userID'`.
 
 **Dump DB logs:** Submit a `GET` request to `/logs`. 
