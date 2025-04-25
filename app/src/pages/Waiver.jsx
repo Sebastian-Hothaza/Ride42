@@ -23,14 +23,10 @@ const Waiver = () => {
 	const canvasRef = useRef(null);
 	const signaturePadRef = useRef(null);
 
-	const loggedInUser = JSON.parse(localStorage.getItem("user"))
 	const CURRENT_YEAR = '2025'; // Hardcoded year for the waiver; DO NOT FETCH DYNAMICALLY
 	const today = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
 
 	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
-
-
-	if (!loggedIn) return window.location.replace('/dashboard');
 
 	// Initialize Signature Pad
 	React.useEffect(() => {
