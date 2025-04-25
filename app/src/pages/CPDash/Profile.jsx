@@ -13,9 +13,7 @@ import errormark from './../../assets/error.png'
 
 
 const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
-
 	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
-
 	const [lockedUserInfo, setLockedUserInfo] = useState(true); // Tracks if we are editing fields
 
 
@@ -158,6 +156,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 			{!userInfo ? <div>...</div> :
 				<div className={styles.content}>
 					<h1>My Profile</h1>
+					{!userInfo.waiver && <button style={{backgroundColor: 'red'}} onClick={() => window.location.href = '/waiver'}>! Sign Waiver !</button>}
 					<div className={styles.inputSection}>
 						<div id={styles.groupContainer}>
 							<div className='capitalizeEach'>Group: {userInfo.group}</div>
