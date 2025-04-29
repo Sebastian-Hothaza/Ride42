@@ -396,7 +396,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 												case 'etransfer':
 													return trackday.paid ? <div>E-Transfer received</div> : <div style={{ color: `var(--accent-color)` }}>E-Transfer not received</div>;
 												case 'creditCard':
-													return trackday.paid ? <div>Credit card payment received</div> : <div style={{ color: `var(--accent-color)` }}>Credit card payment not received</div>;
+													return trackday.paid ? <div>Credit card payment received</div> : <div style={{ color: `var(--accent-color)` }}>Credit card payment not processed</div>;
 												case 'credit':
 													return <div>Used credit</div>;
 												case 'gate':
