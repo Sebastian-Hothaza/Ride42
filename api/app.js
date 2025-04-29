@@ -7,8 +7,6 @@ const os = require('os'); // required to get machine name
 
 const app = express();
 
-app.use(express.json({ limit: '1mb' })); // Needed to allow pdf attachments
-
 
 // Only activate the mail Listener on correspondingfly machine.
 // Otherwise risk of 2 listeners running which causes issues.
@@ -45,7 +43,7 @@ app.use(cors({
 // Do not parse webhook with json since raw body is needed
 app.use((req, res, next) => {
 	if (!req.originalUrl.startsWith('/stripeWebhook')) {
-		express.json()(req, res, next);
+		express.json({ limit: '1mb' })(req, res, next); // 1mb Needed to allow pdf attachments
 	} else {
 		next();
 	}
