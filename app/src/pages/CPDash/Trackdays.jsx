@@ -252,11 +252,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			if (paymentIntent && paymentIntent.status === 'succeeded') {
 				setActiveModal({ type: 'success', msg: 'Payment complete' });
 				setTimeout(() => setActiveModal(''), 2000)
-				activeModal.trackday.paid = true; // Marked for immediate UI update
-				// We need a time delay to allow stripe to call webhook which updates the DB
-				setTimeout(async () => {
-					await fetchAPIData();
-				}, 3000);
+				activeModal.trackday.paid = true; // Marked for immediate UI update, optimistic UI
 			} else if (error) {
 				setActiveModal({ type: 'failure', msg: `Payment Failed: ${error.message}` });
 				console.error(error);
