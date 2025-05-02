@@ -313,7 +313,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 							<label htmlFor="paymentMethod">Payment Method:</label>
 							<select name="paymentMethod" id="paymentMethod" form="Trackdays_bookTrackday" required>
 								<option key="paymentNone" value="">- Choose Payment Method -</option>
-								{userInfo.credits && <option key="credit" value="credit">Use trackday credit (Remaining: {userInfo.credits})</option>}
+								{userInfo.credits && <option key="credit" value="credit">Use trackday credit ({userInfo.credits} left)</option>}
 								<option key="etransfer" value="etransfer">Interac E-Transfer</option>
 								<option key="creditCard" value="creditCard">Credit Card(+$5)</option>
 
