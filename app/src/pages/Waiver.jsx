@@ -17,7 +17,7 @@ import errormark from './../assets/error.png'
 
 
 const Waiver = () => {
-	const { loggedIn } = useOutletContext();
+	const loggedInUser = JSON.parse(localStorage.getItem("user"))
 	const { APIServer } = useOutletContext();
 	const navigate = useNavigate();
 	const canvasRef = useRef(null);
@@ -43,6 +43,7 @@ const Waiver = () => {
 			return;
 		}
 		setActiveModal({ type: 'loading', msg: 'Sending secure waiver pdf...' });
+		const uid = loggedInUser ? loggedInUser.id : null; // Corresponds to user id if logged in
 
 		const signatureImage = signaturePadRef.current.toDataURL(); // Get the signature as an image
 		const doc = new jsPDF(); // The default size is 'A4' (210mm x 297mm) in portrait orientation.
@@ -103,11 +104,13 @@ const Waiver = () => {
 
 
 		// Send PDF to server
+	
+		
 		try {
 			const payload = {
 				waiver: doc.output('datauristring').split(',')[1], // Extract Base64 string
 				name,
-				date,
+				uid
 			};
 
 			const response = await fetch(APIServer + 'waiverSubmit', {
@@ -119,7 +122,7 @@ const Waiver = () => {
 			});
 
 			if (response.ok) {
-				setActiveModal({ type: 'success', msg: 'Waiver submitted & pending verification. Taking you to dashboard...' });
+				setActiveModal({ type: 'success', msg: 'Waiver submitted. Taking you to dashboard...' });
 				setTimeout(() => navigate("/dashboard"), 4000);
 			} else {
 				const data = await response.json();
