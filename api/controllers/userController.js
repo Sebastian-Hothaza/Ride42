@@ -389,13 +389,29 @@ exports.deleteQR = [
 ]
 
 // Sends completed waiver to admin. PUBLIC
+// ! Logged operation when submited by logged in user !
 exports.waiverSubmit = asyncHandler(async (req, res, next) => {
     try {
         // Access the Base64-encoded PDF from the request body
-        const { waiver, name } = req.body;
+        const { waiver, name, uid } = req.body;
+
+        let emailBody = 'WAIVER REQUIRES MANUAL MARKING.'; // Dependent on if waiver needs manual marking or if was auto-marked
 
         if (!waiver || !name) {
             return res.status(400).send({ msg: 'Waiver or name is missing' });
+        }
+
+        // If user ID is provided, update the user's waiver status
+        if (uid) {
+            const user = await User.findById(uid).exec();
+            if (user) {
+                user.waiver = true;
+                await user.save();
+                logger.info({ message: `Marked waiver for ${user.firstName} ${user.lastName} as signed` })
+                emailBody = `Marked waiver for ${user.firstName} ${user.lastName} as signed`;
+            } else {
+                logger.error({ message: `Could not mark waiver signed for ${user.firstName} ${user.lastName} as invalid no user found with uid ${uid}` })
+            }
         }
 
         // Decode the Base64 string into a Buffer
@@ -405,7 +421,7 @@ exports.waiverSubmit = asyncHandler(async (req, res, next) => {
         await sendEmail(
             'waiver@ride42.ca', // Recipient
             `2025_Waiver_${name.toUpperCase()}`, // Subject
-            'See attached waiver', // HTML email body
+            emailBody, // HTML email body
             {}, // Arguments for template (if needed)
             [
                 {
@@ -415,6 +431,8 @@ exports.waiverSubmit = asyncHandler(async (req, res, next) => {
                 },
             ]
         );
+
+
 
         return res.sendStatus(200); // Respond with success
     } catch (err) {
