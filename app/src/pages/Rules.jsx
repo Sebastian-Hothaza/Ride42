@@ -56,7 +56,7 @@ const Rules = () => {
 			<h3>Pre-Registrations</h3>
 			<p>
 				Pre-Registrations are accessible to our members thru the member dashboard. A pre-registration is a trackday booking made at least 7 days before the event. Your payment <span style={{ fontWeight: 'bold' }}> must </span> also be
-				received at least 7 days before the event; otherwise your booking is void.
+				received at least 7 days before the event; otherwise your booking will be cancelled.
 			</p>
 			<h3>Pre-season bundles</h3>
 			<p>
@@ -67,8 +67,7 @@ const Rules = () => {
 
 			<h3>Rain Policy</h3>
 			<p>
-				We run rain or shine at our discretion. If we decide to cancel a trackday, a minimum 24 hour notice will be given via an email to all members who were pre-registered. The "Dates" section of the website will also be
-				updated to reflect our cancellation. Members will be given the option to re-schedule or be issued a refund.
+				We run rain or shine at our discretion. If we decide to cancel a trackday, a minimum 24 hour notice will be given via an email to all members who were pre-registered. Members will be given the option to re-schedule or be issued a refund. We will also update the website and our social media platforms to reflect the cancellation.
 			</p>
 
 			<h3>Reschedule & Refunds</h3>
