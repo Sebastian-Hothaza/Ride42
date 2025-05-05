@@ -65,12 +65,17 @@ const Rules = () => {
 			</p>
 
 
-			<h3>Rain dates, Reschedule & Refunds</h3>
+			<h3>Rain Policy</h3>
 			<p>
 				We run rain or shine at our discretion. If we decide to cancel a trackday, a minimum 24 hour notice will be given via an email to all members who were pre-registered. The "Dates" section of the website will also be
-				updated to reflect our cancellation. Riders will be given the option to re-schedule or be issued a refund.<br></br>
+				updated to reflect our cancellation. Riders will be given the option to re-schedule or be issued a refund.
+			</p>
+
+			<h3>Reschedule & Refunds</h3>
+			<p>
 				You can reschedule or cancel your trackday through your member dashboard. You cannot reschedule/cancel a trackday once it is less than 7 days away.
 			</p>
+			
 
 			<h3>Ettiquete</h3>
 			<p>
