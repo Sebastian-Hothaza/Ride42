@@ -174,6 +174,13 @@ exports.register = [
             await trackday.save();
 
             const prettyDate = trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' });
+
+            // Calculate prettyDueDate as 7 days prior to prettyDate
+            const dueDate = new Date(trackday.date);
+            dueDate.setDate(dueDate.getDate() - process.env.DAYS_LOCKOUT); 
+            const prettyDueDate = dueDate.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' });
+
+
             let selectedMailTemplate = '';
 
             switch (req.body.paymentMethod) {
@@ -191,7 +198,7 @@ exports.register = [
 
             if (req.body.paymentMethod !== 'gate') { //We do not send email on gate registrations
                 sendEmail(user.contact.email, "Ride42 Trackday Registration Confirmation", selectedMailTemplate,
-                    { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: prettyDate })
+                    { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: prettyDate, dueDate: prettyDueDate, price: trackday.ticketPrice.preReg })
             }
             logger.info({ message: "Booked trackday for " + user.firstName + ' ' + user.lastName + ' on ' + prettyDate });
             return res.sendStatus(200);
