@@ -123,7 +123,10 @@ const registerTrackday_etransfer =
 		You are now registered for the trackday on {date}. ✅<br />
 		<br />
 
-		E-transfers should be sent to pay@ride42.ca. If you registered for multiple days, you can send a single payment. Payments will be applied to your trackdays in chronological order. It may take up to 5 days for your dashboard to reflect your payment.<br />
+		Your payment of \${price} can be sent via e-transfer to pay@ride42.ca. If you registered for multiple days, you can send a single payment. Payments will be applied to your trackdays in chronological order. It may take up to 2 days for your dashboard to reflect your payment.<br />
+		<br />
+
+		If your payment is not received by {dueDate}, your pre-registration will be automatically cancelled. <br />
 		<br />
 
 		If you already have a QR sticker on your bike and have signed a waiver this year, you can skip morning check in and go directly to bike tech 😊<br />
@@ -144,6 +147,9 @@ const registerTrackday_creditcard =
 		<br />
 
 		You can submit your credit card payment directly in your dashboard.<br />
+		<br />
+
+		If your payment is not received by {dueDate}, your pre-registration will be automatically cancelled. <br />
 		<br />
 
 		If you already have a QR sticker on your bike and have signed a waiver this year, you can skip morning check in and go directly to bike tech 😊<br />
