@@ -51,6 +51,12 @@ const Home = () => {
 		<p>If you paid via E-Transfer or Credit Card, we will send you an email shortly.</p>
 	</div>
 
+	const HTML_NewsItem = <div>
+		<h1>⏱️ Lapping will run 9am-5pm instead of 10am-6pm ⏱️</h1>
+		<br></br>
+		<p>All events on schedule are moved up 1 hour. Lunch will be at noon.</p>
+	</div>
+
 	const HTML_Bundle = <div>
 		<h2>Last chance to get your bundle; form closes TODAY! 🚀</h2>
 		<h3> What makes these 3-day bundles awesome? 😁</h3>
@@ -147,6 +153,7 @@ const Home = () => {
 				{/* <Card heading='2025 Season Bundle' body={HTML_Bundle} img={bundle} inverted={false} /> */}
 				{/* <Card heading='HELITE Airbags' body={HTML_Helite} img={helite} inverted={false} />  */}
 				{/* <Card heading='Pirelli Spring Order' body={HTML_Pirelli} img={pirelli} inverted={false} /> */}
+				<Card heading='June 18 Notice' body={HTML_NewsItem}  inverted={false} />
 				<Card heading='About Us' body={HTML_AboutUs} img={about} inverted={true} />
 				<Card heading='What We Offer' body={HTML_Offer} img={offer} inverted={false} />
 				<div id={styles.partnersContainer}>
