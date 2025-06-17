@@ -17,7 +17,7 @@ import styles from './stylesheets/Home.module.css'
 
 
 const Home = () => {
-	const CANCELLATION_NOTICE = false; // Set to true to display cancellation notice.
+	const CANCELLATION_NOTICE = true; // Set to true to display cancellation notice.
 
 	const [nextTrackday, setNextTrackday] = useState('');
 	let daysAway, hoursAway; // Tracks how many days and hours away the next trackday is
@@ -44,7 +44,7 @@ const Home = () => {
 	}
 
 	const HTML_Cancellation = <div>
-		<h1>The trackday on May 5 has been cancelled.</h1>
+		<h1>The trackday on June 18 has been cancelled.</h1>
 		<br></br>
 		<p>If you paid via trackday credit, your credit has been added back to your account.</p>
 		<br></br>
@@ -153,7 +153,7 @@ const Home = () => {
 				{/* <Card heading='2025 Season Bundle' body={HTML_Bundle} img={bundle} inverted={false} /> */}
 				{/* <Card heading='HELITE Airbags' body={HTML_Helite} img={helite} inverted={false} />  */}
 				{/* <Card heading='Pirelli Spring Order' body={HTML_Pirelli} img={pirelli} inverted={false} /> */}
-				<Card heading='June 18 Notice' body={HTML_NewsItem}  inverted={false} />
+				{/* <Card heading='June 18 Notice' body={HTML_NewsItem}  inverted={false} /> */}
 				<Card heading='About Us' body={HTML_AboutUs} img={about} inverted={true} />
 				<Card heading='What We Offer' body={HTML_Offer} img={offer} inverted={false} />
 				<div id={styles.partnersContainer}>
