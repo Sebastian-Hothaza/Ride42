@@ -17,7 +17,7 @@ import styles from './stylesheets/Home.module.css'
 
 
 const Home = () => {
-	const CANCELLATION_NOTICE = true; // Set to true to display cancellation notice.
+	const CANCELLATION_NOTICE = false; // Set to true to display cancellation notice.
 
 	const [nextTrackday, setNextTrackday] = useState('');
 	let daysAway, hoursAway; // Tracks how many days and hours away the next trackday is
