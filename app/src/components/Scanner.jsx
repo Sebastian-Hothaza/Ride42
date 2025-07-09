@@ -1,12 +1,15 @@
 import { useEffect, useRef } from "react";
 import QrScanner from 'qr-scanner'
 
-const Scanner = ({ onDecodeEnd }) => {
+const Scanner = ({ onDecodeEnd, resetTrigger }) => {
     const videoRef = useRef(null);
     const scannerRef = useRef(null);
+    const scannedRef = useRef(false); // Tracks if a scan has already been processed to prevent multiple scans
 
     useEffect(() => {
         async function processScan(scanResult) {
+            if (scannedRef.current) return; // Prevent double-calling
+            scannedRef.current = true;
             await scannerRef.current.stop();
             onDecodeEnd(scanResult.data, scannerRef.current); // calls handleVerify in parent
         }
@@ -21,11 +24,19 @@ const Scanner = ({ onDecodeEnd }) => {
         });
 
         return () => {
-            if (!videoRef.current) {
+            if (scannerRef.current) {
                 scannerRef.current.destroy();
             }
         };
     }, []);
+
+    // Reset scanner when resetTrigger changes
+    useEffect(() => {
+        scannedRef.current = false;
+        if (scannerRef.current) {
+            scannerRef.current.start();
+        }
+    }, [resetTrigger]);
 
     return <video ref={videoRef}></video>;
 };
