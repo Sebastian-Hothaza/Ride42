@@ -47,9 +47,10 @@ const CheckIn = ({ APIServer, allTrackdays, allUsers }) => {
     }
 
     // NOTE: handleCheckIn is called by scanner
+    // TODO: Fix issue where this seems to be double called
     async function handleCheckIn(scanData, scanner) {
         let user, bike, APIURL;
-        // Build API URL
+        // Build API URL, depends on legacy or updated QR
         if (scanData.includes('https://ride42.ca/dashboard/')) {
             const [userID, bikeID] = scanData.replace("https://ride42.ca/dashboard/", "").split("/");
             try {
