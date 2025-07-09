@@ -121,9 +121,10 @@ exports.register = [
             if (memberEntry) return res.status(409).send({ msg: ['Already registered for this trackday'] })
 
             // Deny if user attempt to register for trackday < lockout period(7 default) away
-            if (await controllerUtils.isInLockoutPeriod(req.params.trackdayID) &&
-                req.body.paymentMethod !== 'credit' && req.body.paymentMethod !== 'gate' && req.user.memberType !== 'admin') {
-                return res.status(403).send({ msg: ['Cannot register for trackday <' + process.env.DAYS_LOCKOUT + ' days away unless payment method is trackday credit.'] })
+            if (await controllerUtils.isInLockoutPeriod(req.params.trackdayID) && req.body.paymentMethod !== 'credit' && req.body.paymentMethod !== 'gate' && req.user.memberType !== 'admin') {
+                const displayMsg = user.credits? ['Payment method must be trackday credits when trackday is less than ' + process.env.DAYS_LOCKOUT + ' days away.']
+                    : ['Pre-registration closes when trackday is less than ' + process.env.DAYS_LOCKOUT + ' days away. You can register at gate.']
+                return res.status(403).send({ msg: displayMsg })
             }
 
 
