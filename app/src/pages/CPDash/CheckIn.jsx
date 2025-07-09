@@ -16,6 +16,7 @@ const CheckIn = ({ APIServer, allTrackdays, allUsers }) => {
     const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
     const [selectedTrackdayId, setSelectedTrackdayId] = useState(''); // Tracks what the current working trackdayId is 
     const selectedTrackdayRef = useRef(null); // Ref to keep track of the latest selectedTrackday
+    const [resetTrigger, setResetTrigger] = useState(0); // Used to reset the scanner when a scan is successful
 
 
     // Augment prettydate of allTrackdays to be a nice format
@@ -47,9 +48,11 @@ const CheckIn = ({ APIServer, allTrackdays, allUsers }) => {
     }
 
     // NOTE: handleCheckIn is called by scanner
-    // TODO: Fix issue where this seems to be double called
-    async function handleCheckIn(scanData, scanner) {
+
+    async function handleCheckIn(scanData) {
         let user, bike, APIURL;
+        
+
         // Build API URL, depends on legacy or updated QR
         if (scanData.includes('https://ride42.ca/dashboard/')) {
             const [userID, bikeID] = scanData.replace("https://ride42.ca/dashboard/", "").split("/");
@@ -59,7 +62,7 @@ const CheckIn = ({ APIServer, allTrackdays, allUsers }) => {
                 APIURL = APIServer + 'checkin/' + user._id + '/' + selectedTrackdayRef.current.id + '/' + bike._id;
             } catch (err) {
                 console.error(err);
-                setActiveModal({ type: 'failure', msg: 'no user/bike tied to this QR', scanner: scanner });
+                setActiveModal({ type: 'failure', msg: 'no user/bike tied to this QR' });
                 return;
             }
         } else {
@@ -74,7 +77,7 @@ const CheckIn = ({ APIServer, allTrackdays, allUsers }) => {
                 APIURL = APIServer + 'checkin/' + QRID + '/' + selectedTrackdayRef.current.id;
             } catch (err) {
                 console.error(err);
-                setActiveModal({ type: 'failure', msg: 'no user/bike tied to this QR', scanner: scanner });
+                setActiveModal({ type: 'failure', msg: 'no user/bike tied to this QR' });
                 return;
             }
         }
@@ -90,11 +93,13 @@ const CheckIn = ({ APIServer, allTrackdays, allUsers }) => {
             })
             if (response.ok) {
                 setActiveModal({ type: 'success', msg: 'Check-In complete' });
-                setTimeout(() => setActiveModal(''), 1500)
-                setTimeout(() => scanner.start(), 2000) // Prompt scanner to start scanning again
+                setTimeout(() => {
+                    setActiveModal('');
+                    setResetTrigger(t => !t); // Reset scanner for next scan
+                }, 1500)
             } else {
                 const data = await response.json();
-                setActiveModal({ type: 'failure', msg: `${data.msg.join('\n')}\n------------------------\n${user.firstName}, ${user.lastName}\n${bike.year} ${bike.make} ${bike.model}`, scanner: scanner })
+                setActiveModal({ type: 'failure', msg: `${data.msg.join('\n')}\n------------------------\n${user.firstName}, ${user.lastName}\n${bike.year} ${bike.make} ${bike.model}`})
             }
         } catch (err) {
             setActiveModal({ type: 'failure', msg: 'API Failure' })
@@ -117,7 +122,7 @@ const CheckIn = ({ APIServer, allTrackdays, allUsers }) => {
                             </div>
                         </form>
                     </h1>
-                    <Scanner onDecodeEnd={handleCheckIn} />
+                    <Scanner onDecodeEnd={handleCheckIn} resetTrigger={resetTrigger}/>
                 </div>
             }
 
@@ -135,7 +140,7 @@ const CheckIn = ({ APIServer, allTrackdays, allUsers }) => {
                 <div className={modalStyles.modalNotif}></div>
                 <img id={modalStyles.modalCheckmarkIMG} src={errormark} alt="error icon" />
                 <div className="capitalizeEach">{activeModal.msg}</div>
-                <button className='actionButton' onClick={() => { setActiveModal(''); activeModal.scanner.start() }}>Close</button>
+                <button className='actionButton' onClick={() => { setActiveModal(''); setResetTrigger(t => !t); }}>Close</button>
             </Modal>
         </>
     );

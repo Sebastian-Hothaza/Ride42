@@ -17,6 +17,7 @@ const Verify = ({ APIServer, allTrackdays, allUsers }) => {
     const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
     const [selectedTrackdayId, setSelectedTrackdayId] = useState(''); // Tracks what the current working trackdayId is 
     const selectedTrackdayRef = useRef(null); // Ref to keep track of the latest selectedTrackday
+    const [resetTrigger, setResetTrigger] = useState(0); // Used to reset the scanner when a scan is successful
 
 
     // Augment prettydate of allTrackdays to be a nice format
@@ -47,7 +48,7 @@ const Verify = ({ APIServer, allTrackdays, allUsers }) => {
         setSelectedTrackdayId(upcomingTrackdays[0].id); // This prompts render and sets ref
     }
 
-    async function handleVerify(scanData, scanner) {
+    async function handleVerify(scanData) {
         let user, bike, APIURL;
         if (scanData.includes('https://ride42.ca/dashboard/')) {
             const [userID, bikeID] = scanData.replace("https://ride42.ca/dashboard/", "").split("/");
@@ -57,7 +58,7 @@ const Verify = ({ APIServer, allTrackdays, allUsers }) => {
                 APIURL = APIServer + 'verify/' + user._id + '/' + selectedTrackdayRef.current.id + '/' + bike._id;
             } catch (err) {
                 console.error(err);
-                setActiveModal({ type: 'failure', msg: 'no user/bike tied to this QR', scanner: scanner });
+                setActiveModal({ type: 'failure', msg: 'no user/bike tied to this QR' });
                 return;
             }
 
@@ -73,7 +74,7 @@ const Verify = ({ APIServer, allTrackdays, allUsers }) => {
                 APIURL = APIServer + 'verify/' + QRID + '/' + selectedTrackdayRef.current.id;
             } catch (err) {
                 console.error(err);
-                setActiveModal({ type: 'failure', msg: 'no user/bike tied to this QR', scanner: scanner });
+                setActiveModal({ type: 'failure', msg: 'no user/bike tied to this QR' });
                 return;
             }
         }
@@ -93,15 +94,17 @@ const Verify = ({ APIServer, allTrackdays, allUsers }) => {
                 const data = await response.json();
                 if (data.verified === true) {
                     setActiveModal({ type: 'success', msg: `${user.firstName}, ${user.lastName}\nGroup: ${user.group}\n${bike.year} ${bike.make} ${bike.model}` })
-                    setTimeout(() => setActiveModal(''), 1500)
-                    setTimeout(() => scanner.start(), 2000) // Prompt scanner to start scanning again
-                } else {
-                    setActiveModal({ type: 'failure', msg: `${user.firstName}, ${user.lastName}\nGroup: ${user.group}\n${bike.year} ${bike.make} ${bike.model}`, scanner: scanner })
-                }
+                    setTimeout(() => {
+                        setActiveModal('');
+                        setResetTrigger(t => !t); // Reset scanner for next scan
+                    }, 1500)
 
+                } else {
+                    setActiveModal({ type: 'failure', msg: `${user.firstName}, ${user.lastName}\nGroup: ${user.group}\n${bike.year} ${bike.make} ${bike.model}` })
+                }
             } else {
                 const data = await response.json();
-                setActiveModal({ type: 'failure', msg: data.msg.join('\n'), scanner: scanner })
+                setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
             }
         } catch (err) {
             setActiveModal({ type: 'failure', msg: 'API Failure' })
@@ -127,7 +130,7 @@ const Verify = ({ APIServer, allTrackdays, allUsers }) => {
                             </div>
                         </form>
                     </h1>
-                    <Scanner onDecodeEnd={handleVerify} />
+                    <Scanner onDecodeEnd={handleVerify} resetTrigger={resetTrigger} />
                 </div>
             }
 
@@ -145,7 +148,7 @@ const Verify = ({ APIServer, allTrackdays, allUsers }) => {
                 <div className={modalStyles.modalNotif}></div>
                 <img id={modalStyles.modalCheckmarkIMG} src={errormark} alt="error icon" />
                 <div className="capitalizeEach">{activeModal.msg}</div>
-                <button className='actionButton' onClick={() => { setActiveModal(''); activeModal.scanner.start() }}>Close</button>
+                <button className='actionButton' onClick={() => { setActiveModal(''); setResetTrigger(t => !t) }}>Close</button>
             </Modal>
 
 
