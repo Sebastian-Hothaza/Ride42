@@ -7,7 +7,8 @@
     "devstart": "NODE_ENV=development nodemon ./bin/www",
     "test": "jest --watchAll --maxWorkers=4",
     "deploy": "fly deploy && flyctl machines update 1857501f1034d8 --autostop='off'",
-    "logs": "fly logs -a ride42api"
+    "logs": "fly logs -a ride42api",
+    "mongosh": "mongosh \"mongodb+srv://ride42.gxtpw2r.mongodb.net/\" --apiVersion 1 --username sebastianhothaza"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
