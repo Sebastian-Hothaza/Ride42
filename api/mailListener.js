@@ -113,7 +113,7 @@ function setupMailListener() {
 
 
 			if (pmtBalance == 0) {
-				// Sync local copy with the DB
+				// Sync local copy with the DB, we applied payments successfully
 				workingTrackdays.filter(trackday => trackday.paid).forEach(async (trackday) => {
 
 					const trackdayDB = await Trackday.findById(trackday.id).populate('members.user', '-password -refreshToken -__v').exec();
@@ -126,6 +126,15 @@ function setupMailListener() {
 							weekday: 'long', month: 'long', day: 'numeric'
 						})
 					})
+
+					// Remove scheduled mail if it exists
+					// TODO: Possible issue if sendOn varies by a few ms, we may not delete the reminder email. Likely non-issue.
+					await ScheduledMail.deleteOne({
+						to: memberEntry.user.contact.email,
+						sendOn: new Date(trackdayDB.date.getTime() - (process.env.DAYS_LOCKOUT * 24 * 60 * 60 * 1000)),
+						message: memberEntry.paymentMethod === 'etransfer' ? 'paymentReminder_etransfer' : 'paymentReminder_creditcard'
+					})
+
 					await trackdayDB.save()
 				})
 
