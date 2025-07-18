@@ -1,6 +1,7 @@
 const Trackday = require('../models/Trackday');
 const User = require('../models/User');
 const QR = require('../models/QR');
+const ScheduledMail = require('../models/ScheduledMail');
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const controllerUtils = require('./controllerUtils')
@@ -204,6 +205,21 @@ exports.register = [
                 sendEmail(user.contact.email, "Ride42 Trackday Registration Confirmation", selectedMailTemplate,
                     { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: prettyDate, dueDate: prettyDueDate, price: trackday.ticketPrice.preReg })
             }
+
+            // Schedule payment reminder email
+            if (req.body.paymentMethod === 'etransfer' || req.body.paymentMethod === 'creditCard') {
+                const scheduledMail = new ScheduledMail({
+                    sendOn: new Date(trackday.date.getTime() - (process.env.DAYS_LOCKOUT * 24 * 60 * 60 * 1000)), // Schedule for 7 days before trackday, thus have until end of day
+                    to: user.contact.email,
+                    params: { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: prettyDate, price: trackday.ticketPrice.preReg },
+                    subject: `Payment Reminder for ${prettyDate}`,
+                    // This is used to identify the email template when sendMail is called
+                    message: req.body.paymentMethod === 'etransfer' ? 'paymentReminder_etransfer' : 'paymentReminder_creditcard', 
+                });
+                await scheduledMail.save();
+            }
+
+
             logger.info({ message: "Booked trackday for " + user.firstName + ' ' + user.lastName + ' on ' + prettyDate });
             return res.sendStatus(200);
         }
