@@ -536,6 +536,15 @@ exports.stripeWebhook = asyncHandler(async (req, res, next) => {
                 memberEntry.paid = true;
                 await trackday.save()
                 logger.info({ message: `Stripe payment ${paymentIntentSucceeded.status} for ${paymentIntentSucceeded.metadata.firstName} ${paymentIntentSucceeded.metadata.lastName} for trackday on ${paymentIntentSucceeded.metadata.date}` })
+
+                // Remove scheduled mail if it exists
+                // TODO: Possible issue if sendOn varies by a few ms, we may not delete the reminder email. Likely non-issue.
+                await ScheduledMail.deleteOne({
+                    to: memberEntry.user.contact.email,
+                    sendOn: new Date(trackday.date.getTime() - (process.env.DAYS_LOCKOUT * 24 * 60 * 60 * 1000)),
+                    message: memberEntry.paymentMethod === 'paymentReminder_creditcard'
+                })
+
             }
         } else {
             logger.warn({ message: `DEBUG USE ONLY! Payment ${paymentIntentSucceeded.status}` })
