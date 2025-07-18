@@ -123,7 +123,7 @@ exports.register = [
 
             // Deny if user attempt to register for trackday < lockout period(7 default) away
             if (await controllerUtils.isInLockoutPeriod(req.params.trackdayID) && req.body.paymentMethod !== 'credit' && req.body.paymentMethod !== 'gate' && req.user.memberType !== 'admin') {
-                const displayMsg = user.credits? ['Payment method must be trackday credits when trackday is less than ' + process.env.DAYS_LOCKOUT + ' days away.']
+                const displayMsg = user.credits ? ['Payment method must be trackday credits when trackday is less than ' + process.env.DAYS_LOCKOUT + ' days away.']
                     : ['Pre-registration closes when trackday is less than ' + process.env.DAYS_LOCKOUT + ' days away. You can register at gate.']
                 return res.status(403).send({ msg: displayMsg })
             }
@@ -182,7 +182,7 @@ exports.register = [
 
             // Calculate prettyDueDate as 7 days prior to prettyDate
             const dueDate = new Date(trackday.date);
-            dueDate.setDate(dueDate.getDate() - process.env.DAYS_LOCKOUT); 
+            dueDate.setDate(dueDate.getDate() - process.env.DAYS_LOCKOUT);
             const prettyDueDate = dueDate.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' });
 
 
@@ -214,7 +214,7 @@ exports.register = [
                     params: { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: prettyDate, price: trackday.ticketPrice.preReg },
                     subject: `Payment Reminder for ${prettyDate}`,
                     // This is used to identify the email template when sendMail is called
-                    message: req.body.paymentMethod === 'etransfer' ? 'paymentReminder_etransfer' : 'paymentReminder_creditcard', 
+                    message: req.body.paymentMethod === 'etransfer' ? 'paymentReminder_etransfer' : 'paymentReminder_creditcard',
                 });
                 await scheduledMail.save();
             }
@@ -286,6 +286,14 @@ exports.unregister = [
                         paid: memberEntry.paid
                     })
             }
+
+            // Remove scheduled mail if it exists
+            // TODO: Possible issue if sendOn varies by a few ms, we may not delete the reminder email. Likely non-issue.
+            await ScheduledMail.deleteOne({
+                to: memberEntry.user.contact.email,
+                sendOn: new Date(trackday.date.getTime() - (process.env.DAYS_LOCKOUT * 24 * 60 * 60 * 1000)),
+                message: memberEntry.paymentMethod === 'etransfer' ? 'paymentReminder_etransfer' : 'paymentReminder_creditcard'
+            })
             logger.info({ message: "Cancelled trackday for " + user.firstName + ' ' + user.lastName + ' on ' + prettyDate });
 
             return res.sendStatus(200);
