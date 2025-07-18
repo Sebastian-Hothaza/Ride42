@@ -93,6 +93,23 @@ const user1Info = {
 	password: "Abcd1234"
 };
 
+const user1Info_MissingWaiver = {
+	firstName: "Joe",
+	lastName: "Adams",
+	email: "user1@gmail.com",
+	phone: "2261451298",
+	address: "123 Apple Ave.",
+	city: "toronto",
+	province: "ontario",
+	EmergencyName_firstName: "Silvia",
+	EmergencyName_lastName: "Adams",
+	EmergencyPhone: "5195724356",
+	EmergencyRelationship: "Wife",
+	group: "yellow",
+	password: "Abcd1234",
+	waiver: false
+};
+
 const user2Info = {
 	firstName: "Bob",
 	lastName: "Smith",
@@ -113,6 +130,22 @@ const userAdmin = {
 	firstName: "Sebastian",
 	lastName: "Hothaza",
 	email: "sebastianhothaza@gmail.com",
+	phone: "2269881414",
+	address: "55 Coventtry Dr",
+	city: "Kitchener",
+	province: "ontario",
+	EmergencyName_firstName: "Ligia",
+	EmergencyName_lastName: "Hothaza",
+	EmergencyPhone: "2269883609",
+	EmergencyRelationship: "Mother",
+	group: "red",
+	password: "Sebi1234"
+};
+
+const userAdminWaiver = {
+	firstName: "Waiver",
+	lastName: "Waiver",
+	email: "waiver@gmail.com",
 	phone: "2269881414",
 	address: "55 Coventtry Dr",
 	city: "Kitchener",
@@ -162,9 +195,18 @@ const userStaff_update = {
 };
 
 async function addUser(userInfo) {
-	const res = (userInfo.firstName === 'Sebastian') ?
-		await request(app).post("/admin").type("form").send(userInfo).expect(201)
-		: await request(app).post("/users").type("form").send(userInfo).expect(201)
+	let res;
+	if (userInfo.firstName === 'Sebastian') {
+		res = await request(app).post("/admin").type("form").send(userInfo).expect(201)
+	} else {
+		// Create temporary admin which is used to mark waiver as signed for newly added user
+		await request(app).post("/admin").type("form").send(userAdminWaiver).expect(201);
+		const loginResAdmin = await loginUser(userAdminWaiver, 200);
+		// Create new user
+		res = await request(app).post("/users").type("form").send(userInfo).expect(201)
+		// Mark waiver as signed for newly added user
+		await request(app).post("/waiver/" + res.body.id).set('Cookie', loginResAdmin.headers['set-cookie']).expect(200);
+	}
 	return res;
 }
 
@@ -712,7 +754,7 @@ describe('Testing registering', () => {
 			.post('/register/' + user1.body.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
-			.expect(403, { msg: ['Cannot register for trackday <' + process.env.DAYS_LOCKOUT + ' days away unless payment method is trackday credit.'] })
+			.expect(403, { msg: ['Payment method must be trackday credits when trackday is less than ' + process.env.DAYS_LOCKOUT + ' days away.'] })
 		// Register as user with credit
 		await request(app)
 			.post('/register/' + user1.body.id + '/' + trackday.body.id)
@@ -1043,6 +1085,33 @@ describe('Testing registering', () => {
 
 	});
 
+	test("register without waiver", async () => {
+		const trackday = await addTrackday('2500-06-05T14:00Z')
+
+		// Add bike to garage
+		await request(app)
+			.post("/garage/" + user1.body.id)
+			.type("form")
+			.send({ year: '2009', make: 'Yamaha', model: "R6" })
+			.set('Cookie', user1Cookie)
+			.expect(201);
+
+		// Unmark waiver as signed
+		await request(app)
+			.put('/users/' + user1.body.id)
+			.set('Cookie', adminCookie)
+			.type("form").send(user1Info_MissingWaiver)
+			.expect(201)
+
+
+		// Register for trackday
+		await request(app)
+			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.set('Cookie', user1Cookie)
+			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
+			.expect(403, { msg: ['Missing waiver'] })
+	});
+
 	test("registration", async () => {
 		const trackday = await addTrackday('2500-06-05T14:00Z')
 
@@ -1206,7 +1275,7 @@ describe('Testing un-registering', () => {
 			.delete('/register/' + user1.body.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.expect(403)
-			
+
 		// As admin
 		await request(app)
 			.delete('/register/' + user1.body.id + '/' + trackday.body.id)
@@ -2196,7 +2265,7 @@ describe('Testing checkin', () => {
 		await request(app)
 			.post('/checkin/' + user1.body.id + '/' + trackday.body.id + '/' + bike.body.id)
 			.set('Cookie', adminCookie)
-			.expect(403, { msg: ['Not paid', 'Missing waiver'] })
+			.expect(403, { msg: ['Not paid'] })
 	})
 
 	test("missing waiver", async () => {
@@ -2223,6 +2292,13 @@ describe('Testing checkin', () => {
 			.set('Cookie', adminCookie)
 			.type('form').send({ setPaid: 'true' })
 			.expect(200)
+
+		// Unmark waiver as signed
+		await request(app)
+			.put('/users/' + user1.body.id)
+			.set('Cookie', adminCookie)
+			.type("form").send(user1Info_MissingWaiver)
+			.expect(201)
 
 		await request(app)
 			.post('/checkin/' + user1.body.id + '/' + trackday.body.id + '/' + bike.body.id)
@@ -2637,7 +2713,7 @@ describe('Testing checkinQR', () => {
 		await request(app)
 			.post('/checkin/' + newQR.body[0].id + "/" + trackday.body.id)
 			.set('Cookie', adminCookie)
-			.expect(403, { msg: ['Not paid', 'Missing waiver'] })
+			.expect(403, { msg: ['Not paid'] })
 	})
 
 	test("missing waiver", async () => {
@@ -2677,6 +2753,13 @@ describe('Testing checkinQR', () => {
 		await request(app)
 			.put("/QR/" + newQR.body[0].id + '/' + user1.body.id + "/" + bike.body.id)
 			.set('Cookie', adminCookie)
+			.expect(201)
+
+		// Unmark waiver as signed
+		await request(app)
+			.put('/users/' + user1.body.id)
+			.set('Cookie', adminCookie)
+			.type("form").send(user1Info_MissingWaiver)
 			.expect(201)
 
 
