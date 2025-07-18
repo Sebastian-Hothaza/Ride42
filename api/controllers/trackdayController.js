@@ -153,6 +153,9 @@ exports.register = [
             // Deny if user garage is empty UNLESS it is a gate registration
             if (req.user.memberType !== 'admin' && !user.garage.length && req.body.paymentMethod !== 'gate') return res.status(403).send({ msg: ['Cannot register with empty user garage'] })
 
+            // Deny if user has not signed waiver
+            if (!user.waiver) return res.status(403).send({ msg: ['Missing waiver'] })
+
             // If paying with credit, check balance is available and deduct
             if (req.body.paymentMethod === 'credit') {
                 if (!user.credits) return res.status(403).send({ msg: ['Insufficient credits'] })
