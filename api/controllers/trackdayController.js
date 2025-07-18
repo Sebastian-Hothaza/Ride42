@@ -370,6 +370,23 @@ exports.reschedule = [
             // TODO: There may be an issue here where dateNEW is not being correctly considered
             sendEmail(user.contact.email, "Ride42 Trackday Reschedule Confirmation", mailTemplates.rescheduleTrackday,
                 { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), dateOLD: trackdayOLD.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }), dateNEW: trackdayNEW.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) })
+
+            // Update scheduled mail if it exists
+            // TODO: Possible issue if sendOn varies by a few ms, we may not update the reminder email. Likely non-issue.
+            await ScheduledMail.updateOne(
+                {
+                    to: user.contact.email,
+                    sendOn: new Date(trackdayOLD.date.getTime() - (process.env.DAYS_LOCKOUT * 24 * 60 * 60 * 1000)),
+                    message: memberEntryOLD.paymentMethod === 'etransfer' ? 'paymentReminder_etransfer' : 'paymentReminder_creditcard'
+                },
+                {
+                    $set: {
+                        sendOn: new Date(trackdayNEW.date.getTime() - (process.env.DAYS_LOCKOUT * 24 * 60 * 60 * 1000)), // Update to new trackday date
+                        params: { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: trackdayNEW.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }), price: trackdayNEW.ticketPrice.preReg },
+                        subject: `Payment Reminder for ${trackdayNEW.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' })}`,
+                    }
+                });
+
             logger.info({ message: "Rescheduled " + user.firstName + ' ' + user.lastName + ' from ' + trackdayOLD.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) + ' to ' + trackdayNEW.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' }) });
             return res.sendStatus(200);
         }
