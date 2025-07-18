@@ -202,6 +202,34 @@ const rescheduleTrackday =
 	${signature}
 </body>`
 
+
+const paymentReminder_etransfer =
+	`<body>
+	<div class="default-style">
+		Hello {name}, <br /> <br />
+		Your payment of \${price} for the trackday on {date} is due today.⏰<br />
+		<br />
+		Payments can be sent via E-Transfer to pay@ride42.ca<br />
+		<br />
+		We look forward to seeing you on track soon! 🚀
+	</div>
+	${signature}
+</body>`
+
+const paymentReminder_creditcard =
+	`<body>
+	<div class="default-style">
+		Hello {name}, <br /> <br />
+		Your payment of \${price} for the trackday on {date} is due today.⏰<br />
+		<br />
+		You can submit your credit card payment directly in your dashboard.<br />
+		<br />
+		We look forward to seeing you on track soon! 🚀
+	</div>
+	${signature}
+</body>`
+
+
 const notifyPaid =
 	`<body>
 	<div class="default-style">
@@ -215,4 +243,4 @@ const notifyPaid =
 
 
 
-module.exports = { welcomeUser, updateUser, passwordChange, passwordResetLink, registerTrackday_credit, registerTrackday_etransfer, registerTrackday_creditcard, unregisterTrackday, unregisterTrackday_admin, rescheduleTrackday, notifyPaid };
+module.exports = { welcomeUser, updateUser, passwordChange, passwordResetLink, registerTrackday_credit, registerTrackday_etransfer, registerTrackday_creditcard, unregisterTrackday, unregisterTrackday_admin, rescheduleTrackday, paymentReminder_etransfer, paymentReminder_creditcard, notifyPaid };
