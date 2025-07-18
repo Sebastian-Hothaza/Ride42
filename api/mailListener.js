@@ -5,6 +5,7 @@ const mailTemplates = require('./mailer_templates')
 
 const User = require('./models/User');
 const Trackday = require('./models/Trackday');
+const ScheduledMail = require('./models/ScheduledMail');
 
 const MAX_RESTART = 10; // Max number of tries to restart listener when encounter an error
 let numRestarts = 0;
