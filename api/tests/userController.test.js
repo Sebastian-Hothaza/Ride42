@@ -469,6 +469,12 @@ describe('Testing user update', () => {
 			.set('Cookie', loginResUser.headers['set-cookie'])
 			.expect(201);
 
+		// Mark waiver as signed
+		await request(app)
+			.post("/waiver/" + user.body.id)
+			.set('Cookie', loginResAdmin.headers['set-cookie'])
+			.expect(200);
+
 		// Edit user so he has a credit
 		await request(app)
 			.put('/users/' + user.body.id)
@@ -527,6 +533,12 @@ describe('Testing user update', () => {
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginResUser.headers['set-cookie'])
 			.expect(201);
+
+		// Mark waiver as signed
+		await request(app)
+			.post("/waiver/" + user.body.id)
+			.set('Cookie', loginResAdmin.headers['set-cookie'])
+			.expect(200);
 
 		// Edit user so he has a credit
 		await request(app)
@@ -602,6 +614,12 @@ describe('Testing user update', () => {
 			.set('Cookie', loginResUser.headers['set-cookie'])
 			.expect(201);
 
+		// Mark waiver as signed
+		await request(app)
+			.post("/waiver/" + user.body.id)
+			.set('Cookie', loginResAdmin.headers['set-cookie'])
+			.expect(200);
+
 		// Edit user so he has a credit
 		await request(app)
 			.put('/users/' + user.body.id)
@@ -652,6 +670,12 @@ describe('Testing user update', () => {
 
 		const now = new Date();
 		const trackday = await addTrackday(getFormattedDate(-3), loginResAdmin.headers['set-cookie'])
+
+		// Mark waiver as signed
+		await request(app)
+			.post("/waiver/" + user.body.id)
+			.set('Cookie', loginResAdmin.headers['set-cookie'])
+			.expect(200);
 
 		// Register user for trackday
 		await request(app)
@@ -1052,6 +1076,14 @@ describe('Testing verify', () => {
 		const loginRes = await loginUser(userAdmin, 200);
 		// Create the trackday
 		const trackday = await addTrackday(getFormattedDate(3), loginRes.headers['set-cookie'])
+
+		// Mark waiver as signed
+		await request(app)
+			.post("/waiver/" + user.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200);
+
+
 		// Register user for trackday
 		await request(app)
 			.post('/register/' + user.body.id + '/' + trackday.body.id)
@@ -1087,6 +1119,12 @@ describe('Testing verify', () => {
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(201);
 
+		// Mark waiver as signed
+		await request(app)
+			.post("/waiver/" + user.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200);
+
 		// Register user for trackday
 		await request(app)
 			.post('/register/' + user.body.id + '/' + trackday.body.id)
@@ -1100,12 +1138,6 @@ describe('Testing verify', () => {
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.type('form').send({ setPaid: 'true' })
 			.expect(200)
-
-		// Mark waiver as signed
-		await request(app)
-			.post("/waiver/" + user.body.id)
-			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(200);
 
 		// Check-in user for trackday
 		await request(app)
@@ -1211,12 +1243,6 @@ describe('Testing verifyQR', () => {
 		const loginRes = await loginUser(userAdmin, 200);
 		// Create the trackday
 		const trackday = await addTrackday(getFormattedDate(3), loginRes.headers['set-cookie'])
-		// Register user for trackday
-		await request(app)
-			.post('/register/' + user.body.id + '/' + trackday.body.id)
-			.type("form").send({ paymentMethod: 'creditCard', guests: 3, layoutVote: 'none' })
-			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(200)
 
 		// Add bike to garage
 		const bike = await request(app)
@@ -1225,6 +1251,19 @@ describe('Testing verifyQR', () => {
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(201);
+
+		// Mark waiver as signed
+		await request(app)
+			.post("/waiver/" + user.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200);
+
+		// Register user for trackday
+		await request(app)
+			.post('/register/' + user.body.id + '/' + trackday.body.id)
+			.type("form").send({ paymentMethod: 'creditCard', guests: 3, layoutVote: 'none' })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200)
 
 		// Generate the QR Code
 		const newQR = await request(app)
@@ -1260,6 +1299,12 @@ describe('Testing verifyQR', () => {
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(201);
 
+		// Mark waiver as signed
+		await request(app)
+			.post("/waiver/" + user.body.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200);
+
 		// Register user for trackday
 		await request(app)
 			.post('/register/' + user.body.id + '/' + trackday.body.id)
@@ -1274,11 +1319,7 @@ describe('Testing verifyQR', () => {
 			.type('form').send({ setPaid: 'true' })
 			.expect(200)
 
-		// Mark waiver as signed
-		await request(app)
-			.post("/waiver/" + user.body.id)
-			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(200);
+
 
 		// Generate the QR Code
 		const newQR = await request(app)
