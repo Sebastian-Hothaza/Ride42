@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Trackday = require('../models/Trackday');
 const Bike = require('../models/Bike');
 const QR = require('../models/QR');
+const ScheduledMail = require('../models/ScheduledMail');
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const bcrypt = require('bcryptjs')
@@ -542,9 +543,8 @@ exports.stripeWebhook = asyncHandler(async (req, res, next) => {
                 await ScheduledMail.deleteOne({
                     to: memberEntry.user.contact.email,
                     sendOn: new Date(trackday.date.getTime() - (process.env.DAYS_LOCKOUT * 24 * 60 * 60 * 1000)),
-                    message: memberEntry.paymentMethod === 'paymentReminder_creditcard'
-                })
-
+                    message: 'paymentReminder_creditcard'
+                });
             }
         } else {
             logger.warn({ message: `DEBUG USE ONLY! Payment ${paymentIntentSucceeded.status}` })
