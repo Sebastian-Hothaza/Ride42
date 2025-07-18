@@ -567,13 +567,20 @@ exports.updatePaid = [
             memberEntry.paid = !memberEntry.paid
 
 
-            // Send email confirmation to user
+            // Send email confirmation to user and remove payment reminder DB entry
             if (memberEntry.paid) {
                 sendEmail(memberEntry.user.contact.email, "Payment Confirmation", mailTemplates.notifyPaid, {
                     name: memberEntry.user.firstName.charAt(0).toUpperCase() + memberEntry.user.firstName.slice(1),
                     date: trackday.date.toLocaleString('default', {
                         weekday: 'long', month: 'long', day: 'numeric'
                     })
+                })
+                // Remove scheduled mail if it exists
+                // TODO: Possible issue if sendOn varies by a few ms, we may not delete the reminder email. Likely non-issue.
+                await ScheduledMail.deleteOne({
+                    to: memberEntry.user.contact.email,
+                    sendOn: new Date(trackday.date.getTime() - (process.env.DAYS_LOCKOUT * 24 * 60 * 60 * 1000)),
+                    message: memberEntry.paymentMethod === 'etransfer' ? 'paymentReminder_etransfer' : 'paymentReminder_creditcard'
                 })
             }
 
