@@ -20,10 +20,10 @@ if (machineName === process.env.MAIL_LISTENER_MACHINE) {
 	setupMailListener();
 }
 
-
-checkOutgoingMail(); // Check DB for pending emails and send them
+// Check DB for pending emails and send them
+checkOutgoingMail(); 
 setInterval(() => {
-  // Check DB for pending emails and send them
+	checkOutgoingMail();
 }, 5 * 60 * 1000); // 5 minutes
 
 // Simulate slow network
