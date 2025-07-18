@@ -35,6 +35,7 @@ const ManageQR = ({ APIServer, allUsers, fetchAPIData, }) => {
 
     async function handleGenerateQRSubmit(e) {
         e.preventDefault();
+        setb64Arr([]);
         const totalQR = Number(e.target.greenQR.value) + Number(e.target.yellowQR.value) + Number(e.target.redQR.value)
         let greenBal = Number(e.target.greenQR.value);
         let yellowBal = Number(e.target.yellowQR.value);
@@ -92,6 +93,7 @@ const ManageQR = ({ APIServer, allUsers, fetchAPIData, }) => {
         }
     }
 
+    // Called when stickerContainer has children
     async function downloadAllImages() {
         const zip = new JSZip();
         const promises = b64Arr.map(async (item) => {
