@@ -292,6 +292,18 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			<button className="actionButton" onClick={() => setActiveTab('garage')}>Go to My Garage</button>
 		</>
 	}
+	
+	// If user has not signed waiver, don't allow any trackday management
+	if (userInfo && !userInfo.waiver) {
+		return <>
+			<h1>Missing Waiver</h1>
+			<br></br><br></br>
+			<h2>To book or manage trackdays, please sign the waiver.</h2>
+			<br></br><br></br>
+			<button className="actionButton" onClick={() => window.location.href = '/waiver'}>Sign Waiver</button>
+		</>
+	}
+		
 
 	return (
 		<>
