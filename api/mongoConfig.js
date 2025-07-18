@@ -7,6 +7,8 @@ async function main() {
     try {
       await mongoose.connect(process.env.MONGODB_URI);
       logger.debug({ message: 'Mongoose connected to MongoDB' });
+   
+      if (process.env.NODE_ENV === 'development') logger.warn({ message: 'Connected to PRODUCTION database' });
     } catch (err) {
       console.log('Error connecting to MongoDB: ' + err.message); // In case mongoDB connection fails, logger wont properly log info
       logger.error({ message: 'Error connecting to MongoDB: ' + err.message });

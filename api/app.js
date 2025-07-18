@@ -3,6 +3,7 @@ const logger = require('./logger');
 const router = require('./routes/index');
 const cookieParser = require('cookie-parser')
 const setupMailListener = require('./mailListener'); // Import the mailListener setup function
+const checkOutgoingMail = require('./mailScheduler'); // Import the mailListener setup function
 const os = require('os'); // required to get machine name
 
 const app = express();
@@ -18,6 +19,12 @@ if (machineName === process.env.MAIL_LISTENER_MACHINE) {
 	logger.debug({ message: `Machine ${machineName} is listening for mail.` });
 	setupMailListener();
 }
+
+
+checkOutgoingMail(); // Check DB for pending emails and send them
+setInterval(() => {
+  // Check DB for pending emails and send them
+}, 5 * 60 * 1000); // 5 minutes
 
 // Simulate slow network
 const simulateSlowNetwork = false;
