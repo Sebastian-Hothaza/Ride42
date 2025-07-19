@@ -25,12 +25,12 @@ const staffTools = ({ setActiveTab, memberType, APIServer }) => {
                 <button onClick={() => setActiveTab('trackdayState')}><img src={state}></img>Trackday State</button>
                 <button onClick={() => setActiveTab('checkIn')}><img src={checkin}></img>Check In</button>
                 <button onClick={() => setActiveTab('verify')}><img src={verify}></img>Verify</button>
-        
+                <button onClick={() => setActiveTab('manageQR')}><img src={manageQR}></img>Manage QR</button>
 
                 {/* ADMIN */}
                 {memberType === 'admin' &&
                     <>
-                        <button onClick={() => setActiveTab('manageQR')}><img src={manageQR}></img>Manage QR</button>
+
                         <button onClick={() => setActiveTab('manageUsers')}><img src={manageUsers}></img>Manage Users</button>
                         <button onClick={() => setActiveTab('manageTrackdays')}><img src={manageTrackdays}></img>Manage Trackdays</button>
                         <button onClick={() => setActiveTab('markPaid')}><img src={paid}></img>Mark Paid</button>
