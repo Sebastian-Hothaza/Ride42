@@ -1,4 +1,5 @@
 const { MailListener } = require("mail-listener5");
+let mailListener; // Global mail listener instance which can be stopped and started
 const logger = require('./logger');
 const sendEmail = require('./mailer')
 const mailTemplates = require('./mailer_templates')
@@ -41,8 +42,18 @@ function getAmount(emailText) {
 	return receivedAmount;
 }
 
-function setupMailListener() {
-	const mailListener = new MailListener({
+// Stops the mail listener instance
+function stopMailListener() {
+	if (mailListener) {
+		mailListener.stop();
+		numRestarts = 0; // Reset restart counter
+		mailListener = null; // Clear the global instance
+	}
+}
+
+// Starts new mail listener instance
+function startMailListener() {
+	mailListener = new MailListener({
 		username: process.env.ADMIN_EMAIL,
 		password: process.env.ADMIN_EMAIL_PASSWORD,
 		host: process.env.ADMIN_EMAIL_HOST,
@@ -182,4 +193,4 @@ function setupMailListener() {
 	});
 }
 
-module.exports = setupMailListener;
+module.exports = { startMailListener, stopMailListener };

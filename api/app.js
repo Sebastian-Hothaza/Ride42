@@ -2,7 +2,7 @@ const express = require('express');
 const logger = require('./logger');
 const router = require('./routes/index');
 const cookieParser = require('cookie-parser')
-const setupMailListener = require('./mailListener'); // Import the mailListener setup function
+const { startMailListener, stopMailListener } = require('./mailListener'); // Import the mailListener setup function
 const checkOutgoingMail = require('./mailScheduler'); // Import the mailListener setup function
 const os = require('os'); // required to get machine name
 
@@ -14,14 +14,19 @@ const app = express();
 // If wanting to test mailListener, need to shut it down on API
 // Mail listener listens for incoming e-transfer notification emails in INBOX/Payments.
 // It attempts to process them to auto-mark e-transfer users as paid
+// Auto-restarts every 24 Hours to ensure reliability
 const machineName = os.hostname();
 if (machineName === process.env.MAIL_LISTENER_MACHINE) {
 	logger.debug({ message: `Machine ${machineName} is listening for mail.` });
-	setupMailListener();
+	startMailListener();
+	setInterval(() => {
+		stopMailListener();
+		setTimeout(() => startMailListener(), 5000);
+	}, 24 * 60 * 60 * 1000);
 }
 
 // Check DB for pending emails and send them
-checkOutgoingMail(); 
+checkOutgoingMail();
 setInterval(() => {
 	checkOutgoingMail();
 }, 5 * 60 * 1000); // 5 minutes
