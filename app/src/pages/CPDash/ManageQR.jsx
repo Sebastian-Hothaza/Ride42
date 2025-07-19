@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import ScrollToTop from "../../components/ScrollToTop";
 import Modal from "../../components/Modal";
 import Loading from '../../components/Loading';
@@ -13,7 +13,7 @@ import html2canvas from 'html2canvas';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
-const ManageQR = ({ APIServer, allUsers, fetchAPIData, }) => {
+const ManageQR = ({ APIServer, allUsers, allTrackdaysFULL, fetchAPIData, }) => {
     const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
     const [b64Arr, setb64Arr] = useState([]);
 
@@ -23,15 +23,55 @@ const ManageQR = ({ APIServer, allUsers, fetchAPIData, }) => {
     const [curUserAssign, setCurUserAssign] = useState('')
     const [curBikeAssign, setCurBikeAssign] = useState('')
 
+    const [selectedTrackdayId, setSelectedTrackdayId] = useState(''); // Tracks what the current working trackdayId is 
+    const selectedTrackdayRef = useRef(null); // Ref to keep track of the latest selectedTrackday
+
     const [hasQRID, setHasQRID] = useState(true);
 
-    if (!allUsers) {
+
+    if (!allUsers || !allTrackdaysFULL) {
         return null;
     } else {
         allUsers.sort((a, b) => (a.firstName > b.firstName) ? 1 : ((b.firstName > a.firstName) ? -1 : 0))
+
+        // Only show trackdays for current year
+        allTrackdaysFULL = allTrackdaysFULL.filter(trackday => {
+            const candidateTrackdayYear = new Date(trackday.date).getFullYear();
+            const selectedYear = new Date().getFullYear();
+            return candidateTrackdayYear === selectedYear;
+        });
+        allTrackdaysFULL.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
     }
 
+    // Augment prettydate of allTrackdaysFULL to be a nice format
+    allTrackdaysFULL.forEach((trackday) => {
+        const date = new Date(trackday.date)
+        const weekday = date.toLocaleString('default', { weekday: 'short' })
+        const month = date.toLocaleString('default', { month: 'long' })
+        const numericDay = date.toLocaleString('default', { day: 'numeric' })
+        const formattedDate = weekday + ' ' + month + ' ' + numericDay;
+        trackday.prettyDate = formattedDate;
+    })
 
+    // Set the ref
+    if (selectedTrackdayId && selectedTrackdayId !== 'all') { // Once we have defined a specific trackday to use
+        selectedTrackdayRef.current = allTrackdaysFULL.find((td) => td._id === selectedTrackdayId); // Update the ref with the latest selectedTrackday
+        allUsers = allUsers.filter((user) => {
+            return selectedTrackdayRef.current.members.some((member) => member.user._id === user._id);
+        });
+    } else if (allTrackdaysFULL && selectedTrackdayId !== 'all') {  // Load in the selectedTrackday to default value 
+        const lateAllowance = 12 * 60 * 60 * 1000; // Time in ms that a trackday will still be considered the next trackday AFTER it has already passed. Default is 12H
+        // Remove trackdays in the past
+        const upcomingTrackdays = allTrackdaysFULL.filter((trackday) => {
+            return new Date(trackday.date).getTime() + lateAllowance >= Date.now(); // Trackday is in the future
+        });
+        if (upcomingTrackdays.length === 0) return console.error('no more TD'); // Protect against no trackdays
+
+        upcomingTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0));
+        setSelectedTrackdayId(upcomingTrackdays[0]._id); // This prompts render and sets ref
+    }
+
+   
 
     async function handleGenerateQRSubmit(e) {
         e.preventDefault();
@@ -183,40 +223,54 @@ const ManageQR = ({ APIServer, allUsers, fetchAPIData, }) => {
         if (container && container.hasChildNodes()) downloadAllImages();
     }, [b64Arr]);
 
+
+
     return (
         <>
             <ScrollToTop />
             <div className={styles.content}>
 
                 {/* ASSIGN QR */}
-                <div className={styles.QRCell}>
-                    <h2>Assign QR</h2>
-                    <form>
-                        {/* Select curUserAssign */}
-                        <label htmlFor="userAssign">Select User:</label>
-                        <select className='capitalizeEach' name="userAssign" id="userAssign" onChange={() => { setCurUserAssign(allUsers.find((candidateUser) => candidateUser._id === userAssign.value)); setCurBikeAssign('') }} required>
-                            <option key="none" value='' ></option>
-                            {allUsers && allUsers.map((user) => <option className='capitalizeEach' key={user._id} value={user._id} >{user.firstName}, {user.lastName}</option>)}
-                        </select>
 
-                        {curUserAssign &&
-                            <>
-                                <label htmlFor="bikeAssign">Select Bike:</label>
-                                <select className='capitalizeEach' name="bikeAssign" id="bikeAssign" onChange={() => { setCurBikeAssign(bikeAssign.value ? (curUserAssign.garage.find((garageItem) => garageItem._id === bikeAssign.value)).bike : '') }} required>
-                                    <option key="none" value='' ></option>
-                                    {curUserAssign && curUserAssign.garage.map((garageItem) => <option className='capitalizeEach' key={garageItem._id} value={garageItem._id}>{garageItem.bike.year} {garageItem.bike.make} {garageItem.bike.model}</option>)}
-                                </select>
-                            </>
-                        }
+                {selectedTrackdayRef.current &&
+                    <div className={styles.QRCell}>
+                        <h2>Assign QR</h2>
+                        <form>
+                            {/* Select trackday filter*/}
 
-                        {curBikeAssign &&
-                            <>
-                                <div>Scan {curUserAssign.group} sticker below:</div>
-                                <Scanner onDecodeEnd={handleMarryQR} />
-                            </>
-                        }
-                    </form>
-                </div>
+                            <label htmlFor="trackdayFilter">Trackday Filter:</label>
+                            <select name="trackday" id="trackday" value={selectedTrackdayId} onChange={() => setSelectedTrackdayId(trackday.value)} required>
+                                <option key="none" value='all'>ALL</option>
+                                {allTrackdaysFULL.map((trackday) => <option key={trackday._id} value={trackday._id}>{trackday.prettyDate}</option>)}
+                            </select>
+
+
+                            {/* Select curUserAssign */}
+                            <label htmlFor="userAssign">Select User:</label>
+                            <select className='capitalizeEach' name="userAssign" id="userAssign" onChange={() => { setCurUserAssign(allUsers.find((candidateUser) => candidateUser._id === userAssign.value)); setCurBikeAssign('') }} required>
+                                <option key="none" value='none' ></option>
+                                {allUsers && allUsers.map((user) => <option className='capitalizeEach' key={user._id} value={user._id} >{user.firstName}, {user.lastName}</option>)}
+                            </select>
+
+                            {curUserAssign &&
+                                <>
+                                    <label htmlFor="bikeAssign">Select Bike:</label>
+                                    <select className='capitalizeEach' name="bikeAssign" id="bikeAssign" onChange={() => { setCurBikeAssign(bikeAssign.value ? (curUserAssign.garage.find((garageItem) => garageItem._id === bikeAssign.value)).bike : '') }} required>
+                                        <option key="none" value='' ></option>
+                                        {curUserAssign && curUserAssign.garage.map((garageItem) => <option className='capitalizeEach' key={garageItem._id} value={garageItem._id}>{garageItem.bike.year} {garageItem.bike.make} {garageItem.bike.model}</option>)}
+                                    </select>
+                                </>
+                            }
+
+                            {curBikeAssign &&
+                                <>
+                                    <div>Scan {curUserAssign.group} sticker below:</div>
+                                    <Scanner onDecodeEnd={handleMarryQR} />
+                                </>
+                            }
+                        </form>
+                    </div>
+                }
 
                 {/* GENERATE DECALS */}
                 <div className={styles.QRCell}>
