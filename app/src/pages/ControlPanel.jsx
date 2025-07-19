@@ -131,7 +131,7 @@ const ControlPanel = ({ APIServer }) => {
                     {activeTab == 'trackdayState' && <TrackdayState fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdays={allTrackdays} allTrackdaysFULL={allTrackdaysFULL} />}
                     {activeTab == 'checkIn' && <CheckIn APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers} />}
                     {activeTab == 'verify' && <Verify APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers} />}
-                    {activeTab == 'manageQR' && <ManageQR APIServer={APIServer} allUsers={allUsers} fetchAPIData={fetchAPIData} />}
+                    {activeTab == 'manageQR' && <ManageQR APIServer={APIServer} allUsers={allUsers} allTrackdaysFULL={allTrackdaysFULL} fetchAPIData={fetchAPIData} />}
                     {/* ADMIN */}
                     
                     {activeTab == 'manageUsers' && <ManageUsers APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} />}
