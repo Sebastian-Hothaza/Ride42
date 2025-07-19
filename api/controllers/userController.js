@@ -295,7 +295,7 @@ exports.generateQRs = [
 
     asyncHandler(async (req, res, next) => {
         let qrGen = [];
-        if (req.user.memberType === 'admin') {
+        if (req.user.memberType === 'admin' || req.user.memberType === 'staff') {
             for (let i = 0; i < req.body.qty; i++) {
                 const qr = new QR();
                 await qr.save();
@@ -314,7 +314,7 @@ exports.getQR = [
 
     asyncHandler(async (req, res) => {
         // JWT is valid. Verify user is allowed to access this resource and return the information
-        if (req.user.memberType === 'admin') {
+        if (req.user.memberType === 'admin' || req.user.memberType === 'staff') {
             let qr = await QR.find().populate([{ path: 'user', select: '-password -refreshToken -__v' }, { path: 'bike', select: '-__v' }]).select('-__v').exec();
             return res.status(200).json(qr);
         }
@@ -333,7 +333,7 @@ exports.marryQR = [
 
 
     asyncHandler(async (req, res, next) => {
-        if (req.user.memberType === 'admin') {
+        if (req.user.memberType === 'admin' || req.user.memberType === 'staff') {
             const qr = await QR.findById(req.params.QRID).populate('user').exec();
             const user = await User.findById(req.params.userID).populate('garage.bike').exec();
             const bikeToMarry = user.garage.find((garageItem) => garageItem.bike.equals(req.params.bikeID));
@@ -369,7 +369,7 @@ exports.deleteQR = [
     controllerUtils.validateQRID,
 
     asyncHandler(async (req, res, next) => {
-        if (req.user.memberType === 'admin') {
+        if (req.user.memberType === 'admin' || req.user.memberType === 'staff') {
             const qr = await QR.findById(req.params.QRID).exec();
             const user = await User.findById(qr.user).exec();
             const userBike = user ? user.garage.find((garageItem) => garageItem.QRID == req.params.QRID) : null;
