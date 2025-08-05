@@ -20,7 +20,7 @@ const staffTools = ({ setActiveTab, memberType, APIServer }) => {
             <h1>Staff Tools</h1>
             <div className={styles.content}>
 
-                <button onClick={() => setActiveTab('waiver')}><img src={waiver}></img>Waiver</button>
+                {/* <button onClick={() => setActiveTab('waiver')}><img src={waiver}></img>Waiver</button> */}
                 <button onClick={() => setActiveTab('gateRegister')}><img src={gate}></img>Gate Register</button>
                 <button onClick={() => setActiveTab('trackdayState')}><img src={state}></img>Trackday State</button>
                 <button onClick={() => setActiveTab('checkIn')}><img src={checkin}></img>Check In</button>
