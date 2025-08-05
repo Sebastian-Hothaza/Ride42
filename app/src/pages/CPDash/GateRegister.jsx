@@ -55,26 +55,6 @@ const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
         setEligibleUsers(allUsers);
     }
 
-    // Marks user as having waiver complete when gate registering user without waiver
-    async function updateWaiver(userID) {
-        try {
-            const response = await fetch(APIServer + 'waiver/' + userID, {
-                method: 'POST',
-                credentials: "include",
-                headers: {
-                    'Content-type': 'application/json; charset=UTF-8',
-                },
-            })
-            if (!response.ok) {
-                setActiveModal({ type: 'failure', msg: 'Failed to update waiver for user' })
-            }
-        } catch (err) {
-            setActiveModal({ type: 'failure', msg: 'API Failure' })
-            console.log(err.message)
-        }
-        handleRegistrationSubmit(userID) //TODO: some refinement here needed; do we want to block a gate reg if waiver update fails?
-    }
-
     async function handleRegistrationSubmit(userID) {
         setActiveModal({ type: 'loading', msg: 'Submitting gate registration' });
         try {
@@ -158,12 +138,9 @@ const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
                             <h3>Existing Members</h3>
                             <form onSubmit={(e) => {
                                 e.preventDefault();
-                                // If user has no waiver completed, show modal. Else proceed directly with gate reg
-                                if (allUsers.find((user) => user._id === e.target.user.value && user.waiver === false)) {
-                                    setActiveModal({ type: 'waiverWarning', userID: e.target.user.value });
-                                } else {
-                                    handleRegistrationSubmit(e.target.user.value)
-                                }
+
+                                handleRegistrationSubmit(e.target.user.value)
+
                                 e.target.reset();
                                 setEligibleUsers(allUsers);
                             }}>
@@ -232,13 +209,6 @@ const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
                 <img id={modalStyles.modalCheckmarkIMG} src={errormark} alt="error icon" />
                 {activeModal.msg}
                 <button className='actionButton' onClick={() => setActiveModal('')}>Close</button>
-            </Modal>
-
-            <Modal open={activeModal.type === 'waiverWarning'}>
-                <>
-                    Waiver not on file! Please make sure to collect a waiver for this user!
-                    <button className='actionButton' onClick={() => updateWaiver(activeModal.userID)}>Ok</button>
-                </>
             </Modal>
         </>
     );
