@@ -125,6 +125,7 @@ exports.register = [
             if (await controllerUtils.isInLockoutPeriod(req.params.trackdayID) && req.body.paymentMethod !== 'credit' && req.body.paymentMethod !== 'gate' && req.user.memberType !== 'admin') {
                 const displayMsg = user.credits ? ['Payment method must be trackday credits when trackday is less than ' + process.env.DAYS_LOCKOUT + ' days away.']
                     : ['Pre-registration closes when trackday is less than ' + process.env.DAYS_LOCKOUT + ' days away. You can register at gate.']
+                logger.warn({ message: `Denied registration for ${user.firstName} ${user.lastName} since less than ${process.env.DAYS_LOCKOUT} days away` })
                 return res.status(403).send({ msg: displayMsg })
             }
 
