@@ -423,7 +423,7 @@ exports.walkons = [
     })
 ]
 
-// Marks a user as checked in. Requires JWT with staff/admin.
+// Marks a user as checked in. Requires JWT with staff/admin/coach.
 // ! Logged operation !
 exports.checkin = [
     controllerUtils.verifyJWT,
@@ -432,7 +432,7 @@ exports.checkin = [
     controllerUtils.validateBikeID,
 
     asyncHandler(async (req, res, next) => {
-        if (req.user.memberType === 'admin' || req.user.memberType === 'staff') {
+        if (req.user.memberType === 'admin' || req.user.memberType === 'staff' || req.user.memberType === 'coach') {
             const user = await User.findById(req.params.userID).populate('garage.bike').exec();
             const trackday = await Trackday.findById(req.params.trackdayID).populate('members.user', 'waiver').exec();
 
@@ -468,7 +468,7 @@ exports.checkin = [
     })
 ]
 
-// Marks a user as checked in via QR code. Requires JWT with staff/admin.
+// Marks a user as checked in via QR code. Requires JWT with staff/admin/coach.
 // ! Logged operation !
 exports.checkinQR = [
     controllerUtils.verifyJWT,
@@ -476,7 +476,7 @@ exports.checkinQR = [
     controllerUtils.validateTrackdayID,
 
     asyncHandler(async (req, res, next) => {
-        if (req.user.memberType === 'admin' || req.user.memberType === 'staff') {
+        if (req.user.memberType === 'admin' || req.user.memberType === 'staff' || req.user.memberType === 'coach') {
             const trackday = await Trackday.findById(req.params.trackdayID).populate('members.user', 'waiver').exec();
             const qr = await QR.findById(req.params.QRID).populate('user bike').exec();
 
