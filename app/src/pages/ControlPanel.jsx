@@ -110,7 +110,7 @@ const ControlPanel = ({ APIServer }) => {
                         <button className={activeTab == 'profile' ? styles.selected : undefined} onClick={() => setActiveTab('profile')}>My Profile</button>
                         <button className={activeTab == 'trackdays' ? styles.selected : undefined} onClick={() => setActiveTab('trackdays')}>My Trackdays</button>
                         <button className={activeTab == 'garage' ? styles.selected : undefined} onClick={() => setActiveTab('garage')}>My Garage</button>
-                        {(loggedInUser.memberType == 'staff' || loggedInUser.memberType == 'admin') &&
+                        {(loggedInUser.memberType == 'staff' || loggedInUser.memberType == 'admin' || loggedInUser.memberType == 'coach') &&
                             <button className={activeTab == 'staffTools' ? styles.selected : undefined} onClick={() => setActiveTab('staffTools')}>Staff Tools</button>
                         }
                     </div>
@@ -132,12 +132,12 @@ const ControlPanel = ({ APIServer }) => {
                     {activeTab == 'checkIn' && <CheckIn APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers} />}
                     {activeTab == 'verify' && <Verify APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers} />}
                     {activeTab == 'manageQR' && <ManageQR APIServer={APIServer} allUsers={allUsers} allTrackdaysFULL={allTrackdaysFULL} fetchAPIData={fetchAPIData} />}
-                    {/* ADMIN */}
                     
+                    {/* ADMIN */}
                     {activeTab == 'manageUsers' && <ManageUsers APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} />}
                     {activeTab == 'manageTrackdays' && <ManageTrackdays APIServer={APIServer} allTrackdaysFULL={allTrackdaysFULL} allUsers={allUsers} fetchAPIData={fetchAPIData} />}
                     {activeTab == 'markPaid' && <MarkPaid APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdaysFULL={allTrackdaysFULL} />}
-                    {activeTab == 'serverLogs' && <ServerLogs APIServer={APIServer}/>}
+                    {activeTab == 'serverLogs' && <ServerLogs APIServer={APIServer} />}
 
 
 
@@ -147,7 +147,7 @@ const ControlPanel = ({ APIServer }) => {
                 <div className={styles.CPMenuMobile}>
                     <button className={activeTab == 'profile' ? styles.selected : undefined} onClick={() => setActiveTab('profile')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined ${activeTab == 'profile' ? styles.selected : undefined}`}> person </span></button>
                     <button className={activeTab == 'trackdays' ? styles.selected : undefined} onClick={() => setActiveTab('trackdays')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined ${activeTab == 'trackdays' ? styles.selected : undefined}`}> calendar_month </span></button>
-                    {(loggedInUser.memberType == 'staff' || loggedInUser.memberType == 'admin') && <button className={activeTab == 'staffTools' ? styles.selected : undefined} onClick={() => setActiveTab('staffTools')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined ${activeTab == 'staffTools' ? styles.selected : undefined}`}> shield_person </span></button>}
+                    {(loggedInUser.memberType == 'staff' || loggedInUser.memberType == 'admin' || loggedInUser.memberType == 'coach') && <button className={activeTab == 'staffTools' ? styles.selected : undefined} onClick={() => setActiveTab('staffTools')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined ${activeTab == 'staffTools' ? styles.selected : undefined}`}> shield_person </span></button>}
                     <button className={activeTab == 'garage' ? styles.selected : undefined} onClick={() => setActiveTab('garage')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined ${activeTab == 'garage' ? styles.selected : undefined}`}> garage_home </span></button>
                     <button onClick={() => setActiveModal({ type: 'logoutConfirm' })}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined`}> logout </span></button>
                 </div>
