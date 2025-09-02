@@ -19,22 +19,37 @@ const staffTools = ({ setActiveTab, memberType, APIServer }) => {
             <ScrollToTop />
             <h1>Staff Tools</h1>
             <div className={styles.content}>
-
-                {/* <button onClick={() => setActiveTab('waiver')}><img src={waiver}></img>Waiver</button> */}
-                <button onClick={() => setActiveTab('gateRegister')}><img src={gate}></img>Gate Register</button>
-                <button onClick={() => setActiveTab('trackdayState')}><img src={state}></img>Trackday State</button>
-                <button onClick={() => setActiveTab('checkIn')}><img src={checkin}></img>Check In</button>
-                <button onClick={() => setActiveTab('verify')}><img src={verify}></img>Verify</button>
-                <button onClick={() => setActiveTab('manageQR')}><img src={manageQR}></img>Manage QR</button>
-
                 {/* ADMIN */}
                 {memberType === 'admin' &&
                     <>
-
+                        <button onClick={() => setActiveTab('gateRegister')}><img src={gate}></img>Gate Register</button>
+                        <button onClick={() => setActiveTab('trackdayState')}><img src={state}></img>Trackday State</button>
+                        <button onClick={() => setActiveTab('manageQR')}><img src={manageQR}></img>Manage QR</button>
+                        <button onClick={() => setActiveTab('checkIn')}><img src={checkin}></img>Check In</button>
+                        <button onClick={() => setActiveTab('verify')}><img src={verify}></img>Verify</button>
                         <button onClick={() => setActiveTab('manageUsers')}><img src={manageUsers}></img>Manage Users</button>
                         <button onClick={() => setActiveTab('manageTrackdays')}><img src={manageTrackdays}></img>Manage Trackdays</button>
                         <button onClick={() => setActiveTab('markPaid')}><img src={paid}></img>Mark Paid</button>
                         <button onClick={() => setActiveTab('serverLogs')}><img src={server}></img>Server Logs</button>
+                    </>
+                }
+
+                {/* STAFF */}
+                {memberType === 'staff' &&
+                    <>
+                        <button onClick={() => setActiveTab('gateRegister')}><img src={gate}></img>Gate Register</button>
+                        <button onClick={() => setActiveTab('trackdayState')}><img src={state}></img>Trackday State</button>
+                        <button onClick={() => setActiveTab('checkIn')}><img src={checkin}></img>Check In</button>
+                        <button onClick={() => setActiveTab('verify')}><img src={verify}></img>Verify</button>
+                        <button onClick={() => setActiveTab('manageQR')}><img src={manageQR}></img>Manage QR</button>
+                    </>
+                }
+
+                {/* COACH */}
+                {memberType === 'coach' &&
+                    <>
+                        <button onClick={() => setActiveTab('checkIn')}><img src={checkin}></img>Check In</button>
+                        <button onClick={() => setActiveTab('verify')}><img src={verify}></img>Verify</button>
                     </>
                 }
             </div>
