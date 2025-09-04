@@ -68,7 +68,7 @@ const ControlPanel = ({ APIServer }) => {
 
 
         // Fetch staff API Data
-        if (userInfoData.memberType === 'staff' || userInfoData.memberType === 'admin') {
+        if (userInfoData.memberType === 'staff' || userInfoData.memberType === 'admin' || userInfoData.memberType === 'coach') {
             let allUsersData, allTrackdaysFULLData = []
             try {
 
