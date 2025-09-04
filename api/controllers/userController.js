@@ -507,6 +507,7 @@ exports.createPaymentIntent = [
 // Called by stripe after a paymentIntent is successful. PUBLIC.
 // For testing, use: stripe listen --forward-to localhost:3000/stripeWebhook
 // when stripe generates webhook, it'll do so in test-environment and as long as local listener is setup, it'll forward to localhost
+
 exports.stripeWebhook = asyncHandler(async (req, res, next) => {
     const stripeSignature = req.headers['stripe-signature'];
 
@@ -565,25 +566,58 @@ exports.user_get = [
 
     asyncHandler(async (req, res, next) => {
         // JWT is valid. Verify user is allowed to access this resource and return the information
-        if (req.user.memberType === 'admin' || req.user.memberType === 'staff' || req.user.id === req.params.userID) {
-            let user = await User.findById(req.params.userID).populate("garage.bike", '-__v').select('-password -refreshToken -__v')
-            return res.status(200).json(user);
+
+        // We omit certain user fields for privacy
+        let userExclusions;
+        switch (req.user.memberType) {
+            case 'admin':
+                userExclusions = '-password -refreshToken -__v';
+                break;
+            case 'staff':
+                userExclusions = '-contact -password -refreshToken -__v';
+                break;
+            case 'coach':
+                userExclusions = '-contact -password -refreshToken -__v';
+                break;
+            case 'regular':
+                if (req.user.id === req.params.userID) {
+                    userExclusions = '-password -refreshToken -__v';
+                    break;
+                }
+            default:
+                return res.sendStatus(403)
         }
-        return res.sendStatus(403)
+        let user = await User.findById(req.params.userID).populate("garage.bike", '-__v').select(userExclusions);
+        return res.status(200).json(user);
     })
 ]
 
-// Gets all users. Requires JWT with staff/admin
+// Gets all users. Requires JWT with staff/admin/coach
 exports.user_getALL = [
     controllerUtils.verifyJWT,
 
     asyncHandler(async (req, res) => {
         // JWT is valid. Verify user is allowed to access this resource and return the information
-        if (req.user.memberType === 'admin' || req.user.memberType === 'staff') {
-            let users = await User.find().populate("garage.bike", '-__v').select('-password -refreshToken -__v').exec();
-            return res.status(200).json(users);
+        // We omit certain user fields for privacy
+        let userExclusions;
+        switch (req.user.memberType) {
+            case 'admin':
+                userExclusions = '-password -refreshToken -__v';
+                break;
+            case 'staff':
+                userExclusions = '-contact -password -refreshToken -__v';
+                break;
+            case 'coach':
+                userExclusions = '-contact -password -refreshToken -__v';
+                break;
+            default:
+                return res.sendStatus(403)
         }
-        return res.sendStatus(403);
+
+        let users = await User.find().populate("garage.bike", '-__v').select(userExclusions).exec();
+        return res.status(200).json(users);
+
+
     }),
 ]
 

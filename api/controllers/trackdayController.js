@@ -678,24 +678,50 @@ exports.trackday_get = [
     controllerUtils.validateTrackdayID,
 
     asyncHandler(async (req, res, next) => {
-        if (req.user.memberType === 'staff' || req.user.memberType === 'admin') {
-            const trackday = await Trackday.findById(req.params.trackdayID).populate('members.user', '-password -refreshToken -garage -__v').select('-__v').exec();
-            return res.status(200).send({ ...trackday._doc, guests: getRegDetails(trackday).guests });
+
+        // We omit certain user fields for privacy
+        let userExclusions;
+        switch (req.user.memberType) {
+            case 'admin':
+                userExclusions = '-password -refreshToken -garage -__v';
+                break;
+            case 'staff':
+                userExclusions = '-contact -password -refreshToken -garage -__v';
+                break;
+            case 'coach':
+                userExclusions = '-contact -password -refreshToken -garage -__v';
+                break;
+            default:
+                return res.sendStatus(403)
         }
-        return res.sendStatus(403)
+        const trackday = await Trackday.findById(req.params.trackdayID).populate('members.user', userExclusions).select('-__v').exec();
+        return res.status(200).send({ ...trackday._doc, guests: getRegDetails(trackday).guests });
+
     })
 ]
 
-// Returns all trackdays. Requires JWT with staff or admin.
+// Returns all trackdays. Requires JWT with staff/admin/coach
 exports.trackday_getALL = [
     controllerUtils.verifyJWT,
     asyncHandler(async (req, res, next) => {
-        if (req.user.memberType === 'staff' || req.user.memberType === 'admin') {
-            const trackdays = await Trackday.find().populate('members.user', '-password -refreshToken -garage -__v').select('-__v').exec();
-            trackdays.forEach((trackday) => trackday._doc = { ...trackday._doc, guests: getRegDetails(trackday).guests })
-            return res.status(200).json(trackdays);
+        // We omit certain user fields for privacy
+        let userExclusions;
+        switch (req.user.memberType) {
+            case 'admin':
+                userExclusions = '-password -refreshToken -garage -__v';
+                break;
+            case 'staff':
+                userExclusions = '-contact -password -refreshToken -garage -__v';
+                break;
+            case 'coach':
+                userExclusions = '-contact -password -refreshToken -garage -__v';
+                break;
+            default:
+                return res.sendStatus(403)
         }
-        return res.sendStatus(403)
+        const trackdays = await Trackday.find().populate('members.user', userExclusions).select('-__v').exec();
+        trackdays.forEach((trackday) => trackday._doc = { ...trackday._doc, guests: getRegDetails(trackday).guests })
+        return res.status(200).json(trackdays);
     })
 ]
 
