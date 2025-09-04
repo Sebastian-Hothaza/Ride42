@@ -53,27 +53,10 @@ const Scanner = ({ onDecodeEnd, resetTrigger }) => {
         e.preventDefault();
         localStorage.setItem('preferredCamera', cameraId);
         
-        // Stop and destroy the current scanner
         if (scannerRef.current) {
-            await scannerRef.current.stop();
-            scannerRef.current.destroy();
-            scannerRef.current = null;
+            await scannerRef.current.setCamera(cameraId);
         }
-
-
-        // Create and start a new scanner with the selected camera
-        scannerRef.current = new QrScanner(videoRef.current, async (scanResult) => {
-            if (scannedRef.current) return;
-            scannedRef.current = true;
-            await scannerRef.current.stop();
-            onDecodeEnd(scanResult.data, scannerRef.current);
-        }, {
-            highlightScanRegion: true,
-            highlightCodeOutline: false,
-            preferredCamera: cameraId,
-        });
         
-        scannerRef.current.start();
         setActiveModal('');
     }
 
