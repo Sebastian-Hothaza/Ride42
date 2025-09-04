@@ -25,6 +25,7 @@ router.get('/stripeConfig', (req, res) => res.status(200).send({ publishableKey:
 
 // Users
 router.post('/login', userController.login)
+router.post('/logout', userController.logout)
 router.get('/verify/:userID/:trackdayID/:bikeID', userController.verify)
 router.get('/verify/:QRID/:trackdayID', userController.verifyQR)
 
