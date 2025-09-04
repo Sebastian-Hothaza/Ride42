@@ -62,11 +62,21 @@ function App() {
 
 
 
-function handleLogout() {
-    // TODO: API call to logout to wipe refresh token out?
-    localStorage.clear();
+async function handleLogout() {
+    try {
+        // Call logout endpoint to clear JWT cookies
+        await fetch(APIServer + 'logout', {
+            method: 'POST',
+            credentials: 'include'
+        });
+    } catch (err) {
+        console.error('Error during logout:', err);
+    }
+ 
+    localStorage.removeItem('user');
     setLoggedIn(false);
 }
+
 
 return (
     <>
