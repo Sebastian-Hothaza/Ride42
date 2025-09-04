@@ -19,13 +19,7 @@ const logger = require('../logger');
 // IE. when a clients accessToken expires, verifyJWT will ALWAYS verify refreshToken until user signs in again
 
 
-/*
-    --------------------------------------------- TODO ---------------------------------------------
-    API endpoint for logging out
-    
-    code cleanup & review
-    --------------------------------------------- TODO ---------------------------------------------
-*/
+
 
 /*
     --------------------------------------- FOR LATER REVIEW ---------------------------------------
@@ -94,6 +88,23 @@ exports.login = [
         }
     }),
 ]
+
+// Logs out a user by clearing their JWT cookies
+exports.logout = asyncHandler(async (req, res) => {
+    res.cookie('JWT_ACCESS_TOKEN', '', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        expires: new Date(0)
+    });
+    res.cookie('JWT_REFRESH_TOKEN', '', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        expires: new Date(0)
+    });
+    return res.sendStatus(200);
+});
 
 // Updates a users password. Requires JWT with matching userID OR admin
 exports.updatePassword = [
