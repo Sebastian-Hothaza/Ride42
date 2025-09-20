@@ -13,15 +13,14 @@ import errormark from './../../assets/error.png'
 import { loadStripe } from "@stripe/stripe-js"
 import { useElements, Elements, useStripe, PaymentElement } from "@stripe/react-stripe-js"
 
-
-// TODO; remove hardcoded 6 days restriction
-
-
 const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPIData, setActiveTab }) => {
 
 	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
 	const [stripePromise, setStripePromise] = useState(null); //Stripe promise that resolves to stripe object. Not guaranteed valid!
 	const [clientSecret, setClientSecret] = useState(''); //Client secret used to initialize elements
+	const [selectedTrackday, setSelectedTrackday] = useState(''); // Trackday selected for booking
+	const DAYS_LOCKOUT = 60;  // TODO: CORRECT TO 6
+	const CREDITCARD_FEE = 5;
 
 	// Returns true if a user is registered for a specified trackday ID
 	function userRegistered(trackdayID) {
@@ -31,16 +30,15 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 		return false
 	}
 
-	// Checks if a user is eligible to reschedule/cancel a trackday
-	function canModify(trackday) {
-		// Date in past
-		if (new Date(trackday.date).getTime() - Date.now() < 0) return false
+	function inPast(trackday) { return new Date(trackday.date).getTime() - Date.now() < 0 }
 
+	// Checks if a trackday is in the lockout period 
+	function inLockout(trackday) {
 		// In lockout period and payment method was not credit
-		const timeLockout = 6 * (1000 * 60 * 60 * 24);
+		const timeLockout = DAYS_LOCKOUT * (1000 * 60 * 60 * 24); 
 		const timeDifference = new Date(trackday.date).getTime() - Date.now()
-		if (trackday.paymentMethod !== 'credit' && timeDifference < timeLockout) return false;
-		return true;
+		if (timeDifference < timeLockout) return true;
+		return false;
 	}
 
 	// Pre-process allTrackdays (remove invalid, sort, format date, prepare for modal) & userTrackdays (Removed archived trackdays)
@@ -292,7 +290,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			<button className="actionButton" onClick={() => setActiveTab('garage')}>Go to My Garage</button>
 		</>
 	}
-	
+
 	// If user has not signed waiver, don't allow any trackday management
 	if (userInfo && !userInfo.waiver) {
 		return <>
@@ -303,7 +301,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			<button className="actionButton" onClick={() => window.location.href = '/waiver'}>Sign Waiver</button>
 		</>
 	}
-		
+
 
 	return (
 		<>
@@ -316,7 +314,9 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 					<div className={styles.dateAndPayment}>
 						<div className={styles.inputPairing}>
 							<label htmlFor="date">Date:</label>
-							<select name="date" id="date" form="Trackdays_bookTrackday" required>
+							<select name="date" id="date" form="Trackdays_bookTrackday" onChange={(e) => {
+								setSelectedTrackday(allTrackdays.find(td => td.id === e.target.value));
+							}} required>
 								<option key="dateNone" value="">- Choose date -</option>
 								{allTrackdays && allTrackdays.map((trackday) => <option key={trackday.id} value={trackday.id}>{trackday.prettyDate}</option>)}
 							</select>
@@ -326,9 +326,9 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 							<select name="paymentMethod" id="paymentMethod" form="Trackdays_bookTrackday" required>
 								<option key="paymentNone" value="">- Choose Payment Method -</option>
 								{userInfo.credits && <option key="credit" value="credit">Use trackday credit ({userInfo.credits} left)</option>}
-								<option key="etransfer" value="etransfer">Interac E-Transfer</option>
-								<option key="creditCard" value="creditCard">Credit Card(+$5)</option>
-
+								{selectedTrackday && !inLockout(selectedTrackday) && <option key="etransfer" value="etransfer">Interac E-Transfer (${selectedTrackday.ticketPrice.preReg})</option>}
+								{selectedTrackday && !inLockout(selectedTrackday) && <option key="creditCard" value="creditCard">Credit Card (${selectedTrackday.ticketPrice.preReg + CREDITCARD_FEE})</option>}
+								{selectedTrackday && inLockout(selectedTrackday) && <option key="gate" value="gate">Interac E-Transfer (${selectedTrackday.ticketPrice.gate})</option>}
 							</select>
 						</div>
 					</div>
@@ -394,7 +394,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 
 				<h1>My 2025 Trackdays</h1>
-				{userTrackdays &&
+				{userTrackdays && 
 					<div>
 						{userTrackdays.map((trackday) => {
 							return (
@@ -406,13 +406,13 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 										{(() => {
 											switch (trackday.paymentMethod) {
 												case 'etransfer':
-													return trackday.paid ? <div>E-Transfer received</div> : <div style={{ color: `var(--accent-color)` }}>E-Transfer not received</div>;
+													return trackday.paid ? <div>Payment received ✅</div> : <div style={{ color: `var(--accent-color)` }}>E-Transfer not received (${trackday.ticketPrice.preReg})</div>;
 												case 'creditCard':
-													return trackday.paid ? <div>Credit card payment received</div> : <div style={{ color: `var(--accent-color)` }}>Credit card payment not processed</div>;
+													return trackday.paid ? <div>Payment received ✅</div> : <div style={{ color: `var(--accent-color)` }}>Credit card payment not processed</div>;
 												case 'credit':
 													return <div>Used credit</div>;
 												case 'gate':
-													return <div>Registered at gate</div>;
+													return trackday.paid ? <div>Gate registration payment received ✅</div> : <div style={{ color: `var(--accent-color)` }}>E-Transfer not received (${trackday.ticketPrice.gate})</div>;
 												default:
 													return <div>Payment Method Unknown</div>;
 											}
@@ -421,9 +421,13 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 									{/* Reschedule/Cancel controls */}
 									<div className={styles.tdControls}>
 										{/* These buttons should not be shown if trackday is in past OR for gate registrations */}
-										{canModify(trackday) && trackday.paymentMethod != 'gate' && <>
-											{trackday.paymentMethod == 'creditCard' && !trackday.paid && <button onClick={() => handlePay(userInfo, trackday)}>Pay Now</button>}
+										{!inPast(trackday) && (!inLockout(trackday) || trackday.paymentMethod === 'credit')  && trackday.paymentMethod !== 'gate' && <>
+											{trackday.paymentMethod === 'creditCard' && !trackday.paid && <button onClick={() => handlePay(userInfo, trackday)}>Pay Now</button>}
 											<button onClick={() => setActiveModal({ type: 'reschedule', trackday: trackday })}>Reschedule</button>
+											<button onClick={() => setActiveModal({ type: 'cancel', trackday: trackday })}>Cancel</button>
+										</>}
+										{trackday.paymentMethod === 'gate' && !trackday.paid && <>
+											{trackday.paymentMethod === 'creditCard' && !trackday.paid && <button onClick={() => handlePay(userInfo, trackday)}>Pay Now</button>}
 											<button onClick={() => setActiveModal({ type: 'cancel', trackday: trackday })}>Cancel</button>
 										</>}
 									</div>
