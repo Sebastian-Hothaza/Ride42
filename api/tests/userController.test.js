@@ -1234,7 +1234,15 @@ describe('Testing verifyQR', () => {
 
 		await request(app)
 			.get("/verify/" + newQR.body[0].id + '/' + trackday.body.id)
-			.expect(200, { verified: false })
+			.expect(200, {
+				verified: false,
+				firstName: 'joe',
+				lastName: 'adams',
+				group: 'yellow',
+				bikeYear: '2009',
+				bikeMake: 'yamaha',
+				bikeModel: 'r6'
+			})
 	});
 
 	test("verifyQR for user - not checkedin for trackday", async () => {
@@ -1281,7 +1289,15 @@ describe('Testing verifyQR', () => {
 
 		await request(app)
 			.get("/verify/" + newQR.body[0].id + '/' + trackday.body.id)
-			.expect(200, { verified: false })
+			.expect(200, {
+				verified: false,
+				firstName: 'joe',
+				lastName: 'adams',
+				group: 'yellow',
+				bikeYear: '2009',
+				bikeMake: 'yamaha',
+				bikeModel: 'r6'
+			})
 	});
 
 	test("verifyQR for user", async () => {
@@ -1343,7 +1359,15 @@ describe('Testing verifyQR', () => {
 
 		await request(app)
 			.get("/verify/" + newQR.body[0].id + '/' + trackday.body.id)
-			.expect(200, { verified: true })
+			.expect(200, {
+				verified: true,
+				firstName: 'joe',
+				lastName: 'adams',
+				group: 'yellow',
+				bikeYear: '2009',
+				bikeMake: 'yamaha',
+				bikeModel: 'r6'
+			})
 	});
 })
 
