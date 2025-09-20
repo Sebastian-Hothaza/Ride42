@@ -42,7 +42,7 @@ const Rules = () => {
 
 	const HTML_OurPolicies = <div className={styles.rulesCard}>
 			<p>
-			Please familiarize yourself with our policies. If you have any questions, please email us at <a href="mailto: info@ride42.ca">info@ride42.ca</a>
+			Please familiarize yourself with our policies. If you have any questions, please email us at <a href="mailto: info@ride42.ca" style={{ color: "blue", textDecoration: "underline" }}>info@ride42.ca</a>
 			</p>
 		
 
@@ -58,6 +58,12 @@ const Rules = () => {
 				Pre-Registrations are accessible to our members thru the member dashboard. A pre-registration is a trackday booking made at least 7 days before the event. Your payment <span style={{ fontWeight: 'bold' }}> must </span> also be
 				received at least 7 days before the event; otherwise your booking will be cancelled.
 			</p>
+
+			<h3>Gate Registrations</h3>
+			<p>
+				Gate Registrations are accessible to our members thru the member dashboard or at the gate. A gate registration is a trackday booking made less than 7 days before the event. 
+			</p>
+
 			<h3>Pre-season bundles</h3>
 			<p>
 				Pre-season bundles are exempt from the 7 day requirements. However, it is still recommended to pre-book your days so that we can guarantee your spot and plan for your attendance. Bundles are for use solely by the purchaser
@@ -72,7 +78,7 @@ const Rules = () => {
 
 			<h3>Reschedule & Refunds</h3>
 			<p>
-				You can reschedule or cancel your trackday through your member dashboard. You cannot reschedule/cancel a trackday once it is less than 7 days away.
+				You can reschedule or cancel your trackday through your member dashboard. You cannot reschedule/cancel a trackday once it is less than 7 days away. Gate registrations are non-refundable.
 			</p>
 			
 
