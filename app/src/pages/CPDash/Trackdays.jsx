@@ -348,7 +348,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 
 					<div className={styles.layoutVote}>
-						<legend><h3>Which layouts would you like to vote for?</h3></legend>
+						<h3>Which layouts would you like to vote for?</h3>
 						<div className={styles.checkboxes}>
 							<div className={styles.checkboxPairing}>
 								<input type="checkbox" id="technical" name="layoutVote" value="technical"></input>
@@ -379,7 +379,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 					</div>
 
 					<div className={styles.layoutVote}>
-						<legend><h3>Do you understand our rules and policies?</h3></legend>
+						<h3>Do you understand our <a href="/rules" target="_blank" style={{ color: "blue", textDecoration: "underline" }}>rules and policies?</a></h3>
 						<div className={styles.checkboxes}>
 							<div className={styles.checkboxPairing}>
 								<input type="checkbox" id="ruleAgree" name="ruleAgree" required></input>
