@@ -160,6 +160,29 @@ const registerTrackday_creditcard =
 	${signature}
 </body>`
 
+const registerTrackday_gate =
+	`<body> 
+	<div class="default-style">
+		Hello {name}, <br />
+		<br />
+
+		You are now gate-registered for the trackday on {date}. ✅<br />
+		<br />
+
+		Your payment of \${price} can be sent via e-transfer to pay@ride42.ca.<br />
+		<br />
+
+		This registration is equivalent to a gate registration and as such is NON-REFUNDABLE. Once your payment is received, your spot is reserved. <br />
+		<br />
+
+		If you already have a QR sticker on your bike and have signed a waiver this year, you can skip morning check in and go directly to bike tech 😊<br />
+		<br />
+
+		We look forward to seeing you on track soon! 🚀
+	</div>
+	${signature}
+</body>`
+
 const unregisterTrackday =
 	`<body>
 	<div class="default-style">
@@ -243,4 +266,4 @@ const notifyPaid =
 
 
 
-module.exports = { welcomeUser, updateUser, passwordChange, passwordResetLink, registerTrackday_credit, registerTrackday_etransfer, registerTrackday_creditcard, unregisterTrackday, unregisterTrackday_admin, rescheduleTrackday, paymentReminder_etransfer, paymentReminder_creditcard, notifyPaid };
+module.exports = { welcomeUser, updateUser, passwordChange, passwordResetLink, registerTrackday_credit, registerTrackday_etransfer, registerTrackday_creditcard, registerTrackday_gate, unregisterTrackday, unregisterTrackday_admin, rescheduleTrackday, paymentReminder_etransfer, paymentReminder_creditcard, notifyPaid };
