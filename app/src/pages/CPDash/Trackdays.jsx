@@ -19,7 +19,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 	const [stripePromise, setStripePromise] = useState(null); //Stripe promise that resolves to stripe object. Not guaranteed valid!
 	const [clientSecret, setClientSecret] = useState(''); //Client secret used to initialize elements
 	const [selectedTrackday, setSelectedTrackday] = useState(''); // Trackday selected for booking
-	const DAYS_LOCKOUT = 60;  // TODO: CORRECT TO 6
+	const DAYS_LOCKOUT = 6;
 	const CREDITCARD_FEE = 5;
 
 	// Returns true if a user is registered for a specified trackday ID
