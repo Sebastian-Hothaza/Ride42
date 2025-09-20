@@ -587,25 +587,24 @@ exports.user_get = [
     asyncHandler(async (req, res, next) => {
         // JWT is valid. Verify user is allowed to access this resource and return the information
 
-        // We omit certain user fields for privacy
+        // We omit certain user fields for privacy if user is asking for info on another user
         let userExclusions;
-        switch (req.user.memberType) {
-            case 'admin':
-                userExclusions = '-password -refreshToken -__v';
-                break;
-            case 'staff':
-                userExclusions = '-contact -password -refreshToken -__v';
-                break;
-            case 'coach':
-                userExclusions = '-contact -password -refreshToken -__v';
-                break;
-            case 'regular':
-                if (req.user.id === req.params.userID) {
+        if (req.user.id === req.params.userID) {
+            userExclusions = '-password -refreshToken -__v';
+        } else {
+            switch (req.user.memberType) {
+                case 'admin':
                     userExclusions = '-password -refreshToken -__v';
                     break;
-                }
-            default:
-                return res.sendStatus(403)
+                case 'staff':
+                    userExclusions = '-contact -password -refreshToken -__v';
+                    break;
+                case 'coach':
+                    userExclusions = '-contact -password -refreshToken -__v';
+                    break;
+                default:
+                    return res.sendStatus(403)
+            }
         }
         let user = await User.findById(req.params.userID).populate("garage.bike", '-__v').select(userExclusions);
         return res.status(200).json(user);
