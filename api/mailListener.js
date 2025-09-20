@@ -89,13 +89,13 @@ function startMailListener() {
 			// Determine the e-transfer amount recevied
 			let pmtBalance = getAmount(mail.text);
 
-			// Find all trackdays that the user is a member of, etransfer, and have not been paid for
+			// Find all trackdays that the user is a member of, etransfer/gate, and have not been paid for
 			const userTrackdays = await Trackday.find({
 				members: {
 					$elemMatch: {
 						user: { $eq: user._id },
 						paid: false,
-						paymentMethod: 'etransfer'
+						paymentMethod: { $in: ['etransfer', 'gate'] }
 					}
 				}
 			}).populate('members.user', '-password -refreshToken -__v').exec();
@@ -105,8 +105,8 @@ function startMailListener() {
 			userTrackdays.forEach((trackday) => {
 				workingTrackdays.push({
 					id: trackday.id,
-					ticketPrice: trackday.ticketPrice.preReg,
-					paid: false
+					ticketPrice: trackday.paymentMethod === 'etransfer'? trackday.ticketPrice.preReg : trackday.ticketPrice.gate,
+					paid: trackday.paid
 				})
 			})
 
