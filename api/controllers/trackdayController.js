@@ -112,10 +112,6 @@ exports.register = [
         if (req.user.memberType === 'staff' || req.user.memberType === 'admin' || (req.user.id === req.params.userID)) {
             let [trackday, user] = await Promise.all([Trackday.findById(req.params.trackdayID).populate('members.user', '-password -refreshToken -__v').exec(), User.findById(req.params.userID)]);
 
-            // Deny gate registrations unless they come from staff or admin
-            if (req.body.paymentMethod === 'gate' && req.user.memberType !== 'admin' && req.user.memberType !== 'staff') {
-                return res.status(403).send({ msg: ['Only staff or admins can process gate registrations'] })
-            }
 
             // Deny if user is already registered to trackday
             const memberEntry = trackday.members.find((member) => member.user.equals(req.params.userID));
@@ -124,7 +120,7 @@ exports.register = [
             // Deny if user attempt to register for trackday < lockout period(7 default) away
             if (await controllerUtils.isInLockoutPeriod(req.params.trackdayID) && req.body.paymentMethod !== 'credit' && req.body.paymentMethod !== 'gate' && req.user.memberType !== 'admin') {
                 const displayMsg = user.credits ? ['Payment method must be trackday credits when trackday is less than ' + process.env.DAYS_LOCKOUT + ' days away.']
-                    : ['Pre-registration closes when trackday is less than ' + process.env.DAYS_LOCKOUT + ' days away. You can register at gate.']
+                    : ['Pre-registration closes when trackday is less than ' + process.env.DAYS_LOCKOUT + ' days away.']
                 logger.warn({ message: `Denied registration for ${user.firstName} ${user.lastName} since less than ${process.env.DAYS_LOCKOUT} days away` })
                 return res.status(403).send({ msg: displayMsg })
             }
@@ -169,7 +165,7 @@ exports.register = [
             trackday.members.push({
                 user: req.params.userID,
                 paymentMethod: req.body.paymentMethod,
-                paid: (req.body.paymentMethod === 'gate' || req.body.paymentMethod === 'credit') ? true : false,
+                paid: ((req.body.paymentMethod === 'gate' && (req.user.memberType === 'admin' || req.user.memberType === 'staff')) || req.body.paymentMethod === 'credit') ? true : false,
                 guests: req.body.guests,
                 layoutVote: req.body.layoutVote,
                 checkedIn: []
@@ -246,7 +242,7 @@ exports.unregister = [
             if (!memberEntry) return res.status(403).send({ msg: ['Cannot unregister; member is not registered for that trackday'] });
 
             // Deny if trying to unregister a gate entry
-            if (memberEntry.paymentMethod === 'gate' && req.user.memberType !== 'admin') return res.status(403).send({ msg: ['cannot unregister a gate registration'] })
+            if (memberEntry.paymentMethod === 'gate' && memberEntry.paid && req.user.memberType !== 'admin') return res.status(403).send({ msg: ['cannot unregister a paid gate registration'] })
 
 
             // If user attempt to unregister for trackday < lockout period(7 default) away, deny unregistration
@@ -581,8 +577,8 @@ exports.updatePaid = [
             // Check that user we want to mark as paid is actually registerd for the trackday
             if (!memberEntry) return res.status(403).send({ msg: ['Member is not registered for that trackday'] });
 
-            // Block changing paid status for credit and gate paymentMethods
-            if (memberEntry.paymentMethod === 'credit' || memberEntry.paymentMethod === 'gate') return res.status(403).send({ msg: ['Cannot change paid status on gate or credit registrations'] });
+            // Block changing paid status for credit 
+            if (memberEntry.paymentMethod === 'credit' ) return res.status(403).send({ msg: ['Cannot change paid status on credit registrations'] });
 
 
             // Prevent setting paid status to what it was already set to
