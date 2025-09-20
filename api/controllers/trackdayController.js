@@ -195,12 +195,16 @@ exports.register = [
                 case 'creditCard':
                     selectedMailTemplate = mailTemplates.registerTrackday_creditcard;
                     break;
+                case 'gate':
+                    selectedMailTemplate = mailTemplates.registerTrackday_gate;
+                    break;
             }
 
 
-            if (req.body.paymentMethod !== 'gate') { //We do not send email on gate registrations
+            // Send email unless it's a gate registration made by staff/admin
+            if (!(req.body.paymentMethod === 'gate' && (req.user.memberType === 'admin' || req.user.memberType === 'staff'))) {
                 sendEmail(user.contact.email, "Ride42 Trackday Registration Confirmation", selectedMailTemplate,
-                    { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: prettyDate, dueDate: prettyDueDate, price: trackday.ticketPrice.preReg })
+                    { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: prettyDate, dueDate: prettyDueDate, price: req.body.paymentMethod!=='gate'? trackday.ticketPrice.preReg : trackday.ticketPrice.gate } )
             }
 
             // Schedule payment reminder email
