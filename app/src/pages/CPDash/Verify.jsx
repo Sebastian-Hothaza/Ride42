@@ -49,8 +49,9 @@ const Verify = ({ APIServer, allTrackdays, allUsers }) => {
     }
 
     async function handleVerify(scanData) {
-        let user, bike, APIURL;
-        if (scanData.includes('https://ride42.ca/dashboard/')) {
+        // GET API URL
+        let APIURL, user, bike;
+        if (scanData.includes('https://ride42.ca/dashboard/')) { // Legacy QR code format
             const [userID, bikeID] = scanData.replace("https://ride42.ca/dashboard/", "").split("/");
             try {
                 user = allUsers.find((user) => user._id === userID)
@@ -62,21 +63,9 @@ const Verify = ({ APIServer, allTrackdays, allUsers }) => {
                 return;
             }
 
-        } else {
+        } else { // New QR code format
             const QRID = scanData.replace("https://Ride42.ca/QR/", "")
-            try {
-                let garageItem;
-                user = allUsers.find(user => {
-                    garageItem = user.garage.find(item => item.QRID === QRID);
-                    return garageItem ? user : undefined;
-                });
-                bike = garageItem.bike
-                APIURL = APIServer + 'verify/' + QRID + '/' + selectedTrackdayRef.current.id;
-            } catch (err) {
-                console.error(err);
-                setActiveModal({ type: 'failure', msg: 'no user/bike tied to this QR' });
-                return;
-            }
+            APIURL = APIServer + 'verify/' + QRID + '/' + selectedTrackdayRef.current.id;
         }
 
 
@@ -92,15 +81,18 @@ const Verify = ({ APIServer, allTrackdays, allUsers }) => {
             })
             if (response.ok) {
                 const data = await response.json();
+                const displayMsg = (user && bike) ? `${user.firstName}, ${user.lastName}\nGroup: ${user.group}\n${bike.year} ${bike.make} ${bike.model}`
+                    :
+                    `${data.firstName}, ${data.lastName}\nGroup: ${data.group}\n${data.bikeYear} ${data.bikeMake} ${data.bikeModel}`
                 if (data.verified === true) {
-                    setActiveModal({ type: 'success', msg: `${user.firstName}, ${user.lastName}\nGroup: ${user.group}\n${bike.year} ${bike.make} ${bike.model}` })
+                    setActiveModal({ type: 'success', msg: displayMsg })
                     setTimeout(() => {
                         setActiveModal('');
                         setResetTrigger(t => !t); // Reset scanner for next scan
                     }, 1500)
 
                 } else {
-                    setActiveModal({ type: 'failure', msg: `${user.firstName}, ${user.lastName}\nGroup: ${user.group}\n${bike.year} ${bike.make} ${bike.model}` })
+                    setActiveModal({ type: 'failure', msg: displayMsg })
                 }
             } else {
                 const data = await response.json();
