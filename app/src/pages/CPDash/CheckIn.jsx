@@ -50,36 +50,14 @@ const CheckIn = ({ APIServer, allTrackdays, allUsers }) => {
     // NOTE: handleCheckIn is called by scanner
 
     async function handleCheckIn(scanData) {
-        let user, bike, APIURL;
-        
-
         // Build API URL, depends on legacy or updated QR
+        let APIURL; 
         if (scanData.includes('https://ride42.ca/dashboard/')) {
             const [userID, bikeID] = scanData.replace("https://ride42.ca/dashboard/", "").split("/");
-            try {
-                user = allUsers.find((user) => user._id === userID)
-                bike = user.garage.find((garageItem) => garageItem.bike._id === bikeID).bike
-                APIURL = APIServer + 'checkin/' + user._id + '/' + selectedTrackdayRef.current.id + '/' + bike._id;
-            } catch (err) {
-                console.error(err);
-                setActiveModal({ type: 'failure', msg: 'no user/bike tied to this QR' });
-                return;
-            }
+            APIURL = APIServer + 'checkin/' + userID + '/' + selectedTrackdayRef.current.id + '/' + bikeID;
         } else {
             const QRID = scanData.replace("https://Ride42.ca/QR/", "")
-            try {
-                let garageItem;
-                user = allUsers.find(user => {
-                    garageItem = user.garage.find(item => item.QRID === QRID);
-                    return garageItem? user : undefined;
-                });
-                bike = garageItem.bike
-                APIURL = APIServer + 'checkin/' + QRID + '/' + selectedTrackdayRef.current.id;
-            } catch (err) {
-                console.error(err);
-                setActiveModal({ type: 'failure', msg: 'no user/bike tied to this QR' });
-                return;
-            }
+            APIURL = APIServer + 'checkin/' + QRID + '/' + selectedTrackdayRef.current.id;
         }
 
         setActiveModal({ type: 'loading', msg: 'Checking user in' });
@@ -99,7 +77,7 @@ const CheckIn = ({ APIServer, allTrackdays, allUsers }) => {
                 }, 1500)
             } else {
                 const data = await response.json();
-                setActiveModal({ type: 'failure', msg: `${data.msg.join('\n')}\n------------------------\n${user.firstName}, ${user.lastName}\n${bike.year} ${bike.make} ${bike.model}`})
+                setActiveModal({ type: 'failure', msg: `${data.msg.join('\n')}`})
             }
         } catch (err) {
             setActiveModal({ type: 'failure', msg: 'API Failure' })
