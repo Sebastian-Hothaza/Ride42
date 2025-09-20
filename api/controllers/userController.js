@@ -197,7 +197,7 @@ exports.resetPassword = [
     })
 ]
 
-// Returns true if the user/bike is checked in for a given trackday. PUBLIC.
+// Returns user/bike if checked in for a given trackday. Legacy. PUBLIC.
 exports.verify = [
     controllerUtils.validateUserID,
     controllerUtils.validateTrackdayID,
@@ -213,7 +213,7 @@ exports.verify = [
     })
 ]
 
-// Returns true if the user/bike is checked in for a given trackday. Used by QR PUBLIC.
+// Returns user/bike if checked in for a given trackday. PUBLIC.
 exports.verifyQR = [
     controllerUtils.validateQRID,
     controllerUtils.validateTrackdayID,
@@ -224,7 +224,16 @@ exports.verifyQR = [
 
         // Check that the member we want to verify for a trackday actually exists in the trackday
         const memberEntry = trackday.members.find((member) => member.user.equals(qr.user.id));
-        memberEntry && memberEntry.checkedIn.includes(qr.bike.id) ? res.status(200).json({ verified: true }) : res.status(200).json({ verified: false })
+        const isVerified = !!(memberEntry && memberEntry.checkedIn.includes(qr.bike.id));
+        return res.status(200).json({
+            verified: isVerified,
+            firstName: qr.user.firstName,
+            lastName: qr.user.lastName,
+            group: qr.user.group,
+            bikeYear: qr.bike.year,
+            bikeMake: qr.bike.make,
+            bikeModel: qr.bike.model
+        });
     })
 ]
 
