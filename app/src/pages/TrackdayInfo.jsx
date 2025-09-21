@@ -13,35 +13,40 @@ import readyToRide from '../assets/readyToRide.jpg'
 
 
 function TrackdayInfo() {
-	const [allTrackdays, setAllTrackdays] = useState('');
+	const [allTrackdays, setAllTrackdays] = useState(() => JSON.parse(localStorage.getItem('allTrackdays')) || []);
 	const { APIServer } = useOutletContext();
-	async function fetchAPIData() {
-		try {
-			const response = await fetch(APIServer + 'presentTrackdays');
-			if (!response.ok) throw new Error("Failed to get API Data for presentTrackdays")
-			const data = await response.json();
-			setAllTrackdays(data.filter(trackday => trackday.status !== "archived")); // exclude archived trackdays
-		} catch (err) {
-			console.log(err.message)
-		}
-	}
+	const datesArray = [];
 
+
+	// Load in all trackdays from API
 	useEffect(() => {
+		async function fetchAPIData() {
+			try {
+				const response = await fetch(APIServer + 'presentTrackdays');
+				if (!response.ok) throw new Error("Failed to get API Data for presentTrackdays")
+				const data = await response.json();
+				setAllTrackdays(data.filter(trackday => trackday.status !== "archived")); // exclude archived trackdays
+			} catch (err) {
+				console.log(err.message)
+			}
+		}
 		fetchAPIData();
 	}, [])
 
+	// Update localStorage if needed after API returns
+	useEffect(() => {
+		const storedAllTrackdays = JSON.parse(localStorage.getItem('allTrackdays'));
+		if (JSON.stringify(storedAllTrackdays) !== JSON.stringify(allTrackdays)) {
+			localStorage.setItem('allTrackdays', JSON.stringify(allTrackdays));
+		}
 
-
+	}, [allTrackdays]);
 
 	// Sort all trackdays as order may not be correct when received from back end
-	if (allTrackdays) allTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
-
-
-
-
-	const datesArray = [] // Array of objects in format [{date: x, layout: x, id: x}, ...]
-	// Build datesArray
 	if (allTrackdays) {
+		allTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
+
+		// Build datesArray
 		allTrackdays.map((trackday) => {
 			const date = new Date(trackday.date)
 			const weekday = date.toLocaleString('default', { weekday: 'short' })
@@ -87,11 +92,10 @@ function TrackdayInfo() {
 			}
 			datesArray.push(dateInfo)
 		})
+
 	}
 
-
-
-	const HTML_Dates = allTrackdays.length ?
+	const HTML_Dates = datesArray.length ?
 		<>
 			<ul id={styles.datesUl}>
 				{datesArray.map((dateInfo) => (
@@ -106,7 +110,7 @@ function TrackdayInfo() {
 			<NavLink className={styles.bookBtn} to="/dashboard">Book Your Day</NavLink>
 		</> :
 		<>
-		<div className={styles.priceEntry} style={{justifyContent: "center"}}>No dates available yet, check back soon!</div>
+			<div className={styles.priceEntry} style={{ justifyContent: "center" }}>One moment...</div>
 		</>
 
 
@@ -181,7 +185,7 @@ function TrackdayInfo() {
 
 	return (
 		<div className="content">
-			<Card heading='Dates & Layout' body={allTrackdays ? HTML_Dates : <h2 style={{ margin: 'auto' }}>One moment...</h2>} img={dates} inverted={false} />
+			<Card heading='Dates & Layout' body={HTML_Dates} img={dates} inverted={false} />
 			<Card heading='Schedule' body={HTML_Schedule} img={schedule} inverted={true} />
 			<Card heading='Pricing Info' body={HTML_PricingInfo} img={price} inverted={false} />
 			<Card heading='Ready to Ride?' body={HTML_OurTrackdays} img={readyToRide} inverted={true} />

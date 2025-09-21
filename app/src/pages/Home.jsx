@@ -24,11 +24,7 @@ const Home = () => {
 	const { APIServer } = useOutletContext();
 
 
-	if (nextTrackday) {
-		const timeDifference = new Date(nextTrackday.date) - new Date();
-		daysAway = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-		hoursAway = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-	}
+
 
 	// Loads in nextTrackday from API
 	useEffect(() => {
@@ -45,15 +41,20 @@ const Home = () => {
 		fetchAPIData();
 	}, [])
 
+	// Update localStorage if needed after API returns
 	useEffect(() => {
 		const storedTrackday = JSON.parse(localStorage.getItem('nextTrackday'));
 		if (JSON.stringify(storedTrackday) !== JSON.stringify(nextTrackday)) {
 			localStorage.setItem('nextTrackday', JSON.stringify(nextTrackday));
-			console.log('localStorage updated')
 		}
 	}, [nextTrackday])
+	
 
-
+	if (nextTrackday) {
+		const timeDifference = new Date(nextTrackday.date) - new Date();
+		daysAway = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+		hoursAway = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+	}
 
 
 	const HTML_Cancellation = <div>
