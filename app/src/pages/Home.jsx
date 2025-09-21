@@ -153,11 +153,28 @@ const Home = () => {
 		</ul>
 	</div>
 
+	const HTML_Countdown = (
+		<div>
+			Next Trackday is in{" "}
+			{daysAway > 0 && (
+				<>
+					{daysAway} day{daysAway > 1 ? "s" : ""}
+					
+				</>
+			)}
+			{hoursAway > 0 && daysAway === 0 && (
+				<>
+					{hoursAway} hour{hoursAway > 	1 ? "s" : ""}
+				</>
+			)}
+		</div>
+	)
+
 	return (
 		<>
 			<div id={styles.hero}>
 				{!CANCELLATION_NOTICE && <div id={styles.heroText}>
-					{nextTrackday ? <div>Next Trackday in... {daysAway} days, {hoursAway} hours</div> : <div>Next Trackday in...</div>}
+					{nextTrackday ? HTML_Countdown : <div>Next Trackday in...</div>}
 					<NavLink className={styles.bookBtn} style={{ backgroundColor: 'var(--accent-color)' }} to="/dashboard">Book Now!</NavLink>
 				</div>}
 			</div>
