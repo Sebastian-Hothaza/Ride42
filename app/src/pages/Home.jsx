@@ -52,7 +52,7 @@ const Home = () => {
 
 	if (nextTrackday) {
 		const timeDifference = new Date(nextTrackday.date) - new Date();
-		daysAway = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+		daysAway = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
 		hoursAway = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 	}
 
@@ -159,7 +159,6 @@ const Home = () => {
 			{daysAway > 0 && (
 				<>
 					{daysAway} day{daysAway > 1 ? "s" : ""}
-					
 				</>
 			)}
 			{hoursAway > 0 && daysAway === 0 && (
