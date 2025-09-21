@@ -19,29 +19,42 @@ import styles from './stylesheets/Home.module.css'
 const Home = () => {
 	const CANCELLATION_NOTICE = false; // Set to true to display cancellation notice.
 
-	const [nextTrackday, setNextTrackday] = useState('');
+	const [nextTrackday, setNextTrackday] = useState(() => JSON.parse(localStorage.getItem('nextTrackday')));
 	let daysAway, hoursAway; // Tracks how many days and hours away the next trackday is
 	const { APIServer } = useOutletContext();
-	async function fetchAPIData() {
-		try {
-			const response = await fetch(APIServer + 'presentTrackdays');
-			if (!response.ok) throw new Error("Failed to get API Data for presentTrackdays")
-			const data = await response.json();
-			setNextTrackday(data.filter(day => new Date(day.date) >= new Date()).sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))[0]);
-		} catch (err) {
-			console.log(err.message)
-		}
-	}
 
-	useEffect(() => {
-		fetchAPIData();
-	}, [])
 
 	if (nextTrackday) {
 		const timeDifference = new Date(nextTrackday.date) - new Date();
 		daysAway = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
 		hoursAway = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 	}
+
+	// Loads in nextTrackday from API
+	useEffect(() => {
+		async function fetchAPIData() {
+			try {
+				const response = await fetch(APIServer + 'presentTrackdays');
+				if (!response.ok) throw new Error("Failed to get API Data for presentTrackdays")
+				const data = await response.json();
+				setNextTrackday(data.filter(day => new Date(day.date) >= new Date()).sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))[0]);
+			} catch (err) {
+				console.log(err.message)
+			}
+		}
+		fetchAPIData();
+	}, [])
+
+	useEffect(() => {
+		const storedTrackday = JSON.parse(localStorage.getItem('nextTrackday'));
+		if (JSON.stringify(storedTrackday) !== JSON.stringify(nextTrackday)) {
+			localStorage.setItem('nextTrackday', JSON.stringify(nextTrackday));
+			console.log('localStorage updated')
+		}
+	}, [nextTrackday])
+
+
+
 
 	const HTML_Cancellation = <div>
 		<h1>The trackday on June 18 has been cancelled.</h1>
@@ -139,7 +152,6 @@ const Home = () => {
 		</ul>
 	</div>
 
-
 	return (
 		<>
 			<div id={styles.hero}>
@@ -168,7 +180,3 @@ const Home = () => {
 };
 
 export default Home;
-
-/*
-
-*/
