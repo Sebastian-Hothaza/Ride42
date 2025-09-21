@@ -100,13 +100,16 @@ function startMailListener() {
 				}
 			}).populate('members.user', '-password -refreshToken -__v').exec();
 
-			// Build local copy of trackdays we are trying to apply payments to
+			// Note each trackday in userTrackdays has full members array!
+			// Build local copy of trackdays we are trying to apply payments to; we select the fields we need ONLY
 			let workingTrackdays = []
 			userTrackdays.forEach((trackday) => {
+				// Find the member entry for this user
+				const memberEntry = trackday.members.find((member) => member.user.equals(user.id));
 				workingTrackdays.push({
 					id: trackday.id,
-					ticketPrice: trackday.paymentMethod === 'etransfer'? trackday.ticketPrice.preReg : trackday.ticketPrice.gate,
-					paid: trackday.paid
+					ticketPrice: memberEntry.paymentMethod === 'etransfer'? trackday.ticketPrice.preReg : trackday.ticketPrice.gate,
+					paid: memberEntry.paid,
 				})
 			})
 
