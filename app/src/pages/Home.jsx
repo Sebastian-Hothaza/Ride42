@@ -52,8 +52,9 @@ const Home = () => {
 
 	if (nextTrackday) {
 		const timeDifference = new Date(nextTrackday.date) - new Date();
-		daysAway = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
+		daysAway = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
 		hoursAway = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+		if (hoursAway > 10) daysAway += 1; // Round up if more than 10 hours away
 	}
 
 
