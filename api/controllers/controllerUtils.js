@@ -74,7 +74,7 @@ async function validateQRID(req, res, next) {
 async function isInLockoutPeriod(trackdayID) {
     const trackday = await Trackday.findById(trackdayID);
     const timeLockout = process.env.DAYS_LOCKOUT * (1000 * 60 * 60 * 24); // Lockout period in milliseconds
-    const allowance = 14 * (1000 * 60 * 60); // 14 hours in milliseconds
+    const allowance = (14*60 + 1) * 60 * 1000; // 14 hours and 1 min milliseconds
     const adjustedLockout = timeLockout - allowance; // Subtract allowance from the lockout period
 
     const timeDifference = trackday.date.getTime() - Date.now();
