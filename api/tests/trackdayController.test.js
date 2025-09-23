@@ -810,7 +810,7 @@ describe('Testing registering', () => {
 			.expect(200)
 	});
 
-	test("gate registration", async () => {
+	test("gate registration - user", async () => {
 		const trackday = await addTrackday(getFormattedDate(2))
 
 		// Add bike to garage
@@ -821,12 +821,52 @@ describe('Testing registering', () => {
 			.set('Cookie', user1Cookie)
 			.expect(201);
 
-		// Register for trackday at gate - unauthorized
+		// Register for trackday at gate
 		await request(app)
 			.post('/register/' + user1.body.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'gate', guests: 3, layoutVote: 'none' })
-			.expect(403)
+			.expect(200)
+
+
+		// Check registration was processed correctly 
+		await request(app)
+			.get("/presentTrackdays/" + user1.body.id)
+			.expect(200, [{
+				id: trackday.body.id,
+				date: getFormattedDate(2).slice(0, getFormattedDate(2).length - 1) + ':00.000Z',
+				ticketPrice: { preReg: 170, gate: 190, bundle: 150 },
+				status: 'regOpen',
+				layout: 'tbd',
+				green: 0,
+				yellow: 1,
+				red: 0,
+				guests: 3,
+				groupCapacity: process.env.GROUP_CAPACITY,
+				votes: {
+					technical: 0,
+					Rtechnical: 0,
+					alien: 0,
+					Ralien: 0,
+					modified: 0,
+					Rmodified: 0,
+					long: 0
+				},
+				paid: false,
+				paymentMethod: 'gate'
+			},])
+	});
+
+	test("gate registration - admin", async () => {
+		const trackday = await addTrackday(getFormattedDate(2))
+
+		// Add bike to garage
+		await request(app)
+			.post("/garage/" + user1.body.id)
+			.type("form")
+			.send({ year: '2009', make: 'Yamaha', model: "R6" })
+			.set('Cookie', user1Cookie)
+			.expect(201);
 
 		// Register for trackday at gate
 		await request(app)
