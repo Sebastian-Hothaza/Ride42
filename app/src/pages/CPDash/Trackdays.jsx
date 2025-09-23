@@ -19,7 +19,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 	const [stripePromise, setStripePromise] = useState(null); //Stripe promise that resolves to stripe object. Not guaranteed valid!
 	const [clientSecret, setClientSecret] = useState(''); //Client secret used to initialize elements
 	const [selectedTrackday, setSelectedTrackday] = useState(''); // Trackday selected for booking
-	const DAYS_LOCKOUT = 6;
+	const DAYS_LOCKOUT = 7;
 	const CREDITCARD_FEE = 5;
 
 	// Returns true if a user is registered for a specified trackday ID
@@ -35,10 +35,10 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 	// Checks if a trackday is in the lockout period 
 	function inLockout(trackday) {
 		// In lockout period and payment method was not credit
-		const timeLockout = DAYS_LOCKOUT * (1000 * 60 * 60 * 24); 
+		const timeLockout = DAYS_LOCKOUT * (1000 * 60 * 60 * 24); // 7 days exactly in MS
+		const offset = (14*60 + 1) * 60 * 1000; // 14 hours + 1 minute in MS. This corresponds to 04:01UTC which is when lockout should start in UTC
 		const timeDifference = new Date(trackday.date).getTime() - Date.now()
-		if (timeDifference < timeLockout) return true;
-		return false;
+		return timeDifference < (timeLockout - offset);
 	}
 
 	// Pre-process allTrackdays (remove invalid, sort, format date, prepare for modal) & userTrackdays (Removed archived trackdays)
