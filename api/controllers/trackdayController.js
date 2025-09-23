@@ -251,7 +251,7 @@ exports.unregister = [
 
             // If user attempt to unregister for trackday < lockout period(7 default) away, deny unregistration
             if (await controllerUtils.isInLockoutPeriod(req.params.trackdayID) &&
-                memberEntry.paymentMethod !== 'credit' && req.body.paymentMethod !== 'gate' && req.user.memberType !== 'admin') {
+                memberEntry.paymentMethod !== 'credit' && memberEntry.paymentMethod !== 'gate' && req.user.memberType !== 'admin') {
                 return res.status(403).send({ msg: ['Cannot unregister for trackday <' + process.env.DAYS_LOCKOUT + ' days away.'] })
             }
 
