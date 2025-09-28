@@ -7,7 +7,7 @@ primary_region = 'yyz'
   STRIPE_FEE=5
   DAYS_LOCKOUT=7
   LATE_ALLOWANCE_HOURS=12
-  GROUP_CAPACITY=25
+  GROUP_CAPACITY=30
 
 [http_service]
   internal_port = 443
