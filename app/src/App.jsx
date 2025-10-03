@@ -9,7 +9,7 @@ import Footer from './components/Footer';
 
 
 function App() {
-    const APIServer = (process.env.NODE_ENV === 'production') ? 'https://api.ride42.ca/' : 'http://localhost:3000/'
+    const APIServer = (process.env.NODE_ENV === 'production') ? 'https://api.ride42.ca/' : 'http://10.0.0.4:3000/'
     const [loggedIn, setLoggedIn] = useState(false);
 
 

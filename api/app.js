@@ -49,7 +49,7 @@ if (simulateSlowNetwork) {
 const cors = require('cors')
 
 app.use(cors({
-	origin: process.env.NODE_ENV === 'production' ? "https://ride42.ca" : "http://localhost:5173", credentials: true,
+	origin: process.env.NODE_ENV === 'production' ? "https://ride42.ca" : "http://10.0.0.4:5173", credentials: true,
 }));
 
 // Do not parse webhook with json since raw body is needed

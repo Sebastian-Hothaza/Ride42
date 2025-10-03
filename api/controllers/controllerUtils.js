@@ -117,9 +117,9 @@ async function verifyJWT(req, res, next) {
 
             // Attach newly created accessToken to httpOnly cookie
             res.cookie('JWT_ACCESS_TOKEN', accessToken, {
-                secure: true,
+                secure: process.env.NODE_ENV === 'production',  
                 httpOnly: true,
-                sameSite: 'strict',
+                sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
                 maxAge: process.env.JWT_ACCESS_TOKEN_EXPIRATION
             })
 

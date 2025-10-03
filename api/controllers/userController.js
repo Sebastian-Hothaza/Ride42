@@ -66,15 +66,15 @@ exports.login = [
 
                 // Attach JWT's to httpOnly cookie
                 res.cookie('JWT_ACCESS_TOKEN', accessToken, {
-                    secure: true,
+                    secure: process.env.NODE_ENV === 'production',
                     httpOnly: true,
-                    sameSite: 'strict',
+                    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
                     maxAge: process.env.JWT_ACCESS_TOKEN_EXPIRATION
                 })
                 res.cookie('JWT_REFRESH_TOKEN', refreshToken, {
-                    secure: true,
+                    secure: process.env.NODE_ENV === 'production',
                     httpOnly: true,
-                    sameSite: 'strict',
+                    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
                     maxAge: process.env.JWT_REFRESH_TOKEN_EXPIRATION
                 })
 
@@ -93,14 +93,14 @@ exports.login = [
 exports.logout = asyncHandler(async (req, res) => {
     res.cookie('JWT_ACCESS_TOKEN', '', {
         httpOnly: true,
-        secure: true,
-        sameSite: 'strict',
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
         expires: new Date(0)
     });
     res.cookie('JWT_REFRESH_TOKEN', '', {
         httpOnly: true,
-        secure: true,
-        sameSite: 'strict',
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
         expires: new Date(0)
     });
     return res.sendStatus(200);
