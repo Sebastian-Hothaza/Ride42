@@ -156,7 +156,6 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 			{!userInfo ? <div>...</div> :
 				<div className={styles.content}>
 					<h1>My Profile</h1>
-					{!userInfo.waiver && <button style={{backgroundColor: 'red'}} onClick={() => window.location.href = '/waiver'}>! Sign Waiver !</button>}
 					<div className={styles.inputSection}>
 						<div id={styles.groupContainer}>
 							<div className='capitalizeEach'>Group: {userInfo.group}</div>
