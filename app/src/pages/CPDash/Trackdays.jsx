@@ -15,6 +15,15 @@ import { useElements, Elements, useStripe, PaymentElement } from "@stripe/react-
 
 const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPIData, setActiveTab }) => {
 
+	// USED AT SEASON END
+	return <>
+		<h1>2026 Trackday Planning In Progress</h1>
+		<br></br><br></br>
+		<h2>Check back soon!</h2>
+		<br></br><br></br>
+	</>
+
+
 	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
 	const [stripePromise, setStripePromise] = useState(null); //Stripe promise that resolves to stripe object. Not guaranteed valid!
 	const [clientSecret, setClientSecret] = useState(''); //Client secret used to initialize elements
@@ -36,7 +45,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 	function inLockout(trackday) {
 		// In lockout period and payment method was not credit
 		const timeLockout = DAYS_LOCKOUT * (1000 * 60 * 60 * 24); // 7 days exactly in MS
-		const offset = (14*60 + 1) * 60 * 1000; // 14 hours + 1 minute in MS. This corresponds to 04:01UTC which is when lockout should start in UTC
+		const offset = (14 * 60 + 1) * 60 * 1000; // 14 hours + 1 minute in MS. This corresponds to 04:01UTC which is when lockout should start in UTC
 		const timeDifference = new Date(trackday.date).getTime() - Date.now()
 		return timeDifference < (timeLockout - offset);
 	}
@@ -394,7 +403,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 
 				<h1>My 2025 Trackdays</h1>
-				{userTrackdays && 
+				{userTrackdays &&
 					<div>
 						{userTrackdays.map((trackday) => {
 							return (
@@ -421,7 +430,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 									{/* Reschedule/Cancel controls */}
 									<div className={styles.tdControls}>
 										{/* These buttons should not be shown if trackday is in past OR for gate registrations */}
-										{!inPast(trackday) && (!inLockout(trackday) || trackday.paymentMethod === 'credit')  && trackday.paymentMethod !== 'gate' && <>
+										{!inPast(trackday) && (!inLockout(trackday) || trackday.paymentMethod === 'credit') && trackday.paymentMethod !== 'gate' && <>
 											{trackday.paymentMethod === 'creditCard' && !trackday.paid && <button onClick={() => handlePay(userInfo, trackday)}>Pay Now</button>}
 											<button onClick={() => setActiveModal({ type: 'reschedule', trackday: trackday })}>Reschedule</button>
 											<button onClick={() => setActiveModal({ type: 'cancel', trackday: trackday })}>Cancel</button>
