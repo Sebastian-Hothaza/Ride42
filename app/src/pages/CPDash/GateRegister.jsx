@@ -30,6 +30,11 @@ const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
     // Removed archived trackdays
     allTrackdays = allTrackdays.filter((td) => td.status != 'archived')
 
+    // Protect against no trackdays
+    if (allTrackdays.length === 0) {
+        return <div>No Trackdays available</div>;
+    }
+
     // Set the selected trackday 
     let selectedTrackday;
     if (selectedTrackdayId) selectedTrackday = allTrackdays.find((td) => td.id === selectedTrackdayId)

@@ -23,7 +23,7 @@ const ManageQR = ({ APIServer, allUsers, allTrackdaysFULL, fetchAPIData, }) => {
     const [curUserAssign, setCurUserAssign] = useState('')
     const [curBikeAssign, setCurBikeAssign] = useState('')
 
-    const [selectedTrackdayId, setSelectedTrackdayId] = useState(''); // Tracks what the current working trackdayId is 
+    const [selectedTrackdayId, setSelectedTrackdayId] = useState(null); // Tracks what the current working trackdayId is 
     const selectedTrackdayRef = useRef(null); // Ref to keep track of the latest selectedTrackday
 
     const [hasQRID, setHasQRID] = useState(true);
@@ -65,13 +65,12 @@ const ManageQR = ({ APIServer, allUsers, allTrackdaysFULL, fetchAPIData, }) => {
         const upcomingTrackdays = allTrackdaysFULL.filter((trackday) => {
             return new Date(trackday.date).getTime() + lateAllowance >= Date.now(); // Trackday is in the future
         });
-        if (upcomingTrackdays.length === 0) return console.error('no more TD'); // Protect against no trackdays
-
-        upcomingTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0));
-        setSelectedTrackdayId(upcomingTrackdays[0]._id); // This prompts render and sets ref
+        // Protect against no trackdays
+        if (upcomingTrackdays.length !== 0) {
+            upcomingTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0));
+            setSelectedTrackdayId(upcomingTrackdays[0]._id); // This prompts render and sets ref
+        }
     }
-
-   
 
     async function handleGenerateQRSubmit(e) {
         e.preventDefault();
@@ -223,8 +222,6 @@ const ManageQR = ({ APIServer, allUsers, allTrackdaysFULL, fetchAPIData, }) => {
         if (container && container.hasChildNodes()) downloadAllImages();
     }, [b64Arr]);
 
-
-
     return (
         <>
             <ScrollToTop />
@@ -232,14 +229,14 @@ const ManageQR = ({ APIServer, allUsers, allTrackdaysFULL, fetchAPIData, }) => {
 
                 {/* ASSIGN QR */}
 
-                {selectedTrackdayRef.current &&
+                
                     <div className={styles.QRCell}>
                         <h2>Assign QR</h2>
                         <form>
                             {/* Select trackday filter*/}
 
                             <label htmlFor="trackdayFilter">Trackday Filter:</label>
-                            <select name="trackday" id="trackday" value={selectedTrackdayId} onChange={() => setSelectedTrackdayId(trackday.value)} required>
+                            <select name="trackday" id="trackday" value={selectedTrackdayId? selectedTrackdayId : 'all'} onChange={() => setSelectedTrackdayId(trackday.value)} required>
                                 <option key="none" value='all'>ALL</option>
                                 {allTrackdaysFULL.map((trackday) => <option key={trackday._id} value={trackday._id}>{trackday.prettyDate}</option>)}
                             </select>
@@ -270,7 +267,7 @@ const ManageQR = ({ APIServer, allUsers, allTrackdaysFULL, fetchAPIData, }) => {
                             }
                         </form>
                     </div>
-                }
+                
 
                 {/* GENERATE DECALS */}
                 <div className={styles.QRCell}>
