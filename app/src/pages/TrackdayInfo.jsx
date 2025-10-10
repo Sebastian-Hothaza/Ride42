@@ -110,7 +110,7 @@ function TrackdayInfo() {
 			<NavLink className={styles.bookBtn} to="/dashboard">Book Your Day</NavLink>
 		</> :
 		<>
-			<div className={styles.priceEntry} style={{ justifyContent: "center" }}>One moment...</div>
+			<div className={styles.priceEntry} style={{ justifyContent: "center" }}>Coming soon! ⏰</div>
 		</>
 
 
