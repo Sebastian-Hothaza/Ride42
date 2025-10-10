@@ -17,6 +17,10 @@ import errormark from './../assets/error.png'
 
 
 const Waiver = () => {
+	// End of season block
+	// CURRENT_YEAR MUST be updayed before this block is removed	
+	return <div className="content"><Card heading='Liability Waiver' body={<div>Coming soon</div>} inverted={false} /></div>
+
 	const loggedInUser = JSON.parse(localStorage.getItem("user"))
 	const { APIServer } = useOutletContext();
 	const navigate = useNavigate();
@@ -104,8 +108,8 @@ const Waiver = () => {
 
 
 		// Send PDF to server
-	
-		
+
+
 		try {
 			const payload = {
 				waiver: doc.output('datauristring').split(',')[1], // Extract Base64 string
