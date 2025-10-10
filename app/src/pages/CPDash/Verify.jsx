@@ -42,7 +42,10 @@ const Verify = ({ APIServer, allTrackdays, allUsers }) => {
         const upcomingTrackdays = allTrackdays.filter((trackday) => {
             return new Date(trackday.date).getTime() + lateAllowance >= Date.now(); // Trackday is in the future
         });
-        if (upcomingTrackdays.length === 0) return console.error('no more TD'); // Protect against no trackdays
+        // Protect against no trackdays
+        if (upcomingTrackdays.length === 0){
+            return <div>No Trackdays available to scan for</div>; 
+        }
 
         upcomingTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0));
         setSelectedTrackdayId(upcomingTrackdays[0].id); // This prompts render and sets ref
