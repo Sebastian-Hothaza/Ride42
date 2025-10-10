@@ -33,7 +33,8 @@ const Home = () => {
 				const response = await fetch(APIServer + 'presentTrackdays');
 				if (!response.ok) throw new Error("Failed to get API Data for presentTrackdays")
 				const data = await response.json();
-				setNextTrackday(data.filter(day => new Date(day.date) >= new Date()).sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))[0]);
+				const upcoming = data.filter(day => new Date(day.date) >= new Date()).sort((a, b) => new Date(a.date) - new Date(b.date));
+				if (upcoming.length > 0) setNextTrackday(upcoming[0]);
 			} catch (err) {
 				console.log(err.message)
 			}
@@ -48,7 +49,6 @@ const Home = () => {
 			localStorage.setItem('nextTrackday', JSON.stringify(nextTrackday));
 		}
 	}, [nextTrackday])
-	
 
 	if (nextTrackday) {
 		const timeDifference = new Date(nextTrackday.date) - new Date();
@@ -164,7 +164,12 @@ const Home = () => {
 			)}
 			{hoursAway > 0 && daysAway === 0 && (
 				<>
-					{hoursAway} hour{hoursAway > 	1 ? "s" : ""}
+					{hoursAway} hour{hoursAway > 1 ? "s" : ""}
+				</>
+			)}
+			{hoursAway === 0 && (
+				<>
+					A few minutes! Get here quick!
 				</>
 			)}
 		</div>
@@ -173,8 +178,8 @@ const Home = () => {
 	return (
 		<>
 			<div id={styles.hero}>
-				{!CANCELLATION_NOTICE && <div id={styles.heroText}>
-					{nextTrackday ? HTML_Countdown : <div>Next Trackday in...</div>}
+				{!CANCELLATION_NOTICE && nextTrackday && <div id={styles.heroText}>
+					{HTML_Countdown}
 					<NavLink className={styles.bookBtn} style={{ backgroundColor: 'var(--accent-color)' }} to="/dashboard">Book Now!</NavLink>
 				</div>}
 			</div>
