@@ -2,7 +2,6 @@ import styles from './stylesheets/StaffTools.module.css'
 import ScrollToTop from "../../components/ScrollToTop";
 
 
-import waiver from '../../assets/staffTools/waiver.png'
 import checkin from '../../assets/staffTools/checkin.png'
 import manageTrackdays from '../../assets/staffTools/manageTrackdays.png'
 import gate from '../../assets/staffTools/gate.png'

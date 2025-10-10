@@ -10,7 +10,6 @@ import Profile from './CPDash/Profile'
 import Garage from './CPDash/Garage'
 
 import StaffTools from './CPDash/StaffTools'
-import Waiver from './CPDash/Waiver'
 import GateRegister from './CPDash/GateRegister'
 import CheckIn from './CPDash/CheckIn'
 import Verify from './CPDash/Verify'
@@ -126,7 +125,6 @@ const ControlPanel = ({ APIServer }) => {
 
                     {/* STAFF */}
                     {activeTab == 'staffTools' && <StaffTools setActiveTab={setActiveTab} memberType={loggedInUser.memberType} APIServer={APIServer} />}
-                    {activeTab == 'waiver' && <Waiver APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} />}
                     {activeTab == 'gateRegister' && <GateRegister APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdays={allTrackdays} />}
                     {activeTab == 'trackdayState' && <TrackdayState fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdays={allTrackdays} allTrackdaysFULL={allTrackdaysFULL} />}
                     {activeTab == 'checkIn' && <CheckIn APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers} />}
