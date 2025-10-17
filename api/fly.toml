@@ -10,7 +10,7 @@ primary_region = 'yyz'
   GROUP_CAPACITY=30
 
 [http_service]
-  internal_port = 443
+  internal_port = 3000
   force_https = true
   processes = ['app']
   auto_stop_machines = "stop"

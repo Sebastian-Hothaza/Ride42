@@ -9,11 +9,8 @@ const http = require('http');
 const logger = require('../logger');
 const mongoose = require('../mongoConfig');
 
-/**
- * Get port from environment and store in Express.
- */
-
-const port = normalizePort(process.env.NODE_ENV === 'production' ? 443 : 3000);
+// Set port
+const port = normalizePort(3000);
 app.set('port', port);
 
 /**
