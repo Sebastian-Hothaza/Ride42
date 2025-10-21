@@ -24,6 +24,9 @@ echo "🛑 Stopping and removing old container (if exists)..."
 docker stop ${CONTAINER_NAME} &>/dev/null
 docker rm ${CONTAINER_NAME} &>/dev/null
 
+echo "🧹 Pruning unused Docker images..."
+docker image prune -f &>/dev/null
+
 echo "🚀 Starting new container..."
 docker run -d \
   --name ${CONTAINER_NAME} \
@@ -32,12 +35,14 @@ docker run -d \
   -p ${PORT_MAPPING} \
   ${IMAGE_NAME}:${IMAGE_TAG} \
   &>/dev/null
-
+ 
 # Health check
 echo "🔍 Checking API health at ${HEALTHCHECK_URL}..."
 sleep 3  # Give the container a moment to start
 if curl -s --head --request GET ${HEALTHCHECK_URL} | grep "200 OK" > /dev/null; then
   echo "✅ API is healthy and responding at ${HEALTHCHECK_URL}"
 else
-  echo "⚠️ API did not respond with 200 OK. Check logs or container status."
+  echo "⚠️ API did not respond with 200 OK."
+  echo "📄 Container logs from ${CONTAINER_NAME}:"
+  docker logs ${CONTAINER_NAME}
 fi
