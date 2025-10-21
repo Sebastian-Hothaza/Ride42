@@ -3,11 +3,13 @@ primary_region = 'yyz'
 
 # DO NOT STORE SENSITIVE ENV HERE! Use fly secrets instead.
 [env]
-  MAIL_LISTENER_MACHINE="1857501f1034d8"
+  CORS_ORIGIN="https://ride42.ca"
   STRIPE_FEE=5
   DAYS_LOCKOUT=7
   LATE_ALLOWANCE_HOURS=12
   GROUP_CAPACITY=30
+  MAIL_LISTENER_MACHINE="1857501f1034d8"
+  PORT=3000
 
 [http_service]
   internal_port = 3000
