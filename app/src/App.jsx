@@ -9,7 +9,6 @@ import Footer from './components/Footer';
 
 
 function App() {
-    const APIServer = (process.env.NODE_ENV === 'production') ? 'https://api.ride42.ca/' : 'http://10.0.0.4:3000/'
     const [loggedIn, setLoggedIn] = useState(false);
 
 
@@ -19,7 +18,7 @@ function App() {
     // Ping API to wake it up, FLY machine can take 2-3 seconds to wake
     async function wakeAPI() {
         try {
-            await fetch(APIServer);
+            await fetch(import.meta.env.VITE_API_SERVER);
         } catch (err) {
             console.log('Could not contact API')
         }
@@ -36,7 +35,7 @@ function App() {
     async function handleLogin(e) {
         const formData = new FormData(e.target);
         try {
-            const response = await fetch(APIServer + 'login', {
+            const response = await fetch(import.meta.env.VITE_API_SERVER + 'login', {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
@@ -65,7 +64,7 @@ function App() {
 async function handleLogout() {
     try {
         // Call logout endpoint to clear JWT cookies
-        await fetch(APIServer + 'logout', {
+        await fetch(import.meta.env.VITE_API_SERVER + 'logout', {
             method: 'POST',
             credentials: 'include'
         });
@@ -83,11 +82,9 @@ return (
         <Navbar />
         <ScrollToTop />
         <div className='main'>
-            <Outlet context={{ APIServer, handleLogin, loggedIn, setLoggedIn, handleLogout }} />
+            <Outlet context={{ APIServer: import.meta.env.VITE_API_SERVER, handleLogin, loggedIn, setLoggedIn, handleLogout }} />
             <Footer />
         </div>
-
-
     </>
 )
 }
