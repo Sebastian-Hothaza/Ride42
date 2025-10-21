@@ -3,6 +3,44 @@
  * Module dependencies.
  */
 require('dotenv').config();
+// CHECK REQUIRED ENV VARIABLES
+const requiredEnv = [
+  'NODE_ENV',
+  'MONGODB_URI',
+
+  'ADMIN_EMAIL',
+  'ADMIN_EMAIL_HOST',
+  'ADMIN_EMAIL_PASSWORD',
+
+  'CORS_ORIGIN',
+
+  'JWT_ACCESS_CODE',
+  'JWT_REFRESH_CODE',
+  'JWT_ACCESS_TOKEN_EXPIRATION',
+  'JWT_REFRESH_TOKEN_EXPIRATION',
+
+  'DAYS_LOCKOUT',
+  'LATE_ALLOWANCE_HOURS',
+  'GROUP_CAPACITY',
+
+  'STRIPE_PUBLISHABLE_KEY',
+  'STRIPE_SECRET_KEY',
+  'STRIPE_WEBHOOK_SECRET',
+  'STRIPE_FEE',
+
+  'MAIL_LISTENER_MACHINE',
+  'PORT'
+
+];
+
+requiredEnv.forEach((key) => {
+  if (!process.env[key]) {
+    console.error(`❌ Missing required environment variable: ${key}`);
+    process.exit(1);
+  }
+});
+
+
 const app = require('../app');
 const debug = require('debug')('api:server');
 const http = require('http');
@@ -10,7 +48,7 @@ const logger = require('../logger');
 const mongoose = require('../mongoConfig');
 
 // Set port
-const port = normalizePort(3000);
+const port = normalizePort(process.env.PORT);
 app.set('port', port);
 
 /**
