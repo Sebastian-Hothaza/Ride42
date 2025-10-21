@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "start": "NODE_ENV=production node ./bin/www",
-    "devstart": "NODE_ENV=development nodemon ./bin/www",
-    "test": "jest --watchAll --maxWorkers=4",
+    "devstart": "NODE_ENV=development CORS_ORIGIN=http://10.0.0.4:5173 nodemon ./bin/www",
+    "test": "GROUP_CAPACITY=3 jest --watchAll --maxWorkers=4",
     "deploy": "fly deploy && flyctl machines update 1857501f1034d8 --autostop='off'",
+    "deploy_local": "./dockerDeploy.sh",
     "logs": "fly logs -a ride42api",
     "mongosh": "mongosh \"mongodb+srv://ride42.gxtpw2r.mongodb.net/\" --apiVersion 1 --username sebastianhothaza"
   },
