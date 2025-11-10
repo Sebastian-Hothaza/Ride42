@@ -12,12 +12,12 @@ import checkmark from './../../assets/checkmark.png'
 import errormark from './../../assets/error.png'
 
 
-const CheckIn = ({ APIServer, allTrackdays, allUsers }) => {
+const CheckIn = ({ APIServer, allTrackdays }) => {
     const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
     const [selectedTrackdayId, setSelectedTrackdayId] = useState(''); // Tracks what the current working trackdayId is 
     const selectedTrackdayRef = useRef(null); // Ref to keep track of the latest selectedTrackday
     const [resetTrigger, setResetTrigger] = useState(0); // Used to reset the scanner when a scan is successful
-
+    const userMemberType = JSON.parse(localStorage.getItem("user"))?.memberType;
 
     // Augment prettydate of allTrackdays to be a nice format
     allTrackdays.forEach((trackday) => {
@@ -89,11 +89,13 @@ const CheckIn = ({ APIServer, allTrackdays, allUsers }) => {
 
     }
 
+
     return (
         <>
             <ScrollToTop />
             {selectedTrackdayRef.current &&
                 <div className={styles.content}>
+                    {userMemberType === 'racer' ? <><h1>Self Check In - {selectedTrackdayRef.current.prettyDate}</h1></> :
                     <h1>Check In -
                         <form>
                             <div className={styles.inputPairing}>
@@ -103,6 +105,7 @@ const CheckIn = ({ APIServer, allTrackdays, allUsers }) => {
                             </div>
                         </form>
                     </h1>
+                    }
                     <Scanner onDecodeEnd={handleCheckIn} resetTrigger={resetTrigger}/>
                 </div>
             }

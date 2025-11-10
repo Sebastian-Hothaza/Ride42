@@ -10,8 +10,10 @@ import modalStyles from '../../components/stylesheets/Modal.module.css'
 import checkmark from './../../assets/checkmark.png'
 import errormark from './../../assets/error.png'
 
+import CheckIn from './CheckIn'
 
-const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
+
+const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab, allTrackdays }) => {
 	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
 
 	async function handleRemoveBike(bikeID) {
@@ -81,6 +83,7 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 					})}
 				</div>
 				<button style={{ width: 'auto', margin: 'auto' }} onClick={() => setActiveModal({ type: 'addBike' })}>Add Bike</button>
+				<button style={{ width: 'auto', margin: 'auto' }} onClick={() => setActiveModal({ type: 'checkInBike' })}>Check In Bike</button>
 			</div>
 
 			<Loading open={activeModal.type === 'loading'}>
@@ -131,6 +134,12 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab }) => {
 				</form>
 
 			</Modal>
+
+			<Modal open={activeModal.type === 'checkInBike'}>
+				<CheckIn APIServer={APIServer} allTrackdays={allTrackdays} />
+				<button className='actionButton' type="button" onClick={() => setActiveModal('')}>Close</button>
+			</Modal>
+
 
 
 		</>
