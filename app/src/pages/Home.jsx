@@ -34,7 +34,7 @@ const Home = () => {
 				if (!response.ok) throw new Error("Failed to get API Data for presentTrackdays")
 				const data = await response.json();
 				const upcoming = data.filter(day => new Date(day.date) >= new Date()).sort((a, b) => new Date(a.date) - new Date(b.date));
-				if (upcoming.length > 0) setNextTrackday(upcoming[0]);
+				upcoming.length > 0? setNextTrackday(upcoming[0]) : setNextTrackday(null);
 			} catch (err) {
 				console.log(err.message)
 			}

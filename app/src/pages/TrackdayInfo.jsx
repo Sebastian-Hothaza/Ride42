@@ -13,7 +13,7 @@ import readyToRide from '../assets/readyToRide.jpg'
 
 
 function TrackdayInfo() {
-	const [allTrackdays, setAllTrackdays] = useState(() => JSON.parse(localStorage.getItem('allTrackdays')) || []);
+	const [allTrackdays, setAllTrackdays] = useState(() => JSON.parse(localStorage.getItem('allTrackdays')) || null);
 	const { APIServer } = useOutletContext();
 	const datesArray = [];
 
@@ -25,7 +25,8 @@ function TrackdayInfo() {
 				const response = await fetch(APIServer + 'presentTrackdays');
 				if (!response.ok) throw new Error("Failed to get API Data for presentTrackdays")
 				const data = await response.json();
-				setAllTrackdays(data.filter(trackday => trackday.status !== "archived")); // exclude archived trackdays
+				const filteredData = data.filter(trackday => trackday.status !== "archived");// exclude archived trackdays
+				setAllTrackdays(filteredData.length? filteredData : null); 
 			} catch (err) {
 				console.log(err.message)
 			}
