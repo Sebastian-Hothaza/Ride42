@@ -204,7 +204,7 @@ exports.register = [
             // Send email unless it's a gate registration made by staff/admin
             if (!(req.body.paymentMethod === 'gate' && (req.user.memberType === 'admin' || req.user.memberType === 'staff'))) {
                 sendEmail(user.contact.email, "Ride42 Trackday Registration Confirmation", selectedMailTemplate,
-                    { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: prettyDate, dueDate: prettyDueDate, price: req.body.paymentMethod!=='gate'? trackday.ticketPrice.preReg : trackday.ticketPrice.gate } )
+                    { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: prettyDate, dueDate: prettyDueDate, price: req.body.paymentMethod !== 'gate' ? trackday.ticketPrice.preReg : trackday.ticketPrice.gate })
             }
 
             // Schedule payment reminder email
@@ -476,9 +476,17 @@ exports.checkinQR = [
     controllerUtils.validateTrackdayID,
 
     asyncHandler(async (req, res, next) => {
-        if (req.user.memberType === 'admin' || req.user.memberType === 'staff' || req.user.memberType === 'coach') {
+
+
+
+        if (req.user.memberType === 'admin' || req.user.memberType === 'staff' || req.user.memberType === 'coach' || req.user.memberType === 'racer') {
             const trackday = await Trackday.findById(req.params.trackdayID).populate('members.user', 'waiver').exec();
             const qr = await QR.findById(req.params.QRID).populate('user bike').exec();
+
+            // If racer is self-teching, make sure they are checking in themselves
+            if (req.user.memberType === 'racer' && !qr.user._id.equals(req.user.id)) {
+                return res.status(403).json({ msg: ['Can only check in your bike!'] })
+            }
 
             // Check that the member we want to check in for trackday actually exists
             const memberEntry = trackday.members.find((member) => member.user.equals(qr.user.id));
@@ -582,7 +590,7 @@ exports.updatePaid = [
             if (!memberEntry) return res.status(403).send({ msg: ['Member is not registered for that trackday'] });
 
             // Block changing paid status for credit 
-            if (memberEntry.paymentMethod === 'credit' ) return res.status(403).send({ msg: ['Cannot change paid status on credit registrations'] });
+            if (memberEntry.paymentMethod === 'credit') return res.status(403).send({ msg: ['Cannot change paid status on credit registrations'] });
 
 
             // Prevent setting paid status to what it was already set to
