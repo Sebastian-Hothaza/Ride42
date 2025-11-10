@@ -121,16 +121,16 @@ const ControlPanel = ({ APIServer }) => {
                     {/* CPDash rendered based on active tab */}
                     {activeTab == 'profile' && <Profile APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} />}
                     {activeTab == 'trackdays' && <Trackdays APIServer={APIServer} userInfo={userInfo} allTrackdays={allTrackdays} userTrackdays={userTrackdays} fetchAPIData={fetchAPIData} setActiveTab={setActiveTab} />}
-                    {activeTab == 'garage' && <Garage APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} setActiveTab={setActiveTab} />}
+                    {activeTab == 'garage' && <Garage APIServer={APIServer} userInfo={userInfo} allTrackdays={allTrackdays} fetchAPIData={fetchAPIData} setActiveTab={setActiveTab} />}
 
                     {/* STAFF */}
                     {activeTab == 'staffTools' && <StaffTools setActiveTab={setActiveTab} memberType={loggedInUser.memberType} APIServer={APIServer} />}
                     {activeTab == 'gateRegister' && <GateRegister APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdays={allTrackdays} />}
                     {activeTab == 'trackdayState' && <TrackdayState fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdays={allTrackdays} allTrackdaysFULL={allTrackdaysFULL} />}
-                    {activeTab == 'checkIn' && <CheckIn APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers} />}
+                    {activeTab == 'checkIn' && <CheckIn APIServer={APIServer} allTrackdays={allTrackdays} />}
                     {activeTab == 'verify' && <Verify APIServer={APIServer} allTrackdays={allTrackdays} allUsers={allUsers} />}
                     {activeTab == 'manageQR' && <ManageQR APIServer={APIServer} allUsers={allUsers} allTrackdaysFULL={allTrackdaysFULL} fetchAPIData={fetchAPIData} />}
-                    
+
                     {/* ADMIN */}
                     {activeTab == 'manageUsers' && <ManageUsers APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} />}
                     {activeTab == 'manageTrackdays' && <ManageTrackdays APIServer={APIServer} allTrackdaysFULL={allTrackdaysFULL} allUsers={allUsers} fetchAPIData={fetchAPIData} />}
