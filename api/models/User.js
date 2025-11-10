@@ -17,7 +17,7 @@ const UserSchema = new mongoose.Schema({
 	group: 			{ type: String, required: true, enum: ["green", "yellow", "red"] },
 	credits: 		{ type: Number, required: true},
 	waiver:			{ type: Boolean, required: true},
-	memberType: 	{ type: String, required: true, enum: ["regular", "coach", "staff", "admin"] },
+	memberType: 	{ type: String, required: true, enum: ["regular", "racer", "coach", "staff", "admin"] },
 	password: 		{ type: String, required: true },
 	refreshToken: 	{ type: String }
 });
