@@ -17,9 +17,9 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 	// USED AT SEASON END
 	return <>
-		<h1>2026 Trackday Planning In Progress</h1>
+		<h1>Book and Manage your Trackdays</h1>
 		<br></br><br></br>
-		<h2>Check back soon!</h2>
+		<h2>Available January 5</h2>
 		<br></br><br></br>
 	</>
 
