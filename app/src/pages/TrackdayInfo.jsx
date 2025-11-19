@@ -156,12 +156,12 @@ function TrackdayInfo() {
 	const HTML_PricingInfo = <div id={styles.pricingCard}>
 		<div className={styles.priceEntry}>
 			<div>Pre-Registration (7 days ahead):</div>
-			<div style={{ fontWeight: 'bold' }}>$170</div>
+			<div style={{ fontWeight: 'bold' }}>$180</div>
 		</div>
 		<br></br>
 		<div className={styles.priceEntry}>
 			<div>Gate Registration: </div>
-			<div style={{ fontWeight: 'bold' }}>$190</div>
+			<div style={{ fontWeight: 'bold' }}>$200</div>
 		</div>
 		<br></br>
 		<br></br>
