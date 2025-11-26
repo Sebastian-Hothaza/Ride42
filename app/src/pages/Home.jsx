@@ -73,16 +73,16 @@ const Home = () => {
 	</div>
 
 	const HTML_Bundle = <div>
-		<h2>Last chance to get your bundle; form closes TODAY! 🚀</h2>
+		<h2>Only 42 bundles are available; get yours now! 🚀</h2>
 		<h3> What makes these 3-day bundles awesome? 😁</h3>
 		<br></br>
 		<ul>
 			<li>Save $120 vs registering at gate for each date individually</li>
 			<li>No 7-day notice needed. Simply show up and RIDE! </li>
-			<li>3-day bundle is <b>$450</b> all in</li>
+			<li>3-day bundle is <b>$480</b> all in</li>
 		</ul>
 		<br></br>
-		<button className={styles.bookBtn} onClick={() => window.open('https://docs.google.com/forms/d/e/1FAIpQLSceY0VQfJmDCMTTNq0RWReTi3kn3Jih9MQo71RLqDcTBKVOTQ/viewform?usp=sf_link', '_blank')}>Get your bundle now!</button>
+		<button className={styles.bookBtn} onClick={() => window.open('https://docs.google.com/forms/d/e/1FAIpQLSejasVI4s6MWH8hh71CVRadTStdUHmJWPZfTewWUrJWMBnwPA/viewform', '_blank')}>Get your bundle now!</button>
 	</div>
 
 	const HTML_Helite = <div>
@@ -178,14 +178,14 @@ const Home = () => {
 	return (
 		<>
 			<div id={styles.hero}>
-				{!CANCELLATION_NOTICE && nextTrackday && <div id={styles.heroText}>
+				{false && !CANCELLATION_NOTICE && nextTrackday && <div id={styles.heroText}>
 					{HTML_Countdown}
 					<NavLink className={styles.bookBtn} style={{ backgroundColor: 'var(--accent-color)' }} to="/dashboard">Book Now!</NavLink>
 				</div>}
 			</div>
 			<div className="content" id={styles.firstCard}>
 				{CANCELLATION_NOTICE && <Card heading='Cancellation Notice' body={HTML_Cancellation} img={cancelled} inverted={false} />}
-				{/* <Card heading='2025 Season Bundle' body={HTML_Bundle} img={bundle} inverted={false} /> */}
+				<Card heading='2026 Season Bundle' body={HTML_Bundle} img={bundle} inverted={false} />	
 				{/* <Card heading='HELITE Airbags' body={HTML_Helite} img={helite} inverted={false} />  */}
 				{/* <Card heading='Pirelli Spring Order' body={HTML_Pirelli} img={pirelli} inverted={false} /> */}
 				{/* <Card heading='June 18 Notice' body={HTML_NewsItem}  inverted={false} /> */}
