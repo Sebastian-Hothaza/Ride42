@@ -9,7 +9,7 @@
     "deploy": "fly deploy && flyctl machines update 1857501f1034d8 --autostop='off'",
     "deploy_local": "./dockerDeploy.sh",
     "logs": "fly logs -a ride42api",
-    "mongosh": "mongosh \"mongodb+srv://ride42.gxtpw2r.mongodb.net/\" --apiVersion 1 --username sebastianhothaza"
+    "mongosh": "mongosh \"mongodb+srv://ride42.gxtpw2r.mongodb.net/Ride42_DB\" --apiVersion 1 --username sebastianhothaza"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
