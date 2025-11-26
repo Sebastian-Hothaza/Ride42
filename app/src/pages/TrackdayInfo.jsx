@@ -160,7 +160,7 @@ function TrackdayInfo() {
 		</div>
 		<br></br>
 		<div className={styles.priceEntry}>
-			<div>Gate Registration: </div>
+			<div>Gate Registration (Cash only): </div>
 			<div style={{ fontWeight: 'bold' }}>$200</div>
 		</div>
 		<br></br>
