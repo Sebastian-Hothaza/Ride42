@@ -4,6 +4,10 @@
 ARG NODE_VERSION=20.11.0
 FROM node:${NODE_VERSION}-slim as base
 
+# Store version inside the image
+ARG VERSION
+ENV VERSION=${VERSION}
+
 LABEL fly_launch_runtime="Node.js"
 
 # Node.js app lives here
