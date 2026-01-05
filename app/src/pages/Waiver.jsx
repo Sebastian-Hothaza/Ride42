@@ -19,7 +19,7 @@ import errormark from './../assets/error.png'
 const Waiver = () => {
 	// End of season block
 	// CURRENT_YEAR MUST be updayed before this block is removed	
-	return <div className="content"><Card heading='Liability Waiver' body={<div>Coming soon</div>} inverted={false} /></div>
+	// return <div className="content"><Card heading='Liability Waiver' body={<div>Coming soon</div>} inverted={false} /></div>
 
 	const loggedInUser = JSON.parse(localStorage.getItem("user"))
 	const { APIServer } = useOutletContext();
@@ -27,7 +27,7 @@ const Waiver = () => {
 	const canvasRef = useRef(null);
 	const signaturePadRef = useRef(null);
 
-	const CURRENT_YEAR = '2025'; // Hardcoded year for the waiver; DO NOT FETCH DYNAMICALLY
+	const CURRENT_YEAR = '2026'; // Hardcoded year for the waiver; DO NOT FETCH DYNAMICALLY
 	const today = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
 
 	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
