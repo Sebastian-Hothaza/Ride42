@@ -6,7 +6,7 @@
     "start": "NODE_ENV=production node ./bin/www",
     "devstart": "NODE_ENV=development CORS_ORIGIN=http://10.0.0.4:5173 nodemon ./bin/www",
     "test": "GROUP_CAPACITY=3 jest --watchAll --maxWorkers=4",
-    "deploy": "fly deploy && flyctl machines update 1857501f1034d8 --autostop='off'",
+    "deploy": "fly deploy --build-arg VERSION=$(git rev-parse --short HEAD) && flyctl machines update 1857501f1034d8 --autostop='off'",
     "deploy_local": "./dockerDeploy.sh",
     "logs": "fly logs -a ride42api",
     "mongosh": "mongosh \"mongodb+srv://ride42.gxtpw2r.mongodb.net/Ride42_DB\" --apiVersion 1 --username sebastianhothaza"
