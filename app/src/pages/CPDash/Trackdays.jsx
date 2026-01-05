@@ -15,14 +15,6 @@ import { useElements, Elements, useStripe, PaymentElement } from "@stripe/react-
 
 const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPIData, setActiveTab }) => {
 
-	// USED AT SEASON END
-	return <>
-		<h1>Book and Manage your Trackdays</h1>
-		<br></br><br></br>
-		<h2>Available January 5</h2>
-		<br></br><br></br>
-	</>
-
 
 	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
 	const [stripePromise, setStripePromise] = useState(null); //Stripe promise that resolves to stripe object. Not guaranteed valid!
@@ -30,6 +22,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 	const [selectedTrackday, setSelectedTrackday] = useState(''); // Trackday selected for booking
 	const DAYS_LOCKOUT = 7;
 	const CREDITCARD_FEE = 5;
+	const SEASON_END = false;
 
 	// Returns true if a user is registered for a specified trackday ID
 	function userRegistered(trackdayID) {
@@ -203,6 +196,13 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 		}
 	}
 
+	// Create notify me entry in email sender database
+	async function handleNotifyMeSubmit(e) {
+		e.preventDefault();
+		// TODO: Implement in API as email objects created there
+		console.log('Notify me feature not implemented yet');
+	}
+
 	// Creates paymentIntent and sets clientSecret. Uses trackdayID to set the intent price.
 	// Opens paymentModal which renders Elements and Checkout component
 	// TODO: Error handling when publishable key is invalid
@@ -311,12 +311,23 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 		</>
 	}
 
+	// USED AT SEASON END
+	if (SEASON_END) return <>
+		<div className={styles.content}>
+			<h1>Book and Manage your Trackdays</h1>
+			
+			<h3>Available January 5</h3>
+			<br></br>
+		</div>
+		<button className="actionButton" onClick={(e) => handleNotifyMeSubmit(e)}>Notify me!</button>
+	</>
+
 
 	return (
 		<>
 			<ScrollToTop />
 			<div className={styles.content}>
-				<h1>Book a Trackday</h1>
+				<h1>Book and Manage your Trackdays</h1>
 				<form id="Trackdays_bookTrackday" onSubmit={(e) => handleBookTrackdaySubmit(e)}>
 
 
