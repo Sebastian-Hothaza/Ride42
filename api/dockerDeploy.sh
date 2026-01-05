@@ -9,6 +9,9 @@ SERVICE_NAME="api"
 ENV_FILE="${REPO_DIR}/.env_docker"
 HEALTHCHECK_URL="https://api2.ride42.ca"
 
+VERSION=$(git -C ${REPO_DIR} rev-parse --short HEAD)
+export VERSION
+
 # Check for .env file
 if [ ! -f "$ENV_FILE" ]; then
   echo "❌ Environment file '$ENV_FILE' not found. Aborting deployment."
