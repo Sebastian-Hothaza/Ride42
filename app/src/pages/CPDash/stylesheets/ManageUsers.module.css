@@ -10,9 +10,8 @@
     gap: .5rem;
 }
 
-.content h1 select{
+.content h1 input{
     font-size: inherit;
-    border: none;
 }
 
 
