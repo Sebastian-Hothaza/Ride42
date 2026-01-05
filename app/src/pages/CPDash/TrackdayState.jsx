@@ -1,4 +1,4 @@
-import { useState, Fragment } from "react";
+import { useState, Fragment, useEffect } from "react";
 import ScrollToTop from "../../components/ScrollToTop";
 
 import Loading from '../../components/Loading';
@@ -20,6 +20,19 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 	const [selectedYear, setSelectedYear] = useState(currentYear);
 	const [selectedTrackdayId, setSelectedTrackdayId] = useState(''); // Tracks what the current working trackdayId is
 	const [showFinancials, setShowFinancials] = useState(false); // When set to true, shows financials instead of state 
+
+
+	// Preload next trackday for convenience on initial render
+	useEffect(() => {
+		if (!allTrackdaysFULL || allTrackdaysFULL.length === 0) return;
+
+		const upcoming = allTrackdaysFULL
+			.filter(day => new Date(day.date) >= new Date())
+			.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+		setSelectedTrackdayId(upcoming[0]?._id || '');
+	}, [allTrackdaysFULL]);
+
 
 	let preRegistrations = 0;
 	let gateRegistrations = 0;
@@ -165,7 +178,7 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 			outputText += `Total Expenses\t\t$${selectedTrackday.totalExpense}\n\n`
 
 
-			outputText += `Profit\t\t$${selectedTrackday.totalRevenue-selectedTrackday.totalExpense}\n`
+			outputText += `Profit\t\t$${selectedTrackday.totalRevenue - selectedTrackday.totalExpense}\n`
 		} else {
 			outputText += `GREEN GROUP\nName\tWaiver\tPaid\tCheckIn\n`;
 			trackday.members.filter(memberEntry => memberEntry.user.group == 'green').forEach((memberEntry) => {
@@ -204,9 +217,6 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 		return Array.from({ length: num }, (_, index) => <div className={`${styles.userEntry} ${styles.blankLine}`} key={index}></div>);
 	}
 
-
-
-
 	return (
 		<>
 			<ScrollToTop />
@@ -221,7 +231,7 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 					</form>
 					<form>
 						<div className={styles.inputPairing}>
-							<select name="trackday" id="trackday" onChange={() => setSelectedTrackdayId(trackday.value)} required>
+							<select name="trackday" id="trackday" onChange={() => setSelectedTrackdayId(trackday.value)} value={selectedTrackdayId} required>
 								<option style={{ textAlign: 'center' }} key="none" value="">--- Select ---</option>
 								{allTrackdaysFULL.map((trackday) => <option key={trackday._id} value={trackday._id}>{trackday.prettyDate}</option>)}
 							</select>
