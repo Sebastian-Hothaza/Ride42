@@ -3,6 +3,7 @@ import ScrollToTop from "../../components/ScrollToTop";
 
 import Modal from "../../components/Modal";
 import Loading from '../../components/Loading';
+import MemberAutocomplete from '../../components/MemberAutocomplete';
 
 import styles from './stylesheets/GateRegister.module.css'
 import modalStyles from '../../components/stylesheets/Modal.module.css'
@@ -14,7 +15,7 @@ import errormark from './../../assets/error.png'
 const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
 
     const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
-    const [eligibleUsers, setEligibleUsers] = useState('');
+    const [gateRegisterVaild, setGateRegisterVaild] = useState(false); // Tracks if the gate register form is vaild
     const [selectedTrackdayId, setSelectedTrackdayId] = useState(''); // Tracks what the current working trackdayId is 
 
     // Augment prettydate of allTrackdays to be a nice format
@@ -51,13 +52,6 @@ const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
 
         upcomingTrackdays.sort((a, b) => (a.date > b.date) ? 1 : ((b.date > a.date) ? -1 : 0))
         setSelectedTrackdayId(upcomingTrackdays[0].id);
-    }
-
-
-    // Load in eligible users (sorted by first name). 
-    if (allUsers && !eligibleUsers) {
-        allUsers.sort((a, b) => (a.firstName > b.firstName) ? 1 : ((b.firstName > a.firstName) ? -1 : 0))
-        setEligibleUsers(allUsers);
     }
 
     async function handleRegistrationSubmit(userID) {
@@ -117,11 +111,8 @@ const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
         e.target.reset();
     }
 
-    // Called by filter input everytime there is a change, filters by last 4 digits of phone number
-    function filterEligibleUsers() {
-        let input = document.getElementById('phoneEnd');
-        setEligibleUsers(allUsers.filter((user) => input.value === user.contact.phone.slice(6, 6 + input.value.length)))
-    }
+    const handleUserSelect = (user) => setGateRegisterVaild(allUsers.some((u) => u._id === user._id));
+
 
     return (
         <>
@@ -140,32 +131,22 @@ const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
                         </h1>
 
                         <div>
-                            <h3>Existing Members</h3>
+                            
                             <form onSubmit={(e) => {
                                 e.preventDefault();
-
                                 handleRegistrationSubmit(e.target.user.value)
-
                                 e.target.reset();
-                                setEligibleUsers(allUsers);
                             }}>
-
-                                <label htmlFor="year">Search members by last 4 digits of phone number:</label>
-                                <input type="number" id="phoneEnd" name="phoneEnd" onInput={filterEligibleUsers}></input>
-
-
-                                <select className='capitalizeEach' name="user" id="user" required>
-                                    {eligibleUsers && eligibleUsers.map((user) => <option className='capitalizeEach' key={user._id} value={user._id}>{user.firstName}, {user.lastName}</option>)}
-                                    {eligibleUsers.length == 0 && <option key='empty' value=''>No entries found</option>}
-                                </select>
-
-                                <button className='confirmBtn' type="submit">Gate Register</button>
+                                <h3>Existing Members</h3>
+                                <MemberAutocomplete members={allUsers} onSelect={handleUserSelect} />
+                                <button hidden={!gateRegisterVaild} className='confirmBtn' type="submit">Gate Register</button>
                             </form>
                         </div>
 
                         <div>
-                            <h3>Walk-Ons</h3>
+                            
                             <form onSubmit={(e) => handleWalkOnSubmit(e)}>
+                                <h3>Walk-Ons</h3>
                                 <div className={styles.inputPairing}>
                                     <label htmlFor="firstName">First Name:</label>
                                     <input type="text" autoComplete='off' id="firstName" name="firstName" required minLength={2} maxLength={50}></input>
