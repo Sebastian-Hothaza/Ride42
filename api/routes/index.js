@@ -8,7 +8,10 @@ const ServerLogs = require('../models/ServerLogs');
 const controllerUtils = require('../controllers/controllerUtils')
 const asyncHandler = require("express-async-handler");
 
-router.get('/', (req, res, next) => res.sendStatus(200)) // Used to ping API and wake up FLY machines
+router.get('/', (req, res, next) => res.status(200).send({
+    Version: process.env.VERSION,
+    Port: process.env.PORT,
+}))
 
 // Logging
 router.get('/logs', [
