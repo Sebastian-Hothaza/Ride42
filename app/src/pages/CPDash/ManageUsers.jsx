@@ -1,6 +1,8 @@
 import { useState } from "react";
 import ScrollToTop from "../../components/ScrollToTop";
 
+import MemberAutocomplete from '../../components/MemberAutocomplete';
+
 import Modal from "../../components/Modal";
 import Loading from '../../components/Loading';
 
@@ -101,26 +103,34 @@ const ManageUsers = ({ APIServer, fetchAPIData, allUsers }) => {
 
     if (!allUsers) {
         return null;
-    } else {
-        allUsers.sort((a, b) => (a.firstName > b.firstName) ? 1 : ((b.firstName > a.firstName) ? -1 : 0))
     }
+
+    const handleUserSelect = (user) => {
+        console.log(`Selected user: ${user.firstName} ${user.lastName}`);
+        if (allUsers.some((u) => u._id === user._id)) {
+            setUser(user);
+        } else {
+            setUser('');
+        }
+    };
+
+
     return (
         <>
             <ScrollToTop />
             <div className={styles.content}>
                 <h1>Manage User-
-                    <form>
-                        <select className='capitalizeEach' name="result" id="result" onChange={() => setUser(allUsers.find((user) => user._id === result.value))}>
-                            <option style={{ textAlign: 'center' }} key="none" value="">-------Select-------</option>
-                            {allUsers.map((user) => <option key={user._id} value={user._id}>{user.firstName}, {user.lastName}</option>)}
-                        </select>
-                    </form>
+
+                    <MemberAutocomplete members={allUsers} onSelect={handleUserSelect} />
+
                 </h1>
 
 
 
 
+
                 {user && <>
+                    <div>{user._id}</div>
                     <form className={styles.inputSection} onSubmit={(e) => handleUserInfoSubmit(e)} >
                         <div className={styles.inputPairing}>
                             <label htmlFor="firstName">First Name:</label>
