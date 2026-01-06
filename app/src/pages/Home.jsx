@@ -87,7 +87,7 @@ const Home = () => {
 
 	const HTML_Helite = <div>
 		<h2>⚠️Order is now live⚠️</h2>
-		<h3>Place your order soon to get your HELITE Airbag in time for the 2025 season</h3>
+		<h3>Place your order soon to get your HELITE Airbag in time for the 2026 season</h3>
 		<br></br>
 		<ul>
 			<li>French company with a history of making quality airbag systems for motorcyclists. Airbags are made in France.</li>

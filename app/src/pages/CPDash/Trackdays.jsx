@@ -413,7 +413,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 
 
-				<h1>My 2025 Trackdays</h1>
+				<h1>My Trackdays</h1>
 				{userTrackdays &&
 					<div>
 						{userTrackdays.map((trackday) => {
