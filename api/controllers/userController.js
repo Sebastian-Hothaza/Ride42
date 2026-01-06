@@ -412,6 +412,7 @@ exports.deleteQR = [
 // Sends completed waiver to admin. PUBLIC
 // ! Logged operation when submited by logged in user !
 exports.waiverSubmit = asyncHandler(async (req, res, next) => {
+    const CURRENT_YEAR = new Date().getFullYear();
     try {
         // Access the Base64-encoded PDF from the request body
         const { waiver, name, uid } = req.body;
@@ -441,12 +442,12 @@ exports.waiverSubmit = asyncHandler(async (req, res, next) => {
         // Send the email with the PDF as an attachment
         await sendEmail(
             'waiver@ride42.ca', // Recipient
-            `2025_Waiver_${name.toUpperCase()}`, // Subject
+            `${CURRENT_YEAR}_Waiver_${name.toUpperCase()}`, // Subject
             emailBody, // HTML email body
             {}, // Arguments for template (if needed)
             [
                 {
-                    filename: `2025_Waiver_${name.toUpperCase()}.pdf`, // File name for the attachment
+                    filename: `${CURRENT_YEAR}_Waiver_${name.toUpperCase()}.pdf`, // File name for the attachment
                     content: pdfBuffer, // File content as a Buffer
                     contentType: 'application/pdf', // MIME type
                 },

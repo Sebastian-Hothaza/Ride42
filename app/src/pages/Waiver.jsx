@@ -84,7 +84,7 @@ const Waiver = () => {
 		doc.text('3. AN AGREEMENT NOT TO SUE THE RELEASEES for any loss, injury, costs or damages of any form or type, howsoever caused or arising, and whether directly or indirectly from my participation in any aspect(s) of the EVENT; and', 5, 190, { maxWidth: 200 });
 		doc.text('4. AN AGREEMENT TO INDEMNIFY, and to SAVE and HOLD HARMLESS the RELEASEES, and each of them, from any litigation expense, legal fees, liability, damage, award or cost, of any form or type whatsoever, they may incur due to any claim made against them or any one of them by me or on my behalf, or that of my estate, whether the claim is based on the negligence or the gross negligence of the Releasees or otherwise as stated above.', 5, 200, { maxWidth: 200 });
 		doc.text('5. AN AGREEMENT that this document be governed by the laws, and in the courts, of the Province in which the EVENT occurs.', 5, 218, { maxWidth: 200 });
-		doc.text('6. AN AGREEMENT to extend this document to apply to ALL 2025 EVENT(s) hosted by Ride42.', 5, 225, { maxWidth: 200 });
+		doc.text('6. AN AGREEMENT to extend this document to apply to ALL ' + CURRENT_YEAR + ' EVENT(s) hosted by Ride42.', 5, 225, { maxWidth: 200 });
 
 
 
