@@ -135,16 +135,12 @@ function TrackdayInfo() {
 				<td>Mandatory riders meeting</td>
 			</tr>
 			<tr>
-				<td>9:50am</td>
-				<td>Sighting lap - mandatory for new riders</td>
-			</tr>
-			<tr>
 				<td>10am</td>
 				<td>Lapping starts</td>
 			</tr>
 			<tr>
 				<td>1pm</td>
-				<td>Lunch break(1 hour)</td>
+				<td>1 Hour Lunch break</td>
 			</tr>
 			<tr>
 				<td>6pm</td>
