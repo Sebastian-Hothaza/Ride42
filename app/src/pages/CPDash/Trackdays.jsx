@@ -327,7 +327,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 		<>
 			<ScrollToTop />
 			<div className={styles.content}>
-				<h1>Book and Manage your Trackdays</h1>
+				<h1>Book a Trackday</h1>
 				<form id="Trackdays_bookTrackday" onSubmit={(e) => handleBookTrackdaySubmit(e)}>
 
 
@@ -413,7 +413,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 
 
-				<h1>My Trackdays</h1>
+				<h1>Manage Trackdays</h1>
 				{userTrackdays &&
 					<div>
 						{userTrackdays.map((trackday) => {
