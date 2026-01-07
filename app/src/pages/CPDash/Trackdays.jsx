@@ -322,6 +322,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 		<button className="actionButton" onClick={(e) => handleNotifyMeSubmit(e)}>Notify me!</button>
 	</>
 
+	console.log(userTrackdays);
 
 	return (
 		<>
@@ -414,7 +415,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 
 
 				<h1>Manage Trackdays</h1>
-				{userTrackdays &&
+				{userTrackdays.length?
 					<div>
 						{userTrackdays.map((trackday) => {
 							return (
@@ -454,7 +455,8 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 								</div>
 							)
 						})}
-					</div>}
+					</div>:
+					<div><em>You have no trackdays booked this season. Trackdays you book will show up here for easy management.</em></div>}
 
 
 			</div>
