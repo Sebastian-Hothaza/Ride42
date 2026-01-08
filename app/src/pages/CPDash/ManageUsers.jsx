@@ -106,7 +106,6 @@ const ManageUsers = ({ APIServer, fetchAPIData, allUsers }) => {
     }
 
     const handleUserSelect = (user) => {
-        console.log(`Selected user: ${user.firstName} ${user.lastName}`);
         if (allUsers.some((u) => u._id === user._id)) {
             setUser(user);
         } else {
