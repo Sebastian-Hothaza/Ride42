@@ -44,7 +44,7 @@ async function main(recipient, subject, htmlBody, args, attachments = []) {
         } catch (err) {
             logger.error({ message: err })
         }
-    } else if (process.env.NODE_ENV === 'development') {
+    } else {
         logger.debug({ message: `Email sent: \n${htmlBody}` });
     }
 
