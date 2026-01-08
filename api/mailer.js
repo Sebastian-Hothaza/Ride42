@@ -22,7 +22,7 @@ async function main(recipient, subject, htmlBody, args, attachments = []) {
             htmlBody = htmlBody.replaceAll("{" + arg + "}", args[arg])
         })
     }
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === 'production' && process.env.CORS_ORIGIN !== 'https://demo.ride42.ca') {
         try {
             const emailAttachments = recipient !== 'waiver@ride42.ca' ? [
                 {
