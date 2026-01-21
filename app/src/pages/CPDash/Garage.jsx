@@ -66,6 +66,7 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab, allTrackdays 
 			console.log(err.message)
 		}
 	}
+	console.log(userInfo)
 
 	return (
 		<>
@@ -83,7 +84,7 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab, allTrackdays 
 					})}
 				</div>
 				<button style={{ width: 'auto', margin: 'auto' }} onClick={() => setActiveModal({ type: 'addBike' })}>Add Bike</button>
-				<button style={{ width: 'auto', margin: 'auto' }} onClick={() => setActiveModal({ type: 'checkInBike' })}>Check In Bike</button>
+				{userInfo.memberType === 'racer' && <button style={{ width: 'auto', margin: 'auto' }} onClick={() => setActiveModal({ type: 'checkInBike' })}>Check In Bike</button>}
 			</div>
 
 			<Loading open={activeModal.type === 'loading'}>
