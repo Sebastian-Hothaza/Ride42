@@ -322,7 +322,6 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 		<button className="actionButton" onClick={(e) => handleNotifyMeSubmit(e)}>Notify me!</button>
 	</>
 
-	console.log(userTrackdays);
 
 	return (
 		<>
