@@ -1,5 +1,16 @@
+jest.mock('bcryptjs', () => ({
+	hash: jest.fn(async () => 'hashed-password'),
+	compare: jest.fn(async (input, hash) => {
+		// Simple logic: the "correct" password is always 'password123' for tests
+		return input === 'password123';
+	}),
+}));
+
+
 const express = require("express");
 const request = require("supertest");
+
+
 const MongoDB_testDB = require("../mongoConfigTesting")
 
 const app = express();
@@ -10,6 +21,8 @@ app.use(express.urlencoded({ extended: false }));
 
 const cookieParser = require('cookie-parser')
 app.use(cookieParser());
+
+
 
 // ROUTER
 const index = require("../routes/index");
@@ -50,7 +63,7 @@ const user1 = {
 	EmergencyPhone: "5195724356",
 	EmergencyRelationship: "Wife",
 	group: "yellow",
-	password: "Abcd1234"
+	password: "password123"
 };
 
 const user2 = {
@@ -66,7 +79,7 @@ const user2 = {
 	EmergencyPhone: "5195712834",
 	EmergencyRelationship: "Friend",
 	group: "green",
-	password: "User2123"
+	password: "password123"
 };
 
 const userAdmin = {
@@ -82,7 +95,8 @@ const userAdmin = {
 	EmergencyPhone: "2269883609",
 	EmergencyRelationship: "Mother",
 	group: "red",
-	password: "Sebi1234"
+	password: "password123",
+	memberType: "admin"
 };
 
 const user1_update = {
@@ -149,6 +163,38 @@ async function addTrackday(date, adminCookie) {
 	return res;
 }
 
+const User = require("../models/User");
+// const bcrypt = require('bcryptjs');
+async function seedUser(userInfo) {
+	const hashedPassword = await bcrypt.hash(userInfo.password, 10);
+
+	const user = new User({
+		firstName: userInfo.firstName.toLowerCase(),
+		lastName: userInfo.lastName.toLowerCase(),
+		contact: {
+			email: userInfo.email.toLowerCase(),
+			phone: userInfo.phone.toLowerCase(),
+			address: userInfo.address.toLowerCase(),
+			city: userInfo.city.toLowerCase(),
+			province: userInfo.province.toLowerCase(),
+		},
+		emergencyContact: {
+			firstName: userInfo.EmergencyName_firstName.toLowerCase(),
+			lastName: userInfo.EmergencyName_lastName.toLowerCase(),
+			phone: userInfo.EmergencyPhone.toLowerCase(),
+			relationship: userInfo.EmergencyRelationship.toLowerCase(),
+		},
+		group: userInfo.group.toLowerCase(),
+		credits: userInfo.credits || 0,
+		waiver: userInfo.waiver || false,
+		memberType: userInfo.memberType || 'regular',
+		password: hashedPassword,
+	});
+
+	await user.save();
+	return user;
+}
+
 // Returns a date in YYYY-MM-DDThh:mmZ form as required for creating trackdays with offsetDays vs now
 function getFormattedDate(offsetDays) {
 	let now = new Date();
@@ -164,6 +210,14 @@ function getFormattedDate(offsetDays) {
 //////////////////////////////////////
 //              TESTS
 //////////////////////////////////////
+
+const bcrypt = require('bcryptjs');
+
+test('bcrypt hash is mocked', async () => {
+	const hashed = await bcrypt.hash('password', 10);
+	expect(hashed).toBe('hashed-password');  // must pass
+});
+
 
 
 describe('Testing user create', () => {
@@ -200,7 +254,7 @@ describe('Testing user create', () => {
 describe('Testing user read', () => {
 
 	test("get invalid objectID user", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1)
 		const loginRes = await loginUser(user1, 200)
 
 		await request(app)
@@ -209,53 +263,53 @@ describe('Testing user read', () => {
 			.expect(400, { msg: ['userID is not a valid ObjectID'] })
 	});
 	test("get invalid userID user", async () => {
-		const user = await addUser(user2, 201)
+		const user = await seedUser(user2)
 		const loginRes = await loginUser(user2, 200)
 
 		await request(app)
-			.get('/users/' + '1' + user.body.id.slice(1, user.body.id.length - 1) + '1')
+			.get('/users/' + '1' + user.id.slice(1, user.id.length - 1) + '1')
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: ['User does not exist'] })
 	});
 
 	test("get specific user - no JWT", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1)
 
 		await request(app)
-			.get('/users/' + user.body.id)
+			.get('/users/' + user.id)
 			.expect(401)
 	});
 
 	test("get specific user - unauthorized", async () => {
-		const res1 = await addUser(user1, 201);
-		const res2 = await addUser(user2, 201);
+		const res1 = await seedUser(user1);
+		const res2 = await seedUser(user2);
 		const loginRes = await loginUser(user1, 200)
 
 		// Get info on user2
 		await request(app)
-			.get('/users/' + res2.body.id)
+			.get('/users/' + res2.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(403)
 	});
 
 	test("get specific user - as admin", async () => {
-		const user = await addUser(user1, 201)
-		const admin = await addUser(userAdmin, 201)
+		const user = await seedUser(user1)
+		const admin = await seedUser(userAdmin)
 		const loginRes = await loginUser(userAdmin, 200)
 
 		await request(app)
-			.get('/users/' + user.body.id)
+			.get('/users/' + user.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 	});
 
 	test("get specific user - as user", async () => {
-		const user = await addUser(user2, 201)
+		const user = await seedUser(user2)
 		const loginRes = await loginUser(user2, 200)
 
 		// Get user
 		await request(app)
-			.get('/users/' + user.body.id)
+			.get('/users/' + user.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 	});
@@ -263,14 +317,18 @@ describe('Testing user read', () => {
 
 
 	test("get all users", async () => {
-		await addUser(userAdmin, 201)
+		const adminUser = await seedUser(userAdmin);
+
+		// Log in via API to get the cookie
 		const loginRes = await loginUser(userAdmin, 200);
 
+		// Call the API to get all users
 		await request(app)
 			.get('/users/')
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.expect(200)
+			.expect(200);
 	});
+
 
 	test("get all users - no JWT", async () => {
 		await request(app)
@@ -279,7 +337,7 @@ describe('Testing user read', () => {
 	});
 
 	test("get all users - unauthorized", async () => {
-		await addUser(user1, 201);
+		await seedUser(user1);
 		const loginRes = await loginUser(user1, 200)
 
 		await request(app)
@@ -292,7 +350,7 @@ describe('Testing user read', () => {
 
 describe('Testing user update', () => {
 	test("Update invalid objectID user", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1)
 		const loginRes = await loginUser(user1, 200)
 
 		await request(app)
@@ -302,67 +360,67 @@ describe('Testing user update', () => {
 			.expect(400, { msg: ['userID is not a valid ObjectID'] })
 	});
 	test("Update invalid userID user", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1)
 		const loginRes = await loginUser(user1, 200)
 
 		await request(app)
-			.put('/users/' + '1' + user.body.id.slice(1, user.body.id.length - 1) + '1')
+			.put('/users/' + '1' + user.id.slice(1, user.id.length - 1) + '1')
 			.type("form").send(user1) // We are "over-sending" form params here; but its fine for sake of this test
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: ['User does not exist'] })
 	});
 
 	test("Update specific user - missing fields", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1)
 		const loginRes = await loginUser(user1, 200)
 
 		await loginUser(user1, 200)
 		await request(app)
-			.put('/users/' + user.body.id)
+			.put('/users/' + user.id)
 			.type('form').send(user1_missingFields)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(400)
 	})
 	test("Update specific user - malformed fields", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1)
 		const loginRes = await loginUser(user1, 200)
 		await request(app)
-			.put('/users/' + user.body.id)
+			.put('/users/' + user.id)
 			.type('form').send(user1_malformed)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(400)
 	})
 
 	test("Update specific user - no JWT", async () => {
-		const user = await addUser(user1, 201);
+		const user = await seedUser(user1);
 		await request(app)
-			.put('/users/' + user.body.id)
+			.put('/users/' + user.id)
 			.type('form').send(user1_update)
 			.expect(401)
 	})
 	test("Update specific user - unauthorized", async () => {
-		const res1 = await addUser(user1, 201);
-		const res2 = await addUser(user2, 201);
+		const res1 = await seedUser(user1);
+		const res2 = await seedUser(user2);
 		const loginRes = await loginUser(user2, 200)
 		await request(app)
-			.put('/users/' + res1.body.id)
+			.put('/users/' + res1.id)
 			.type('form').send(user1_update)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(403)
 	})
 	test("Update specific user - as admin", async () => {
-		const user = await addUser(user1, 201);
-		await addUser(userAdmin, 201);
+		const user = await seedUser(user1);
+		await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200)
 		await request(app)
-			.put('/users/' + user.body.id)
+			.put('/users/' + user.id)
 			.type('form').send(user1_update)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(201)
 	})
 
 	test("Update specific user - change unauthorized fields", async () => {
-		const user = await addUser(user1, 201);
+		const user = await seedUser(user1);
 		const loginRes = await loginUser(user1, 200)
 
 		const user1_unauthorizedFields = {
@@ -387,14 +445,14 @@ describe('Testing user update', () => {
 		};
 
 		await request(app)
-			.put('/users/' + user.body.id)
+			.put('/users/' + user.id)
 			.type('form').send(user1_unauthorizedFields)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(403)
 	})
 	test("Update specific user - change unauthorized fields - as admin", async () => {
-		const user = await addUser(user1, 201);
-		await addUser(userAdmin, 201);
+		const user = await seedUser(user1);
+		await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200)
 
 		const user1_unauthorizedFields = {
@@ -420,13 +478,13 @@ describe('Testing user update', () => {
 
 
 		await request(app)
-			.put('/users/' + user.body.id)
+			.put('/users/' + user.id)
 			.type('form').send(user1_unauthorizedFields)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(201)
 
 		const updatedUser = await request(app)
-			.get('/users/' + user.body.id)
+			.get('/users/' + user.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 
@@ -452,10 +510,10 @@ describe('Testing user update', () => {
 
 
 	test("Update specific user group within 7 day lockout", async () => {
-		const user = await addUser(user1, 201);
+		const user = await seedUser(user1);
 		const loginResUser = await loginUser(user1, 200);
 
-		await addUser(userAdmin, 201);
+		await seedUser(userAdmin);
 		const loginResAdmin = await loginUser(userAdmin, 200);
 
 		const now = new Date();
@@ -463,7 +521,7 @@ describe('Testing user update', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user.body.id)
+			.post("/garage/" + user.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginResUser.headers['set-cookie'])
@@ -471,27 +529,27 @@ describe('Testing user update', () => {
 
 		// Mark waiver as signed
 		await request(app)
-			.post("/waiver/" + user.body.id)
+			.post("/waiver/" + user.id)
 			.set('Cookie', loginResAdmin.headers['set-cookie'])
 			.expect(200);
 
 		// Edit user so he has a credit
 		await request(app)
-			.put('/users/' + user.body.id)
+			.put('/users/' + user.id)
 			.type('form').send({ ...user1, credits: 5 })
 			.set('Cookie', loginResAdmin.headers['set-cookie'])
 			.expect(201)
 
 		// Register user for trackday
 		await request(app)
-			.post('/register/' + user.body.id + '/' + trackday.body.id)
+			.post('/register/' + user.id + '/' + trackday.body.id)
 			.type('form').send({ paymentMethod: 'credit', guests: 3, layoutVote: 'none' })
 			.set('Cookie', loginResUser.headers['set-cookie'])
 			.expect(200)
 
 		// Update user
 		await request(app)
-			.put('/users/' + user.body.id)
+			.put('/users/' + user.id)
 			.set('Cookie', loginResUser.headers['set-cookie'])
 			.type("form").send(user1_update)
 			.expect(403)
@@ -499,7 +557,7 @@ describe('Testing user update', () => {
 
 
 		const updatedUser = await request(app)
-			.get('/users/' + user.body.id)
+			.get('/users/' + user.id)
 			.set('Cookie', loginResUser.headers['set-cookie'])
 			.expect(200)
 
@@ -517,10 +575,10 @@ describe('Testing user update', () => {
 		expect((updatedUser.body.group)).toEqual(user1.group);
 	});
 	test("Update specific user group within 7 day lockout - as admin", async () => {
-		const user = await addUser(user1, 201);
+		const user = await seedUser(user1);
 		const loginResUser = await loginUser(user1, 200);
 
-		await addUser(userAdmin, 201);
+		await seedUser(userAdmin);
 		const loginResAdmin = await loginUser(userAdmin, 200);
 
 		const now = new Date();
@@ -528,7 +586,7 @@ describe('Testing user update', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user.body.id)
+			.post("/garage/" + user.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginResUser.headers['set-cookie'])
@@ -536,27 +594,27 @@ describe('Testing user update', () => {
 
 		// Mark waiver as signed
 		await request(app)
-			.post("/waiver/" + user.body.id)
+			.post("/waiver/" + user.id)
 			.set('Cookie', loginResAdmin.headers['set-cookie'])
 			.expect(200);
 
 		// Edit user so he has a credit
 		await request(app)
-			.put('/users/' + user.body.id)
+			.put('/users/' + user.id)
 			.type('form').send({ ...user1, credits: 5 })
 			.set('Cookie', loginResAdmin.headers['set-cookie'])
 			.expect(201)
 
 		// Register user for trackday
 		await request(app)
-			.post('/register/' + user.body.id + '/' + trackday.body.id)
+			.post('/register/' + user.id + '/' + trackday.body.id)
 			.type('form').send({ paymentMethod: 'credit', guests: 3, layoutVote: 'none' })
 			.set('Cookie', loginResUser.headers['set-cookie'])
 			.expect(200)
 
 		// Update user
 		await request(app)
-			.put('/users/' + user.body.id)
+			.put('/users/' + user.id)
 			.set('Cookie', loginResAdmin.headers['set-cookie'])
 			.type("form").send(user1_update)
 			.expect(201)
@@ -564,7 +622,7 @@ describe('Testing user update', () => {
 
 
 		const updatedUser = await request(app)
-			.get('/users/' + user.body.id)
+			.get('/users/' + user.id)
 			.set('Cookie', loginResUser.headers['set-cookie'])
 			.expect(200)
 
@@ -582,10 +640,10 @@ describe('Testing user update', () => {
 		expect((updatedUser.body.group)).toEqual(user1_update.group.toLowerCase());
 	});
 	test("Update specific user within 7 day lockout without changing group", async () => {
-		const user = await addUser(user1, 201);
+		const user = await seedUser(user1);
 		const loginResUser = await loginUser(user1, 200);
 
-		await addUser(userAdmin, 201);
+		await seedUser(userAdmin);
 		const loginResAdmin = await loginUser(userAdmin, 200);
 
 		const now = new Date();
@@ -608,7 +666,7 @@ describe('Testing user update', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user.body.id)
+			.post("/garage/" + user.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginResUser.headers['set-cookie'])
@@ -616,27 +674,27 @@ describe('Testing user update', () => {
 
 		// Mark waiver as signed
 		await request(app)
-			.post("/waiver/" + user.body.id)
+			.post("/waiver/" + user.id)
 			.set('Cookie', loginResAdmin.headers['set-cookie'])
 			.expect(200);
 
 		// Edit user so he has a credit
 		await request(app)
-			.put('/users/' + user.body.id)
+			.put('/users/' + user.id)
 			.type('form').send({ ...user1, credits: 5 })
 			.set('Cookie', loginResAdmin.headers['set-cookie'])
 			.expect(201)
 
 		// Register user for trackday
 		await request(app)
-			.post('/register/' + user.body.id + '/' + trackday.body.id)
+			.post('/register/' + user.id + '/' + trackday.body.id)
 			.type('form').send({ paymentMethod: 'credit', guests: 3, layoutVote: 'none' })
 			.set('Cookie', loginResUser.headers['set-cookie'])
 			.expect(200)
 
 		// Update user
 		await request(app)
-			.put('/users/' + user.body.id)
+			.put('/users/' + user.id)
 			.set('Cookie', loginResUser.headers['set-cookie'])
 			.type("form").send(user1_update_noChangeGroup)
 			.expect(201)
@@ -644,7 +702,7 @@ describe('Testing user update', () => {
 
 
 		const updatedUser = await request(app)
-			.get('/users/' + user.body.id)
+			.get('/users/' + user.id)
 			.set('Cookie', loginResUser.headers['set-cookie'])
 			.expect(200)
 
@@ -662,10 +720,10 @@ describe('Testing user update', () => {
 		expect((updatedUser.body.group)).toEqual(user1_update_noChangeGroup.group.toLowerCase());
 	});
 	test("Update specific user group - old trackday past", async () => {
-		const user = await addUser(user1, 201);
+		const user = await seedUser(user1);
 		const loginResUser = await loginUser(user1, 200);
 
-		await addUser(userAdmin, 201);
+		await seedUser(userAdmin);
 		const loginResAdmin = await loginUser(userAdmin, 200);
 
 		const now = new Date();
@@ -673,20 +731,20 @@ describe('Testing user update', () => {
 
 		// Mark waiver as signed
 		await request(app)
-			.post("/waiver/" + user.body.id)
+			.post("/waiver/" + user.id)
 			.set('Cookie', loginResAdmin.headers['set-cookie'])
 			.expect(200);
 
 		// Register user for trackday
 		await request(app)
-			.post('/register/' + user.body.id + '/' + trackday.body.id)
+			.post('/register/' + user.id + '/' + trackday.body.id)
 			.type('form').send({ paymentMethod: 'creditCard', guests: 3, layoutVote: 'none' })
 			.set('Cookie', loginResAdmin.headers['set-cookie'])
 			.expect(200)
 
 		// Update user
 		await request(app)
-			.put('/users/' + user.body.id)
+			.put('/users/' + user.id)
 			.set('Cookie', loginResUser.headers['set-cookie'])
 			.type("form").send(user1_update)
 			.expect(201)
@@ -694,7 +752,7 @@ describe('Testing user update', () => {
 
 
 		const updatedUser = await request(app)
-			.get('/users/' + user.body.id)
+			.get('/users/' + user.id)
 			.set('Cookie', loginResUser.headers['set-cookie'])
 			.expect(200)
 
@@ -714,8 +772,8 @@ describe('Testing user update', () => {
 
 
 	test("Update user - email taken by other user", async () => {
-		const res1 = await addUser(user1, 201);
-		const res2 = await addUser(user2, 201);
+		const res1 = await seedUser(user1);
+		const res2 = await seedUser(user2);
 		const loginRes = await loginUser(user1, 200);
 
 		const user1_update_duplicateEmail = {
@@ -734,13 +792,13 @@ describe('Testing user update', () => {
 		};
 
 		await request(app)
-			.put('/users/' + res1.body.id)
+			.put('/users/' + res1.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.type("form").send(user1_update_duplicateEmail)
 			.expect(409)
 
 		const updatedUser = await request(app)
-			.get('/users/' + res1.body.id)
+			.get('/users/' + res1.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 
@@ -759,19 +817,19 @@ describe('Testing user update', () => {
 
 	});
 	test("Update user", async () => {
-		const res = await addUser(user1, 201);
+		const res = await seedUser(user1);
 		const loginRes = await loginUser(user1, 200);
 
 
 
 		await request(app)
-			.put('/users/' + res.body.id)
+			.put('/users/' + res.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.type("form").send(user1_update)
 			.expect(201)
 
 		const updatedUser = await request(app)
-			.get('/users/' + res.body.id)
+			.get('/users/' + res.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 
@@ -793,7 +851,7 @@ describe('Testing user update', () => {
 
 describe('Testing user delete', () => {
 	test("Delete invalid objectID user", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1);
 		const loginRes = await loginUser(user1, 200)
 		await request(app)
 			.delete("/users/invalid")
@@ -801,42 +859,42 @@ describe('Testing user delete', () => {
 			.expect(400, { msg: ['userID is not a valid ObjectID'] })
 	});
 	test("Delete invalid userID user", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1);
 		const loginRes = await loginUser(user1, 200)
 
 		await request(app)
-			.delete('/users/' + '1' + user.body.id.slice(1, user.body.id.length - 1) + '1')
+			.delete('/users/' + '1' + user.id.slice(1, user.id.length - 1) + '1')
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: ['User does not exist'] })
 	});
 
 	test("Update specific user - no JWT", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1);
 		await request(app)
-			.delete('/users/' + user.body.id)
+			.delete('/users/' + user.id)
 			.expect(401)
 	});
 	test("Delete user - unauthorized", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1);
 		const loginRes = await loginUser(user1, 200)
 		await request(app)
-			.delete('/users/' + user.body.id)
+			.delete('/users/' + user.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(403)
 	});
 
 	test("Delete user", async () => {
-		const user = await addUser(user1, 201)
-		const admin = await addUser(userAdmin, 201)
+		const user = await seedUser(user1);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200)
 
 		await request(app)
-			.delete('/users/' + user.body.id)
+			.delete('/users/' + user.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 
 		await request(app)
-			.get('/users/' + user.body.id)
+			.get('/users/' + user.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404)
 	});
@@ -847,7 +905,7 @@ describe('Testing user delete', () => {
 
 describe('Testing user login', () => {
 	test("log in a user - missing fields", async () => {
-		await addUser(user1, 201)
+		await seedUser(user1);
 		await request(app)
 			.post("/login")
 			.type("form")
@@ -856,7 +914,7 @@ describe('Testing user login', () => {
 	});
 
 	test("log in a user - malformed fields", async () => {
-		await addUser(user1, 201)
+		await seedUser(user1);
 		await request(app)
 			.post("/login")
 			.type("form")
@@ -865,7 +923,7 @@ describe('Testing user login', () => {
 	});
 
 	test("log in a user - bad password", async () => {
-		await addUser(user1, 201)
+		await seedUser(user1);
 		await request(app)
 			.post("/login")
 			.type("form")
@@ -874,14 +932,14 @@ describe('Testing user login', () => {
 	});
 
 	test("log in a user", async () => {
-		await addUser(user1, 201)
+		await seedUser(user1);
 		await loginUser(user1, 200)
 	});
 })
 
 describe('Testing password update', () => {
 	test("update password - invalid objectID user", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1);
 		const loginRes = await loginUser(user1, 200)
 		await request(app)
 			.put("/password/invalid")
@@ -890,74 +948,74 @@ describe('Testing password update', () => {
 			.expect(400, { msg: ['userID is not a valid ObjectID'] })
 	});
 	test("update password - invalid userID user", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1);
 		const loginRes = await loginUser(user1, 200)
 
 		await request(app)
-			.put('/password/' + '1' + user.body.id.slice(1, user.body.id.length - 1) + '1')
+			.put('/password/' + '1' + user.id.slice(1, user.id.length - 1) + '1')
 			.type("form").send({ oldPassword: user1.password, newPassword: 'ValidPsw1' })
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: ['User does not exist'] })
 	});
 
 	test("update password - missing fields", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1);
 		const loginRes = await loginUser(user1, 200)
 		await request(app)
-			.put("/password/" + user.body.id)
+			.put("/password/" + user.id)
 			.type("form").send({ field: 'param' })
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(400);
 	});
 	test("update password - malformed fields", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1);
 		const loginRes = await loginUser(user1, 200)
 		await request(app)
-			.put("/password/" + user.body.id)
+			.put("/password/" + user.id)
 			.type("form").send({ oldPassword: user1.password, newPassword: 'nonumbers' })
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(400);
 	});
 
 	test("update password for a user - no JWT", async () => {
-		const res1 = await addUser(user1, 201);
-		const res2 = await addUser(user2, 201);
+		const res1 = await seedUser(user1);
+		const res2 = await seedUser(user2);
 		const loginRes = await loginUser(user1, 200);
 
 		await request(app)
-			.put("/password/" + res2.body.id)
+			.put("/password/" + res2.id)
 			.type("form").send({ oldPassword: user1.password, newPassword: 'ValidPsw1' })
 			.expect(401);
 	});
 	test("update password for a user - unauthorized", async () => {
-		const res1 = await addUser(user1, 201);
-		const res2 = await addUser(user2, 201);
+		const res1 = await seedUser(user1);
+		const res2 = await seedUser(user2);
 		const loginRes = await loginUser(user1, 200);
 
 		await request(app)
-			.put("/password/" + res2.body.id)
+			.put("/password/" + res2.id)
 			.type("form").send({ oldPassword: user1.password, newPassword: 'ValidPsw1' })
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(403);
 	});
 	test("update password for a user - admin", async () => {
-		const res = await addUser(user1, 201);
-		const admin = await addUser(userAdmin, 201);
+		const res = await seedUser(user1);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200);
 
 		await request(app)
-			.put("/password/" + res.body.id)
+			.put("/password/" + res.id)
 			.type("form").send({ oldPassword: user1.password, newPassword: 'ValidPsw1' })
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200);
 	});
 
 	test("update password for a user - incorrect old password", async () => {
-		const res = await addUser(user1, 201);
+		const res = await seedUser(user1);
 		const loginRes = await loginUser(user1, 200);
 
 		await request(app)
-			.put("/password/" + res.body.id)
+			.put("/password/" + res.id)
 			.type("form")
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.send({ oldPassword: 'WrongPassword123', newPassword: 'ValidPassword1' })
@@ -965,27 +1023,28 @@ describe('Testing password update', () => {
 	});
 
 	test("update password for a user - incorrect old password - as admin", async () => {
-		const res = await addUser(user1, 201);
-		const admin = await addUser(userAdmin, 201);
+		const res = await seedUser(user1);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200);
 
 		await request(app)
-			.put("/password/" + res.body.id)
+			.put("/password/" + res.id)
 			.type("form")
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.send({ oldPassword: 'WrongPassword123', newPassword: 'ValidPassword1' })
 			.expect(200);
 	});
 
+
 	test("update password for a user", async () => {
-		const res = await addUser(user1, 201);
+		const res = await seedUser(user1);
 		const loginRes = await loginUser(user1, 200);
 
 		await request(app)
-			.put("/password/" + res.body.id)
+			.put("/password/" + res.id)
 			.type("form")
 			.set('Cookie', loginRes.headers['set-cookie'])
-			.send({ oldPassword: 'Abcd1234', newPassword: 'ValidPassword1' })
+			.send({ oldPassword: 'password123', newPassword: 'password123' })
 			.expect(200);
 	});
 })
@@ -997,123 +1056,123 @@ describe('Testing verify', () => {
 			.expect(400, { msg: ['userID is not a valid ObjectID'] })
 	});
 	test("verify for invalid userID user", async () => {
-		const user = await addUser(user1, 201);
+		const user = await seedUser(user1);
 		await request(app)
-			.get('/verify/' + '1' + user.body.id.slice(1, user.body.id.length - 1) + '1' + '/sometrackdayID/somebikeID')
+			.get('/verify/' + '1' + user.id.slice(1, user.id.length - 1) + '1' + '/sometrackdayID/somebikeID')
 			.expect(404, { msg: ['User does not exist'] })
 	});
 	test("verify for invalid objectID trackday", async () => {
-		const user = await addUser(user1, 201);
+		const user = await seedUser(user1);
 		await request(app)
-			.get("/verify/" + user.body.id + "/invalid/somebikeID")
+			.get("/verify/" + user.id + "/invalid/somebikeID")
 			.expect(400, { msg: ['trackdayID is not a valid ObjectID'] })
 	});
 	test("verify for invalid trackdayID trackday", async () => {
-		const user = await addUser(user1, 201);
-		const admin = await addUser(userAdmin, 201);
+		const user = await seedUser(user1);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200);
 		// Create the trackday
 		const trackday = await addTrackday(getFormattedDate(3), loginRes.headers['set-cookie'])
 		await request(app)
-			.get("/verify/" + user.body.id + '/' + '1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1' + '/somebikeID')
+			.get("/verify/" + user.id + '/' + '1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1' + '/somebikeID')
 			.expect(404, { msg: ['Trackday does not exist'] })
 	});
 	test("verify for invalid objectID bike", async () => {
-		const user = await addUser(user1, 201);
-		const admin = await addUser(userAdmin, 201);
+		const user = await seedUser(user1);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200);
 		// Create the trackday
 		const trackday = await addTrackday(getFormattedDate(3), loginRes.headers['set-cookie'])
 
 		await request(app)
-			.get("/verify/" + user.body.id + '/' + trackday.body.id + '/invalid')
+			.get("/verify/" + user.id + '/' + trackday.body.id + '/invalid')
 			.expect(400, { msg: ['bikeID is not a valid ObjectID'] })
 	});
 	test("verify for invalid bikeID bike", async () => {
-		const user = await addUser(user1, 201);
-		const admin = await addUser(userAdmin, 201)
+		const user = await seedUser(user1);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200);
 		// Create the trackday
 		const trackday = await addTrackday(getFormattedDate(3), loginRes.headers['set-cookie'])
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + user.body.id)
+			.post("/garage/" + user.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(201);
 
 		await request(app)
-			.get("/verify/" + user.body.id + '/' + trackday.body.id + '/' + '1' + bike.body.id.slice(1, bike.body.id.length - 1) + '1')
+			.get("/verify/" + user.id + '/' + trackday.body.id + '/' + '1' + bike.body.id.slice(1, bike.body.id.length - 1) + '1')
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: ['Bike does not exist'] });
 	});
 
 	test("verify for user - not registered for trackday", async () => {
-		const user = await addUser(user1, 201);
-		const admin = await addUser(userAdmin, 201)
+		const user = await seedUser(user1);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200);
 		// Create the trackday
 		const trackday = await addTrackday(getFormattedDate(3), loginRes.headers['set-cookie'])
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + user.body.id)
+			.post("/garage/" + user.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(201);
 
 		await request(app)
-			.get("/verify/" + user.body.id + '/' + trackday.body.id + '/' + bike.body.id)
+			.get("/verify/" + user.id + '/' + trackday.body.id + '/' + bike.body.id)
 			.expect(200, { verified: false })
 	});
 
 	test("verify for user - not checkedin for trackday", async () => {
-		const user = await addUser(user1, 201);
-		const admin = await addUser(userAdmin, 201)
+		const user = await seedUser(user1);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200);
 		// Create the trackday
 		const trackday = await addTrackday(getFormattedDate(3), loginRes.headers['set-cookie'])
 
 		// Mark waiver as signed
 		await request(app)
-			.post("/waiver/" + user.body.id)
+			.post("/waiver/" + user.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200);
 
 
 		// Register user for trackday
 		await request(app)
-			.post('/register/' + user.body.id + '/' + trackday.body.id)
+			.post('/register/' + user.id + '/' + trackday.body.id)
 			.type("form").send({ paymentMethod: 'creditCard', guests: 3, layoutVote: 'none' })
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + user.body.id)
+			.post("/garage/" + user.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(201);
 
 		await request(app)
-			.get("/verify/" + user.body.id + '/' + trackday.body.id + '/' + bike.body.id)
+			.get("/verify/" + user.id + '/' + trackday.body.id + '/' + bike.body.id)
 			.expect(200, { verified: false })
 	});
 
 	test("verify for user", async () => {
-		const user = await addUser(user1, 201);
-		const admin = await addUser(userAdmin, 201)
+		const user = await seedUser(user1);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200);
 		// Create the trackday
 		const trackday = await addTrackday(getFormattedDate(3), loginRes.headers['set-cookie'])
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + user.body.id)
+			.post("/garage/" + user.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie'])
@@ -1121,39 +1180,39 @@ describe('Testing verify', () => {
 
 		// Mark waiver as signed
 		await request(app)
-			.post("/waiver/" + user.body.id)
+			.post("/waiver/" + user.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200);
 
 		// Register user for trackday
 		await request(app)
-			.post('/register/' + user.body.id + '/' + trackday.body.id)
+			.post('/register/' + user.id + '/' + trackday.body.id)
 			.type("form").send({ paymentMethod: 'creditCard', guests: 3, layoutVote: 'none' })
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 
 		// Mark user as paid
 		await request(app)
-			.put('/paid/' + user.body.id + '/' + trackday.body.id)
+			.put('/paid/' + user.id + '/' + trackday.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.type('form').send({ setPaid: 'true' })
 			.expect(200)
 
 		// Check-in user for trackday
 		await request(app)
-			.post('/checkin/' + user.body.id + '/' + trackday.body.id + '/' + bike.body.id)
+			.post('/checkin/' + user.id + '/' + trackday.body.id + '/' + bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 
 		await request(app)
-			.get("/verify/" + user.body.id + '/' + trackday.body.id + '/' + bike.body.id)
+			.get("/verify/" + user.id + '/' + trackday.body.id + '/' + bike.body.id)
 			.expect(200, { verified: true })
 	});
 })
 
 describe('Testing verifyQR', () => {
 	test("verifyQR for invalid objectID QRID", async () => {
-		const admin = await addUser(userAdmin, 201);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200)
 		await request(app)
 			.get("/verify/invalid/invalid")
@@ -1161,7 +1220,7 @@ describe('Testing verifyQR', () => {
 			.expect(400, { msg: ['QRID is not a valid ObjectID'] })
 	});
 	test("verifyQR for invalid QRID", async () => {
-		const admin = await addUser(userAdmin, 201);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200)
 		await request(app)
 			.get("/verify/6604aa217c21ab6eb042bc6a/sometrackdayID")
@@ -1171,7 +1230,7 @@ describe('Testing verifyQR', () => {
 
 
 	test("verifyQR for invalid objectID trackday", async () => {
-		const admin = await addUser(userAdmin, 201)
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200);
 		// Generate the QR Code
 		const newQR = await request(app)
@@ -1187,7 +1246,7 @@ describe('Testing verifyQR', () => {
 	});
 
 	test("verifyQR for invalid trackdayID trackday", async () => {
-		const admin = await addUser(userAdmin, 201)
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200);
 		// Generate the QR Code
 		const newQR = await request(app)
@@ -1204,15 +1263,15 @@ describe('Testing verifyQR', () => {
 
 
 	test("verifyQR for user - not registered for trackday", async () => {
-		const user = await addUser(user1, 201);
-		const admin = await addUser(userAdmin, 201)
+		const user = await seedUser(user1);
+		const admin = await seedUser(userAdmin)
 		const loginRes = await loginUser(userAdmin, 200);
 		// Create the trackday
 		const trackday = await addTrackday(getFormattedDate(3), loginRes.headers['set-cookie'])
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + user.body.id)
+			.post("/garage/" + user.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie'])
@@ -1228,7 +1287,7 @@ describe('Testing verifyQR', () => {
 
 		// Marry QR to bike and user
 		await request(app)
-			.put("/QR/" + newQR.body[0].id + '/' + user.body.id + "/" + bike.body.id)
+			.put("/QR/" + newQR.body[0].id + '/' + user.id + "/" + bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(201)
 
@@ -1246,15 +1305,15 @@ describe('Testing verifyQR', () => {
 	});
 
 	test("verifyQR for user - not checkedin for trackday", async () => {
-		const user = await addUser(user1, 201);
-		const admin = await addUser(userAdmin, 201)
+		const user = await seedUser(user1);
+		const admin = await seedUser(userAdmin)
 		const loginRes = await loginUser(userAdmin, 200);
 		// Create the trackday
 		const trackday = await addTrackday(getFormattedDate(3), loginRes.headers['set-cookie'])
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + user.body.id)
+			.post("/garage/" + user.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie'])
@@ -1262,13 +1321,13 @@ describe('Testing verifyQR', () => {
 
 		// Mark waiver as signed
 		await request(app)
-			.post("/waiver/" + user.body.id)
+			.post("/waiver/" + user.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200);
 
 		// Register user for trackday
 		await request(app)
-			.post('/register/' + user.body.id + '/' + trackday.body.id)
+			.post('/register/' + user.id + '/' + trackday.body.id)
 			.type("form").send({ paymentMethod: 'creditCard', guests: 3, layoutVote: 'none' })
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
@@ -1283,7 +1342,7 @@ describe('Testing verifyQR', () => {
 
 		// Marry QR to bike and user
 		await request(app)
-			.put("/QR/" + newQR.body[0].id + '/' + user.body.id + "/" + bike.body.id)
+			.put("/QR/" + newQR.body[0].id + '/' + user.id + "/" + bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(201)
 
@@ -1301,15 +1360,15 @@ describe('Testing verifyQR', () => {
 	});
 
 	test("verifyQR for user", async () => {
-		const user = await addUser(user1, 201);
-		const admin = await addUser(userAdmin, 201)
+		const user = await seedUser(user1);
+		const admin = await seedUser(userAdmin)
 		const loginRes = await loginUser(userAdmin, 200);
 		// Create the trackday
 		const trackday = await addTrackday(getFormattedDate(3), loginRes.headers['set-cookie'])
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + user.body.id)
+			.post("/garage/" + user.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie'])
@@ -1317,20 +1376,20 @@ describe('Testing verifyQR', () => {
 
 		// Mark waiver as signed
 		await request(app)
-			.post("/waiver/" + user.body.id)
+			.post("/waiver/" + user.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200);
 
 		// Register user for trackday
 		await request(app)
-			.post('/register/' + user.body.id + '/' + trackday.body.id)
+			.post('/register/' + user.id + '/' + trackday.body.id)
 			.type("form").send({ paymentMethod: 'creditCard', guests: 3, layoutVote: 'none' })
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 
 		// Mark user as paid
 		await request(app)
-			.put('/paid/' + user.body.id + '/' + trackday.body.id)
+			.put('/paid/' + user.id + '/' + trackday.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.type('form').send({ setPaid: 'true' })
 			.expect(200)
@@ -1347,13 +1406,13 @@ describe('Testing verifyQR', () => {
 
 		// Marry QR to bike and user
 		await request(app)
-			.put("/QR/" + newQR.body[0].id + '/' + user.body.id + "/" + bike.body.id)
+			.put("/QR/" + newQR.body[0].id + '/' + user.id + "/" + bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(201)
 
 		// Check-in user for trackday
 		await request(app)
-			.post('/checkin/' + user.body.id + '/' + trackday.body.id + '/' + bike.body.id)
+			.post('/checkin/' + user.id + '/' + trackday.body.id + '/' + bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 
@@ -1373,7 +1432,7 @@ describe('Testing verifyQR', () => {
 
 describe('Testing adding bikes to a user garage', () => {
 	test("add bike to garage - invalid objectID user", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1)
 		const loginRes = await loginUser(user1, 200)
 		await request(app)
 			.post("/garage/invalid")
@@ -1383,11 +1442,11 @@ describe('Testing adding bikes to a user garage', () => {
 			.expect(400, { msg: ['userID is not a valid ObjectID'] })
 	});
 	test("add bike to garage - invalid userID user", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1)
 		const loginRes = await loginUser(user1, 200)
 
 		await request(app)
-			.post('/garage/' + '1' + user.body.id.slice(1, user.body.id.length - 1) + '1')
+			.post('/garage/' + '1' + user.id.slice(1, user.id.length - 1) + '1')
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie'])
@@ -1395,21 +1454,21 @@ describe('Testing adding bikes to a user garage', () => {
 	});
 
 	test("add bike to garage - missing fields", async () => {
-		const user = await addUser(user1, 201);
+		const user = await seedUser(user1);
 		const loginRes = await loginUser(user1, 200)
 		await request(app)
-			.post("/garage/" + user.body.id)
+			.post("/garage/" + user.id)
 			.type("form")
 			.send({ field: 'param' })
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(400);
 	});
 	test("add bike to garage - malformed fields", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1)
 		const loginRes = await loginUser(user1, 200)
 
 		await request(app)
-			.post("/garage/" + user.body.id)
+			.post("/garage/" + user.id)
 			.type("form")
 			.send({ year: '20091', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie'])
@@ -1417,30 +1476,30 @@ describe('Testing adding bikes to a user garage', () => {
 	});
 
 	test("add bike to garage - no JWT", async () => {
-		const user = await addUser(user1, 201);
+		const user = await seedUser(user1);
 		await request(app)
-			.post("/garage/" + user.body.id)
+			.post("/garage/" + user.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.expect(401);
 	});
 	test("add bike to garage - unauthorized", async () => {
-		const res1 = await addUser(user1, 201);
-		const res2 = await addUser(user2, 201);
+		const res1 = await seedUser(user1);
+		const res2 = await seedUser(user2);
 		const loginRes = await loginUser(user2, 200)
 		await request(app)
-			.post("/garage/" + res1.body.id)
+			.post("/garage/" + res1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(403);
 	});
 	test("add bike to garage - as admin", async () => {
-		const user = await addUser(user1, 201);
-		const admin = await addUser(userAdmin, 201);
+		const user = await seedUser(user1);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200)
 		await request(app)
-			.post("/garage/" + user.body.id)
+			.post("/garage/" + user.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie'])
@@ -1448,17 +1507,17 @@ describe('Testing adding bikes to a user garage', () => {
 	});
 
 	test("add duplicate bike to garage", async () => {
-		const user = await addUser(user1, 201);
+		const user = await seedUser(user1);
 		const loginRes = await loginUser(user1, 200)
 		await request(app)
-			.post("/garage/" + user.body.id)
+			.post("/garage/" + user.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(201);
 
 		await request(app)
-			.post("/garage/" + user.body.id)
+			.post("/garage/" + user.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie'])
@@ -1466,24 +1525,24 @@ describe('Testing adding bikes to a user garage', () => {
 	});
 
 	test("add multiple bike to garage", async () => {
-		const user = await addUser(user1, 201);
+		const user = await seedUser(user1);
 		const loginRes = await loginUser(user1, 200)
 		await request(app)
-			.post("/garage/" + user.body.id)
+			.post("/garage/" + user.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(201);
 
 		await request(app)
-			.post("/garage/" + user.body.id)
+			.post("/garage/" + user.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R3" })
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(201);
 
 		await request(app)
-			.post("/garage/" + user.body.id)
+			.post("/garage/" + user.id)
 			.type("form")
 			.send({ year: '2010', make: 'Honda', model: "CBR600RR" })
 			.set('Cookie', loginRes.headers['set-cookie'])
@@ -1491,10 +1550,10 @@ describe('Testing adding bikes to a user garage', () => {
 	});
 
 	test("add bike to garage", async () => {
-		const user = await addUser(user1, 201);
+		const user = await seedUser(user1);
 		const loginRes = await loginUser(user1, 200)
 		await request(app)
-			.post("/garage/" + user.body.id)
+			.post("/garage/" + user.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie'])
@@ -1504,7 +1563,7 @@ describe('Testing adding bikes to a user garage', () => {
 
 describe('Delete bikes from a user garage', () => {
 	test("remove bike from garage - invalid objectID user", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1);
 		const loginRes = await loginUser(user1, 200)
 		await request(app)
 			.delete("/garage/invalid/someBikeID")
@@ -1512,157 +1571,171 @@ describe('Delete bikes from a user garage', () => {
 			.expect(400, { msg: ['userID is not a valid ObjectID'] })
 	});
 	test("remove bike from garage - invalid userID user", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1);
 		const loginRes = await loginUser(user1, 200)
 
 		await request(app)
-			.delete('/garage/' + '1' + user.body.id.slice(1, user.body.id.length - 1) + '1' + '/someBikeID')
+			.delete('/garage/' + '1' + user.id.slice(1, user.id.length - 1) + '1' + '/someBikeID')
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: ['User does not exist'] })
 	});
 	test("remove bike from garage - invalid objectID bike", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1);
 		const loginRes = await loginUser(user1, 200)
 		await request(app)
-			.delete("/garage/" + user.body.id + '/invalid')
+			.delete("/garage/" + user.id + '/invalid')
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(400, { msg: ['bikeID is not a valid ObjectID'] })
 	});
 	test("remove bike from garage - invalid bikeID bike", async () => {
-		let user = await addUser(user1, 201);
+		let user = await seedUser(user1);
 		const loginRes = await loginUser(user1, 200)
 
 		// Add the bike to user garage
-		const bike = await request(app).post("/garage/" + user.body.id).type("form").send({ year: '2009', make: 'Yamaha', model: "R6" })
+		const bike = await request(app).post("/garage/" + user.id).type("form").send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie']).expect(201);
 
 		await request(app)
-			.delete("/garage/" + user.body.id + '/' + '1' + bike.body.id.slice(1, bike.body.id.length - 1) + '1')
+			.delete("/garage/" + user.id + '/' + '1' + bike.body.id.slice(1, bike.body.id.length - 1) + '1')
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: ['Bike does not exist'] });
 	});
 
 
 	test("remove bike from garage - no JWT", async () => {
-		const user = await addUser(user1, 201);
+		const user = await seedUser(user1);
 
 		await request(app)
-			.delete('/garage/' + user.body.id + '/someBikeID')
+			.delete('/garage/' + user.id + '/someBikeID')
 			.expect(401);
 	});
 	test("remove bike from garage - unauthorized", async () => {
-		const res1 = await addUser(user1, 201);
-		const res2 = await addUser(user2, 201);
+		const res1 = await seedUser(user1);
+		const res2 = await seedUser(user2);
 		const loginRes = await loginUser(user2, 200)
 		// Add the bike to user garage
-		const bike = await request(app).post("/garage/" + res2.body.id).type("form").send({ year: '2009', make: 'Yamaha', model: "R6" })
+		const bike = await request(app).post("/garage/" + res2.id).type("form").send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie']).expect(201);
 		await request(app)
-			.delete('/garage/' + res1.body.id + '/' + bike.body.id)
+			.delete('/garage/' + res1.id + '/' + bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(403);
 	});
 	test("remove bike from garage - as admin", async () => {
-		const user = await addUser(user1, 201);
-		const admin = await addUser(userAdmin, 201);
+		const user = await seedUser(user1);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200)
 		// Add the bike to user garage
-		const bike = await request(app).post("/garage/" + user.body.id).type("form").send({ year: '2009', make: 'Yamaha', model: "R6" })
+		const bike = await request(app).post("/garage/" + user.id).type("form").send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie']).expect(201);
 		await request(app)
-			.delete("/garage/" + user.body.id + '/' + bike.body.id)
+			.delete("/garage/" + user.id + '/' + bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200);
 	});
 
 	test('remove bike from garage - user doesnt have that bike in their garage', async () => {
-		let user = await addUser(user1, 201);
+		let user = await seedUser(user1);
 		const loginRes = await loginUser(user1, 200)
 
 		// Add the bike to user garage
 		const bike = await request(app)
-			.post("/garage/" + user.body.id).type("form").send({ year: '2009', make: 'Yamaha', model: "R6" })
+			.post("/garage/" + user.id).type("form").send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie']).expect(201);
 
 		//Remove bike from garage (note, the bike will still exist in the bikes DB)
 		await request(app)
-			.delete("/garage/" + user.body.id + '/' + bike.body.id)
+			.delete("/garage/" + user.id + '/' + bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200);
 
 		await request(app)
-			.delete("/garage/" + user.body.id + '/' + bike.body.id)
+			.delete("/garage/" + user.id + '/' + bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: ['this bike does not exist in your garage'] });
 	});
 
 	test("remove bike from garage - bike has married QR", async () => {
-		let user = await addUser(user1, 201);
-		const admin = await addUser(userAdmin, 201);
-		const loginRes = await loginUser(user1, 200)
-		const adminRes = await loginUser(userAdmin, 200)
+		const user = await seedUser(user1);
+		const admin = await seedUser(userAdmin);
 
+		const loginRes = await loginUser(user1, 200);
+		const adminRes = await loginUser(userAdmin, 200);
 
-		// Add the bike to user garage
-		const bike = await request(app).post("/garage/" + user.body.id).type("form").send({ year: '2009', make: 'Yamaha', model: "R6" })
-			.set('Cookie', loginRes.headers['set-cookie']).expect(201);
+		const bikeRes = await request(app)
+			.post("/garage/" + user.id)
+			.type("form")
+			.send({ year: '2009', make: 'Yamaha', model: "R6" })
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(201);
 
-		// Generate the QR Code
-		const newQR = await request(app)
+		const bikeId = bikeRes.body.id;
+
+		const qrRes = await request(app)
 			.post('/QR')
 			.type("form")
 			.send({ qty: 1 })
 			.set('Cookie', adminRes.headers['set-cookie'])
-			.expect(201)
+			.expect(201);
 
-		// Marry QR to bike and user
+		const qrId = qrRes.body[0].id;
+
 		await request(app)
-			.put("/QR/" + newQR.body[0].id + '/' + user.body.id + "/" + bike.body.id)
+			.put(`/QR/${qrId}/${user.id}/${bikeId}`)
 			.set('Cookie', adminRes.headers['set-cookie'])
-			.expect(201)
+			.expect(201);
 
-
-		let fetchedUser = await request(app).get('/users/' + user.body.id).set('Cookie', loginRes.headers['set-cookie']).expect(200)
-
-		// Verify userbike has valid QRID
-		expect(fetchedUser.body.garage[0].QRID).toBe(newQR.body[0].id)
-
-		// Verify QRID has valid user/bike fields
-		expect(newQR.body[0].user).toBe(user.id)
-		expect(newQR.body[0].bike).toBe(bike.id)
-
-
-		// Delete the bike
-		await request(app)
-			.delete("/garage/" + user.body.id + '/' + bike.body.id)
+		let fetchedUser = await request(app)
+			.get('/users/' + user.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200);
 
-		// Verify empty garage
-		fetchedUser = await request(app).get('/users/' + user.body.id).set('Cookie', loginRes.headers['set-cookie']).expect(200)
-		expect(fetchedUser.body.garage.length).toBe(0)
+		const qrList = await request(app)
+			.get("/QR")
+			.set('Cookie', adminRes.headers['set-cookie'])
+			.expect(200);
 
-		// verify QR entry also deleted
+		const updatedQR = qrList.body.find(q => q._id === qrId);
+
+		expect(updatedQR).toBeDefined();
+
+		expect(fetchedUser.body.garage[0].QRID).toBe(qrId);
+		expect(updatedQR.user._id).toBe(user.id);
+		expect(updatedQR.bike._id).toBe(bikeId);
+
+		await request(app)
+			.delete(`/garage/${user.id}/${bikeId}`)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200);
+
+		fetchedUser = await request(app)
+			.get('/users/' + user.id)
+			.set('Cookie', loginRes.headers['set-cookie'])
+			.expect(200);
+		expect(fetchedUser.body.garage.length).toBe(0);
+
 		await request(app)
 			.get('/QR')
 			.set('Cookie', adminRes.headers['set-cookie'])
-			.expect(200, [])
+			.expect(200, []);
 	});
 
+
+
 	test("remove bike from garage", async () => {
-		let user = await addUser(user1, 201);
+		let user = await seedUser(user1);
 		const loginRes = await loginUser(user1, 200)
 
 		// Add the bike to user garage
-		const bike = await request(app).post("/garage/" + user.body.id).type("form").send({ year: '2009', make: 'Yamaha', model: "R6" })
+		const bike = await request(app).post("/garage/" + user.id).type("form").send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie']).expect(201);
 
 		await request(app)
-			.delete("/garage/" + user.body.id + '/' + bike.body.id)
+			.delete("/garage/" + user.id + '/' + bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200);
 
-		user = await request(app).get('/users/' + user.body.id).set('Cookie', loginRes.headers['set-cookie']).expect(200)
+		user = await request(app).get('/users/' + user.id).set('Cookie', loginRes.headers['set-cookie']).expect(200)
 		expect(user.body.garage.length).toBe(0)
 	});
 })
@@ -1670,7 +1743,7 @@ describe('Delete bikes from a user garage', () => {
 describe('Generate QR Codes', () => {
 
 	test("Generate QR Codes - missing fields", async () => {
-		const admin = await addUser(userAdmin, 201);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200)
 		await request(app)
 			.post('/QR')
@@ -1679,7 +1752,7 @@ describe('Generate QR Codes', () => {
 	});
 
 	test("Generate QR Codes - malformed fields", async () => {
-		const admin = await addUser(userAdmin, 201);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200)
 
 		await request(app)
@@ -1693,13 +1766,13 @@ describe('Generate QR Codes', () => {
 
 
 	test("Generate QR Codes - no JWT", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1)
 		await request(app)
 			.post('/QR')
 			.expect(401)
 	});
 	test("Generate QR Codes - unauthorized", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1)
 		const loginRes = await loginUser(user1, 200)
 		await request(app)
 			.post('/QR')
@@ -1712,7 +1785,7 @@ describe('Generate QR Codes', () => {
 
 
 	test("generate QR codes", async () => {
-		const admin = await addUser(userAdmin, 201);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200)
 
 		await request(app)
@@ -1726,13 +1799,13 @@ describe('Generate QR Codes', () => {
 
 describe('Get all QR Codes', () => {
 	test("Get all QR Codes - no JWT", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1)
 		await request(app)
 			.get('/QR')
 			.expect(401)
 	});
 	test("Get all QR Codes - unauthorized", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1)
 		const loginRes = await loginUser(user1, 200)
 		await request(app)
 			.get('/QR')
@@ -1740,7 +1813,7 @@ describe('Get all QR Codes', () => {
 			.expect(403)
 	});
 	test("get QR codes", async () => {
-		const admin = await addUser(userAdmin, 201);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200)
 
 		const fetchedQR = await request(app)
@@ -1760,7 +1833,7 @@ describe('Get all QR Codes', () => {
 describe('Assign QR code to user', () => {
 
 	test("Assign for invalid objectID QRID", async () => {
-		const admin = await addUser(userAdmin, 201);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200)
 		await request(app)
 			.put("/QR/invalid/someuserID/somebikeID")
@@ -1768,7 +1841,7 @@ describe('Assign QR code to user', () => {
 			.expect(400, { msg: ['QRID is not a valid ObjectID'] })
 	});
 	test("Assign for invalid QRID", async () => {
-		const admin = await addUser(userAdmin, 201);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200)
 		await request(app)
 			.put("/QR/6604aa217c21ab6eb042bc6a/someuserID/somebikeID")
@@ -1777,7 +1850,7 @@ describe('Assign QR code to user', () => {
 	});
 
 	test("Assign for invalid objectID userID", async () => {
-		const admin = await addUser(userAdmin, 201);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200);
 
 		// Generate the QR Code
@@ -1794,7 +1867,7 @@ describe('Assign QR code to user', () => {
 			.expect(400, { msg: ['userID is not a valid ObjectID'] })
 	});
 	test("Assign for invalid userID", async () => {
-		const admin = await addUser(userAdmin, 201);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200)
 
 		// Generate the QR Code
@@ -1813,7 +1886,7 @@ describe('Assign QR code to user', () => {
 	});
 
 	test("Assign for invalid objectID bike", async () => {
-		const admin = await addUser(userAdmin, 201);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200)
 
 		// Generate the QR Code
@@ -1826,12 +1899,12 @@ describe('Assign QR code to user', () => {
 
 
 		await request(app)
-			.put("/QR/" + newQR.body[0].id + "/" + admin.body.id + "/invalid")
+			.put("/QR/" + newQR.body[0].id + "/" + admin.id + "/invalid")
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(400, { msg: ['bikeID is not a valid ObjectID'] })
 	});
 	test("Assign for invalid bikeID bike", async () => {
-		const admin = await addUser(userAdmin, 201);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200)
 
 		// Generate the QR Code
@@ -1843,28 +1916,28 @@ describe('Assign QR code to user', () => {
 			.expect(201)
 
 		await request(app)
-			.put("/QR/" + newQR.body[0].id + '/' + admin.body.id + "/6604aa217c21ab6eb042bc6a")
+			.put("/QR/" + newQR.body[0].id + '/' + admin.id + "/6604aa217c21ab6eb042bc6a")
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: ['Bike does not exist'] });
 	});
 
 
 	test("Assign QR - no JWT", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1);
 		await request(app)
 			.put('/QR/someQRID/someuserID/somebikeID')
 			.expect(401)
 	});
 	test("Assign QR - unauthorized", async () => {
-		const user = await addUser(user1, 201)
-		const admin = await addUser(userAdmin, 201);
+		const user = await seedUser(user1);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(user1, 200);
 		const loginResAdmin = await loginUser(userAdmin, 200);
 
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + admin.body.id)
+			.post("/garage/" + admin.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginResAdmin.headers['set-cookie'])
@@ -1881,7 +1954,7 @@ describe('Assign QR code to user', () => {
 
 		// Marry QR to bike and user
 		await request(app)
-			.put("/QR/" + newQR.body[0].id + '/' + admin.body.id + "/" + bike.body.id)
+			.put("/QR/" + newQR.body[0].id + '/' + admin.id + "/" + bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(403)
 	});
@@ -1889,15 +1962,15 @@ describe('Assign QR code to user', () => {
 
 
 	test('Assign QR - QR already married to other user/bike', async () => {
-		const admin = await addUser(userAdmin, 201);
-		const user = await addUser(user1, 201);
+		const admin = await seedUser(userAdmin);
+		const user = await seedUser(user1);
 
 		const loginRes = await loginUser(user1, 200)
 		const loginResAdmin = await loginUser(userAdmin, 200)
 
 		// Add bike to admin garage
 		const bikeAdmin = await request(app)
-			.post("/garage/" + admin.body.id)
+			.post("/garage/" + admin.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginResAdmin.headers['set-cookie'])
@@ -1905,7 +1978,7 @@ describe('Assign QR code to user', () => {
 
 		// Add bike to user garage
 		const bikeUser = await request(app)
-			.post("/garage/" + user.body.id)
+			.post("/garage/" + user.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie'])
@@ -1921,40 +1994,40 @@ describe('Assign QR code to user', () => {
 
 		// Marry QR1 to admin
 		await request(app)
-			.put("/QR/" + newQR.body[0].id + '/' + admin.body.id + "/" + bikeAdmin.body.id)
+			.put("/QR/" + newQR.body[0].id + '/' + admin.id + "/" + bikeAdmin.body.id)
 			.set('Cookie', loginResAdmin.headers['set-cookie'])
 			.expect(201)
 
 		// Attempt to marry QR1 to user
 		await request(app)
-			.put("/QR/" + newQR.body[0].id + '/' + user.body.id + "/" + bikeUser.body.id)
+			.put("/QR/" + newQR.body[0].id + '/' + user.id + "/" + bikeUser.body.id)
 			.set('Cookie', loginResAdmin.headers['set-cookie'])
 			.expect(400, { msg: ['This QR is attached to ' + userAdmin.firstName.toLowerCase() + ' ' + userAdmin.lastName.toLowerCase()] });
 
 		// Verify that the admin retained QR1
 		const fetchedAdmin = await request(app)
-			.get('/users/' + admin.body.id)
+			.get('/users/' + admin.id)
 			.set('Cookie', loginResAdmin.headers['set-cookie'])
 			.expect(200)
 		expect((fetchedAdmin.body.garage[0]).QRID).toEqual(newQR.body[0].id);
 
 		// Verify that the user did NOT get pointed to QR1
 		const fetchedUser = await request(app)
-			.get('/users/' + user.body.id)
+			.get('/users/' + user.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 		expect((fetchedUser.body.garage[0]).QRID).toEqual(undefined);
 	});
 	test('Assign QR - User does not have that bike in their garage', async () => {
-		const admin = await addUser(userAdmin, 201);
-		const user = await addUser(user1, 201);
+		const admin = await seedUser(userAdmin);
+		const user = await seedUser(user1);
 
 		const loginRes = await loginUser(user1, 200)
 		const loginResAdmin = await loginUser(userAdmin, 200)
 
 		// Add bike to admin garage
 		const bikeAdmin = await request(app)
-			.post("/garage/" + admin.body.id)
+			.post("/garage/" + admin.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginResAdmin.headers['set-cookie'])
@@ -1962,7 +2035,7 @@ describe('Assign QR code to user', () => {
 
 		// Add bike to user garage
 		const bikeUser = await request(app)
-			.post("/garage/" + user.body.id)
+			.post("/garage/" + user.id)
 			.type("form")
 			.send({ year: '2005', make: 'Honda', model: "CBR600" })
 			.set('Cookie', loginRes.headers['set-cookie'])
@@ -1978,18 +2051,18 @@ describe('Assign QR code to user', () => {
 
 		// Attempt to marry QR to Admin but using users bike
 		await request(app)
-			.put("/QR/" + newQR.body[0].id + '/' + admin.body.id + "/" + bikeUser.body.id)
+			.put("/QR/" + newQR.body[0].id + '/' + admin.id + "/" + bikeUser.body.id)
 			.set('Cookie', loginResAdmin.headers['set-cookie'])
 			.expect(404, { msg: ['this bike does not exist in your garage'] });
 	});
 
 	test('Assign QR - QR already exists for this user-overwrite', async () => {
-		const admin = await addUser(userAdmin, 201);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200)
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + admin.body.id)
+			.post("/garage/" + admin.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie'])
@@ -2005,24 +2078,24 @@ describe('Assign QR code to user', () => {
 
 		// Marry QR1 to bike and user
 		await request(app)
-			.put("/QR/" + newQR.body[0].id + '/' + admin.body.id + "/" + bike.body.id)
+			.put("/QR/" + newQR.body[0].id + '/' + admin.id + "/" + bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(201)
 
 		// Try to re-marry QR1 to bike and user
 		await request(app)
-			.put("/QR/" + newQR.body[0].id + '/' + admin.body.id + "/" + bike.body.id)
+			.put("/QR/" + newQR.body[0].id + '/' + admin.id + "/" + bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(400, { msg: ['This QR is already attached to you'] });
 	});
 
 	test('Assign QR - QR already exists for this user-new QR', async () => {
-		const admin = await addUser(userAdmin, 201);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200)
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + admin.body.id)
+			.post("/garage/" + admin.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie'])
@@ -2038,13 +2111,13 @@ describe('Assign QR code to user', () => {
 
 		// Marry QR1 to bike and user
 		await request(app)
-			.put("/QR/" + newQR.body[0].id + '/' + admin.body.id + "/" + bike.body.id)
+			.put("/QR/" + newQR.body[0].id + '/' + admin.id + "/" + bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(201)
 
 		// Marry QR2 to user
 		await request(app)
-			.put("/QR/" + newQR.body[1].id + '/' + admin.body.id + "/" + bike.body.id)
+			.put("/QR/" + newQR.body[1].id + '/' + admin.id + "/" + bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(201)
 
@@ -2054,11 +2127,11 @@ describe('Assign QR code to user', () => {
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 		expect(allQR.body.length).toEqual(1);
-		expect(allQR.body[0].user._id).toEqual(admin.body.id);
+		expect(allQR.body[0].user._id).toEqual(admin.id);
 
 		// Check that user has correct QRID
 		const fetchedUser = await request(app)
-			.get('/users/' + admin.body.id)
+			.get('/users/' + admin.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 		expect((fetchedUser.body.garage[0]).QRID).toEqual(newQR.body[1].id);
@@ -2066,12 +2139,12 @@ describe('Assign QR code to user', () => {
 
 
 	test("Assign QR", async () => {
-		const admin = await addUser(userAdmin, 201);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200)
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + admin.body.id)
+			.post("/garage/" + admin.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie'])
@@ -2087,13 +2160,13 @@ describe('Assign QR code to user', () => {
 
 		// Marry QR to bike and user
 		await request(app)
-			.put("/QR/" + newQR.body[0].id + '/' + admin.body.id + "/" + bike.body.id)
+			.put("/QR/" + newQR.body[0].id + '/' + admin.id + "/" + bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(201)
 
 		// Verify that the user as newly generated QR attached as QRID
 		const fetchedUser = await request(app)
-			.get('/users/' + admin.body.id)
+			.get('/users/' + admin.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 		expect((fetchedUser.body.garage[0]).QRID).toEqual(newQR.body[0].id);
@@ -2103,7 +2176,7 @@ describe('Assign QR code to user', () => {
 describe('Delete QR code', () => {
 
 	test("Delete for invalid objectID QRID", async () => {
-		const admin = await addUser(userAdmin, 201);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200)
 		await request(app)
 			.delete("/QR/invalid")
@@ -2111,7 +2184,7 @@ describe('Delete QR code', () => {
 			.expect(400, { msg: ['QRID is not a valid ObjectID'] })
 	});
 	test("Delete for invalid QRID", async () => {
-		const admin = await addUser(userAdmin, 201);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200)
 		await request(app)
 			.delete("/QR/6604aa217c21ab6eb042bc6a/")
@@ -2121,14 +2194,14 @@ describe('Delete QR code', () => {
 
 
 	test("Delete QR - no JWT", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1)
 		await request(app)
 			.delete('/QR/someQRID')
 			.expect(401)
 	});
 	test("Delete QR - unauthorized", async () => {
-		const user = await addUser(user1, 201)
-		const admin = await addUser(userAdmin, 201);
+		const user = await seedUser(user1)
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(user1, 200);
 		const loginResAdmin = await loginUser(userAdmin, 200);
 
@@ -2150,12 +2223,12 @@ describe('Delete QR code', () => {
 
 
 	test("Delete QR - When married to some user/bike", async () => {
-		const admin = await addUser(userAdmin, 201);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200)
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + admin.body.id)
+			.post("/garage/" + admin.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie'])
@@ -2171,7 +2244,7 @@ describe('Delete QR code', () => {
 
 		// Marry QR to bike and user
 		await request(app)
-			.put("/QR/" + newQR.body[0].id + '/' + admin.body.id + "/" + bike.body.id)
+			.put("/QR/" + newQR.body[0].id + '/' + admin.id + "/" + bike.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(201)
 
@@ -2183,7 +2256,7 @@ describe('Delete QR code', () => {
 
 		// Verify that the user does not have QR still attached
 		const fetchedUser = await request(app)
-			.get('/users/' + admin.body.id)
+			.get('/users/' + admin.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 		expect((fetchedUser.body.garage[0]).QRID).toEqual(null);
@@ -2191,7 +2264,7 @@ describe('Delete QR code', () => {
 	});
 
 	test("Delete QR", async () => {
-		const admin = await addUser(userAdmin, 201);
+		const admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200)
 
 		// Generate the QR Code
@@ -2212,7 +2285,7 @@ describe('Delete QR code', () => {
 
 describe('Mark user as having waiver signed', () => {
 	test("mark waiver - invalid objectID user", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1)
 		const loginRes = await loginUser(user1, 200)
 		await request(app)
 			.post("/waiver/invalid")
@@ -2220,53 +2293,53 @@ describe('Mark user as having waiver signed', () => {
 			.expect(400, { msg: ['userID is not a valid ObjectID'] })
 	});
 	test("mark waiver - invalid userID user", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1)
 		const loginRes = await loginUser(user1, 200)
 
 		await request(app)
-			.post('/waiver/' + '1' + user.body.id.slice(1, user.body.id.length - 1) + '1')
+			.post('/waiver/' + '1' + user.id.slice(1, user.id.length - 1) + '1')
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: ['User does not exist'] })
 	});
 
 	test("mark waiver - no JWT", async () => {
-		const user = await addUser(user1, 201);
+		const user = await seedUser(user1);
 
 		await request(app)
-			.post('/waiver/' + user.body.id)
+			.post('/waiver/' + user.id)
 			.expect(401);
 	});
 	test("request code - unauthorized", async () => {
-		const res = await addUser(user1, 201);
+		const res = await seedUser(user1);
 		const loginRes = await loginUser(user1, 200)
 
 		await request(app)
-			.post('/waiver/' + res.body.id)
+			.post('/waiver/' + res.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(403);
 	});
 
 	test("mark user as having waiver completed", async () => {
-		let user = await addUser(user1, 201);
-		let admin = await addUser(userAdmin, 201);
+		let user = await seedUser(user1);
+		let admin = await seedUser(userAdmin);
 		const loginRes = await loginUser(userAdmin, 200)
 
 		// Make sure user currently does not have waiver signed
 		let fetchedUser = await request(app)
-			.get("/users/" + user.body.id)
+			.get("/users/" + user.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 		expect(fetchedUser.body.waiver).toBe(false)
 
 		// Mark waiver as signed
 		await request(app)
-			.post("/waiver/" + user.body.id)
+			.post("/waiver/" + user.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200);
 
 		// Make sure user now has waiver signed
 		fetchedUser = await request(app)
-			.get("/users/" + user.body.id)
+			.get("/users/" + user.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(200)
 		expect(fetchedUser.body.waiver).toBe(true)
@@ -2275,7 +2348,7 @@ describe('Mark user as having waiver signed', () => {
 
 describe('Creating payment intents', () => {
 	test("create paymentIntent for invalid objectID user", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1)
 		const loginRes = await loginUser(user1, 200)
 
 
@@ -2285,40 +2358,40 @@ describe('Creating payment intents', () => {
 			.expect(400, { msg: ['userID is not a valid ObjectID'] })
 	});
 	test("create paymentIntent for invalid userID user", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1)
 		const loginRes = await loginUser(user1, 200)
 
 		await request(app)
-			.post('/paymentIntent/' + '1' + user.body.id.slice(1, user.body.id.length - 1) + '1' + '/sometrackdayID')
+			.post('/paymentIntent/' + '1' + user.id.slice(1, user.id.length - 1) + '1' + '/sometrackdayID')
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: ['User does not exist'] })
 	});
 	test("create paymentIntent for invalid objectID trackday", async () => {
-		const user = await addUser(user1, 201)
+		const user = await seedUser(user1)
 		const loginRes = await loginUser(user1, 200)
 
 		await request(app)
-			.post("/paymentIntent/" + user.body.id + "/invalid")
+			.post("/paymentIntent/" + user.id + "/invalid")
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(400, { msg: ['trackdayID is not a valid ObjectID'] })
 	});
 	test("create paymentIntent for invalid trackdayID trackday", async () => {
-		const user = await addUser(user1, 201);
-		const admin = await addUser(userAdmin, 201);
+		const user = await seedUser(user1);
+		const admin = await seedUser(userAdmin);
 		const loginRes_ADMIN = await loginUser(userAdmin, 200);
 		const loginRes = await loginUser(user1, 200)
 
 		// Create the trackday
 		const trackday = await addTrackday(getFormattedDate(3), loginRes_ADMIN.headers['set-cookie'])
 		await request(app)
-			.post("/paymentIntent/" + user.body.id + '/' + '1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1')
+			.post("/paymentIntent/" + user.id + '/' + '1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1')
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(404, { msg: ['Trackday does not exist'] })
 	});
 
 	test("create paymentIntent - no JWT", async () => {
-		const user = await addUser(user1, 201);
-		const admin = await addUser(userAdmin, 201);
+		const user = await seedUser(user1);
+		const admin = await seedUser(userAdmin);
 		const loginRes_ADMIN = await loginUser(userAdmin, 200);
 		const loginRes = await loginUser(user1, 200)
 
@@ -2327,12 +2400,12 @@ describe('Creating payment intents', () => {
 
 		// Create the paymentIntent
 		await request(app)
-			.post("/paymentIntent/" + user.body.id + '/' + trackday.body.id)
+			.post("/paymentIntent/" + user.id + '/' + trackday.body.id)
 			.expect(401)
 	});
 	test("create paymentIntent - unauthorized", async () => {
-		const user = await addUser(user1, 201);
-		const admin = await addUser(userAdmin, 201);
+		const user = await seedUser(user1);
+		const admin = await seedUser(userAdmin);
 		const loginRes_ADMIN = await loginUser(userAdmin, 200);
 		const loginRes = await loginUser(user1, 200)
 
@@ -2341,14 +2414,14 @@ describe('Creating payment intents', () => {
 
 		// Create the paymentIntent
 		await request(app)
-			.post("/paymentIntent/" + user.body.id + '/' + trackday.body.id)
+			.post("/paymentIntent/" + user.id + '/' + trackday.body.id)
 			.set('Cookie', loginRes_ADMIN.headers['set-cookie'])
 			.expect(403)
 	});
 
 	test("create paymentIntent", async () => {
-		const user = await addUser(user1, 201);
-		const admin = await addUser(userAdmin, 201);
+		const user = await seedUser(user1);
+		const admin = await seedUser(userAdmin);
 		const loginRes_ADMIN = await loginUser(userAdmin, 200);
 		const loginRes = await loginUser(user1, 200)
 
@@ -2357,7 +2430,7 @@ describe('Creating payment intents', () => {
 
 		// Create the paymentIntent
 		const paymentIntent = await request(app)
-			.post("/paymentIntent/" + user.body.id + '/' + trackday.body.id)
+			.post("/paymentIntent/" + user.id + '/' + trackday.body.id)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.expect(201)
 	})
