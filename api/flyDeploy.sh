@@ -1,46 +1,50 @@
 #!/bin/bash
 
 # Automates deployment to Fly.io upon API update
-# Runs Jest tests before deploying, continues automatically even if tests fail
+# Runs Jest only once per deployment session
 
 REPO_DIR="/srv/rootMount/repos/Ride42/api"
 FLY_MACHINE_ID="1857501f1034d8"
 
-# ---------------------------
-# Run Jest tests first
-# ---------------------------
-echo "🧪 Running Jest tests..."
-cd "$REPO_DIR" || exit 1
+cd "$REPO_DIR" || { echo "❌ Repo directory $REPO_DIR not found. Aborting."; exit 1; }
 
-jest --ci --maxWorkers=4 &>/dev/null
-JEST_EXIT_CODE=$?
-
-if [ $JEST_EXIT_CODE -ne 0 ]; then
-  echo "❌ Jest tests failed."
+# ---------------------------
+# Run Jest tests first (once)
+# ---------------------------
+if [ -z "$JEST_ALREADY_RUN" ]; then
+  echo "🧪 Running Jest tests..."
   
-  # Prompt user
-  read -p "Do you want to deploy anyway? (y/n) " answer
-  case "$answer" in
-    y|Y )
-      echo "⚠️ Continuing deployment despite test failures..."
-      ;;
-    * )
-      echo "🚫 Deployment aborted due to failing tests."
-      exit 1
-      ;;
-  esac
+  jest --ci --maxWorkers=4 &>/dev/null
+  JEST_EXIT_CODE=$?
+
+  export JEST_ALREADY_RUN=true
+
+  if [ $JEST_EXIT_CODE -ne 0 ]; then
+    echo "❌ Jest tests failed."
+    read -p "Do you want to deploy anyway? (y/n) " answer
+    case "$answer" in
+      y|Y )
+        echo "⚠️ Continuing deployment despite test failures..."
+        ;;
+      * )
+        echo "🚫 Deployment aborted due to failing tests."
+        exit 1
+        ;;
+    esac
+  else
+    echo "✅ All Jest tests passed. Continuing deployment..."
+  fi
 else
-  echo "✅ All Jest tests passed. Continuing deployment..."
+  echo "⚠️ Jest already ran, skipping tests..."
 fi
 
-# Get short git hash for version
+# ---------------------------
+# Deploy to Fly.io
+# ---------------------------
 VERSION=$(git rev-parse --short HEAD)
 export VERSION
 
-# Deploy via Fly
 fly deploy --build-arg VERSION="$VERSION" &>/dev/null
-
-# Update Fly machine (autostop off)
 flyctl machines update "$FLY_MACHINE_ID" --autostop='off' -y
 
 echo "🚀 Deployment to Fly.io complete!"

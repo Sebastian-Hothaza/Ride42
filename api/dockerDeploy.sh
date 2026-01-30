@@ -2,6 +2,7 @@
 
 # Automates deployment to Docker container upon API update
 # Now uses Docker Compose instead of docker run
+# Runs Jest only once per deployment session
 
 COMPOSE_DIR="/srv/ride42api"
 REPO_DIR="/srv/rootMount/repos/Ride42/api"
@@ -19,30 +20,34 @@ if [ ! -f "$ENV_FILE" ]; then
 fi
 
 # ---------------------------
-# Run Jest tests first
+# Run Jest tests first (once)
 # ---------------------------
-echo "🧪 Running Jest tests..."
-cd "$REPO_DIR" || exit 1
+if [ -z "$JEST_ALREADY_RUN" ]; then
+  echo "🧪 Running Jest tests..."
+  cd "$REPO_DIR" || exit 1
 
-jest --ci --maxWorkers=4 &>/dev/null
-JEST_EXIT_CODE=$?
+  jest --ci --maxWorkers=4 &>/dev/null
+  JEST_EXIT_CODE=$?
 
-if [ $JEST_EXIT_CODE -ne 0 ]; then
-  echo "❌ Jest tests failed."
-  
-  # Prompt user
-  read -p "Do you want to deploy anyway? (y/n) " answer
-  case "$answer" in
-    y|Y )
-      echo "⚠️ Continuing deployment despite test failures..."
-      ;;
-    * )
-      echo "🚫 Deployment aborted due to failing tests."
-      exit 1
-      ;;
-  esac
+  export JEST_ALREADY_RUN=true
+
+  if [ $JEST_EXIT_CODE -ne 0 ]; then
+    echo "❌ Jest tests failed."
+    read -p "Do you want to deploy anyway? (y/n) " answer
+    case "$answer" in
+      y|Y )
+        echo "⚠️ Continuing deployment despite test failures..."
+        ;;
+      * )
+        echo "🚫 Deployment aborted due to failing tests."
+        exit 1
+        ;;
+    esac
+  else
+    echo "✅ All Jest tests passed. Continuing deployment..."
+  fi
 else
-  echo "✅ All Jest tests passed. Continuing deployment..."
+  echo "⚠️ Jest already ran, skipping tests..."
 fi
 
 # ---------------------------
