@@ -10,7 +10,9 @@ cd "$REPO_DIR" || { echo "❌ Repo directory $REPO_DIR not found. Aborting."; ex
 VERSION=$(git rev-parse --short HEAD)
 export VERSION
 
+echo "🌎 Deploying on Fly.io..."
+
 fly deploy --build-arg VERSION="$VERSION" &>/dev/null
-flyctl machines update "$FLY_MACHINE_ID" --autostop='off' -y
+flyctl machines update "$FLY_MACHINE_ID" --autostop='off' -y &>/dev/null
 
 echo "🚀 Deployment to Fly.io complete!"
