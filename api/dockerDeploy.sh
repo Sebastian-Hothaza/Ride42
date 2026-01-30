@@ -18,6 +18,36 @@ if [ ! -f "$ENV_FILE" ]; then
   exit 1
 fi
 
+# ---------------------------
+# Run Jest tests first
+# ---------------------------
+echo "🧪 Running Jest tests..."
+cd $REPO_DIR || exit 1
+
+jest --ci --maxWorkers=4 &>/dev/null
+JEST_EXIT_CODE=$?
+
+if [ $JEST_EXIT_CODE -ne 0 ]; then
+  echo "❌ Jest tests failed."
+  
+  # Prompt user
+  read -p "Do you want to deploy anyway? (y/n) " answer
+  case "$answer" in
+    y|Y )
+      echo "⚠️ Continuing deployment despite test failures..."
+      ;;
+    * )
+      echo "🚫 Deployment aborted due to failing tests."
+      exit 1
+      ;;
+  esac
+else
+  echo "✅ All Jest tests passed. Continuing deployment..."
+fi
+
+# ---------------------------
+# Build & deploy Docker
+# ---------------------------
 echo "🔧 Rebuilding Docker image via Docker Compose..."
 docker compose -f ${COMPOSE_DIR}/docker-compose.yml build --no-cache &>/dev/null
 
