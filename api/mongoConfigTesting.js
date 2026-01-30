@@ -8,7 +8,7 @@ async function initializeMongoServer() {
   mongoServer = await MongoMemoryServer.create();
   const mongoUri = mongoServer.getUri();
 
-  mongoose.connect(mongoUri);
+  await mongoose.connect(mongoUri);
 
   mongoose.connection.on("error", e => {
     if (e.message.code === "ETIMEDOUT") {
@@ -25,7 +25,12 @@ async function takedownMongoServer() {
 }
 
 async function refreshMongoServer() {
-  await mongoose.connection.db.dropDatabase();
+  const collections = mongoose.connection.collections;
+
+  for (const key in collections) {
+    await collections[key].deleteMany({});
+  }
 }
+
 
 module.exports = { initializeMongoServer, takedownMongoServer, refreshMongoServer };
