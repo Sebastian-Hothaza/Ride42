@@ -117,21 +117,20 @@ exports.updatePassword = [
 
     asyncHandler(async (req, res, next) => {
         if (req.user.memberType === 'admin' || req.user.id === req.params.userID) {
-            bcrypt.hash(req.body.newPassword, 10, async (err, hashedPassword) => {
-                if (err) logger.error({ message: "bcrypt error" })
-                let user = await User.findById(req.params.userID).exec();
+            const hashedPassword = await bcrypt.hash(req.body.newPassword, 10);
+            let user = await User.findById(req.params.userID).exec();
 
-                // Verify old Password
-                const passwordMatch = await bcrypt.compare(req.body.oldPassword, user.password)
-                if (passwordMatch || req.user.memberType === 'admin') {
-                    user.password = hashedPassword;
-                    await user.save();
-                    sendEmail(user.contact.email, "Your Password has been updated", mailTemplates.passwordChange, { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) })
-                    res.sendStatus(200);
-                } else {
-                    res.status(403).send({ msg: ['Old password is incorrect'] });
-                }
-            })
+            // Verify old Password
+            const passwordMatch = await bcrypt.compare(req.body.oldPassword, user.password);
+            if (passwordMatch || req.user.memberType === 'admin') {
+                user.password = hashedPassword;
+                await user.save();
+                sendEmail(user.contact.email, "Your Password has been updated", mailTemplates.passwordChange, { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) })
+                res.sendStatus(200);
+            } else {
+                res.status(403).send({ msg: ['Old password is incorrect'] });
+            }
+
             return // This return returns from the async handler fn
         }
         return res.sendStatus(403) // This return returns from the async handler fn
@@ -670,36 +669,37 @@ exports.user_post = [
         // Check if a user already exists with same email
         const duplicateUser = await User.find({ 'contact.email': { $regex: req.body.email, $options: 'i' } })
         if (duplicateUser.length) return res.status(409).send({ msg: ['User with this email already exists'] });
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
-        bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
-            // Create the user and insert into the DB
-            const user = new User({
-                firstName: req.body.firstName.toLowerCase(),
-                lastName: req.body.lastName.toLowerCase(),
-                contact: {
-                    email: req.body.email.toLowerCase(),
-                    phone: req.body.phone.toLowerCase(),
-                    address: req.body.address.toLowerCase(),
-                    city: req.body.city.toLowerCase(),
-                    province: req.body.province.toLowerCase()
-                },
-                emergencyContact: {
-                    firstName: req.body.EmergencyName_firstName.toLowerCase(),
-                    lastName: req.body.EmergencyName_lastName.toLowerCase(),
-                    phone: req.body.EmergencyPhone.toLowerCase(),
-                    relationship: req.body.EmergencyRelationship.toLowerCase()
-                },
-                group: req.body.group.toLowerCase(),
-                credits: 0,
-                waiver: false,
-                memberType: 'regular',
-                password: hashedPassword
-            })
-            await user.save();
-            sendEmail(user.contact.email, "Welcome to Ride42", mailTemplates.welcomeUser, { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) })
-            logger.info({ message: `Created user ${user.firstName} ${user.lastName}` })
-            return res.status(201).json({ id: user.id });
-        })
+        const user = new User({
+            firstName: req.body.firstName.toLowerCase(),
+            lastName: req.body.lastName.toLowerCase(),
+            contact: {
+                email: req.body.email.toLowerCase(),
+                phone: req.body.phone.toLowerCase(),
+                address: req.body.address.toLowerCase(),
+                city: req.body.city.toLowerCase(),
+                province: req.body.province.toLowerCase()
+            },
+            emergencyContact: {
+                firstName: req.body.EmergencyName_firstName.toLowerCase(),
+                lastName: req.body.EmergencyName_lastName.toLowerCase(),
+                phone: req.body.EmergencyPhone.toLowerCase(),
+                relationship: req.body.EmergencyRelationship.toLowerCase()
+            },
+            group: req.body.group.toLowerCase(),
+            credits: 0,
+            waiver: false,
+            memberType: 'regular',
+            password: hashedPassword
+        });
+
+        await user.save();
+        sendEmail(user.contact.email, "Welcome to Ride42", mailTemplates.welcomeUser, { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) });
+        logger.info({ message: `Created user ${user.firstName} ${user.lastName}` });
+
+        return res.status(201).json({ id: user.id });
+
     }),
 ]
 
@@ -832,33 +832,38 @@ exports.admin = [
 
 
     asyncHandler(async (req, res, next) => {
-        bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
-            // Create the user and insert into the DB
-            const user = new User({
-                firstName: req.body.firstName.toLowerCase(),
-                lastName: req.body.lastName.toLowerCase(),
-                contact: {
-                    email: req.body.email.toLowerCase(),
-                    phone: req.body.phone.toLowerCase(),
-                    address: req.body.address.toLowerCase(),
-                    city: req.body.city.toLowerCase(),
-                    province: req.body.province.toLowerCase()
-                },
-                emergencyContact: {
-                    firstName: req.body.EmergencyName_firstName.toLowerCase(),
-                    lastName: req.body.EmergencyName_lastName.toLowerCase(),
-                    phone: req.body.EmergencyPhone.toLowerCase(),
-                    relationship: req.body.EmergencyRelationship.toLowerCase()
-                },
-                group: req.body.group.toLowerCase(),
-                credits: 0,
-                waiver: true,
-                memberType: 'admin',
-                password: hashedPassword
-            })
-            await user.save();
-            logger.warn({ message: `Created admin ${user.firstName} ${user.lastName}` })
-            return res.status(201).json({ id: user.id });
-        })
+        // Hash password using async/await (works with mock)
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
+        // Create the user and insert into the DB
+        const user = new User({
+            firstName: req.body.firstName.toLowerCase(),
+            lastName: req.body.lastName.toLowerCase(),
+            contact: {
+                email: req.body.email.toLowerCase(),
+                phone: req.body.phone.toLowerCase(),
+                address: req.body.address.toLowerCase(),
+                city: req.body.city.toLowerCase(),
+                province: req.body.province.toLowerCase()
+            },
+            emergencyContact: {
+                firstName: req.body.EmergencyName_firstName.toLowerCase(),
+                lastName: req.body.EmergencyName_lastName.toLowerCase(),
+                phone: req.body.EmergencyPhone.toLowerCase(),
+                relationship: req.body.EmergencyRelationship.toLowerCase()
+            },
+            group: req.body.group.toLowerCase(),
+            credits: 0,
+            waiver: true,
+            memberType: 'admin',
+            password: hashedPassword
+        });
+
+        await user.save();
+        logger.warn({ message: `Created admin ${user.firstName} ${user.lastName}` });
+
+        // Return response
+        return res.status(201).json({ id: user.id });
+
     }),
 ]
