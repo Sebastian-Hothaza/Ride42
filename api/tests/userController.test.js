@@ -164,7 +164,6 @@ async function addTrackday(date, adminCookie) {
 }
 
 const User = require("../models/User");
-// const bcrypt = require('bcryptjs');
 async function seedUser(userInfo) {
 	const hashedPassword = await bcrypt.hash(userInfo.password, 10);
 
