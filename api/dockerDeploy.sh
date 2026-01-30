@@ -22,7 +22,7 @@ fi
 # Run Jest tests first
 # ---------------------------
 echo "🧪 Running Jest tests..."
-cd $REPO_DIR || exit 1
+cd "$REPO_DIR" || exit 1
 
 jest --ci --maxWorkers=4 &>/dev/null
 JEST_EXIT_CODE=$?
@@ -49,7 +49,7 @@ fi
 # Build & deploy Docker
 # ---------------------------
 echo "🔧 Rebuilding Docker image via Docker Compose..."
-docker compose -f ${COMPOSE_DIR}/docker-compose.yml build --no-cache &>/dev/null
+docker compose -f ${COMPOSE_DIR}/docker-compose.yml build --no-cache >/dev/null
 
 echo "🛑 Stopping old container (if exists)..."
 docker compose -f ${COMPOSE_DIR}/docker-compose.yml down &>/dev/null
