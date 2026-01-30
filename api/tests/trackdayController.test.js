@@ -1,3 +1,12 @@
+jest.mock('bcryptjs', () => ({
+	hash: jest.fn(async () => 'hashed-password'),
+	compare: jest.fn(async (input, hash) => {
+		// Simple logic: the "correct" password is always 'password123' for tests
+		return input === 'password123';
+	}),
+}));
+const bcrypt = require('bcryptjs');
+
 const express = require("express");
 const request = require("supertest");
 const MongoDB_testDB = require("../mongoConfigTesting")
@@ -55,17 +64,25 @@ let admin, user1, user2, adminCookie, user1Cookie, user2Cookie;
 
 beforeEach(async () => {
 	// Preload each test with user and admin logged in and store their cookies
-	admin = await addUser(userAdmin);
+	admin = await seedUser(userAdmin);
 	const loginResAdmin = await loginUser(userAdmin);
 	adminCookie = loginResAdmin.headers['set-cookie']
 
-	user1 = await addUser(user1Info);
+	user1 = await seedUser(user1Info);
 	const loginResUser1 = await loginUser(user1Info);
 	user1Cookie = loginResUser1.headers['set-cookie']
 
-	user2 = await addUser(user2Info);
+	user2 = await seedUser(user2Info);
 	const loginResUser2 = await loginUser(user2Info);
 	user2Cookie = loginResUser2.headers['set-cookie']
+
+	staff = await seedUser(userStaff);
+	const loginResStaff = await loginUser(userStaff);
+	staffCookie = loginResStaff.headers['set-cookie']
+
+	coach = await seedUser(userCoach);
+	const loginResCoach = await loginUser(userCoach);
+	coachCookie = loginResCoach.headers['set-cookie']
 })
 
 afterEach(async () => {
@@ -90,7 +107,7 @@ const user1Info = {
 	EmergencyPhone: "5195724356",
 	EmergencyRelationship: "Wife",
 	group: "yellow",
-	password: "Abcd1234"
+	password: "password123",
 };
 
 const user1Info_MissingWaiver = {
@@ -106,7 +123,7 @@ const user1Info_MissingWaiver = {
 	EmergencyPhone: "5195724356",
 	EmergencyRelationship: "Wife",
 	group: "yellow",
-	password: "Abcd1234",
+	password: "password123",
 	waiver: false
 };
 
@@ -123,7 +140,7 @@ const user2Info = {
 	EmergencyPhone: "5195712834",
 	EmergencyRelationship: "Friend",
 	group: "green",
-	password: "User2123"
+	password: "password123"
 };
 
 const userAdmin = {
@@ -139,7 +156,8 @@ const userAdmin = {
 	EmergencyPhone: "2269883609",
 	EmergencyRelationship: "Mother",
 	group: "red",
-	password: "Sebi1234"
+	password: "password123",
+	memberType: "admin"
 };
 
 const userAdminWaiver = {
@@ -155,7 +173,7 @@ const userAdminWaiver = {
 	EmergencyPhone: "2269883609",
 	EmergencyRelationship: "Mother",
 	group: "red",
-	password: "Sebi1234"
+	password: "password123"
 };
 
 const userStaff = {
@@ -171,7 +189,25 @@ const userStaff = {
 	EmergencyPhone: "2269883609",
 	EmergencyRelationship: "Mother",
 	group: "green",
-	password: "Sebi1234"
+	password: "password123",
+	memberType: "staff"
+};
+
+const userCoach = {
+	firstName: "Zoltan",
+	lastName: "Frast",
+	email: "zoltanfrast@gmail.com",
+	phone: "5195632145",
+	address: "55 Apple Dr",
+	city: "niagara falls",
+	province: "ontario",
+	EmergencyName_firstName: "mary",
+	EmergencyName_lastName: "zucks",
+	EmergencyPhone: "2269883609",
+	EmergencyRelationship: "Mother",
+	group: "green",
+	password: "password123",
+	memberType: "coach"
 };
 
 const userStaff_update = {
@@ -194,20 +230,36 @@ const userStaff_update = {
 
 };
 
-async function addUser(userInfo) {
-	let res;
-	if (userInfo.firstName === 'Sebastian') {
-		res = await request(app).post("/admin").type("form").send(userInfo).expect(201)
-	} else {
-		// Create temporary admin which is used to mark waiver as signed for newly added user
-		await request(app).post("/admin").type("form").send(userAdminWaiver).expect(201);
-		const loginResAdmin = await loginUser(userAdminWaiver, 200);
-		// Create new user
-		res = await request(app).post("/users").type("form").send(userInfo).expect(201)
-		// Mark waiver as signed for newly added user
-		await request(app).post("/waiver/" + res.body.id).set('Cookie', loginResAdmin.headers['set-cookie']).expect(200);
-	}
-	return res;
+const User = require("../models/User");
+async function seedUser(userInfo) {
+	const hashedPassword = await bcrypt.hash(userInfo.password, 10);
+
+	// NOTE: We assume waiver is already signed for seeded users unless provided otherwise as false
+	const user = new User({
+		firstName: userInfo.firstName.toLowerCase(),
+		lastName: userInfo.lastName.toLowerCase(),
+		contact: {
+			email: userInfo.email.toLowerCase(),
+			phone: userInfo.phone.toLowerCase(),
+			address: userInfo.address.toLowerCase(),
+			city: userInfo.city.toLowerCase(),
+			province: userInfo.province.toLowerCase(),
+		},
+		emergencyContact: {
+			firstName: userInfo.EmergencyName_firstName.toLowerCase(),
+			lastName: userInfo.EmergencyName_lastName.toLowerCase(),
+			phone: userInfo.EmergencyPhone.toLowerCase(),
+			relationship: userInfo.EmergencyRelationship.toLowerCase(),
+		},
+		group: userInfo.group.toLowerCase(),
+		credits: userInfo.credits || 0,
+		waiver: userInfo.waiver || true,
+		memberType: userInfo.memberType || 'regular',
+		password: hashedPassword,
+	});
+
+	await user.save();
+	return user;
 }
 
 async function loginUser(userInfo) {
@@ -237,18 +289,18 @@ async function fillTrackday(trackdayID, groupToFill) {
 			EmergencyPhone: "5195724356",
 			EmergencyRelationship: "Wife",
 			group: groupToFill,
-			password: "Abcd1234"
+			password: "password123"
 		};
 
 		// create user
-		const user = await addUser(userInfo) // Add user returns { id: xxxx }
+		const user = await seedUser(userInfo) // Add user returns { id: xxxx }
 
 		// log in user
 		const loginRes = await loginUser(userInfo)
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user.body.id)
+			.post("/garage/" + user.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', loginRes.headers['set-cookie'])
@@ -256,7 +308,7 @@ async function fillTrackday(trackdayID, groupToFill) {
 
 		// Register user for trackday
 		await request(app)
-			.post('/register/' + user.body.id + '/' + trackdayID)
+			.post('/register/' + user.id + '/' + trackdayID)
 			.set('Cookie', loginRes.headers['set-cookie'])
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
@@ -590,7 +642,7 @@ describe('Testing trackday delete', () => {
 describe('Testing registering', () => {
 	test("invalid objectID trackday", async () => {
 		await request(app)
-			.post('/register/' + user1.body.id + '/invalid')
+			.post('/register/' + user1.id + '/invalid')
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.set('Cookie', adminCookie)
 			.expect(400, { msg: ['trackdayID is not a valid ObjectID'] })
@@ -598,7 +650,7 @@ describe('Testing registering', () => {
 	test("invalid trackdayID trackday", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
-			.post('/register/' + user1.body.id + '/1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1')
+			.post('/register/' + user1.id + '/1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1')
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.set('Cookie', adminCookie)
 			.expect(404, { msg: ['Trackday does not exist'] })
@@ -614,7 +666,7 @@ describe('Testing registering', () => {
 	test("invalid userID user", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
-			.post('/register/' + '1' + user1.body.id.slice(1, user1.body.id.length - 1) + '1' + '/' + trackday.body.id)
+			.post('/register/' + '1' + user1.id.slice(1, user1.id.length - 1) + '1' + '/' + trackday.body.id)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.set('Cookie', adminCookie)
 			.expect(404, { msg: ['User does not exist'] })
@@ -624,7 +676,7 @@ describe('Testing registering', () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({})
 			.expect(400)
@@ -633,7 +685,7 @@ describe('Testing registering', () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ paymentMethod: 'chewingGum' })
 			.expect(400)
@@ -643,7 +695,7 @@ describe('Testing registering', () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(401)
 	});
@@ -651,7 +703,7 @@ describe('Testing registering', () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user2Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(403)
@@ -660,7 +712,7 @@ describe('Testing registering', () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
@@ -673,20 +725,20 @@ describe('Testing registering', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
 			.expect(201);
 
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(409)
@@ -696,13 +748,13 @@ describe('Testing registering', () => {
 		const trackday = await addTrackday(getFormattedDate(-5))
 		// As user
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(403)
 		// As admin
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
@@ -720,14 +772,14 @@ describe('Testing registering', () => {
 
 		// Register as user
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(403)
 
 		// Register as admin
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
@@ -738,32 +790,32 @@ describe('Testing registering', () => {
 		const trackday2 = await addTrackday(getFormattedDate(4))
 		// Edit user so he has a credit
 		await request(app)
-			.put('/users/' + user1.body.id)
+			.put('/users/' + user1.id)
 			.type('form').send({ ...user1Info, credits: 5 })
 			.set('Cookie', adminCookie)
 			.expect(201)
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
 			.expect(201);
 		// Register as user
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(403, { msg: ['Payment method must be trackday credits when trackday is less than ' + process.env.DAYS_LOCKOUT + ' days away.'] })
 		// Register as user with credit
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'credit', guests: 3, layoutVote: 'none' })
 			.expect(200)
 		// Register as admin
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday2.body.id)
+			.post('/register/' + user1.id + '/' + trackday2.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
@@ -775,20 +827,20 @@ describe('Testing registering', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
 			.expect(201);
 		// As user
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(403, { msg: ['Trackday has reached capacity'] })
 		// As admin
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
@@ -798,13 +850,13 @@ describe('Testing registering', () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		// As user
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(403, { msg: ['Cannot register with empty user garage'] })
 		// As admin
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
@@ -815,7 +867,7 @@ describe('Testing registering', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -823,7 +875,7 @@ describe('Testing registering', () => {
 
 		// Register for trackday at gate
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'gate', guests: 3, layoutVote: 'none' })
 			.expect(200)
@@ -831,7 +883,7 @@ describe('Testing registering', () => {
 
 		// Check registration was processed correctly 
 		await request(app)
-			.get("/presentTrackdays/" + user1.body.id)
+			.get("/presentTrackdays/" + user1.id)
 			.expect(200, [{
 				id: trackday.body.id,
 				date: getFormattedDate(2).slice(0, getFormattedDate(2).length - 1) + ':00.000Z',
@@ -862,7 +914,7 @@ describe('Testing registering', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -870,7 +922,7 @@ describe('Testing registering', () => {
 
 		// Register for trackday at gate
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ paymentMethod: 'gate', guests: 0, layoutVote: 'none' })
 			.expect(200)
@@ -878,7 +930,7 @@ describe('Testing registering', () => {
 
 		// Check registration was processed correctly 
 		await request(app)
-			.get("/presentTrackdays/" + user1.body.id)
+			.get("/presentTrackdays/" + user1.id)
 			.expect(200, [{
 				id: trackday.body.id,
 				date: getFormattedDate(2).slice(0, getFormattedDate(2).length - 1) + ':00.000Z',
@@ -912,7 +964,7 @@ describe('Testing registering', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -920,14 +972,14 @@ describe('Testing registering', () => {
 
 		// Edit user so he has a credit
 		await request(app)
-			.put('/users/' + user1.body.id)
+			.put('/users/' + user1.id)
 			.type('form').send({ ...user1Info, credits: 5 })
 			.set('Cookie', adminCookie)
 			.expect(201)
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'credit', guests: 3, layoutVote: 'alien' })
 			.expect(200)
@@ -935,7 +987,7 @@ describe('Testing registering', () => {
 
 		// Check registration was processed correctly 
 		await request(app)
-			.get("/presentTrackdays/" + user1.body.id)
+			.get("/presentTrackdays/" + user1.id)
 			.expect(200, [{
 				id: trackday.body.id,
 				date: '2500-06-05T14:00:00.000Z',
@@ -962,7 +1014,7 @@ describe('Testing registering', () => {
 
 		// Check that users credit was used up
 		const updatedUser = await request(app)
-			.get('/users/' + user1.body.id)
+			.get('/users/' + user1.id)
 			.set('Cookie', user1Cookie)
 			.expect(200)
 		expect(updatedUser.body.credits).toBe(4)
@@ -972,7 +1024,7 @@ describe('Testing registering', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -980,7 +1032,7 @@ describe('Testing registering', () => {
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'credit', guests: 3, layoutVote: 'none' })
 			.expect(403, { msg: ['Insufficient credits'] })
@@ -988,12 +1040,12 @@ describe('Testing registering', () => {
 
 		// Check registration was processed correctly 
 		await request(app)
-			.get("/presentTrackdays/" + user1.body.id)
+			.get("/presentTrackdays/" + user1.id)
 			.expect(200, [])
 
 		// Check that users credit is unchanged
 		const updatedUser = await request(app)
-			.get('/users/' + user1.body.id)
+			.get('/users/' + user1.id)
 			.set('Cookie', user1Cookie)
 			.expect(200)
 		expect(updatedUser.body.credits).toBe(0)
@@ -1004,7 +1056,7 @@ describe('Testing registering', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -1012,7 +1064,7 @@ describe('Testing registering', () => {
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form')
 			.send('paymentMethod=etransfer')
@@ -1025,7 +1077,7 @@ describe('Testing registering', () => {
 
 		// Check registration was processed correctly 
 		await request(app)
-			.get("/presentTrackdays/" + user1.body.id)
+			.get("/presentTrackdays/" + user1.id)
 			.expect(200, [{
 				id: trackday.body.id,
 				date: '2500-06-05T14:00:00.000Z',
@@ -1056,21 +1108,10 @@ describe('Testing registering', () => {
 	test("gate registration 1 hour after trackday starts", async () => {
 		const trackday = await addTrackday(getFormattedDate_Hours(-1)) //adds trackday 1 hour before now
 
-		// Create staff member
-		const staff = await addUser(userStaff);
-		await request(app)
-			.put('/users/' + staff.body.id)
-			.type('form').send(userStaff_update)
-			.set('Cookie', adminCookie)
-			.expect(201)
-		const staffLoginRes = await loginUser(userStaff);
-
-
-
 		// Register for trackday (gate as staff)
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
-			.set('Cookie', staffLoginRes.headers['set-cookie'])
+			.post('/register/' + user1.id + '/' + trackday.body.id)
+			.set('Cookie', staffCookie)
 			.type('form').send({ paymentMethod: 'gate', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
@@ -1083,7 +1124,7 @@ describe('Testing registering', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -1091,14 +1132,14 @@ describe('Testing registering', () => {
 
 		// Edit user so he has a credit
 		await request(app)
-			.put('/users/' + user1.body.id)
+			.put('/users/' + user1.id)
 			.type('form').send({ ...user1Info, credits: 5 })
 			.set('Cookie', adminCookie)
 			.expect(201)
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'credit', guests: 3, layoutVote: 'none' })
 			.expect(200)
@@ -1110,7 +1151,7 @@ describe('Testing registering', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -1118,7 +1159,7 @@ describe('Testing registering', () => {
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(403, { msg: ['Cannot register for trackday in the past'] })
@@ -1130,7 +1171,7 @@ describe('Testing registering', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -1138,7 +1179,7 @@ describe('Testing registering', () => {
 
 		// Unmark waiver as signed
 		await request(app)
-			.put('/users/' + user1.body.id)
+			.put('/users/' + user1.id)
 			.set('Cookie', adminCookie)
 			.type("form").send(user1Info_MissingWaiver)
 			.expect(201)
@@ -1146,7 +1187,7 @@ describe('Testing registering', () => {
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(403, { msg: ['Missing waiver'] })
@@ -1157,7 +1198,7 @@ describe('Testing registering', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -1165,7 +1206,7 @@ describe('Testing registering', () => {
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
@@ -1173,7 +1214,7 @@ describe('Testing registering', () => {
 
 		// Check registration was processed correctly 
 		await request(app)
-			.get("/presentTrackdays/" + user1.body.id)
+			.get("/presentTrackdays/" + user1.id)
 			.expect(200, [{
 				id: trackday.body.id,
 				date: '2500-06-05T14:00:00.000Z',
@@ -1205,14 +1246,14 @@ describe('Testing registering', () => {
 describe('Testing un-registering', () => {
 	test("invalid objectID trackday", async () => {
 		await request(app)
-			.delete('/register/' + user1.body.id + '/invalid')
+			.delete('/register/' + user1.id + '/invalid')
 			.set('Cookie', adminCookie)
 			.expect(400, { msg: ['trackdayID is not a valid ObjectID'] })
 	});
 	test("invalid trackdayID trackday", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
-			.delete('/register/' + user1.body.id + '/1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1')
+			.delete('/register/' + user1.id + '/1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1')
 			.set('Cookie', adminCookie)
 			.expect(404, { msg: ['Trackday does not exist'] })
 	});
@@ -1226,7 +1267,7 @@ describe('Testing un-registering', () => {
 	test("invalid userID user", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
-			.delete('/register/' + '1' + user1.body.id.slice(1, user1.body.id.length - 1) + '1' + '/' + trackday.body.id)
+			.delete('/register/' + '1' + user1.id.slice(1, user1.id.length - 1) + '1' + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.expect(404, { msg: ['User does not exist'] })
 	});
@@ -1235,7 +1276,7 @@ describe('Testing un-registering', () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 
 		await request(app)
-			.delete('/register/' + user1.body.id + '/' + trackday.body.id)
+			.delete('/register/' + user1.id + '/' + trackday.body.id)
 			.expect(401)
 	});
 	test("not authorized", async () => {
@@ -1243,7 +1284,7 @@ describe('Testing un-registering', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -1251,13 +1292,13 @@ describe('Testing un-registering', () => {
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie) // Have to add user as admin
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		await request(app)
-			.delete('/register/' + user1.body.id + '/' + trackday.body.id)
+			.delete('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user2Cookie)
 			.expect(403)
 
@@ -1267,7 +1308,7 @@ describe('Testing un-registering', () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 
 		await request(app)
-			.delete('/register/' + user1.body.id + '/' + trackday.body.id)
+			.delete('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.expect(403, { msg: ['Cannot unregister; member is not registered for that trackday'] })
 	});
@@ -1277,18 +1318,18 @@ describe('Testing un-registering', () => {
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 		// As user
 		await request(app)
-			.delete('/register/' + user1.body.id + '/' + trackday.body.id)
+			.delete('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.expect(403)
 		// As admin
 		await request(app)
-			.delete('/register/' + user1.body.id + '/' + trackday.body.id)
+			.delete('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.expect(200)
 	});
@@ -1298,27 +1339,27 @@ describe('Testing un-registering', () => {
 
 		// Edit user so he has a credit
 		await request(app)
-			.put('/users/' + user1.body.id)
+			.put('/users/' + user1.id)
 			.type('form').send({ ...user1Info, credits: 5 })
 			.set('Cookie', adminCookie)
 			.expect(201)
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ paymentMethod: 'credit', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		// As user
 		await request(app)
-			.delete('/register/' + user1.body.id + '/' + trackday.body.id)
+			.delete('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.expect(403)
 
 		// As admin
 		await request(app)
-			.delete('/register/' + user1.body.id + '/' + trackday.body.id)
+			.delete('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.expect(200)
 	});
@@ -1328,21 +1369,21 @@ describe('Testing un-registering', () => {
 		const trackday2 = await addTrackday(getFormattedDate(4))
 		// Edit user so he has a credit
 		await request(app)
-			.put('/users/' + user1.body.id)
+			.put('/users/' + user1.id)
 			.type('form').send({ ...user1Info, credits: 1 })
 			.set('Cookie', adminCookie)
 			.expect(201)
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie) // Have to add user as admin
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		// Register for trackday2
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday2.body.id)
+			.post('/register/' + user1.id + '/' + trackday2.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ paymentMethod: 'credit', guests: 3, layoutVote: 'none' })
 			.expect(200)
@@ -1350,17 +1391,17 @@ describe('Testing un-registering', () => {
 
 		// As user
 		await request(app)
-			.delete('/register/' + user1.body.id + '/' + trackday.body.id)
+			.delete('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.expect(403, { msg: ['Cannot unregister for trackday <' + process.env.DAYS_LOCKOUT + ' days away.'] })
 		// As admin
 		await request(app)
-			.delete('/register/' + user1.body.id + '/' + trackday.body.id)
+			.delete('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.expect(200)
 		// As user with credit
 		await request(app)
-			.delete('/register/' + user1.body.id + '/' + trackday2.body.id)
+			.delete('/register/' + user1.id + '/' + trackday2.body.id)
 			.set('Cookie', user1Cookie)
 			.expect(200)
 	});
@@ -1370,7 +1411,7 @@ describe('Testing un-registering', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -1378,14 +1419,14 @@ describe('Testing un-registering', () => {
 
 		// Register for trackday at gate
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ paymentMethod: 'gate', guests: 0, layoutVote: 'none' })
 			.expect(200)
 
 		// Unregister
 		await request(app)
-			.delete('/register/' + user1.body.id + '/' + trackday.body.id)
+			.delete('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.expect(403)
 
@@ -1396,28 +1437,28 @@ describe('Testing un-registering', () => {
 
 		// Edit user so he has a credit
 		await request(app)
-			.put('/users/' + user1.body.id)
+			.put('/users/' + user1.id)
 			.type('form').send({ ...user1Info, credits: 5 })
 			.set('Cookie', adminCookie)
 			.expect(201)
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ paymentMethod: 'credit', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		// Unregister
 		await request(app)
-			.delete('/register/' + user1.body.id + '/' + trackday.body.id)
+			.delete('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.expect(200)
 
 
 		// Check that users credit was refunded
 		const updatedUser = await request(app)
-			.get('/users/' + user1.body.id)
+			.get('/users/' + user1.id)
 			.set('Cookie', user1Cookie)
 			.expect(200)
 		expect(updatedUser.body.credits).toBe(5)
@@ -1429,7 +1470,7 @@ describe('Testing un-registering', () => {
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -1437,33 +1478,33 @@ describe('Testing un-registering', () => {
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		// Mark user as paid
 		await request(app)
-			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.put('/paid/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ setPaid: 'true' })
 			.expect(200)
 
 		// Mark waiver as signed
 		await request(app)
-			.post("/waiver/" + user1.body.id)
+			.post("/waiver/" + user1.id)
 			.set('Cookie', adminCookie)
 			.expect(200);
 
 		// Check in user
 		await request(app)
-			.post('/checkin/' + user1.body.id + '/' + trackday.body.id + '/' + bike.body.id)
+			.post('/checkin/' + user1.id + '/' + trackday.body.id + '/' + bike.body.id)
 			.set('Cookie', adminCookie)
 			.expect(200)
 
 		// Unregister
 		await request(app)
-			.delete('/register/' + user1.body.id + '/' + trackday.body.id)
+			.delete('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.expect(403, { msg: ['Cannot un-register for trackday you are already checked in at'] })
 
@@ -1474,7 +1515,7 @@ describe('Testing un-registering', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -1482,14 +1523,14 @@ describe('Testing un-registering', () => {
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		// Unregister
 		await request(app)
-			.delete('/register/' + user1.body.id + '/' + trackday.body.id)
+			.delete('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.expect(200)
 
@@ -1525,7 +1566,7 @@ describe('Testing un-registering', () => {
 describe('Testing rescheduling', () => {
 	test("invalid objectID trackday", async () => {
 		await request(app)
-			.put('/register/' + user1.body.id + '/invalid/invalid')
+			.put('/register/' + user1.id + '/invalid/invalid')
 			.set('Cookie', adminCookie)
 			.expect(400, { msg: ['trackdayID is not a valid ObjectID'] })
 	});
@@ -1533,7 +1574,7 @@ describe('Testing rescheduling', () => {
 		const trackday1 = await addTrackday(getFormattedDate(5))
 		const trackday2 = await addTrackday(getFormattedDate(6))
 		await request(app)
-			.put('/register/' + user1.body.id + '/1' + trackday1.body.id.slice(1, trackday1.body.id.length - 1) + '1' + '/1' + trackday2.body.id.slice(1, trackday2.body.id.length - 1) + '1')
+			.put('/register/' + user1.id + '/1' + trackday1.body.id.slice(1, trackday1.body.id.length - 1) + '1' + '/1' + trackday2.body.id.slice(1, trackday2.body.id.length - 1) + '1')
 			.set('Cookie', adminCookie)
 			.expect(404, { msg: ['Trackday does not exist'] })
 	});
@@ -1549,7 +1590,7 @@ describe('Testing rescheduling', () => {
 		const trackday1 = await addTrackday(getFormattedDate(5))
 		const trackday2 = await addTrackday(getFormattedDate(6))
 		await request(app)
-			.put('/register/' + '1' + user1.body.id.slice(1, user1.body.id.length - 1) + '1' + '/' + trackday1.body.id + '/' + trackday2.body.id)
+			.put('/register/' + '1' + user1.id.slice(1, user1.id.length - 1) + '1' + '/' + trackday1.body.id + '/' + trackday2.body.id)
 			.set('Cookie', adminCookie)
 			.expect(404, { msg: ['User does not exist'] })
 	});
@@ -1560,7 +1601,7 @@ describe('Testing rescheduling', () => {
 
 		// Reschedule
 		await request(app)
-			.put('/register/' + user1.body.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
+			.put('/register/' + user1.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
 			.expect(401)
 	});
 	test("not authorized", async () => {
@@ -1569,7 +1610,7 @@ describe('Testing rescheduling', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -1577,14 +1618,14 @@ describe('Testing rescheduling', () => {
 
 		// Register for trackday1
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday1.body.id)
+			.post('/register/' + user1.id + '/' + trackday1.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		// Reschedule
 		await request(app)
-			.put('/register/' + user1.body.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
+			.put('/register/' + user1.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
 			.set('Cookie', user2Cookie)
 			.expect(403)
 	});
@@ -1594,7 +1635,7 @@ describe('Testing rescheduling', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -1602,14 +1643,14 @@ describe('Testing rescheduling', () => {
 
 		// Register for trackday1
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday1.body.id)
+			.post('/register/' + user1.id + '/' + trackday1.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		// Reschedule
 		await request(app)
-			.put('/register/' + user1.body.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
+			.put('/register/' + user1.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
 			.set('Cookie', adminCookie)
 			.expect(200)
 	});
@@ -1620,7 +1661,7 @@ describe('Testing rescheduling', () => {
 
 		// Reschedule
 		await request(app)
-			.put('/register/' + user1.body.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
+			.put('/register/' + user1.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
 			.set('Cookie', user1Cookie)
 			.expect(403, { msg: ['Not registered for original trackday'] })
 	});
@@ -1631,7 +1672,7 @@ describe('Testing rescheduling', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -1639,21 +1680,21 @@ describe('Testing rescheduling', () => {
 
 		// Register for trackday1
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday1.body.id)
+			.post('/register/' + user1.id + '/' + trackday1.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		// Register for trackday2
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday2.body.id)
+			.post('/register/' + user1.id + '/' + trackday2.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		// Reschedule
 		await request(app)
-			.put('/register/' + user1.body.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
+			.put('/register/' + user1.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
 			.set('Cookie', user1Cookie)
 			.expect(409, { msg: ['Member is already scheduled for trackday you want to reschedule to'] })
 	});
@@ -1664,7 +1705,7 @@ describe('Testing rescheduling', () => {
 		const trackdayPast2 = await addTrackday(getFormattedDate(-15))
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -1675,18 +1716,18 @@ describe('Testing rescheduling', () => {
 		// Reschedule future trackday for past trackday
 		// Register for trackdayFuture
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackdayFuture.body.id)
+			.post('/register/' + user1.id + '/' + trackdayFuture.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 		// As user
 		await request(app)
-			.put('/register/' + user1.body.id + '/' + trackdayFuture.body.id + '/' + trackdayPast1.body.id)
+			.put('/register/' + user1.id + '/' + trackdayFuture.body.id + '/' + trackdayPast1.body.id)
 			.set('Cookie', user1Cookie)
 			.expect(403)
 		// As admin
 		await request(app)
-			.put('/register/' + user1.body.id + '/' + trackdayFuture.body.id + '/' + trackdayPast1.body.id)
+			.put('/register/' + user1.id + '/' + trackdayFuture.body.id + '/' + trackdayPast1.body.id)
 			.set('Cookie', adminCookie)
 			.expect(200)
 
@@ -1695,29 +1736,29 @@ describe('Testing rescheduling', () => {
 		// Reschedule past trackday for future trackday 
 		// As user
 		await request(app)
-			.put('/register/' + user1.body.id + '/' + trackdayPast1.body.id + '/' + trackdayFuture.body.id)
+			.put('/register/' + user1.id + '/' + trackdayPast1.body.id + '/' + trackdayFuture.body.id)
 			.set('Cookie', user1Cookie)
 			.expect(403)
 		// As admin
 		await request(app)
-			.put('/register/' + user1.body.id + '/' + trackdayPast1.body.id + '/' + trackdayFuture.body.id)
+			.put('/register/' + user1.id + '/' + trackdayPast1.body.id + '/' + trackdayFuture.body.id)
 			.set('Cookie', adminCookie)
 			.expect(200)
 		// Move user back to past trackday in preparation for next test
 		await request(app)
-			.put('/register/' + user1.body.id + '/' + trackdayFuture.body.id + '/' + trackdayPast1.body.id)
+			.put('/register/' + user1.id + '/' + trackdayFuture.body.id + '/' + trackdayPast1.body.id)
 			.set('Cookie', adminCookie)
 			.expect(200)
 
 		// Reschedule past trackday for past trackday 
 		// As user
 		await request(app)
-			.put('/register/' + user1.body.id + '/' + trackdayPast1.body.id + '/' + trackdayPast2.body.id)
+			.put('/register/' + user1.id + '/' + trackdayPast1.body.id + '/' + trackdayPast2.body.id)
 			.set('Cookie', user1Cookie)
 			.expect(403)
 		// As admin
 		await request(app)
-			.put('/register/' + user1.body.id + '/' + trackdayPast1.body.id + '/' + trackdayPast2.body.id)
+			.put('/register/' + user1.id + '/' + trackdayPast1.body.id + '/' + trackdayPast2.body.id)
 			.set('Cookie', adminCookie)
 			.expect(200)
 	});
@@ -1730,7 +1771,7 @@ describe('Testing rescheduling', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -1738,7 +1779,7 @@ describe('Testing rescheduling', () => {
 
 		// Register for trackday1
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday1.body.id)
+			.post('/register/' + user1.id + '/' + trackday1.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
@@ -1752,12 +1793,12 @@ describe('Testing rescheduling', () => {
 
 		// As user
 		await request(app)
-			.put('/register/' + user1.body.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
+			.put('/register/' + user1.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
 			.set('Cookie', user1Cookie)
 			.expect(403)
 		// As admin
 		await request(app)
-			.put('/register/' + user1.body.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
+			.put('/register/' + user1.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
 			.set('Cookie', adminCookie)
 			.expect(200)
 	});
@@ -1768,7 +1809,7 @@ describe('Testing rescheduling', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -1776,19 +1817,19 @@ describe('Testing rescheduling', () => {
 
 		// Register for trackday1
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday1.body.id)
+			.post('/register/' + user1.id + '/' + trackday1.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		// As user
 		await request(app)
-			.put('/register/' + user1.body.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
+			.put('/register/' + user1.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
 			.set('Cookie', user1Cookie)
 			.expect(403, { msg: ['Cannot reschedule to a trackday <' + process.env.DAYS_LOCKOUT + ' days away.'] })
 		// As admin
 		await request(app)
-			.put('/register/' + user1.body.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
+			.put('/register/' + user1.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
 			.set('Cookie', adminCookie)
 			.expect(200)
 	});
@@ -1801,7 +1842,7 @@ describe('Testing rescheduling', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -1809,20 +1850,20 @@ describe('Testing rescheduling', () => {
 
 		// Register for trackday1
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday1.body.id)
+			.post('/register/' + user1.id + '/' + trackday1.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		// As user
 		await request(app)
-			.put('/register/' + user1.body.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
+			.put('/register/' + user1.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(403, { msg: ['Trackday has reached capacity'] })
 		// As admin
 		await request(app)
-			.put('/register/' + user1.body.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
+			.put('/register/' + user1.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
@@ -1834,7 +1875,7 @@ describe('Testing rescheduling', () => {
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -1842,33 +1883,33 @@ describe('Testing rescheduling', () => {
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday1.body.id)
+			.post('/register/' + user1.id + '/' + trackday1.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		// Mark user as paid
 		await request(app)
-			.put('/paid/' + user1.body.id + '/' + trackday1.body.id)
+			.put('/paid/' + user1.id + '/' + trackday1.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ setPaid: 'true' })
 			.expect(200)
 
 		// Mark waiver as signed
 		await request(app)
-			.post("/waiver/" + user1.body.id)
+			.post("/waiver/" + user1.id)
 			.set('Cookie', adminCookie)
 			.expect(200);
 
 		// Check in user
 		await request(app)
-			.post('/checkin/' + user1.body.id + '/' + trackday1.body.id + '/' + bike.body.id)
+			.post('/checkin/' + user1.id + '/' + trackday1.body.id + '/' + bike.body.id)
 			.set('Cookie', adminCookie)
 			.expect(200)
 
 		// Reschedule
 		await request(app)
-			.put('/register/' + user1.body.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
+			.put('/register/' + user1.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
 			.set('Cookie', user1Cookie)
 			.expect(403, { msg: ['Cannot reschedule a trackday you are already checked in at'] })
 
@@ -1880,7 +1921,7 @@ describe('Testing rescheduling', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -1888,14 +1929,14 @@ describe('Testing rescheduling', () => {
 
 		// Register for trackday1
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday1.body.id)
+			.post('/register/' + user1.id + '/' + trackday1.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		// Reschedule
 		await request(app)
-			.put('/register/' + user1.body.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
+			.put('/register/' + user1.id + '/' + trackday1.body.id + '/' + trackday2.body.id)
 			.set('Cookie', user1Cookie)
 			.expect(200)
 
@@ -2005,20 +2046,11 @@ describe('Testing walkons', () => {
 		// Create the trackday
 		const trackday = await addTrackday('2500-06-05T14:00Z', adminCookie)
 
-		// Create staff member
-		const staff = await addUser(userStaff);
-		await request(app)
-			.put('/users/' + staff.body.id)
-			.type('form').send(userStaff_update)
-			.set('Cookie', adminCookie)
-			.expect(201)
-		const staffLoginRes = await loginUser(userStaff);
-
 		// Add to walkons
 		await request(app)
 			.post('/walkons/' + trackday.body.id)
 			.type('form').send({ firstName: 'John', lastName: 'Doe', group: 'yellow' })
-			.set('Cookie', staffLoginRes.headers['set-cookie'])
+			.set('Cookie', staffCookie)
 			.expect(201)
 	});
 
@@ -2070,13 +2102,13 @@ describe('Testing checkin', () => {
 	test("invalid userID user", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
-			.post('/checkin/' + '1' + user1.body.id.slice(1, user1.body.id.length - 1) + '1' + '/' + trackday.body.id + '/someBikeID')
+			.post('/checkin/' + '1' + user1.id.slice(1, user1.id.length - 1) + '1' + '/' + trackday.body.id + '/someBikeID')
 			.set('Cookie', adminCookie)
 			.expect(404, { msg: ['User does not exist'] })
 	});
 	test("invalid objectID trackday", async () => {
 		await request(app)
-			.post('/checkin/' + user1.body.id + '/invalid/someBikeID')
+			.post('/checkin/' + user1.id + '/invalid/someBikeID')
 			.set('Cookie', adminCookie)
 			.expect(400, { msg: ['trackdayID is not a valid ObjectID'] })
 	});
@@ -2084,7 +2116,7 @@ describe('Testing checkin', () => {
 
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
-			.post('/checkin/' + user1.body.id + '/1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1' + '/someBikeID')
+			.post('/checkin/' + user1.id + '/1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1' + '/someBikeID')
 			.set('Cookie', adminCookie)
 			.expect(404, { msg: ['Trackday does not exist'] })
 	});
@@ -2092,7 +2124,7 @@ describe('Testing checkin', () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 
 		await request(app)
-			.post('/checkin/' + user1.body.id + '/' + trackday.body.id + '/invalid')
+			.post('/checkin/' + user1.id + '/' + trackday.body.id + '/invalid')
 			.set('Cookie', adminCookie)
 			.expect(400, { msg: ['bikeID is not a valid ObjectID'] })
 	});
@@ -2101,14 +2133,14 @@ describe('Testing checkin', () => {
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
 			.expect(201);
 
 		await request(app)
-			.post('/checkin/' + user1.body.id + '/' + trackday.body.id + '/1' + bike.body.id.slice(1, bike.body.id.length - 1) + '1')
+			.post('/checkin/' + user1.id + '/' + trackday.body.id + '/1' + bike.body.id.slice(1, bike.body.id.length - 1) + '1')
 			.set('Cookie', adminCookie)
 			.expect(404, { msg: ['Bike does not exist'] })
 	});
@@ -2116,16 +2148,16 @@ describe('Testing checkin', () => {
 	test("no JWT", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
-			.post('/checkin/' + user1.body.id + '/' + trackday.body.id + '/someBikeID')
+			.post('/checkin/' + user1.id + '/' + trackday.body.id + '/someBikeID')
 			.expect(401)
 	});
 	test("not authorized", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		// Add the bike to user garage
-		const bike = await request(app).post("/garage/" + user1.body.id).type("form").send({ year: '2009', make: 'Yamaha', model: "R6" })
+		const bike = await request(app).post("/garage/" + user1.id).type("form").send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie).expect(201);
 		await request(app)
-			.post('/checkin/' + user1.body.id + '/' + trackday.body.id + '/' + bike.body.id)
+			.post('/checkin/' + user1.id + '/' + trackday.body.id + '/' + bike.body.id)
 			.set('Cookie', user1Cookie)
 			.expect(403)
 	});
@@ -2134,45 +2166,36 @@ describe('Testing checkin', () => {
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
 			.expect(201);
 
-		// Create staff member
-		const staff = await addUser(userStaff);
-		await request(app)
-			.put('/users/' + staff.body.id)
-			.type('form').send(userStaff_update)
-			.set('Cookie', adminCookie)
-			.expect(201)
-		const staffLoginRes = await loginUser(userStaff);
-
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		// Mark user as paid
 		await request(app)
-			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.put('/paid/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ setPaid: 'true' })
 			.expect(200)
 
 		// Mark waiver as signed
 		await request(app)
-			.post("/waiver/" + user1.body.id)
-			.set('Cookie', staffLoginRes.headers['set-cookie'])
+			.post("/waiver/" + user1.id)
+			.set('Cookie', staffCookie)
 			.expect(200);
 
 		// Check in user
 		await request(app)
-			.post('/checkin/' + user1.body.id + '/' + trackday.body.id + '/' + bike.body.id)
-			.set('Cookie', staffLoginRes.headers['set-cookie'])
+			.post('/checkin/' + user1.id + '/' + trackday.body.id + '/' + bike.body.id)
+			.set('Cookie', staffCookie)
 			.expect(200)
 	})
 
@@ -2181,7 +2204,7 @@ describe('Testing checkin', () => {
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -2189,31 +2212,31 @@ describe('Testing checkin', () => {
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		// Mark user as paid
 		await request(app)
-			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.put('/paid/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ setPaid: 'true' })
 			.expect(200)
 
 		// Mark waiver as signed
 		await request(app)
-			.post("/waiver/" + user1.body.id)
+			.post("/waiver/" + user1.id)
 			.set('Cookie', adminCookie)
 			.expect(200);
 
 		await request(app)
-			.post('/checkin/' + user1.body.id + '/' + trackday.body.id + '/' + bike.body.id)
+			.post('/checkin/' + user1.id + '/' + trackday.body.id + '/' + bike.body.id)
 			.set('Cookie', adminCookie)
 			.expect(200)
 
 		await request(app)
-			.post('/checkin/' + user1.body.id + '/' + trackday.body.id + '/' + bike.body.id)
+			.post('/checkin/' + user1.id + '/' + trackday.body.id + '/' + bike.body.id)
 			.set('Cookie', adminCookie)
 			.expect(403, { msg: ['Already checked in with this bike'] })
 	})
@@ -2223,7 +2246,7 @@ describe('Testing checkin', () => {
 
 		// Add bike1 to garage
 		const bike1 = await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -2231,7 +2254,7 @@ describe('Testing checkin', () => {
 
 		// Add bike2 to garage
 		const bike2 = await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2010', make: 'Yamaha', model: "R1" })
 			.set('Cookie', user1Cookie)
@@ -2239,30 +2262,30 @@ describe('Testing checkin', () => {
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 		// Mark user as paid
 		await request(app)
-			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.put('/paid/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ setPaid: 'true' })
 			.expect(200)
 
 		// Mark waiver as signed
 		await request(app)
-			.post("/waiver/" + user1.body.id)
+			.post("/waiver/" + user1.id)
 			.set('Cookie', adminCookie)
 			.expect(200);
 
 		// Check in both bikes
 		await request(app)
-			.post('/checkin/' + user1.body.id + '/' + trackday.body.id + '/' + bike1.body.id)
+			.post('/checkin/' + user1.id + '/' + trackday.body.id + '/' + bike1.body.id)
 			.set('Cookie', adminCookie)
 			.expect(200)
 		await request(app)
-			.post('/checkin/' + user1.body.id + '/' + trackday.body.id + '/' + bike2.body.id)
+			.post('/checkin/' + user1.id + '/' + trackday.body.id + '/' + bike2.body.id)
 			.set('Cookie', adminCookie)
 			.expect(200)
 	})
@@ -2272,14 +2295,14 @@ describe('Testing checkin', () => {
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
 			.expect(201);
 
 		await request(app)
-			.post('/checkin/' + user1.body.id + '/' + trackday.body.id + '/' + bike.body.id)
+			.post('/checkin/' + user1.id + '/' + trackday.body.id + '/' + bike.body.id)
 			.set('Cookie', adminCookie)
 			.expect(403, { msg: ['Not registered for trackday'] })
 	})
@@ -2289,7 +2312,7 @@ describe('Testing checkin', () => {
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -2297,13 +2320,13 @@ describe('Testing checkin', () => {
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		await request(app)
-			.post('/checkin/' + user1.body.id + '/' + trackday.body.id + '/' + bike.body.id)
+			.post('/checkin/' + user1.id + '/' + trackday.body.id + '/' + bike.body.id)
 			.set('Cookie', adminCookie)
 			.expect(403, { msg: ['Not paid'] })
 	})
@@ -2313,7 +2336,7 @@ describe('Testing checkin', () => {
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -2321,27 +2344,27 @@ describe('Testing checkin', () => {
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		// Mark user as paid
 		await request(app)
-			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.put('/paid/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ setPaid: 'true' })
 			.expect(200)
 
 		// Unmark waiver as signed
 		await request(app)
-			.put('/users/' + user1.body.id)
+			.put('/users/' + user1.id)
 			.set('Cookie', adminCookie)
 			.type("form").send(user1Info_MissingWaiver)
 			.expect(201)
 
 		await request(app)
-			.post('/checkin/' + user1.body.id + '/' + trackday.body.id + '/' + bike.body.id)
+			.post('/checkin/' + user1.id + '/' + trackday.body.id + '/' + bike.body.id)
 			.set('Cookie', adminCookie)
 			.expect(403, { msg: ['Missing waiver'] })
 	})
@@ -2351,7 +2374,7 @@ describe('Testing checkin', () => {
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -2359,33 +2382,33 @@ describe('Testing checkin', () => {
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		// Mark user as paid
 		await request(app)
-			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.put('/paid/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ setPaid: 'true' })
 			.expect(200)
 
 		// Mark waiver as signed
 		await request(app)
-			.post("/waiver/" + user1.body.id)
+			.post("/waiver/" + user1.id)
 			.set('Cookie', adminCookie)
 			.expect(200);
 
 		// Remove bike from garage
 		await request(app)
-			.delete("/garage/" + user1.body.id + '/' + bike.body.id)
+			.delete("/garage/" + user1.id + '/' + bike.body.id)
 			.set('Cookie', user1Cookie)
 			.expect(200);
 
 
 		await request(app)
-			.post('/checkin/' + user1.body.id + '/' + trackday.body.id + '/' + bike.body.id)
+			.post('/checkin/' + user1.id + '/' + trackday.body.id + '/' + bike.body.id)
 			.set('Cookie', adminCookie)
 			.expect(404, { msg: ['this bike does not exist in your garage'] })
 	})
@@ -2396,7 +2419,7 @@ describe('Testing checkin', () => {
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -2404,26 +2427,26 @@ describe('Testing checkin', () => {
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		// Mark user as paid
 		await request(app)
-			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.put('/paid/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ setPaid: 'true' })
 			.expect(200)
 
 		// Mark waiver as signed
 		await request(app)
-			.post("/waiver/" + user1.body.id)
+			.post("/waiver/" + user1.id)
 			.set('Cookie', adminCookie)
 			.expect(200);
 
 		await request(app)
-			.post('/checkin/' + user1.body.id + '/' + trackday.body.id + '/' + bike.body.id)
+			.post('/checkin/' + user1.id + '/' + trackday.body.id + '/' + bike.body.id)
 			.set('Cookie', adminCookie)
 			.expect(200)
 	})
@@ -2483,7 +2506,7 @@ describe('Testing checkinQR', () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 
 		// Add the bike to user garage
-		const bike = await request(app).post("/garage/" + user1.body.id).type("form").send({ year: '2009', make: 'Yamaha', model: "R6" })
+		const bike = await request(app).post("/garage/" + user1.id).type("form").send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie).expect(201);
 
 		// Generate the QR Code
@@ -2504,39 +2527,30 @@ describe('Testing checkinQR', () => {
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
 			.expect(201);
 
-		// Create staff member
-		const staff = await addUser(userStaff);
-		await request(app)
-			.put('/users/' + staff.body.id)
-			.type('form').send(userStaff_update)
-			.set('Cookie', adminCookie)
-			.expect(201)
-		const staffLoginRes = await loginUser(userStaff);
-
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		// Mark user as paid
 		await request(app)
-			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.put('/paid/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ setPaid: 'true' })
 			.expect(200)
 
 		// Mark waiver as signed
 		await request(app)
-			.post("/waiver/" + user1.body.id)
-			.set('Cookie', staffLoginRes.headers['set-cookie'])
+			.post("/waiver/" + user1.id)
+			.set('Cookie', staffCookie)
 			.expect(200);
 
 		// Generate the QR Code
@@ -2549,14 +2563,14 @@ describe('Testing checkinQR', () => {
 
 		// Marry QR to bike and user
 		await request(app)
-			.put("/QR/" + newQR.body[0].id + '/' + user1.body.id + "/" + bike.body.id)
+			.put("/QR/" + newQR.body[0].id + '/' + user1.id + "/" + bike.body.id)
 			.set('Cookie', adminCookie)
 			.expect(201)
 
 		// Check in user
 		await request(app)
 			.post('/checkin/' + newQR.body[0].id + "/" + trackday.body.id)
-			.set('Cookie', staffLoginRes.headers['set-cookie'])
+			.set('Cookie', staffCookie)
 			.expect(200)
 	})
 
@@ -2566,7 +2580,7 @@ describe('Testing checkinQR', () => {
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -2574,21 +2588,21 @@ describe('Testing checkinQR', () => {
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		// Mark user as paid
 		await request(app)
-			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.put('/paid/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ setPaid: 'true' })
 			.expect(200)
 
 		// Mark waiver as signed
 		await request(app)
-			.post("/waiver/" + user1.body.id)
+			.post("/waiver/" + user1.id)
 			.set('Cookie', adminCookie)
 			.expect(200);
 
@@ -2602,7 +2616,7 @@ describe('Testing checkinQR', () => {
 
 		// Marry QR to bike and user
 		await request(app)
-			.put("/QR/" + newQR.body[0].id + '/' + user1.body.id + "/" + bike.body.id)
+			.put("/QR/" + newQR.body[0].id + '/' + user1.id + "/" + bike.body.id)
 			.set('Cookie', adminCookie)
 			.expect(201)
 
@@ -2622,7 +2636,7 @@ describe('Testing checkinQR', () => {
 
 		// Add bike1 to garage
 		const bike1 = await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -2630,7 +2644,7 @@ describe('Testing checkinQR', () => {
 
 		// Add bike2 to garage
 		const bike2 = await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2010', make: 'Yamaha', model: "R1" })
 			.set('Cookie', user1Cookie)
@@ -2638,20 +2652,20 @@ describe('Testing checkinQR', () => {
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 		// Mark user as paid
 		await request(app)
-			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.put('/paid/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ setPaid: 'true' })
 			.expect(200)
 
 		// Mark waiver as signed
 		await request(app)
-			.post("/waiver/" + user1.body.id)
+			.post("/waiver/" + user1.id)
 			.set('Cookie', adminCookie)
 			.expect(200);
 
@@ -2665,13 +2679,13 @@ describe('Testing checkinQR', () => {
 
 		// Marry QR1 to bike1 and user
 		await request(app)
-			.put("/QR/" + newQR.body[0].id + '/' + user1.body.id + "/" + bike1.body.id)
+			.put("/QR/" + newQR.body[0].id + '/' + user1.id + "/" + bike1.body.id)
 			.set('Cookie', adminCookie)
 			.expect(201)
 
 		// Marry QR2 to bike2 and user
 		await request(app)
-			.put("/QR/" + newQR.body[1].id + '/' + user1.body.id + "/" + bike2.body.id)
+			.put("/QR/" + newQR.body[1].id + '/' + user1.id + "/" + bike2.body.id)
 			.set('Cookie', adminCookie)
 			.expect(201)
 
@@ -2691,7 +2705,7 @@ describe('Testing checkinQR', () => {
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -2707,7 +2721,7 @@ describe('Testing checkinQR', () => {
 
 		// Marry QR to bike and user
 		await request(app)
-			.put("/QR/" + newQR.body[0].id + '/' + user1.body.id + "/" + bike.body.id)
+			.put("/QR/" + newQR.body[0].id + '/' + user1.id + "/" + bike.body.id)
 			.set('Cookie', adminCookie)
 			.expect(201)
 
@@ -2722,7 +2736,7 @@ describe('Testing checkinQR', () => {
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -2730,7 +2744,7 @@ describe('Testing checkinQR', () => {
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
@@ -2745,7 +2759,7 @@ describe('Testing checkinQR', () => {
 
 		// Marry QR to bike and user
 		await request(app)
-			.put("/QR/" + newQR.body[0].id + '/' + user1.body.id + "/" + bike.body.id)
+			.put("/QR/" + newQR.body[0].id + '/' + user1.id + "/" + bike.body.id)
 			.set('Cookie', adminCookie)
 			.expect(201)
 
@@ -2761,7 +2775,7 @@ describe('Testing checkinQR', () => {
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -2769,14 +2783,14 @@ describe('Testing checkinQR', () => {
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		// Mark user as paid
 		await request(app)
-			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.put('/paid/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ setPaid: 'true' })
 			.expect(200)
@@ -2791,13 +2805,13 @@ describe('Testing checkinQR', () => {
 
 		// Marry QR to bike and user
 		await request(app)
-			.put("/QR/" + newQR.body[0].id + '/' + user1.body.id + "/" + bike.body.id)
+			.put("/QR/" + newQR.body[0].id + '/' + user1.id + "/" + bike.body.id)
 			.set('Cookie', adminCookie)
 			.expect(201)
 
 		// Unmark waiver as signed
 		await request(app)
-			.put('/users/' + user1.body.id)
+			.put('/users/' + user1.id)
 			.set('Cookie', adminCookie)
 			.type("form").send(user1Info_MissingWaiver)
 			.expect(201)
@@ -2814,7 +2828,7 @@ describe('Testing checkinQR', () => {
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -2822,21 +2836,21 @@ describe('Testing checkinQR', () => {
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		// Mark user as paid
 		await request(app)
-			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.put('/paid/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ setPaid: 'true' })
 			.expect(200)
 
 		// Mark waiver as signed
 		await request(app)
-			.post("/waiver/" + user1.body.id)
+			.post("/waiver/" + user1.id)
 			.set('Cookie', adminCookie)
 			.expect(200);
 
@@ -2850,14 +2864,14 @@ describe('Testing checkinQR', () => {
 
 		// Marry QR to bike and user
 		await request(app)
-			.put("/QR/" + newQR.body[0].id + '/' + user1.body.id + "/" + bike.body.id)
+			.put("/QR/" + newQR.body[0].id + '/' + user1.id + "/" + bike.body.id)
 			.set('Cookie', adminCookie)
 			.expect(201)
 
 		// Remove bike from garage
 		// NOTE: This also kills the QR in the DB
 		await request(app)
-			.delete("/garage/" + user1.body.id + '/' + bike.body.id)
+			.delete("/garage/" + user1.id + '/' + bike.body.id)
 			.set('Cookie', user1Cookie)
 			.expect(200);
 
@@ -2874,7 +2888,7 @@ describe('Testing checkinQR', () => {
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -2882,21 +2896,21 @@ describe('Testing checkinQR', () => {
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		// Mark user as paid
 		await request(app)
-			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.put('/paid/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ setPaid: 'true' })
 			.expect(200)
 
 		// Mark waiver as signed
 		await request(app)
-			.post("/waiver/" + user1.body.id)
+			.post("/waiver/" + user1.id)
 			.set('Cookie', adminCookie)
 			.expect(200);
 
@@ -2910,7 +2924,7 @@ describe('Testing checkinQR', () => {
 
 		// Marry QR to bike and user
 		await request(app)
-			.put("/QR/" + newQR.body[0].id + '/' + user1.body.id + "/" + bike.body.id)
+			.put("/QR/" + newQR.body[0].id + '/' + user1.id + "/" + bike.body.id)
 			.set('Cookie', adminCookie)
 			.expect(201)
 
@@ -2981,20 +2995,20 @@ describe('Testing presentTrackdays', () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
 			.expect(201);
 		// Register user for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 		// Register admin for trackday
 		await request(app)
-			.post('/register/' + admin.body.id + '/' + trackday.body.id)
+			.post('/register/' + admin.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 2, layoutVote: 'none' })
 			.expect(200)
@@ -3035,7 +3049,7 @@ describe('Testing presentTrackdaysForUser', () => {
 	});
 	test("invalid userID user", async () => {
 		await request(app)
-			.get("/presentTrackdays/" + '1' + user1.body.id.slice(1, user1.body.id.length - 1) + '1')
+			.get("/presentTrackdays/" + '1' + user1.id.slice(1, user1.id.length - 1) + '1')
 			.expect(404, { msg: ['User does not exist'] })
 	});
 
@@ -3044,7 +3058,7 @@ describe('Testing presentTrackdaysForUser', () => {
 		const trackday = await addTrackday(getFormattedDate(3), adminCookie)
 
 		await request(app)
-			.get("/presentTrackdays/" + user1.body.id)
+			.get("/presentTrackdays/" + user1.id)
 			.expect(200, [])
 	});
 
@@ -3054,7 +3068,7 @@ describe('Testing presentTrackdaysForUser', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -3063,13 +3077,13 @@ describe('Testing presentTrackdaysForUser', () => {
 
 		// Register user for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.type("form").send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.set('Cookie', user1Cookie)
 			.expect(200)
 
 		await request(app)
-			.get("/presentTrackdays/" + user1.body.id)
+			.get("/presentTrackdays/" + user1.id)
 			.expect(200, [{
 				id: trackday.body.id,
 				date: '2500-06-05T14:00:00.000Z',
@@ -3102,7 +3116,7 @@ describe('Testing presentTrackdaysForUser', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -3111,20 +3125,20 @@ describe('Testing presentTrackdaysForUser', () => {
 
 		// Register user for trackday1
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday1.body.id)
+			.post('/register/' + user1.id + '/' + trackday1.body.id)
 			.type("form").send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.set('Cookie', user1Cookie)
 			.expect(200)
 
 		// Register user for trackday2
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday2.body.id)
+			.post('/register/' + user1.id + '/' + trackday2.body.id)
 			.type("form").send({ paymentMethod: 'etransfer', guests: 2, layoutVote: 'none' })
 			.set('Cookie', user1Cookie)
 			.expect(200)
 
 		await request(app)
-			.get("/presentTrackdays/" + user1.body.id)
+			.get("/presentTrackdays/" + user1.id)
 			.expect(200, [{
 				id: trackday1.body.id,
 				date: '2500-06-05T14:00:00.000Z',
@@ -3188,14 +3202,14 @@ describe('Testing updatePaid', () => {
 	test("invalid userID user", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
-			.put('/paid/' + '1' + user1.body.id.slice(1, user1.body.id.length - 1) + '1' + '/' + trackday.body.id)
+			.put('/paid/' + '1' + user1.id.slice(1, user1.id.length - 1) + '1' + '/' + trackday.body.id)
 			.type('form').send({ setPaid: 'true' })
 			.set('Cookie', adminCookie)
 			.expect(404, { msg: ['User does not exist'] })
 	});
 	test("invalid objectID trackday", async () => {
 		await request(app)
-			.put('/paid/' + user1.body.id + '/invalid/')
+			.put('/paid/' + user1.id + '/invalid/')
 			.type('form').send({ setPaid: 'true' })
 			.set('Cookie', adminCookie)
 			.expect(400, { msg: ['trackdayID is not a valid ObjectID'] })
@@ -3204,7 +3218,7 @@ describe('Testing updatePaid', () => {
 
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
-			.put('/paid/' + user1.body.id + '/1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1')
+			.put('/paid/' + user1.id + '/1' + trackday.body.id.slice(1, trackday.body.id.length - 1) + '1')
 			.type('form').send({ setPaid: 'true' })
 			.set('Cookie', adminCookie)
 			.expect(404, { msg: ['Trackday does not exist'] })
@@ -3214,7 +3228,7 @@ describe('Testing updatePaid', () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 
 		await request(app)
-			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.put('/paid/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({})
 			.expect(400)
@@ -3223,7 +3237,7 @@ describe('Testing updatePaid', () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 
 		await request(app)
-			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.put('/paid/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ setPaid: 'chewingGum' })
 			.expect(400)
@@ -3232,14 +3246,14 @@ describe('Testing updatePaid', () => {
 	test("no JWT", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 		await request(app)
-			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.put('/paid/' + user1.id + '/' + trackday.body.id)
 			.expect(401)
 	});
 	test("not authorized", async () => {
 		const trackday = await addTrackday(getFormattedDate(10))
 
 		await request(app)
-			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.put('/paid/' + user1.id + '/' + trackday.body.id)
 			.type('form').send({ setPaid: 'true' })
 			.set('Cookie', user1Cookie)
 			.expect(403)
@@ -3252,7 +3266,7 @@ describe('Testing updatePaid', () => {
 
 		// Add bike to garage
 		const bike = await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -3260,21 +3274,21 @@ describe('Testing updatePaid', () => {
 
 		// Register for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', user1Cookie)
 			.type('form').send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'none' })
 			.expect(200)
 
 		// Mark user as paid
 		await request(app)
-			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.put('/paid/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ setPaid: 'true' })
 			.expect(200)
 
 		// Mark user as paid
 		await request(app)
-			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.put('/paid/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ setPaid: 'true' })
 			.expect(403, { msg: ['user already marked as paid'] })
@@ -3285,7 +3299,7 @@ describe('Testing updatePaid', () => {
 
 		// Mark user as paid
 		await request(app)
-			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.put('/paid/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ setPaid: 'true' })
 			.expect(403, { msg: ['Member is not registered for that trackday'] })
@@ -3297,7 +3311,7 @@ describe('Testing updatePaid', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -3306,14 +3320,14 @@ describe('Testing updatePaid', () => {
 
 		// Register user for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.type("form").send({ paymentMethod: 'gate', guests: 3, layoutVote: 'none' })
 			.set('Cookie', adminCookie)
 			.expect(200)
 
 		// Mark user as paid
 		await request(app)
-			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.put('/paid/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ setPaid: 'true' })
 			.expect(403)
@@ -3325,7 +3339,7 @@ describe('Testing updatePaid', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -3333,21 +3347,21 @@ describe('Testing updatePaid', () => {
 
 		// Edit user so he has a credit
 		await request(app)
-			.put('/users/' + user1.body.id)
+			.put('/users/' + user1.id)
 			.type('form').send({ ...user1Info, credits: 1 })
 			.set('Cookie', adminCookie)
 			.expect(201)
 
 		// Register user for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.type("form").send({ paymentMethod: 'credit', guests: 3, layoutVote: 'none' })
 			.set('Cookie', user1Cookie)
 			.expect(200)
 
 		// Mark user as paid
 		await request(app)
-			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.put('/paid/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ setPaid: 'true' })
 			.expect(403)
@@ -3359,7 +3373,7 @@ describe('Testing updatePaid', () => {
 
 		// Add bike to garage
 		await request(app)
-			.post("/garage/" + user1.body.id)
+			.post("/garage/" + user1.id)
 			.type("form")
 			.send({ year: '2009', make: 'Yamaha', model: "R6" })
 			.set('Cookie', user1Cookie)
@@ -3368,21 +3382,21 @@ describe('Testing updatePaid', () => {
 
 		// Register user for trackday
 		await request(app)
-			.post('/register/' + user1.body.id + '/' + trackday.body.id)
+			.post('/register/' + user1.id + '/' + trackday.body.id)
 			.type("form").send({ paymentMethod: 'etransfer', guests: 3, layoutVote: 'long' })
 			.set('Cookie', user1Cookie)
 			.expect(200)
 
 		// Mark user as paid
 		await request(app)
-			.put('/paid/' + user1.body.id + '/' + trackday.body.id)
+			.put('/paid/' + user1.id + '/' + trackday.body.id)
 			.set('Cookie', adminCookie)
 			.type('form').send({ setPaid: 'true' })
 			.expect(200)
 
 		// Verify they actually got marked as paid
 		await request(app)
-			.get("/presentTrackdays/" + user1.body.id)
+			.get("/presentTrackdays/" + user1.id)
 			.expect(200, [{
 				id: trackday.body.id,
 				date: '2500-06-05T14:00:00.000Z',
