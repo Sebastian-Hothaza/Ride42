@@ -1,3 +1,11 @@
+jest.mock('bcryptjs', () => ({
+	hash: jest.fn(async () => 'hashed-password'),
+	compare: jest.fn(async (input, hash) => {
+		// Simple logic: the "correct" password is always 'password123' for tests
+		return input === 'password123';
+	}),
+}));
+
 const express = require("express");
 const request = require("supertest");
 const MongoDB_testDB = require("../mongoConfigTesting")
@@ -58,7 +66,7 @@ const userAdmin={
 	EmergencyPhone: "2269883609",
 	EmergencyRelationship: "Mother",
 	group: "red",
-	password: "Sebi1234"
+	password: "password123"
 };
 
 async function addUser(userInfo, expectedResponseCode){
