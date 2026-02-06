@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController')
 const trackdayController = require('../controllers/trackdayController')
+const productController = require('../controllers/productsController')
+const orderController = require('../controllers/ordersController')
 
 // Needed for logging
 const ServerLogs = require('../models/ServerLogs');
@@ -77,5 +79,14 @@ router.put('/trackdays/:trackdayID', trackdayController.trackday_put)
 router.delete('/trackdays/:trackdayID', trackdayController.trackday_delete)
 router.post('/costs/:trackdayID', trackdayController.addCost)
 router.delete('/costs/:trackdayID/:costID', trackdayController.removeCost)
+
+
+// Products & Orders
+router.get('/products/:productID', productController.product_get)
+router.get('/products', productController.product_getALL)
+router.post('/products', productController.product_post)
+router.put('/products/:productID', productController.product_put)
+router.delete('/products/:productID', productController.product_delete)
+
 
 module.exports = router;
