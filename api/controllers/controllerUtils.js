@@ -2,6 +2,7 @@ const User = require('../models/User');
 const Trackday = require('../models/Trackday');
 const Bike = require('../models/Bike');
 const QR = require('../models/QR');
+const Product = require('../models/Products');
 const { body, validationResult } = require("express-validator");
 const ObjectId = require('mongoose').Types.ObjectId;
 const jwt = require('jsonwebtoken')
@@ -67,6 +68,15 @@ async function validateQRID(req, res, next) {
     if (!ObjectId.isValid(req.params.QRID)) return res.status(400).send({ msg: ['QRID is not a valid ObjectID'] });
     const qrExists = await QR.exists({ _id: req.params.QRID });
     if (!qrExists) return res.status(404).send({ msg: ['QR does not exist'] });
+    next();
+}
+
+// Called by middleware functions
+// Verify that the req.params.productID is a valid objectID and that it exists in our DB
+async function validateProductID(req, res, next) {
+    if (!ObjectId.isValid(req.params.productID)) return res.status(400).send({ msg: ['productID is not a valid ObjectID'] });
+    const productExists = await Product.exists({ _id: req.params.productID });
+    if (!productExists) return res.status(404).send({ msg: ['Product does not exist'] });
     next();
 }
 
@@ -189,4 +199,4 @@ async function verifyJWT_LS(req, res, next) {
 
 
 
-module.exports = { validateForm, validateUserID, validateTrackdayID, validateBikeID, validateQRID, isInLockoutPeriod, hasTrackdayWithinLockout, verifyJWT }
+module.exports = { validateForm, validateUserID, validateTrackdayID, validateBikeID, validateQRID, validateProductID, isInLockoutPeriod, hasTrackdayWithinLockout, verifyJWT }
