@@ -186,7 +186,7 @@ const Home = () => {
 			<div className="content" id={styles.firstCard}>
 				{CANCELLATION_NOTICE && <Card heading='Cancellation Notice' body={HTML_Cancellation} img={cancelled} inverted={false} />}
 				<Card heading='2026 Season Bundle' body={HTML_Bundle} img={bundle} inverted={false} />	
-				<Card heading='HELITE Airbags' body={HTML_Helite} img={helite} inverted={false} />
+				{/* <Card heading='HELITE Airbags' body={HTML_Helite} img={helite} inverted={false} /> */}
 				{/* <Card heading='Pirelli Spring Order' body={HTML_Pirelli} img={pirelli} inverted={false} /> */}
 				{/* <Card heading='June 18 Notice' body={HTML_NewsItem}  inverted={false} /> */}
 				<Card heading='About Us' body={HTML_AboutUs} img={about} inverted={true} />
