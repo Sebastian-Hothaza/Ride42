@@ -1,4 +1,4 @@
-const Product = require('../models/Products');
+const { Product, Tire, Gear } = require('../models/Products');
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 const jwt = require('jsonwebtoken')
@@ -12,26 +12,45 @@ const logger = require('../logger');
 
 // Create a product. Requires JWT with admin
 exports.product_post = [
-    body("name", "Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50 }).escape(),
-    body("category", "Category must be one of: pirelli, plus, helite").trim().isIn(["pirelli", "plus", "helite"]),
-    body("price", "Price must be a number").isNumeric().optional({ nullable: true }),
-
+    body("name", "Name must be between 2 and 50 characters").trim().isLength({ min: 2, max: 50 }),
+    body("category", "Category must be either tire or gear").trim().isIn(['tire', 'gear']).escape(),
+    body("basePrice", "Base price must be a number").isNumeric(),
+    body("variants", "Variants must be an array with at least one element").isArray({ min: 1 }),
 
     controllerUtils.verifyJWT,
-    asyncHandler(async (req, res, next) => {
-        if (req.user.memberType !== 'admin') return res.sendStatus(403);
+    controllerUtils.validateForm,
 
-        const product = new Product({
-            name: req.body.name,
-            category: req.body.category,
-            price: req.body.price,
-        })
+    asyncHandler(async (req, res) => {
+        console.log('a')
+        if (req.user.memberType !== "admin") return res.sendStatus(403);
+
+        const { name, category, basePrice, variants } = req.body;
+
+        let product;
+
+        if (category === "tire") {
+            product = new Tire({
+                name,
+                basePrice: 0, // tires use variant-level pricing
+                variants
+            });
+        }
+
+        if (category === "gear") {
+            product = new Gear({
+                name,
+                basePrice,
+                variants
+            });
+        }
 
         await product.save();
-        logger.info({ message: `Created product ${product.name}` });
-        return res.status(201).json({ id: product.id });
-    }),
-]
+
+        logger.info({ message: `Created ${category} product ${product.name}` });
+
+        res.status(201).json({ id: product._id });
+    })
+];
 
 // Get a single product. Requires JWT.
 exports.product_get = [
@@ -44,7 +63,7 @@ exports.product_get = [
     })
 ]
 
-// Gets all users. Requires JWT with staff/admin/coach
+// Gets all products. Requires JWT.
 exports.product_getALL = [
     controllerUtils.verifyJWT,
 
@@ -56,38 +75,60 @@ exports.product_getALL = [
 
 // Create a product. Requires JWT with admin
 exports.product_put = [
-    body("name", "Name must contain 2-50 characters").trim().isLength({ min: 2, max: 50 }).escape(),
-    body("category", "Category must be one of: pirelli, plus, helite").trim().isIn(["pirelli", "plus", "helite"]),
-    body("price", "Price must be a number").isNumeric().optional({ nullable: true }),
-    body("frontCompound", "Front Compound must contain 2-50 characters").trim().isLength({ min: 2, max: 50 }).optional({ nullable: true }),
-    body("frontSize", "Front Size must be a number").isNumeric().optional({ nullable: true }),
-    body("rearCompound", "Rear Compound must contain 2-50 characters").trim().isLength({ min: 2, max: 50 }).optional({ nullable: true }),
-    body("rearSize", "Rear Size must be a number").isNumeric().optional({ nullable: true }),
+    body("name", "Name must be between 2 and 50 characters").trim().isLength({ min: 2, max: 50 }),
+    body("category", "Category must be either tire or gear").trim().isIn(['tire', 'gear']).escape(),
+    body("basePrice", "Base price must be a number").isNumeric(),
+    body("variants", "Variants must be an array with at least one element").isArray({ min: 1 }),
 
     controllerUtils.verifyJWT,
+    controllerUtils.validateForm,
     controllerUtils.validateProductID,
-    asyncHandler(async (req, res, next) => {
-        if (req.user.memberType !== 'admin') return res.sendStatus(403);
 
-        const product = new Product({
-            name: req.body.name,
-            category: req.body.category,
-            price: req.body.price,
-            front: {
-                compound: req.body.frontCompound,
-                size: req.body.frontSize
-            },
-            rear: {
-                compound: req.body.rearCompound,
-                size: req.body.rearSize
-            }
-        })
+    asyncHandler(async (req, res) => {
+        if (req.user.memberType !== "admin") return res.sendStatus(403);
 
-        await Product.findByIdAndUpdate(req.params.productID, product, {});
-        logger.info({ message: `Updated product ${product.name}` });
-        return res.status(200).json(product);
-    }),
-]
+        const { productID } = req.params;
+        const { name, category, basePrice, variants } = req.body;
+
+        const existing = await Product.findById(productID);
+        if (!existing) return res.sendStatus(404);
+
+        // Prevent changing discriminator type
+        if (existing.category !== category) {
+            return res.status(400).json({
+                message: "Cannot change product category once created"
+            });
+        }
+
+        let updated;
+
+        if (category === "tire") {
+            updated = await Tire.findByIdAndUpdate(
+                productID,
+                {
+                    name,
+                    basePrice: 0, // tires ignore basePrice
+                    variants
+                },
+                { new: true, runValidators: true }
+            );
+        }
+
+        if (category === "gear") {
+            updated = await Gear.findByIdAndUpdate(
+                productID,
+                {
+                    name,
+                    basePrice,
+                    variants
+                },
+                { new: true, runValidators: true }
+            );
+        }
+
+        res.json(updated);
+    })
+];
 
 // Delete a product. Requires JWT with admin
 exports.product_delete = [
@@ -98,6 +139,6 @@ exports.product_delete = [
 
         const product = await Product.findByIdAndDelete(req.params.productID);
         logger.info({ message: `Deleted product ${product.name}` });
-        return res.status(200).json(product);
+        return res.sendStatus(200);
     }),
 ]
