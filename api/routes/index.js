@@ -3,7 +3,7 @@ const router = express.Router();
 const userController = require('../controllers/userController')
 const trackdayController = require('../controllers/trackdayController')
 const productController = require('../controllers/productsController')
-const orderController = require('../controllers/ordersController')
+const ordersController = require('../controllers/ordersController')
 
 // Needed for logging
 const ServerLogs = require('../models/ServerLogs');
@@ -88,5 +88,10 @@ router.post('/products', productController.product_post)
 router.put('/products/:productID', productController.product_put)
 router.delete('/products/:productID', productController.product_delete)
 
+router.get('/orders/:orderID', ordersController.order_get)
+router.get('/orders', ordersController.order_getALL)
+router.post('/orders/:userID', ordersController.order_post)
+router.put('/orders/:orderID', ordersController.order_put)
+router.delete('/orders/:orderID', ordersController.order_delete)
 
 module.exports = router;
