@@ -31,13 +31,17 @@ const OrderSchema = new mongoose.Schema({
     }
   ],
 
-  paymentStatus: { 
-    type: String, 
-    enum: ["pending", "partial", "paid"], 
-    default: "pending" 
+  paymentStatus: {
+    type: String,
+    enum: ["pending", "partial", "paid"],
+    default: "pending"
   },
-  deliveryDate: {type: Date},
-  // TODO: Figure out for order status and delivery date what we want to do.
+  deliveryDate: { type: Date },
+  orderStatus: {
+    type: String,
+    enum: ["pending", "complete", "pending design", "pending measurements", "pending approval"],
+    default: "pending"
+  },
 });
 
 module.exports = mongoose.model("Order", OrderSchema);
