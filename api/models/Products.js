@@ -31,11 +31,11 @@ const Tire = Product.discriminator("tire", TireSchema);
 // The params here refer to AVAILABLE OPTIONS which are selected upon order creation.
 const GearSchema = new mongoose.Schema({
   basePrice: { type: Number, required: true, min: 0 },
-  sizes: { type: String, enum: ["S", "M", "L", "XL", "XXL", "Custom", "S/M", "L/XL"], required: true },
-  colors: { type: String, enum: ["Black", "White", "Red", "Blue", "Green", "Lime", "Custom"], required: true },
+  sizes: { type: [String], enum: ["S", "M", "L", "XL", "XXL", "Custom", "S/M", "L/XL"], required: false, default: undefined },
+  colors: { type: [String], enum: ["Black", "White", "Red", "Blue", "Green", "Lime", "Custom"], required: false, default: undefined },
   addOnOptions: [{
-    name: { type: String, enum: ["Airbag Ready", "2-piece", "Stingray Armor", "TPU Caps", "Kangaroo Leather"] },
-    priceAdjustment: { type: Number, required: true, min: 0 }
+    name: { type: String, enum: ["TPUCaps", "2-piece", "kangarooLeather", "airbagReady", "stingrayArmor", "gloveBundleDiscount"] },
+    priceAdjustment: { type: Number, required: true }
   }]
 });
 
