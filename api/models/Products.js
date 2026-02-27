@@ -12,18 +12,6 @@ const ProductSchema = new mongoose.Schema({
 }, options);
 
 const Product = mongoose.model("Product", ProductSchema);
-/*
-Sample product creation:
-const tireProduct = await Tire.create({
-    name: "Pirelli Race Tire",
-    variants: [
-      { size: "200/60", compound: "SC3", price: 500 },
-      { size: "200/60", compound: "SC2", price: 450 },
-      { size: "180/60", compound: "SC3", price: 480 },
-      { size: "120/70", compound: "SC1", price: 420 },
-    ]
-  });
-*/
 
 // TIRES
 const TireSchema = new mongoose.Schema({
@@ -43,7 +31,12 @@ const TireSchema = new mongoose.Schema({
         type: Number,
         required: true,
         min: 0,
-      } 
+      }, 
+      stock: {
+        type: Number,
+        required: true,
+        min: 0,
+      }
     }
   ]
 });
