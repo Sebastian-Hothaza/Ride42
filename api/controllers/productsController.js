@@ -12,42 +12,58 @@ const logger = require('../logger');
 
 // Create a product. Requires JWT with admin
 exports.product_post = [
+    // Common validations
     body("name", "Name must be between 2 and 50 characters").trim().isLength({ min: 2, max: 50 }),
     body("category", "Category must be either tire or gear").trim().isIn(['tire', 'gear']).escape(),
-    body("basePrice", "Base price must be a number").isNumeric(),
-    body("variants", "Variants must be an array with at least one element").isArray({ min: 1 }),
 
     controllerUtils.verifyJWT,
+
+    // custom middleware to run category-specific validators
+    async (req, res, next) => {
+        const tireValidation = [
+            body("variants", "Variants must be an array with at least one item").isArray({ min: 1 }),
+            body("variants.*.size", "Each variant must have a valid size").isIn(["200/60", "180/60", "120/70"]),
+            body("variants.*.compound", "Each variant must have a valid compound").isIn(["SC1", "SC2", "SC3"]),
+            body("variants.*.price", "Price must be a number >= 0").isFloat({ min: 0 }),
+            body("variants.*.stock", "Stock must be an integer >= 0").isInt({ min: 0 }),
+        ];
+        const gearValidation = [
+            body("basePrice", "Base price must be a number >= 0").isFloat({ min: 0 }),
+
+            body("sizes", "Sizes must be an array with at least one valid size").optional().isArray({ min: 1 }),
+            body("sizes.*", "Invalid size").isIn(["S", "M", "L", "XL", "XXL", "Custom", "S/M", "L/XL"]),
+
+            body("colors", "Colors must be an array with at least one valid color").optional().isArray({ min: 1 }),
+            body("colors.*", "Invalid color").isIn(["Black", "White", "Red", "Blue", "Green", "Lime", "Custom"]),
+
+            body("addOnOptions").optional().isArray(),
+            body("addOnOptions.*.name", "Invalid add-on name").optional().isIn(["TPUCaps", "2-piece", "kangarooLeather", "airbagReady", "stingrayArmor", "gloveBundleDiscount"]),
+            body("addOnOptions.*.priceAdjustment", "Add-on price must be >= 0").isInt()
+        ];
+
+        // Only run if category is tire
+        if (req.body.category === "tire") {
+            await Promise.all(tireValidation.map(v => v.run(req)));
+        } else if (req.body.category === "gear") {
+            await Promise.all(gearValidation.map(v => v.run(req)));
+        }
+        next();
+    },
     controllerUtils.validateForm,
 
     asyncHandler(async (req, res) => {
-        console.log('a')
         if (req.user.memberType !== "admin") return res.sendStatus(403);
-
-        const { name, category, basePrice, variants } = req.body;
-
         let product;
 
-        if (category === "tire") {
-            product = new Tire({
-                name,
-                basePrice: 0, // tires use variant-level pricing
-                variants
-            });
+        if (req.body.category === "tire") {
+            product = new Tire({ name: req.body.name, variants: req.body.variants });
+        } else if (req.body.category === "gear") {
+            console.log('create gear')
+            product = new Gear({ name: req.body.name, basePrice: req.body.basePrice, sizes: req.body.sizes, colors: req.body.colors, addOnOptions: req.body.addOnOptions });
         }
-
-        if (category === "gear") {
-            product = new Gear({
-                name,
-                basePrice,
-                variants
-            });
-        }
-
         await product.save();
-
-        logger.info({ message: `Created ${category} product ${product.name}` });
-
+        console.log('saved product')
+        logger.info({ message: `Created ${req.body.category} product ${product.name}` });
         res.status(201).json({ id: product._id });
     })
 ];
@@ -75,53 +91,67 @@ exports.product_getALL = [
 
 // Create a product. Requires JWT with admin
 exports.product_put = [
+    // Common validations
     body("name", "Name must be between 2 and 50 characters").trim().isLength({ min: 2, max: 50 }),
     body("category", "Category must be either tire or gear").trim().isIn(['tire', 'gear']).escape(),
-    body("basePrice", "Base price must be a number").isNumeric(),
-    body("variants", "Variants must be an array with at least one element").isArray({ min: 1 }),
 
     controllerUtils.verifyJWT,
+
+    // custom middleware to run category-specific validators
+    async (req, res, next) => {
+        const tireValidation = [
+            body("variants", "Variants must be an array with at least one item").isArray({ min: 1 }),
+            body("variants.*.size", "Each variant must have a valid size").isIn(["200/60", "180/60", "120/70"]),
+            body("variants.*.compound", "Each variant must have a valid compound").isIn(["SC1", "SC2", "SC3"]),
+            body("variants.*.price", "Price must be a number >= 0").isFloat({ min: 0 }),
+            body("variants.*.stock", "Stock must be an integer >= 0").isInt({ min: 0 }),
+        ];
+        const gearValidation = [
+            body("basePrice", "Base price must be a number >= 0").isFloat({ min: 0 }),
+
+            body("sizes", "Sizes must be an array with at least one valid size").optional().isArray({ min: 1 }),
+            body("sizes.*", "Invalid size").isIn(["S", "M", "L", "XL", "XXL", "Custom", "S/M", "L/XL"]),
+
+            body("colors", "Colors must be an array with at least one valid color").optional().isArray({ min: 1 }),
+            body("colors.*", "Invalid color").isIn(["Black", "White", "Red", "Blue", "Green", "Lime", "Custom"]),
+
+            body("addOnOptions").optional().isArray(),
+            body("addOnOptions.*.name", "Invalid add-on name").optional().isIn(["TPUCaps", "2-piece", "kangarooLeather", "airbagReady", "stingrayArmor", "gloveBundleDiscount"]),
+            body("addOnOptions.*.priceAdjustment", "Add-on price must be >= 0").isInt()
+        ];
+
+        // Only run if category is tire
+        if (req.body.category === "tire") {
+            await Promise.all(tireValidation.map(v => v.run(req)));
+        } else if (req.body.category === "gear") {
+            await Promise.all(gearValidation.map(v => v.run(req)));
+        }
+        next();
+    },
     controllerUtils.validateForm,
     controllerUtils.validateProductID,
 
     asyncHandler(async (req, res) => {
         if (req.user.memberType !== "admin") return res.sendStatus(403);
-
-        const { productID } = req.params;
-        const { name, category, basePrice, variants } = req.body;
-
-        const existing = await Product.findById(productID);
-        if (!existing) return res.sendStatus(404);
+        const existing = await Product.findById(req.params.productID);
 
         // Prevent changing discriminator type
-        if (existing.category !== category) {
-            return res.status(400).json({
-                message: "Cannot change product category once created"
-            });
+        if (existing.category !== req.body.category) {
+            return res.status(400).json({ message: "Cannot change product category once created" });
         }
 
         let updated;
-
-        if (category === "tire") {
+        if (req.body.category === "tire") {
+            console.log('update tire')
             updated = await Tire.findByIdAndUpdate(
-                productID,
-                {
-                    name,
-                    basePrice: 0, // tires ignore basePrice
-                    variants
-                },
+                req.params.productID,
+                { name: req.body.name, variants: req.body.variants },
                 { new: true, runValidators: true }
             );
-        }
-
-        if (category === "gear") {
+        } else if (req.body.category === "gear") {
             updated = await Gear.findByIdAndUpdate(
-                productID,
-                {
-                    name,
-                    basePrice,
-                    variants
-                },
+                req.params.productID,
+                { name: req.body.name, basePrice: req.body.basePrice, sizes: req.body.sizes, colors: req.body.colors, addOnOptions: req.body.addOnOptions },
                 { new: true, runValidators: true }
             );
         }
