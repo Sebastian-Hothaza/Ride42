@@ -77,7 +77,7 @@ exports.order_post = [
             balanceDue: itemsSnapshot.reduce((sum, i) => sum + (i.finalPriceAtPurchase * i.quantity), 0)
         });
 
-        res.status(201).json(order);
+        res.sendStatus(201);
     })
 ];
 
