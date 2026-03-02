@@ -178,14 +178,14 @@ const Home = () => {
 	return (
 		<>
 			<div id={styles.hero}>
-				{false && !CANCELLATION_NOTICE && nextTrackday && <div id={styles.heroText}>
+				{!CANCELLATION_NOTICE && nextTrackday && <div id={styles.heroText}>
 					{HTML_Countdown}
 					<NavLink className={styles.bookBtn} style={{ backgroundColor: 'var(--accent-color)' }} to="/dashboard">Book Now!</NavLink>
 				</div>}
 			</div>
 			<div className="content" id={styles.firstCard}>
 				{CANCELLATION_NOTICE && <Card heading='Cancellation Notice' body={HTML_Cancellation} img={cancelled} inverted={false} />}
-				<Card heading='2026 Season Bundle' body={HTML_Bundle} img={bundle} inverted={false} />	
+				{/* <Card heading='2026 Season Bundle' body={HTML_Bundle} img={bundle} inverted={false} />	 */}
 				{/* <Card heading='HELITE Airbags' body={HTML_Helite} img={helite} inverted={false} /> */}
 				{/* <Card heading='Pirelli Spring Order' body={HTML_Pirelli} img={pirelli} inverted={false} /> */}
 				{/* <Card heading='June 18 Notice' body={HTML_NewsItem}  inverted={false} /> */}
