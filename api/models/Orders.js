@@ -11,13 +11,13 @@ const OrderSchema = new mongoose.Schema({
     color: String,        // for Gear
     compound: String,     // for Tire
     price: Number,        // final price for this variant at purchase
-    addOns: [{ name: String, price: Number }],
+    addOns: [{ name: String, price: Number }], // Used for suits
     quantity: { type: Number, required: true, min: 1 },
 
     // Price snapshot
     finalPriceAtPurchase: { type: Number, required: true }
   }],
-
+  balanceDue: { type: Number, required: true },
   paymentStatus: { type: String, enum: ["pending", "partial", "paid"], default: "pending" },
   orderStatus: { type: String, enum: ["pending", "complete", "pending design", "pending measurements", "pending approval"], default: "pending" },
   deliveryDate: { type: Date },
