@@ -206,6 +206,16 @@ async function verifyJWT_LS(req, res, next) {
     }
 }
 
+// Called by middleware functions
+function verifyPermission(levelRequired) {
+    return async (req, res, next) => {
+        const hierarchy = ["regular", "racer", "coach", "staff", "admin"];
+        const userPermissionLevel = hierarchy.indexOf(req.user.memberType);
+        const requiredPermissionLevel = hierarchy.indexOf(levelRequired);
+        if (userPermissionLevel < requiredPermissionLevel) return res.sendStatus(403);
+        next();
+    }
+}
 
 
 
@@ -219,5 +229,6 @@ module.exports = {
     validateOrderID,
     isInLockoutPeriod,
     hasTrackdayWithinLockout,
-    verifyJWT
+    verifyJWT,
+    verifyPermission,
 }
