@@ -142,8 +142,16 @@ describe('Testing product create', () => {
     test("add product to DB", async () => {
         await request(app)
             .post("/products")
+            .send({
+                name: 'Pirelli Supercorsa',
+                category: 'tire',
+                variants: [
+                    { size: "200/60", compound: "SC3", price: 500, stock: 1 },
+                    { size: "200/60", compound: "SC2", price: 500, stock: 1 },
+                ]
+            })
+            .set('Content-Type', 'application/json')  // explicitly tell Express this is JSON
             .set('Cookie', adminCookie)
-            .type('form').send({ 'name': 'Test Product', 'category': 'pirelli', 'price': 100 })
-            .expect(201)
+            .expect(201);
     });
 })
