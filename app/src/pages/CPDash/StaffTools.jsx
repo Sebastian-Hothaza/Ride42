@@ -11,6 +11,8 @@ import paid from '../../assets/staffTools/paid.png'
 import server from '../../assets/staffTools/server.png'
 import state from '../../assets/staffTools/state.png'
 import verify from '../../assets/staffTools/verify.png'
+import manageProducts from '../../assets/staffTools/manageProducts.png'
+import manageOrders from '../../assets/staffTools/manageOrders.png'
 
 const staffTools = ({ setActiveTab, memberType, APIServer }) => {
     return (
@@ -28,6 +30,8 @@ const staffTools = ({ setActiveTab, memberType, APIServer }) => {
                         <button onClick={() => setActiveTab('verify')}><img src={verify}></img>Verify</button>
                         <button onClick={() => setActiveTab('manageUsers')}><img src={manageUsers}></img>Manage Users</button>
                         <button onClick={() => setActiveTab('manageTrackdays')}><img src={manageTrackdays}></img>Manage Trackdays</button>
+                        <button onClick={() => setActiveTab('manageProducts')}><img src={manageProducts}></img>Manage Products</button>
+                        <button onClick={() => setActiveTab('manageOrders')}><img src={manageOrders}></img>Manage Orders</button>
                         <button onClick={() => setActiveTab('markPaid')}><img src={paid}></img>Mark Paid</button>
                         <button onClick={() => setActiveTab('serverLogs')}><img src={server}></img>Server Logs</button>
                     </>

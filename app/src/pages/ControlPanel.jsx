@@ -21,6 +21,8 @@ import ManageTrackdays from './CPDash/ManageTrackdays'
 import MarkPaid from './CPDash/MarkPaid'
 import TrackdayState from './CPDash/TrackdayState'
 import ServerLogs from "./CPDash/ServerLogs";
+import ManageProducts from "./CPDash/ManageProducts";
+import ManageOrders from "./CPDash/ManageOrders";
 
 
 const ControlPanel = ({ APIServer }) => {
@@ -136,6 +138,8 @@ const ControlPanel = ({ APIServer }) => {
                     {activeTab == 'manageTrackdays' && <ManageTrackdays APIServer={APIServer} allTrackdaysFULL={allTrackdaysFULL} allUsers={allUsers} fetchAPIData={fetchAPIData} />}
                     {activeTab == 'markPaid' && <MarkPaid APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdaysFULL={allTrackdaysFULL} />}
                     {activeTab == 'serverLogs' && <ServerLogs APIServer={APIServer} />}
+                    {activeTab == 'manageProducts' && <ManageProducts />}
+                    {activeTab == 'manageOrders' && <ManageOrders />}
 
 
 
