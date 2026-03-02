@@ -11,23 +11,21 @@ const logger = require('../logger');
 //////////////////////////////////////
 
 // Create a order. Requires JWT with matching userID OR admin
+// TODO: revise permission checks
 exports.order_post = [
     body("items", "Orders must have at least one item").isArray({ min: 1 }),
 
     controllerUtils.verifyJWT,
     controllerUtils.validateForm,
     controllerUtils.validateUserID,
-    // controllerUtils.validateOrderItems, // TODO: custom validator to check product and variant validity
 
     asyncHandler(async (req, res) => {
-        console.log('order post')
 
-        // Snapshot each item
+        // Snapshot each item/product
         const itemsSnapshot = await Promise.all(req.body.items.map(async (item) => {
-            console.log('here')
+            // Find product
             const product = await Product.findById(item.product);
-            console.log('here2')
-            if (!product) throw new Error(`Product ${item.product} not found`);
+            if (!product) return res.status(400).json({ error: `Product with ID ${item.product} does not exist` });
 
             // Find variant
             let variantSnapshot;
@@ -42,9 +40,12 @@ exports.order_post = [
                     v.color === item.variant.color
                 );
             }
+            if (!variantSnapshot) return res.status(400).json({ error: `Variant not found for product ${product.name}` });
 
-
-            if (!variantSnapshot) throw new Error(`Variant not found for product ${product.name}`);
+            // Verify variant is in stock
+            if (variantSnapshot.stock < item.quantity) {
+                return res.status(400).json({ error: `Insufficient stock for product ${product.name}, variant ${JSON.stringify(item.variant)}` });
+            }
 
             // Add-on total
             const addOnsTotal = (item.variant.addOns || []).reduce((sum, a) => sum + (a.price || 0), 0);
@@ -72,7 +73,8 @@ exports.order_post = [
         const order = await Order.create({
             user: req.params.userID,
             items: itemsSnapshot,
-            deliveryDate: req.body.deliveryDate || null
+            deliveryDate: req.body.deliveryDate || null,
+            balanceDue: itemsSnapshot.reduce((sum, i) => sum + (i.finalPriceAtPurchase * i.quantity), 0)
         });
 
         res.status(201).json(order);
@@ -81,8 +83,8 @@ exports.order_post = [
 
 
 exports.order_getALL = [
-
     controllerUtils.verifyJWT,
+
 
     asyncHandler(async (req, res) => {
         const orders = await Order.find()
@@ -107,23 +109,29 @@ exports.order_get = [
     })
 ]
 
-
+// Update an order. The following fields can be updated: orderStatus, paymentStatus, deliveryDate. Requires JWT with admin.
 exports.order_put = [
+
+    body("orderStatus", "Order status must be one of: pending, complete, pending design, pending measurements, pending approval").optional()
+        .isIn(["pending", "complete", "pending design", "pending measurements", "pending approval"]),
+    body("paymentStatus", "Payment status must be one of: pending, partial, paid").optional()
+        .isIn(["pending", "partial", "paid"]),
+    body("deliveryDate", "Delivery date must be a valid date").optional().isISO8601().toDate(),
+    controllerUtils.validateForm,
     controllerUtils.validateOrderID,
+
     controllerUtils.verifyJWT,
-    
+
     asyncHandler(async (req, res) => {
-        
-        const { orderStatus, paymentStatus, deliveryDate } = req.body;
+        if (req.user.memberType !== "admin") return res.sendStatus(403);
 
         const updateData = {};
-        if (orderStatus) updateData.orderStatus = orderStatus;
-        if (paymentStatus) updateData.paymentStatus = paymentStatus;
-        if (deliveryDate) updateData.deliveryDate = deliveryDate;
+        if (req.body.orderStatus) updateData.orderStatus = req.body.orderStatus;
+        if (req.body.paymentStatus) updateData.paymentStatus = req.body.paymentStatus;
+        if (req.body.deliveryDate) updateData.deliveryDate = req.body.deliveryDate;
 
-
-        const updatedOrder = await Order.findByIdAndUpdate(req.params.orderID, updateData, { new: true, runValidators: true });
-        res.json(updatedOrder);
+        await Order.findByIdAndUpdate(req.params.orderID, updateData, { new: true, runValidators: true });
+        res.sendStatus(200);
     })
 ];
 
@@ -132,6 +140,7 @@ exports.order_delete = [
     controllerUtils.validateOrderID,
     controllerUtils.verifyJWT,
     asyncHandler(async (req, res) => {
+        if (req.user.memberType !== "admin") return res.sendStatus(403);
         const { orderID } = req.params;
         await Order.findByIdAndDelete(orderID);
         res.json({ msg: "Order deleted successfully" });
