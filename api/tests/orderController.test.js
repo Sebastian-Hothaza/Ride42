@@ -83,7 +83,7 @@ const adminInfo = {
     memberType: "admin"
 };
 
-const sampleSupercorsa = {
+const sampleSupercorsaInfo = {
     name: "Pirelli Supercorsa",
     category: "tire",
     variants: [
@@ -93,7 +93,7 @@ const sampleSupercorsa = {
     ]
 };
 
-let admin, user, adminCookie, userCookie;
+let admin, user, sampleSupercorsa, adminCookie, userCookie;
 
 beforeEach(async () => {
     // Preload each test with user and admin logged in and store their cookies. Store sample products.
@@ -105,7 +105,8 @@ beforeEach(async () => {
     const loginResUser1 = await loginUser(userInfo);
     userCookie = loginResUser1.headers['set-cookie']
 
-    seedProduct(sampleSupercorsa);
+    sampleSupercorsa = await seedProduct(sampleSupercorsaInfo);
+    // console.log(sampleSupercorsa)
 })
 
 const User = require("../models/User");
@@ -140,14 +141,16 @@ async function seedUser(userInfo) {
     return user;
 }
 
+const { Product } = require("../models/Products");
 async function seedProduct(productInfo) {
-    const res = await request(app)
-        .post("/products")
-        .send(productInfo)
-        .set('Content-Type', 'application/json')
-        .set('Cookie', adminCookie)
-        .expect(201);
-    return;
+    const product = new Product({
+        name: productInfo.name,
+        category: productInfo.category,
+        variants: productInfo.variants
+    });
+
+    await product.save();
+    return product;
 }
 
 async function loginUser(userInfo) {
@@ -163,15 +166,23 @@ async function loginUser(userInfo) {
 describe('Testing order create', () => {
     test("create valid order", async () => {
         await request(app)
-            .post("/orders")
+            .post(`/orders/${user._id.toString()}`)
             .send({
                 items: [
-                    { size: "200/60", compound: "SC3", price: 500, stock: 1 },
-                    { size: "200/60", compound: "SC2", price: 500, stock: 1 },
+                    {
+                        product: sampleSupercorsa._id.toString(),
+                        variant: { size: "200/60", compound: "SC3", price: 500, stock: 1 },
+                        quantity: 1
+                    },
+                    {
+                        product: sampleSupercorsa._id.toString(),
+                        variant: { size: "200/60", compound: "SC2", price: 500, stock: 1 },
+                        quantity: 1
+                    }
                 ],
-                deliveryDate: "2050-12-31"
+                deliveryDate: "2026-03-10T00:00:00.000Z"
             })
-            .set('Content-Type', 'application/json')  // explicitly tell Express this is JSON
+            .set('Content-Type', 'application/json')  
             .set('Cookie', adminCookie)
             .expect(201);
     });
