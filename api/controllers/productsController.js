@@ -1,10 +1,42 @@
 const { Product, Tire, Gear } = require('../models/Products');
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
-const jwt = require('jsonwebtoken')
 const controllerUtils = require('./controllerUtils')
 const logger = require('../logger');
 
+// Used to validate the product params in both POST and PUT routes since they share the same body structure.
+async function validateProductParams(req, res, next) {
+
+    const tireValidation = [
+        body("variants", "Variants must be an array with at least one item").isArray({ min: 1 }),
+        body("variants.*.size", "Each variant must have a valid size").isIn(["200/60", "180/60", "120/70"]),
+        body("variants.*.compound", "Each variant must have a valid compound").isIn(["SC1", "SC2", "SC3"]),
+        body("variants.*.price", "Price must be a number >= 0").isFloat({ min: 0 }),
+        body("variants.*.stock", "Stock must be an integer >= 0").isInt({ min: 0 }),
+    ];
+    const gearValidation = [
+        body("basePrice", "Base price must be a number >= 0").isFloat({ min: 0 }),
+
+        body("sizes", "Sizes must be an array with at least one valid size").optional().isArray({ min: 1 }),
+        body("sizes.*", "Invalid size").isIn(["S", "M", "L", "XL", "XXL", "Custom", "S/M", "L/XL"]),
+
+        body("colors", "Colors must be an array with at least one valid color").optional().isArray({ min: 1 }),
+        body("colors.*", "Invalid color").isIn(["Black", "White", "Red", "Blue", "Green", "Lime", "Custom"]),
+
+        body("addOnOptions").optional().isArray(),
+        body("addOnOptions.*.name", "Invalid add-on name").optional().isIn(["TPUCaps", "2-piece", "kangarooLeather", "airbagReady", "stingrayArmor", "gloveBundleDiscount"]),
+        body("addOnOptions.*.priceAdjustment", "Add-on price must be >= 0").isInt()
+    ];
+
+
+    // Run appropriate validators based on category
+    if (req.body.category === "tire") {
+        await Promise.all(tireValidation.map(v => v.run(req)));
+    } else if (req.body.category === "gear") {
+        await Promise.all(gearValidation.map(v => v.run(req)));
+    }
+    next();
+}
 
 //////////////////////////////////////
 //              CRUD
@@ -18,38 +50,9 @@ exports.product_post = [
 
     controllerUtils.verifyJWT,
 
-    // custom middleware to run category-specific validators
-    async (req, res, next) => {
-        const tireValidation = [
-            body("variants", "Variants must be an array with at least one item").isArray({ min: 1 }),
-            body("variants.*.size", "Each variant must have a valid size").isIn(["200/60", "180/60", "120/70"]),
-            body("variants.*.compound", "Each variant must have a valid compound").isIn(["SC1", "SC2", "SC3"]),
-            body("variants.*.price", "Price must be a number >= 0").isFloat({ min: 0 }),
-            body("variants.*.stock", "Stock must be an integer >= 0").isInt({ min: 0 }),
-        ];
-        const gearValidation = [
-            body("basePrice", "Base price must be a number >= 0").isFloat({ min: 0 }),
-
-            body("sizes", "Sizes must be an array with at least one valid size").optional().isArray({ min: 1 }),
-            body("sizes.*", "Invalid size").isIn(["S", "M", "L", "XL", "XXL", "Custom", "S/M", "L/XL"]),
-
-            body("colors", "Colors must be an array with at least one valid color").optional().isArray({ min: 1 }),
-            body("colors.*", "Invalid color").isIn(["Black", "White", "Red", "Blue", "Green", "Lime", "Custom"]),
-
-            body("addOnOptions").optional().isArray(),
-            body("addOnOptions.*.name", "Invalid add-on name").optional().isIn(["TPUCaps", "2-piece", "kangarooLeather", "airbagReady", "stingrayArmor", "gloveBundleDiscount"]),
-            body("addOnOptions.*.priceAdjustment", "Add-on price must be >= 0").isInt()
-        ];
-
-        // Only run if category is tire
-        if (req.body.category === "tire") {
-            await Promise.all(tireValidation.map(v => v.run(req)));
-        } else if (req.body.category === "gear") {
-            await Promise.all(gearValidation.map(v => v.run(req)));
-        }
-        next();
-    },
+    validateProductParams,
     controllerUtils.validateForm,
+
 
     asyncHandler(async (req, res) => {
         if (req.user.memberType !== "admin") return res.sendStatus(403);
@@ -62,7 +65,6 @@ exports.product_post = [
             product = new Gear({ name: req.body.name, basePrice: req.body.basePrice, sizes: req.body.sizes, colors: req.body.colors, addOnOptions: req.body.addOnOptions });
         }
         await product.save();
-        console.log('saved product')
         logger.info({ message: `Created ${req.body.category} product ${product.name}` });
         res.status(201).json({ id: product._id });
     })
@@ -97,37 +99,7 @@ exports.product_put = [
 
     controllerUtils.verifyJWT,
 
-    // custom middleware to run category-specific validators
-    async (req, res, next) => {
-        const tireValidation = [
-            body("variants", "Variants must be an array with at least one item").isArray({ min: 1 }),
-            body("variants.*.size", "Each variant must have a valid size").isIn(["200/60", "180/60", "120/70"]),
-            body("variants.*.compound", "Each variant must have a valid compound").isIn(["SC1", "SC2", "SC3"]),
-            body("variants.*.price", "Price must be a number >= 0").isFloat({ min: 0 }),
-            body("variants.*.stock", "Stock must be an integer >= 0").isInt({ min: 0 }),
-        ];
-        const gearValidation = [
-            body("basePrice", "Base price must be a number >= 0").isFloat({ min: 0 }),
-
-            body("sizes", "Sizes must be an array with at least one valid size").optional().isArray({ min: 1 }),
-            body("sizes.*", "Invalid size").isIn(["S", "M", "L", "XL", "XXL", "Custom", "S/M", "L/XL"]),
-
-            body("colors", "Colors must be an array with at least one valid color").optional().isArray({ min: 1 }),
-            body("colors.*", "Invalid color").isIn(["Black", "White", "Red", "Blue", "Green", "Lime", "Custom"]),
-
-            body("addOnOptions").optional().isArray(),
-            body("addOnOptions.*.name", "Invalid add-on name").optional().isIn(["TPUCaps", "2-piece", "kangarooLeather", "airbagReady", "stingrayArmor", "gloveBundleDiscount"]),
-            body("addOnOptions.*.priceAdjustment", "Add-on price must be >= 0").isInt()
-        ];
-
-        // Only run if category is tire
-        if (req.body.category === "tire") {
-            await Promise.all(tireValidation.map(v => v.run(req)));
-        } else if (req.body.category === "gear") {
-            await Promise.all(gearValidation.map(v => v.run(req)));
-        }
-        next();
-    },
+    validateProductParams,
     controllerUtils.validateForm,
     controllerUtils.validateProductID,
 
