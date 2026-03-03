@@ -11,7 +11,7 @@ const OrderSchema = new mongoose.Schema({
     color: String,        // for Gear
     compound: String,     // for Tire
     price: Number,        // final price for this variant at purchase
-    addOns: [{ name: String, price: Number }], // Used for suits
+    addOns: [{ name: String, price: Number, quantity: Number }], // Used for gear
     quantity: { type: Number, required: true, min: 1 },
 
     // Price snapshot
