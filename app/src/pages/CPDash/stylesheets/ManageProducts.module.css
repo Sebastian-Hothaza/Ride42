@@ -1,0 +1,185 @@
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+}
+
+.productEntry{
+    width: fit-content;
+    min-width: 300px;
+}
+
+
+
+.productHeading{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  
+    font-weight: bold;
+    margin: 1em 0em;
+}
+
+.buttonContainer{
+    display: flex;
+    gap: .5rem;
+}
+
+
+.variantsListing>div {
+    display: flex;
+    justify-content: space-between;
+    padding: .15em 0em;    
+}
+
+
+
+
+
+.editBtn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+
+    border: none;
+    background-color: black;
+    border-radius: 25%;
+    padding: 4px;
+    color: white;
+}
+
+.createButton {
+    composes: actionButton from global;
+    margin: auto;
+    background-color: var(--accent-color);
+}
+
+/* MODAL STYLING */
+.createVariant{
+    text-wrap: none;
+    display: flex;
+}
+
+#createProductForm {
+    display: flex;
+
+    font-size: 1rem;
+}
+
+#editTrackdayForm button,
+#editCostsForm button {
+    font-size: 1rem;
+}
+
+/* Label/inout pairings */
+#editTrackdayForm>div {
+    display: flex;
+}
+
+/* Form labels */
+#editTrackdayForm label {
+    min-width: 150px;
+    text-align: left;
+}
+
+/* Add COSTS FORM */
+#editCostsForm {
+    font-size: 1rem;
+    flex-direction: row;
+    align-items: center;
+    border-bottom: dashed 2px black;
+    padding-bottom: 1rem;
+}
+
+/* Label/inout pairings */
+#editCostsForm>div {
+    display: flex;
+    align-items: center;
+    gap: .25rem;
+}
+
+#editCostsForm input {
+    min-width: auto;
+    width: 120px;
+}
+
+#editCostsForm select {
+    width: auto;
+}
+
+#editCostsForm button {
+    min-width: auto;
+    padding: 3px 10px;
+    white-space: nowrap;
+}
+
+/* Additional costs lists */
+#additionalCostsList {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    width: 100%;
+}
+
+#additionalCostsList>div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#additionalCostsList button {
+    display: flex;
+    width: auto;
+    padding: 8px;
+    border-radius: 50%;
+    border: none;
+}
+
+
+
+
+
+
+
+@media (max-width: 750px) {
+    .content h1 {
+        text-align: center;
+        flex-direction: column;
+        align-items: center;
+        font-size: 1.5rem;
+    }
+
+    .content h1 select {
+        text-align: center;
+    }
+
+    .productEntry {
+        flex-direction: column;
+    }
+
+    #editTrackdayForm {
+        grid-template-columns: 1fr;
+    }
+
+    #editCostsForm {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    /* Label/inout pairings */
+    #editCostsForm>div {
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    #editCostsForm input {
+        width: 130px;
+    }
+
+    #editCostsForm select {
+        width: 138px;
+    }
+
+}
