@@ -138,8 +138,8 @@ const ControlPanel = ({ APIServer }) => {
                     {activeTab == 'manageTrackdays' && <ManageTrackdays APIServer={APIServer} allTrackdaysFULL={allTrackdaysFULL} allUsers={allUsers} fetchAPIData={fetchAPIData} />}
                     {activeTab == 'markPaid' && <MarkPaid APIServer={APIServer} fetchAPIData={fetchAPIData} allUsers={allUsers} allTrackdaysFULL={allTrackdaysFULL} />}
                     {activeTab == 'serverLogs' && <ServerLogs APIServer={APIServer} />}
-                    {activeTab == 'manageProducts' && <ManageProducts />}
-                    {activeTab == 'manageOrders' && <ManageOrders />}
+                    {activeTab == 'manageProducts' && <ManageProducts APIServer={APIServer} />}
+                    {activeTab == 'manageOrders' && <ManageOrders APIServer={APIServer} />}
 
 
 
