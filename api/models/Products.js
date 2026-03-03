@@ -35,7 +35,8 @@ const GearSchema = new mongoose.Schema({
   colors: { type: [String], enum: ["Black", "White", "Red", "Blue", "Green", "Lime", "Custom"], required: false, default: undefined },
   addOnOptions: [{
     name: { type: String, enum: ["TPUCaps", "2-piece", "kangarooLeather", "airbagReady", "stingrayArmor", "gloveBundleDiscount"] },
-    priceAdjustment: { type: Number, required: true }
+    priceAdjustment: { type: Number, required: true },
+    quantity: { type: Number, required: false, default: undefined } // HELITE cartridges
   }]
 });
 
