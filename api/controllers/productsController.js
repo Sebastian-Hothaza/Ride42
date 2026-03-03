@@ -61,7 +61,6 @@ exports.product_post = [
         if (req.body.category === "tire") {
             product = new Tire({ name: req.body.name, variants: req.body.variants });
         } else if (req.body.category === "gear") {
-            console.log('create gear')
             product = new Gear({ name: req.body.name, basePrice: req.body.basePrice, sizes: req.body.sizes, colors: req.body.colors, addOnOptions: req.body.addOnOptions });
         }
         await product.save();
