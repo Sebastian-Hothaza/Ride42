@@ -44,43 +44,32 @@ exports.order_post = [
                     v.size === item.variant.size &&
                     v.compound === item.variant.compound
                 );
+                if (!variantSnapshot) {
+                    const err = new Error(`Variant not found for product ${product.name}`);
+                    err.status = 400;
+                    throw err;
+                }
+
+                // Verify variant is in stock
+                if (variantSnapshot.stock < item.quantity) {
+                    const err = new Error(`Insufficient stock for product ${product.name}, variant ${JSON.stringify(item.variant)}`);
+                    err.status = 400;
+                    throw err;
+                }
             } else if (product.category === "gear") {
-                variantSnapshot = product.variants.find(v =>
-                    v.size === item.variant.size &&
-                    v.color === item.variant.color
-                );
+                // TODO
             }
-            if (!variantSnapshot) {
-                const err = new Error(`Variant not found for product ${product.name}`);
-                err.status = 400;
-                throw err;
-            }
-
-            // Verify variant is in stock
-            if (variantSnapshot.stock < item.quantity) {
-                const err = new Error(`Insufficient stock for product ${product.name}, variant ${JSON.stringify(item.variant)}`);
-                err.status = 400;
-                throw err;
-            }
-
-            // Add-on total
-            const addOnsTotal = (item.variant.addOns || []).reduce((sum, a) => sum + (a.price || 0), 0);
-
-            // Compute final price
-            const base = product.basePrice || 0;
-            const priceAdjustment = variantSnapshot.priceAdjustment || variantSnapshot.price || 0;
-
-            const finalPrice = base + priceAdjustment + addOnsTotal;
+      
 
             return {
                 product: product._id,
                 size: item.variant.size,
-                compound: item.variant.compound,
+                //addOns: "TODO",
                 quantity: item.quantity,
-                basePriceAtPurchase: base,
-                priceAdjustmentAtPurchase: priceAdjustment,
-                addOnsTotalPriceAtPurchase: addOnsTotal,
-                finalPriceAtPurchase: finalPrice
+                price: variantSnapshot.price,
+
+                //color: "TODO",
+                compound: item.variant.compound,
             };
         }));
 
@@ -89,8 +78,8 @@ exports.order_post = [
         const order = await Order.create({
             user: req.params.userID,
             items: itemsSnapshot,
-            deliveryDate: req.body.deliveryDate || null,
-            balanceDue: itemsSnapshot.reduce((sum, i) => sum + (i.finalPriceAtPurchase * i.quantity), 0)
+            balanceDue: itemsSnapshot.reduce((sum, i) => sum + (i.price * i.quantity), 0),
+            deliveryDate: req.body.deliveryDate || null
         });
 
         res.sendStatus(201);
