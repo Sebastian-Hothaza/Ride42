@@ -92,7 +92,7 @@ exports.order_getALL = [
 
 
     asyncHandler(async (req, res) => {
-        const orders = await Order.find()
+        const orders = await Order.find().populate("items.product", "category")
         res.json(orders);
 
     })
