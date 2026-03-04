@@ -8,7 +8,7 @@ const OrderSchema = new mongoose.Schema({
 
     // Snapshot of what the customer selected
     size: { type: String, required: true },         // for both Tire and Gear
-    addOns: [{ name: String, price: Number, quantity: Number }], // Used for gear
+    addOns: { type: [{ name: String, price: Number, quantity: Number, }], required: false, default: undefined }, // Used for gear
     quantity: { type: Number, required: true, min: 1 },
     price: { type: Number, required: true },
 
