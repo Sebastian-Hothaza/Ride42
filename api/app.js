@@ -74,14 +74,29 @@ app.use(function (req, res, next) {
 });
 
 // error handler
-app.use(function (err, req, res, next) {
-	// set locals, only providing error in development
-	res.locals.message = err.message;
-	res.locals.error = req.app.get('env') !== 'production' ? err : {};
+app.use((err, req, res, next) => {
+	const isProduction = req.app.get('env') === 'production';
+	const status = err.status || 500;
 
-	// render the error page
-	res.status(err.status || 500);
-	res.json({ msg: ['BAD REQUEST'] });
+	console.error(err); // Always log internally
+
+	if (!isProduction) {
+		return res.status(status).json({
+			message: err.message,
+			stack: err.stack
+		});
+	}
+
+	// Production response
+	if (status >= 400 && status < 500) {
+		return res.status(status).json({
+			message: err.message || 'Request failed'
+		});
+	}
+
+	return res.status(500).json({
+		message: 'Internal Server Error'
+	});
 });
 
 module.exports = app;
