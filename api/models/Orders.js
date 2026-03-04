@@ -7,15 +7,15 @@ const OrderSchema = new mongoose.Schema({
     product: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
 
     // Snapshot of what the customer selected
-    size: String,         // for both Tire and Gear
-    color: String,        // for Gear
-    compound: String,     // for Tire
-    price: Number,        // final price for this variant at purchase
+    size: { type: String, required: true },         // for both Tire and Gear
     addOns: [{ name: String, price: Number, quantity: Number }], // Used for gear
     quantity: { type: Number, required: true, min: 1 },
+    price: { type: Number, required: true },
 
-    // Price snapshot
-    finalPriceAtPurchase: { type: Number, required: true }
+    // Optional depending on product type
+    color: String,        // for Gear
+    compound: String,     // for Tire
+    
   }],
   balanceDue: { type: Number, required: true },
   paymentStatus: { type: String, enum: ["pending", "partial", "paid"], default: "pending" },
