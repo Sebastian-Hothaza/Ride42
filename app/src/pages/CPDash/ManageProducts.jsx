@@ -14,6 +14,7 @@ const ManageProducts = ({ APIServer }) => {
 
     const [allProducts, setAllProducts] = useState([]);
     const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
+    const [variants, setVariants] = useState([{ size: "", compound: "", price: "", stock: "" }]); // Used for both create and edit modals to track variant inputs
 
     async function fetchProducts() {
         try {
@@ -43,22 +44,9 @@ const ManageProducts = ({ APIServer }) => {
 
 
 
-    async function handleCreateProduct(e) {
+    async function handleCreateProduct(e, category) {
         e.preventDefault();
         setActiveModal({ type: 'loading', msg: 'Creating product' });
-
-        // Build variants array based on form data
-        let variants = [];
-        if (e.target.category.value === 'tire') {
-            variants.push({
-                size: e.target.tireSize.value,
-                compound: e.target.tireCompound.value,
-                price: e.target.tirePrice.value,
-                stock: e.target.tireStock.value
-            })
-        } else if (e.target.category.value === 'gear') {
-            // Handle gear variants when they are implemented
-        }
         try {
             const response = await fetch(APIServer + 'products', {
                 method: 'POST',
@@ -68,7 +56,7 @@ const ManageProducts = ({ APIServer }) => {
                 },
                 body: JSON.stringify({
                     name: e.target.name.value,
-                    category: e.target.category.value,
+                    category: category,
                     variants: variants,
                 })
             })
@@ -86,9 +74,34 @@ const ManageProducts = ({ APIServer }) => {
         }
     }
 
-    async function handleEditProduct(productID) {
-        console.log('editing product with id: ' + productID);
-        setActiveModal('')
+    async function handleEditProduct(e, productID) {
+        e.preventDefault();
+        setActiveModal({ type: 'loading', msg: 'Editing product' });
+        try {
+            const response = await fetch(APIServer + 'products/' + productID, {
+                method: 'PUT',
+                credentials: "include",
+                headers: {
+                    'Content-type': 'application/json; charset=UTF-8',
+                },
+                body: JSON.stringify({
+                    name: e.target.name.value,
+                    category: activeModal.product.category,
+                    variants: variants,
+                })
+            })
+            await fetchProducts();
+            if (response.ok) {
+                setActiveModal({ type: 'success', msg: 'Product edited' });
+                setTimeout(() => setActiveModal(''), 1500)
+            } else {
+                const data = await response.json();
+                setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
+            }
+        } catch (err) {
+            setActiveModal({ type: 'failure', msg: 'API Failure' })
+            console.log(err.message)
+        }
     }
 
     async function handleDeleteProduct(productID) {
@@ -112,19 +125,37 @@ const ManageProducts = ({ APIServer }) => {
         }
     }
 
+    const handleVariantChange = (index, field, value) => {
+        const updated = [...variants];
+        updated[index][field] = value;
+        setVariants(updated);
+    };
+
+    const addVariant = () => {
+        setVariants([
+            ...variants,
+            { size: "", compound: "", price: "", stock: "" }
+        ]);
+    };
+
+    const removeVariant = (index) => {
+        const updated = variants.filter((_, i) => i !== index);
+        setVariants(updated);
+    };
+
     return (
         <>
             <ScrollToTop />
             <div className={styles.content}>
                 <h1>Manage Products</h1>
-                <h2>Tires</h2>
+                <h2>Tires <button className={styles.editBtn} style={{ color: '#00ff00' }} onClick={() => setActiveModal({ type: 'createProduct_Tire' })}><span className='material-symbols-outlined'>add_circle</span></button> </h2>
                 <div>
                     {allProducts.filter(product => product.category === "tire").map(product => (
                         <div key={product._id} className={styles.productEntry}>
                             <div className={styles.productHeading}>
                                 {product.name}
                                 <div className={styles.buttonContainer}>
-                                    <button className={styles.editBtn} style={{ color: '#0099ff' }} onClick={() => setActiveModal({ type: 'editProduct', product: product })}><span className='material-symbols-outlined'>edit</span></button>
+                                    <button className={styles.editBtn} style={{ color: '#0099ff' }} onClick={() => { setActiveModal({ type: 'editProduct_Tire', product: product }); setVariants(product.variants) }}><span className='material-symbols-outlined'>edit</span></button>
                                     <button className={styles.editBtn} style={{ backgroundColor: '#bb0000' }} onClick={() => setActiveModal({ type: 'deleteProduct', product: product })}><span className='material-symbols-outlined'>delete</span></button>
                                 </div>
                             </div>
@@ -145,7 +176,7 @@ const ManageProducts = ({ APIServer }) => {
                 <div>
                     Under development...
                 </div>
-                <button className={styles.createButton} onClick={() => setActiveModal({ type: 'createProduct' })}>Create Product</button>
+
             </div>
 
             <Loading open={activeModal.type === 'loading'}>
@@ -165,47 +196,112 @@ const ManageProducts = ({ APIServer }) => {
                 <button className='actionButton' onClick={() => setActiveModal('')}>Close</button>
             </Modal>
 
-            <Modal open={activeModal.type === 'createProduct'}>
+            <Modal open={activeModal.type === 'createProduct_Tire'}>
                 <>
-                    <h2>Create New Product</h2>
-                    <form id={styles.createProductForm} onSubmit={(e) => handleCreateProduct(e)}>
+                    <h2>Create New Tire Product</h2>
+                    <form id={styles.createProductForm} onSubmit={(e) => handleCreateProduct(e, 'tire')}>
                         <div>
                             <label htmlFor="name">Name</label>
                             <input type='text' id="name" name="name" required></input>
-                            <label htmlFor="category">Category</label>
-                            <select id="category" name="category" required>
-                                <option value="">Select a category</option>
-                                <option value="tire">Tire</option>
-                                <option value="gear">Gear</option>
-                            </select>
                         </div>
-
-
 
 
 
                         <h4>Variants</h4>
 
-                        <div className={styles.createVariant}>
-                            <label htmlFor="tireSize">Tire Size</label>
-                            <select id="tireSize" name="tireSize" required>
-                                <option value="">Select a size</option>
-                                <option value="200/60">200/60</option>
-                                <option value="180/60">180/60</option>
-                            </select>
-                            <label htmlFor="tireCompound">Tire Compound</label>
-                            <select id="tireCompound" name="tireCompound" required>
-                                <option value="">Select a compound</option>
-                                <option value="SC1">SC1</option>
-                                <option value="SC2">SC2</option>
-                                <option value="SC3">SC3</option>
-                            </select>
-                            <label htmlFor="tirePrice">Tire Price</label>
-                            <input type='number' id="tirePrice" name="tirePrice" required></input>
-                            <label htmlFor="tireStock">Tire Stock</label>
-                            <input type='number' id="tireStock" name="tireStock" required></input>
+                        {variants.map((variant, index) => (
+                            <div key={index} className={styles.createVariant}>
+                                <div>
+                                    <label>Size</label>
+                                    <select value={variant.size} onChange={(e) => handleVariantChange(index, "size", e.target.value)} required>
+                                        <option value=""></option>
+                                        <option value="200/60">200/60</option>
+                                        <option value="180/60">180/60</option>
+                                    </select>
+                                </div>
+
+
+                                <div>
+                                    <label>Compound</label>
+                                    <select value={variant.compound} onChange={(e) => handleVariantChange(index, "compound", e.target.value)} required>
+                                        <option value=""></option>
+                                        <option value="SC1">SC1</option>
+                                        <option value="SC2">SC2</option>
+                                        <option value="SC3">SC3</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label>Price</label>
+                                    <input type="number" value={variant.price} onChange={(e) => handleVariantChange(index, "price", e.target.value)} required />
+                                </div>
+                                <div>
+                                    <label>Stock</label>
+                                    <input type="number" value={variant.stock} onChange={(e) => handleVariantChange(index, "stock", e.target.value)} required />
+                                </div>
+                                {variants.length > 1 && (<button className={styles.editBtn} style={{ backgroundColor: '#bb0000' }} onClick={() => removeVariant(index)}><span className='material-symbols-outlined'>delete</span></button>)}
+                            </div>
+                        ))}
+
+                        <button type="button" className='actionButton' onClick={addVariant}>
+                            + Add Variant
+                        </button>
+
+
+                        <button className={`actionButton confirmBtn`} type="submit">Confirm</button>
+                        <button type="button" className='actionButton' onClick={() => { setActiveModal(''), setVariants([]) }}>Cancel</button>
+                    </form>
+                </>
+            </Modal>
+
+            <Modal open={activeModal.type === 'editProduct_Tire'}>
+                <>
+                    <h2>Edit Tire Product</h2>
+                    <form id={styles.createProductForm} onSubmit={(e) => handleEditProduct(e, activeModal.product._id)}>
+                        <div>
+                            <label htmlFor="name">Name</label>
+                            <input type='text' id="name" name="name" defaultValue={activeModal.product?.name} required></input>
                         </div>
 
+
+
+                        <h4>Variants</h4>
+
+                        {variants.map((variant, index) => (
+                            <div key={index} className={styles.createVariant}>
+                                <div>
+                                    <label>Size</label>
+                                    <select value={variant.size} onChange={(e) => handleVariantChange(index, "size", e.target.value)} required>
+                                        <option value=""></option>
+                                        <option value="200/60">200/60</option>
+                                        <option value="180/60">180/60</option>
+                                    </select>
+                                </div>
+
+
+                                <div>
+                                    <label>Compound</label>
+                                    <select value={variant.compound} onChange={(e) => handleVariantChange(index, "compound", e.target.value)} required>
+                                        <option value=""></option>
+                                        <option value="SC1">SC1</option>
+                                        <option value="SC2">SC2</option>
+                                        <option value="SC3">SC3</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label>Price</label>
+                                    <input type="number" value={variant.price} onChange={(e) => handleVariantChange(index, "price", e.target.value)} required />
+                                </div>
+                                <div>
+                                    <label>Stock</label>
+                                    <input type="number" value={variant.stock} onChange={(e) => handleVariantChange(index, "stock", e.target.value)} required />
+                                </div>
+                                {variants.length > 1 && (<button className={styles.editBtn} style={{ backgroundColor: '#bb0000' }} onClick={() => removeVariant(index)}><span className='material-symbols-outlined'>delete</span></button>)}
+                            </div>
+                        ))}
+
+                        <button type="button" className='actionButton' onClick={addVariant}>
+                            + Add Variant
+                        </button>
 
 
                         <button className={`actionButton confirmBtn`} type="submit">Confirm</button>
@@ -213,6 +309,8 @@ const ManageProducts = ({ APIServer }) => {
                     </form>
                 </>
             </Modal>
+
+
 
             <Modal open={activeModal.type === 'deleteProduct'}>
                 <h3>Are you sure you want to delete this product?</h3>
