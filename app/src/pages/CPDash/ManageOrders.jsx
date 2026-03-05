@@ -87,11 +87,13 @@ const ManageOrders = ({ APIServer }) => {
 
         const body = {
             orderStatus: e.target.orderStatus.value,
-            deliveryDate: e.target.deliveryDate.value,
         };
 
         // Attached paymentStatus only if its changed
         if (e.target.paymentStatus.value) body.paymentStatus = e.target.paymentStatus.value;
+
+        // Attach deliveryDate only if it exists (for orders that are local pickup, we don't want to set a delivery date)
+        if (e.target.deliveryDate) body.deliveryDate = e.target.deliveryDate.value;
 
 
         try {
@@ -254,10 +256,12 @@ const ManageOrders = ({ APIServer }) => {
                             </select>
                         </div>
 
-                        <div>
+                        {activeModal.order?.deliveryDate && <div>
                             <label htmlFor="deliveryDate">Delivery Date</label>
                             <input type="date" id="deliveryDate" name="deliveryDate" defaultValue={activeModal.order?.deliveryDate.slice(0, 10)} />
-                        </div>
+                        </div>}
+
+
 
 
 
