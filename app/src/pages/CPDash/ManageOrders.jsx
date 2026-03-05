@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import ScrollToTop from "../../components/ScrollToTop";
 
-import styles from './stylesheets/ManageProducts.module.css'
+import styles from './stylesheets/ManageOrders.module.css'
 import modalStyles from '../../components/stylesheets/Modal.module.css'
 
 import Modal from "../../components/Modal";
@@ -10,10 +10,11 @@ import Loading from '../../components/Loading';
 import checkmark from './../../assets/checkmark.png'
 import errormark from './../../assets/error.png'
 
-const ManageProducts = ({ APIServer }) => {
+const ManageOrders = ({ APIServer }) => {
 
     const [allOrders, setallOrders] = useState([]);
     const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
+    const [showCompleted, setHideCompleted] = useState(false); // Track if completed orders should be hidden
 
 
     async function fetchOrders() {
@@ -28,7 +29,13 @@ const ManageProducts = ({ APIServer }) => {
             })
             if (response.ok) {
                 const data = await response.json();
-                setallOrders(data);
+                // Sort orders by delivery date. Those without dates will be at end
+                const sortedOrders = data.sort((a, b) => {
+                    if (!a.deliveryDate) return 1;   // a goes after b
+                    if (!b.deliveryDate) return -1;  // b goes after a
+                    return new Date(a.deliveryDate) - new Date(b.deliveryDate);
+                });
+                setallOrders(sortedOrders);
             } else {
                 const data = await response.json();
                 console.error('failed to fetch products')
@@ -77,6 +84,16 @@ const ManageProducts = ({ APIServer }) => {
     async function handleEditOrder(e, orderID) {
         e.preventDefault();
         setActiveModal({ type: 'loading', msg: 'Editing order' });
+
+        const body = {
+            orderStatus: e.target.orderStatus.value,
+            deliveryDate: e.target.deliveryDate.value,
+        };
+
+        // Attached paymentStatus only if its changed
+        if (e.target.paymentStatus.value) body.paymentStatus = e.target.paymentStatus.value;
+
+
         try {
             const response = await fetch(APIServer + 'orders/' + orderID, {
                 method: 'PUT',
@@ -84,11 +101,7 @@ const ManageProducts = ({ APIServer }) => {
                 headers: {
                     'Content-type': 'application/json; charset=UTF-8',
                 },
-                body: JSON.stringify({
-                    orderStatus: e.target.orderStatus.value,
-                    paymentStatus: e.target.paymentStatus.value,
-                    deliveryDate: e.target.deliveryDate.value,
-                })
+                body: JSON.stringify(body),
             })
             await fetchOrders();
             if (response.ok) {
@@ -125,32 +138,59 @@ const ManageProducts = ({ APIServer }) => {
         }
     }
 
-
-    console.log(allOrders)
-    console.log(allOrders[0]?.items[0]?.product.category)
-
     return (
         <>
             <ScrollToTop />
             <div className={styles.content}>
                 <h1>Manage Orders</h1>
-                <h2>Tires <button className={styles.editBtn} style={{ color: '#00ff00' }} onClick={() => setActiveModal({ type: 'createOrder_Tire' })}><span className='material-symbols-outlined'>add_circle</span></button> </h2>
-                <div>
-                    {allOrders.filter((order) => order.items[0].product.category === 'tire').map((order) => (
-                        <div key={order._id} className={styles.productCard}>
-                            <div className={styles.productInfo}>
-                                <p><b>Order ID:</b> {order._id}</p>
-                                <p><b>User ID:</b> {order.user}</p>
-                                <p><b>Order Status:</b> {order.orderStatus}</p>
-                                <p><b>Payment Status:</b> {order.paymentStatus}</p>
-                                <p><b>Delivery Date:</b> {order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString() : 'N/A'}</p>
+                <h2>Tire Orders <button className={styles.editBtn} style={{ color: '#00ff00' }} onClick={() => alert('NOT IMPLEMENTED')}><span className='material-symbols-outlined'>add_circle</span></button> </h2>
+                <div className={styles.filterControls}>
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={showCompleted}
+                            onChange={(e) => setHideCompleted(e.target.checked)}
+                        />
+                        Show Completed
+                    </label>
+                </div>
+                <div className={styles.orderGrid}>
+
+                    <div className={styles.orderHeader}>
+                        <div><b>Name</b></div>
+                        <div><b>Order Date</b></div>
+                        <div><b>Order Status</b></div>
+                        <div><b>Due <em>(Status)</em></b></div>
+                        <div><b>Delivery Date</b></div>
+                    </div>
+
+                    {allOrders
+                        .filter((order) => order.items[0].product.category === 'tire')
+                        .filter((order) => !showCompleted ? order.orderStatus !== 'complete' : true)
+                        .map((order, idx) => (
+
+                            <div key={order._id} className={styles.orderRow}>
+                                <div>{order.user.firstName} {order.user.lastName}</div>
+                                <div>{new Date(order.orderDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
+                                <div>{order.orderStatus}</div>
+                                <div>${order.balanceDue} <em>({order.paymentStatus})</em></div>
+                                <div>{order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : 'Local Pickup'}</div>
+
+                                <div className={styles.orderItems}>
+                                    {order.items.map((item, index) => (
+                                        <div key={index}>
+                                            {item.quantity}x {item.size}-{item.compound}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {order.orderStatus !== 'complete' &&
+                                    <div className={styles.productActions}>
+                                        <button className={styles.editBtn} style={{ color: '#0099ff' }} onClick={() => setActiveModal({ type: 'editOrder', order })}><span className="material-symbols-outlined">edit</span></button>
+                                        <button className={styles.editBtn} style={{ backgroundColor: '#bb0000' }} onClick={() => setActiveModal({ type: 'deleteOrder', order })}><span className='material-symbols-outlined'>delete</span></button>
+                                    </div>}
                             </div>
-                            <div className={styles.productActions}>
-                                <button className={styles.editBtn} onClick={() => setActiveModal({ type: 'editOrder', order })}><span className="material-symbols-outlined">edit</span></button>
-                                <button className={styles.deleteBtn} onClick={() => setActiveModal({ type: 'deleteOrder', order })}><span className="material-symbols-outlined">delete</span></button>
-                            </div>
-                        </div>
-                    ))}
+                        ))}
                 </div>
                 <h2>Gear</h2>
                 <div>
@@ -207,7 +247,8 @@ const ManageProducts = ({ APIServer }) => {
 
                         <div>
                             <label htmlFor="paymentStatus">Payment Status</label>
-                            <select id="paymentStatus" name="paymentStatus" defaultValue={activeModal.order?.paymentStatus} required>
+                            <select id="paymentStatus" name="paymentStatus" defaultValue={activeModal.order?.paymentStatus}>
+                                <option value="">Pending</option>
                                 <option value="partial">Partial</option>
                                 <option value="paid">Paid</option>
                             </select>
@@ -215,7 +256,7 @@ const ManageProducts = ({ APIServer }) => {
 
                         <div>
                             <label htmlFor="deliveryDate">Delivery Date</label>
-                            <input type="date" id="deliveryDate" name="deliveryDate" defaultValue={activeModal.order?.deliveryDate} />
+                            <input type="date" id="deliveryDate" name="deliveryDate" defaultValue={activeModal.order?.deliveryDate.slice(0, 10)} />
                         </div>
 
 
@@ -242,4 +283,4 @@ const ManageProducts = ({ APIServer }) => {
     )
 }
 
-export default ManageProducts;
+export default ManageOrders;
