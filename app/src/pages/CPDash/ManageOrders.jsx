@@ -225,7 +225,7 @@ const ManageOrders = ({ APIServer }) => {
                             <input type='text' id="uID" name="uID" required></input>
                         </div>
                         <button className={`actionButton confirmBtn`} type="submit">Confirm</button>
-                        <button type="button" className='actionButton' onClick={() => { setActiveModal(''), setVariants([]) }}>Cancel</button>
+                        <button type="button" className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
                     </form>
                 </>
             </Modal>
