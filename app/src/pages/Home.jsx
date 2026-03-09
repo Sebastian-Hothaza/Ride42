@@ -167,7 +167,7 @@ const Home = () => {
 					{hoursAway} hour{hoursAway > 1 ? "s" : ""}
 				</>
 			)}
-			{hoursAway === 0 && (
+			{hoursAway === 0 && daysAway < 0 && (
 				<>
 					A few minutes! Get here quick!
 				</>
