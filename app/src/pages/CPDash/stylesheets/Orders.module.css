@@ -82,16 +82,57 @@ h2{
 }
 
 
+.orderGrid_Mobile{
+    display: none;
+}
+
 
 @media (max-width: 750px) {
     .content h1 {
         text-align: center;
         flex-direction: column;
         align-items: center;
-        font-size: 1.5rem;
+        /* font-size: 1.5rem; */
+    }
+
+    .orderGrid{
+        display: none;
+    }
+
+    .orderGrid_Mobile{
+        display: flex;
+        flex-direction: column;
+    
+        
+    }
+
+    .orderGrid_Mobile>div{
+        padding: .5rem 0;
+        border-bottom: dashed 1px black;
+    }
+
+    .orderGrid_Mobile .orderEntry{
+        display: flex;
+        flex-direction: column;
+        gap: .25rem;
     }
 
 
+
+    .orderGrid_Mobile .pairing{
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .orderGrid_Mobile .pairing>:nth-child(1){
+        font-weight: bold;
+    }
+
+    .orderGrid_Mobile button{
+        margin: auto;
+    }
+
+    
 
 
 

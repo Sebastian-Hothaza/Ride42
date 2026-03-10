@@ -125,6 +125,48 @@ const Orders = ({ APIServer }) => {
                                 </Fragment>
                             ))}
                         </div>
+
+                        <div className={styles.orderGrid_Mobile}>
+                            {allOrders.filter((order) => order.items[0].product.category === 'tire').filter((order) => hideCompleted ? order.orderStatus !== 'complete' : true).map((order, idx) => (
+                                <div className={styles.orderEntry} key={idx}>
+
+
+                                    {order.items.map((item, index) => (
+                                        <div key={index}>
+                                            {item.quantity}x {item.product.name} ({item.size}-{item.compound})
+                                        </div>
+                                    ))}
+
+                                    <br></br>
+
+                                    <div className={styles.pairing}>
+                                        <div>Order Date:</div>
+                                        <div>{new Date(order.orderDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
+                                    </div>
+
+                                    <div className={styles.pairing}>
+                                        <div>Order Status:</div>
+                                        <div>{order.orderStatus}</div>
+                                    </div>
+
+                                    <div className={styles.pairing}>
+                                        <div>Order Balace:</div>
+                                        <div>${order.balanceDue} <em>({order.paymentStatus})</em></div>
+                                    </div>
+
+                                    <div className={styles.pairing}>
+                                        <div>Delivery Date:</div>
+                                        {order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : 'Local Pickup'}
+                                    </div>
+
+
+
+                                    {order.orderStatus !== 'complete' &&
+                                        <button className={styles.editBtn} style={{ backgroundColor: '#bb0000' }} onClick={() => setActiveModal({ type: 'deleteOrder', order })}><span className='material-symbols-outlined'>delete</span></button>
+                                    }
+                                </div>
+                            ))}
+                        </div>
                     </>
                     :
                     <div>No orders placed</div>
