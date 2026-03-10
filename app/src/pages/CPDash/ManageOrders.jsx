@@ -14,12 +14,12 @@ const ManageOrders = ({ APIServer }) => {
 
     const [allOrders, setallOrders] = useState([]);
     const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
-    const [showCompleted, setHideCompleted] = useState(false); // Track if completed orders should be hidden
+    const [showCompleted, setShowCompleted] = useState(false); // Track if completed orders should be hidden
 
 
     async function fetchOrders() {
         try {
-            const response = await fetch(APIServer + 'orders', {
+            const response = await fetch(APIServer + 'orders?getAll=true', {
                 method: 'GET',
                 credentials: "include",
                 headers: {
@@ -151,7 +151,7 @@ const ManageOrders = ({ APIServer }) => {
                         <input
                             type="checkbox"
                             checked={showCompleted}
-                            onChange={(e) => setHideCompleted(e.target.checked)}
+                            onChange={(e) => setShowCompleted(e.target.checked)}
                         />
                         Show Completed
                     </label>
