@@ -8,6 +8,7 @@ import Loading from "../components/Loading";
 import Trackdays from './CPDash/Trackdays'
 import Profile from './CPDash/Profile'
 import Garage from './CPDash/Garage'
+import Orders from "./CPDash/Orders";
 
 import StaffTools from './CPDash/StaffTools'
 import GateRegister from './CPDash/GateRegister'
@@ -111,6 +112,7 @@ const ControlPanel = ({ APIServer }) => {
                         <button className={activeTab == 'profile' ? styles.selected : undefined} onClick={() => setActiveTab('profile')}>My Profile</button>
                         <button className={activeTab == 'trackdays' ? styles.selected : undefined} onClick={() => setActiveTab('trackdays')}>My Trackdays</button>
                         <button className={activeTab == 'garage' ? styles.selected : undefined} onClick={() => setActiveTab('garage')}>My Garage</button>
+                        <button className={activeTab == 'orders' ? styles.selected : undefined} onClick={() => setActiveTab('orders')}>My Orders</button>
                         {(loggedInUser.memberType == 'staff' || loggedInUser.memberType == 'admin' || loggedInUser.memberType == 'coach') &&
                             <button className={activeTab == 'staffTools' ? styles.selected : undefined} onClick={() => setActiveTab('staffTools')}>Staff Tools</button>
                         }
@@ -124,6 +126,7 @@ const ControlPanel = ({ APIServer }) => {
                     {activeTab == 'profile' && <Profile APIServer={APIServer} userInfo={userInfo} fetchAPIData={fetchAPIData} />}
                     {activeTab == 'trackdays' && <Trackdays APIServer={APIServer} userInfo={userInfo} allTrackdays={allTrackdays} userTrackdays={userTrackdays} fetchAPIData={fetchAPIData} setActiveTab={setActiveTab} />}
                     {activeTab == 'garage' && <Garage APIServer={APIServer} userInfo={userInfo} allTrackdays={allTrackdays} fetchAPIData={fetchAPIData} setActiveTab={setActiveTab} />}
+                    {activeTab == 'orders' && <Orders APIServer={APIServer} />}
 
                     {/* STAFF */}
                     {activeTab == 'staffTools' && <StaffTools setActiveTab={setActiveTab} memberType={loggedInUser.memberType} APIServer={APIServer} />}
@@ -151,6 +154,7 @@ const ControlPanel = ({ APIServer }) => {
                     <button className={activeTab == 'trackdays' ? styles.selected : undefined} onClick={() => setActiveTab('trackdays')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined ${activeTab == 'trackdays' ? styles.selected : undefined}`}> calendar_month </span></button>
                     {(loggedInUser.memberType == 'staff' || loggedInUser.memberType == 'admin' || loggedInUser.memberType == 'coach') && <button className={activeTab == 'staffTools' ? styles.selected : undefined} onClick={() => setActiveTab('staffTools')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined ${activeTab == 'staffTools' ? styles.selected : undefined}`}> shield_person </span></button>}
                     <button className={activeTab == 'garage' ? styles.selected : undefined} onClick={() => setActiveTab('garage')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined ${activeTab == 'garage' ? styles.selected : undefined}`}> garage_home </span></button>
+                    <button className={activeTab == 'orders' ? styles.selected : undefined} onClick={() => setActiveTab('orders')}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined ${activeTab == 'orders' ? styles.selected : undefined}`}> shopping_cart </span></button>
                     <button onClick={() => setActiveModal({ type: 'logoutConfirm' })}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined`}> logout </span></button>
                 </div>
             </div>
