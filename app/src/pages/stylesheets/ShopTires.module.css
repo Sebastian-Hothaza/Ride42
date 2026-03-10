@@ -1,0 +1,7 @@
+.content {
+    composes: content from global;
+}
+
+.bookBtn{
+    composes: actionButton from global;
+}
