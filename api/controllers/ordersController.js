@@ -59,7 +59,7 @@ exports.order_post = [
             } else if (product.category === "gear") {
                 // TODO
             }
-      
+
 
             return {
                 product: product._id,
@@ -86,15 +86,14 @@ exports.order_post = [
     })
 ];
 
-
+// Returns all orders if getALL=true and user is admin, otherwise returns orders for the logged in user. Requires JWT.
 exports.order_getALL = [
     controllerUtils.verifyJWT,
-
-
     asyncHandler(async (req, res) => {
-        const orders = await Order.find().populate("items.product", "category").populate("user", "firstName lastName");
+        if (req.query.getAll === 'true' && req.user.memberType !== "admin") return res.sendStatus(403);
+        const orders = req.query.getAll === 'true' ? await Order.find().populate("items.product", "category").populate("user", "firstName lastName") :
+            (await Order.find().populate("items.product", "name category").populate("user", "firstName lastName")).filter(order => order.user._id.toString() === req.user.id);
         res.json(orders);
-
     })
 ]
 
@@ -104,8 +103,7 @@ exports.order_get = [
     controllerUtils.verifyJWT,
 
     asyncHandler(async (req, res) => {
-        const { orderID } = req.params;
-        const order = await Order.findById(orderID)
+        const order = await Order.findById(req.params.orderID)
             .populate("user", "name email")
             .populate("items.product", "name category");
         res.json(order);
@@ -113,6 +111,24 @@ exports.order_get = [
 ]
 
 // Update an order. The following fields can be updated: orderStatus, paymentStatus, deliveryDate. Requires JWT with admin.
+
+/*
+TODO: Revise to match this formatting: 
+const userAllowed = ["deliveryDate"];
+const adminAllowed = ["deliveryDate", "paymentStatus", "orderStatus"];
+
+const allowedFields = req.user.memberType === "admin"
+  ? adminAllowed
+  : userAllowed;
+
+const updates = Object.fromEntries(
+  Object.entries(req.body).filter(([k]) => allowedFields.includes(k))
+);
+
+await Order.findByIdAndUpdate(req.params.id, { $set: updates });
+
+*/
+
 exports.order_put = [
 
     body("orderStatus", "Order status must be one of: pending, complete, pending design, pending measurements, pending approval").optional()
@@ -179,8 +195,10 @@ exports.order_delete = [
     controllerUtils.validateOrderID,
     controllerUtils.verifyJWT,
     asyncHandler(async (req, res) => {
-        if (req.user.memberType !== "admin") return res.sendStatus(403);
-        const order = await Order.findById(req.params.orderID);
+        const order = await Order.findById(req.params.orderID).populate("user", "id");
+
+        if (req.user.memberType !== "admin" && req.user.id !== order.user.id) return res.sendStatus(403);
+
         if (order.paymentStatus === "paid") {
             // If order was paid, increase stock back
             for (const item of order.items) {
