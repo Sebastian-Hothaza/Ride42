@@ -19,7 +19,8 @@ const Navbar = () => {
 					<NavLink to="/info">Trackday Info</NavLink>
 					<NavLink to="/rules">Rules</NavLink>
 					<NavLink to="/faq">FAQ</NavLink>
-					<NavLink to="/shop">Shop</NavLink>
+					<NavLink to="/shoptires">Shop Tires</NavLink>
+					<NavLink to="https://docs.google.com/forms/d/e/1FAIpQLScGL_Dlr5OdkSkfqasaE85daJwk4oNZ_lyWVmWqHjWWEElHiQ/viewform?usp=sf_link" target="*">Shop Gear</NavLink>
 				</ul>
 				<div className={styles.navbarDashboard}>
 					<NavLink to="/dashboard"><img src={helmet} id={styles.helmetImg}></img></NavLink>
