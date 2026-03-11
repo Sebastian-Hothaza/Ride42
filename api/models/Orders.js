@@ -15,6 +15,7 @@ const OrderSchema = new mongoose.Schema({
     // Optional depending on product type
     color: String,        // for Gear
     compound: String,     // for Tire
+    installRequired: Boolean, // for Tire
     
   }],
   balanceDue: { type: Number, required: true },
