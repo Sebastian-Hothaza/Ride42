@@ -158,40 +158,43 @@ const ManageOrders = ({ APIServer }) => {
                 </div>
                 <div className={styles.orderGrid}>
 
-                    <div className={styles.orderHeader}>
-                        <div><b>Name</b></div>
-                        <div><b>Order Date</b></div>
-                        <div><b>Order Status</b></div>
-                        <div><b>Due <em>(Status)</em></b></div>
-                        <div><b>Delivery Date</b></div>
-                    </div>
+
+                    <div><b>Name</b></div>
+                    <div><b>Products (* requires install)</b></div>
+                    <div><b>Order Date</b></div>
+                    <div><b>Order Status</b></div>
+                    <div><b>Due <em>(Status)</em></b></div>
+                    <div><b>Delivery Date</b></div>
+
 
                     {allOrders
                         .filter((order) => order.items[0].product.category === 'tire')
                         .filter((order) => !showCompleted ? order.orderStatus !== 'complete' : true)
                         .map((order, idx) => (
-
-                            <div key={order._id} className={styles.orderRow}>
+                            <Fragment key={idx}>
                                 <div>{order.user.firstName} {order.user.lastName}</div>
+                                <div>
+                                    <div className={styles.orderItems}>
+                                        {order.items.map((item, index) => (
+                                            <div key={index}>
+                                                {item.quantity}x {item.product.name} {item.size}-{item.compound}{item.installRequired && '(*)'}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                                 <div>{new Date(order.orderDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
                                 <div>{order.orderStatus}</div>
                                 <div>${order.balanceDue} <em>({order.paymentStatus})</em></div>
-                                <div>{order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : 'Local Pickup'}</div>
-
-                                <div className={styles.orderItems}>
-                                    {order.items.map((item, index) => (
-                                        <div key={index}>
-                                            {item.quantity}x {item.size}-{item.compound}
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {order.orderStatus !== 'complete' &&
+                                <div>{order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : 'Local Pickup'}{order.orderStatus !== 'complete' &&
                                     <div className={styles.productActions}>
                                         <button className={styles.editBtn} style={{ color: '#0099ff' }} onClick={() => setActiveModal({ type: 'editOrder', order })}><span className="material-symbols-outlined">edit</span></button>
                                         <button className={styles.editBtn} style={{ backgroundColor: '#bb0000' }} onClick={() => setActiveModal({ type: 'deleteOrder', order })}><span className='material-symbols-outlined'>delete</span></button>
-                                    </div>}
-                            </div>
+                                    </div>}</div>
+
+
+
+
+                            </Fragment>
                         ))}
                 </div>
                 <h2>Gear</h2>

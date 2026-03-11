@@ -27,41 +27,38 @@ h2{
 }
 
 .orderGrid{
-    display: flex;
-    flex-direction: column;
-    border: solid 3px black; 
-}
-
-
-
-
-/* header row and order row setup */
-.orderHeader, .orderRow {
     display: grid;
-    grid-template-columns: 1fr .5fr .5fr .5fr .5fr;
-    align-items: center;
-    padding: .5rem;
+    grid-template-columns: repeat(6, auto);
+
+    border: solid 3px black; 
     
 }
 
-.orderHeader {
+.orderGrid > * {
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.orderGrid .orderItems{
+    display: block;
+}
+
+.orderGrid > :nth-child(-n + 6) {
     font-weight: bold;
     border-bottom: solid 3px black;
     background-color: var(--accent-color);
     color: white;
 }
 
-/* stripe alternating rows */
-.orderRow:nth-of-type(even) {
-    background-color: var(--stripe-color, lightgray);
-}
-
-
-
-.orderItems{
-    display: flex;
-    gap: 1em;
-    grid-column: 1 / -2;
+.orderGrid > :nth-child(12n + 7),
+.orderGrid > :nth-child(12n + 8),
+.orderGrid > :nth-child(12n + 9),
+.orderGrid > :nth-child(12n + 10),
+.orderGrid > :nth-child(12n + 11),
+.orderGrid > :nth-child(12n + 12) {
+  background: lightgray;
 }
 
 .productActions {
