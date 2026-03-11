@@ -60,7 +60,6 @@ exports.order_post = [
                 // TODO
             }
 
-
             return {
                 product: product._id,
                 size: item.variant.size,
@@ -70,7 +69,7 @@ exports.order_post = [
 
                 //color: "TODO",
                 compound: item.variant.compound,
-                installRequired: req.body.installRequired
+                installRequired: item.installRequired
             };
         }));
 
