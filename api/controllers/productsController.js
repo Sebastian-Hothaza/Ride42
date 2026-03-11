@@ -75,6 +75,7 @@ exports.product_get = [
     controllerUtils.validateProductID,
 
     asyncHandler(async (req, res, next) => {
+
         let product = await Product.findById(req.params.productID);
         return res.status(200).json(product);
     })
@@ -90,7 +91,7 @@ exports.product_getALL = [
     }),
 ]
 
-// Create a product. Requires JWT with admin
+// Edit a product. Requires JWT with admin
 exports.product_put = [
     // Common validations
     body("name", "Name must be between 2 and 50 characters").trim().isLength({ min: 2, max: 50 }),
@@ -113,7 +114,6 @@ exports.product_put = [
 
         let updated;
         if (req.body.category === "tire") {
-            console.log('update tire')
             updated = await Tire.findByIdAndUpdate(
                 req.params.productID,
                 { name: req.body.name, variants: req.body.variants },
@@ -126,7 +126,7 @@ exports.product_put = [
                 { new: true, runValidators: true }
             );
         }
-
+        logger.info({ message: `Updated product ${req.body.name}` });
         res.json(updated);
     })
 ];
