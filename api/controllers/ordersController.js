@@ -92,7 +92,7 @@ exports.order_getALL = [
     controllerUtils.verifyJWT,
     asyncHandler(async (req, res) => {
         if (req.query.getAll === 'true' && req.user.memberType !== "admin") return res.sendStatus(403);
-        const orders = req.query.getAll === 'true' ? await Order.find().populate("items.product", "category").populate("user", "firstName lastName") :
+        const orders = req.query.getAll === 'true' ? await Order.find().populate("items.product", "category name").populate("user", "firstName lastName") :
             (await Order.find().populate("items.product", "name category").populate("user", "firstName lastName")).filter(order => order.user._id.toString() === req.user.id);
         res.json(orders);
     })
