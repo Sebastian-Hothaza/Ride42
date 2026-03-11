@@ -51,11 +51,11 @@ exports.order_post = [
                 }
 
                 // Verify variant is in stock
-                if (variantSnapshot.stock < item.quantity) {
-                    const err = new Error(`Insufficient stock for product ${product.name}, variant ${JSON.stringify(item.variant)}`);
-                    err.status = 400;
-                    throw err;
-                }
+                // if (variantSnapshot.stock < item.quantity) {
+                //     const err = new Error(`Insufficient stock for product ${product.name}, variant ${JSON.stringify(item.variant)}`);
+                //     err.status = 400;
+                //     throw err;
+                // }
             } else if (product.category === "gear") {
                 // TODO
             }
@@ -70,6 +70,7 @@ exports.order_post = [
 
                 //color: "TODO",
                 compound: item.variant.compound,
+                installRequired: req.body.installRequired
             };
         }));
 
