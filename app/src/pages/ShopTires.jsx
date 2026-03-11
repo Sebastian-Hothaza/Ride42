@@ -8,16 +8,32 @@ import sc3 from '../assets/sc3.jpg'
 import slick from '../assets/slick.jpg'
 import React from 'react';
 
+
+import modalStyles from '../components/stylesheets/Modal.module.css'
+
+import Modal from "../components/Modal";
+import Loading from '../components/Loading';
+
+import checkmark from './../assets/checkmark.png'
+import errormark from './../assets/error.png'
+
 const ShopTires = ({ APIServer }) => {
 	const loggedInUser = JSON.parse(localStorage.getItem("user"))
+	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
 	const [tireProducts, setTireProducts] = useState([]);
 
 	const [selectedTire, setSelectedTire] = useState('');
 	const [selectedSize, setSelectedSize] = useState('');
 	const [selectedCompound, setSelectedCompound] = useState('');
+	const [qtyOrder, setQtyOrder] = useState(1);
+	const [installRequired, setInstallRequired] = useState(false);
+
 
 	const [sizesAvailable, setSizesAvailable] = useState([]);
 	const [compoundsAvailable, setCompoundsAvailable] = useState([]);
+
+
+	const [userCart, setUserCart] = useState([]);
 
 	async function fetchProducts() {
 		try {
@@ -53,15 +69,116 @@ const ShopTires = ({ APIServer }) => {
 		if (!tire) return;
 
 		const sizes = [...new Set(tire.variants.map(v => v.size))];
-		const compounds = [...new Set(tire.variants.map(v => v.compound))];
 
 		setSizesAvailable(sizes);
-		setCompoundsAvailable(compounds);
+
 	}, [selectedTire]); // run only when selectedTire changes
 
-	
+	// Once a size is selected, load in the available compounds
+	useEffect(() => {
+		if (!selectedSize) return;
 
-	const inventoryLevel = 5
+		const tire = tireProducts.find(t => t._id === selectedTire);
+		if (!tire) return;
+
+		const compounds = [...new Set(tire.variants.filter(v => v.size == selectedSize).map(v => v.compound))];
+
+		setCompoundsAvailable(compounds);
+	}, [selectedSize]); // run only when selectedSize changes
+
+	// Reset dependent selects when parent changes
+	useEffect(() => {
+		setSelectedSize('');
+		setSelectedCompound('');
+		setQtyOrder(1);
+		setInstallRequired(false);
+	}, [selectedTire]);
+
+	useEffect(() => {
+		setSelectedCompound('');
+		setQtyOrder(1);
+		setInstallRequired(false);
+	}, [selectedSize]);
+
+
+	const variant = tireProducts
+		.find(t => t._id === selectedTire)
+		?.variants.find(v => v.size === selectedSize && v.compound === selectedCompound);
+
+	const inventory = variant?.stock || 0;
+	const price = variant?.price || 999;
+
+
+	function handleAddTire(e) {
+		e.preventDefault();
+
+		const existingIndex = userCart.findIndex(
+			item => item.product === selectedTire &&
+				item.size === selectedSize &&
+				item.compound === selectedCompound
+		);
+		if (existingIndex !== -1) {
+			alert('This tire variant is already in cart. Please remove if you want to modify.')
+			setSelectedTire('');
+			return;
+		}
+
+		setUserCart(userCart => {
+			return [...userCart, {
+				uid: selectedTire + selectedSize + selectedCompound,
+				name: tireProducts.find(t => t._id === selectedTire).name,
+				product: selectedTire,
+				size: selectedSize,
+				compound: selectedCompound,
+				price: price,
+				quantity: qtyOrder,
+				installRequired: installRequired
+			}];
+		});
+		setSelectedTire('');
+	}
+
+	function handleRemoveTire(uid) {
+		setUserCart(userCart => userCart.filter(item => item.uid !== uid));
+	}
+
+	async function handleCheckOut() {
+		let orderItems = [];
+		for (let item of userCart) {
+			orderItems.push({
+				product: item.product,
+				variant: { size: item.size, compound: item.compound },
+				quantity: item.quantity,
+				installRequired: installRequired
+			})
+		}
+
+		
+		try {
+			const response = await fetch(APIServer + 'orders/' + loggedInUser.id, {
+				method: 'POST',
+				credentials: "include",
+				headers: {
+					'Content-type': 'application/json; charset=UTF-8',
+				},
+				body: JSON.stringify({
+					items: orderItems
+				})
+			})
+			if (response.ok) {
+				setActiveModal({ type: 'success', msg: 'Order created, check it out in your dashboard!' });
+				setTimeout(() => setActiveModal(''), 3000)
+				setUserCart([]);
+				setSelectedTire('');
+			} else {
+				const data = await response.json();
+				setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
+			}
+		} catch (err) {
+			setActiveModal({ type: 'failure', msg: 'API Failure' })
+			console.log(err.message)
+		}
+	}
 
 	const HTML_Welcome = <div className={styles.rulesCard}>
 		<p>We took great care on selecting a tire partner to make sure we can get you the best product possible that works well at our track and riding conditions.
@@ -143,7 +260,12 @@ const ShopTires = ({ APIServer }) => {
 	</div>
 
 	const HTML_Order = <div className={styles.rulesCard}>
-		<h3>Tire service is available at all Ride42 trackdays. Tire install is $30/wheel; you are responsible for dismounting your wheels.</h3>
+		<ul>
+			<li>Your tires are <b>NOT</b> reserved in inventory until we receive your payment. Payments can be sent via E-Transfer to <b>sales@ride42.ca</b> </li>
+			<li>We will send you an email once your order is processed. You can also track it in your rider dashboard.</li>
+			<li>Tire service is available at all Ride42 trackdays for $30/wheel; paid in cash at time of service. You are responsible for dismounting your wheels.</li>
+		</ul>
+
 		<br></br>
 		<form id={styles.addTireForm} onSubmit={(e) => handleAddTire(e)} >
 			<label htmlFor="tireName">Select Tire: </label>
@@ -168,23 +290,43 @@ const ShopTires = ({ APIServer }) => {
 				</>
 			}
 
-			{selectedSize && compoundsAvailable.length>0 &&
+			{selectedSize && compoundsAvailable.length > 0 &&
 				<>
 					<label htmlFor="tireCompound">Tire Compound: </label>
-					<select value={selectedSize} onChange={(e) => setSelectedCompound(e.target.value)}>
+					<select value={selectedCompound} onChange={(e) => setSelectedCompound(e.target.value)}>
 						<option key="compoundNone" value=''>---Choose Compound---</option>
 						{compoundsAvailable.map(compound => (
 							<option key={compound} value={compound}>{compound}</option>
 						))}
 					</select>
+
+					<label htmlFor="tireQty">Quantity: </label>
+					<input type='number' value={qtyOrder} onChange={e => setQtyOrder(e.target.value)}></input>
+
+					<label htmlFor="installReq" value={installRequired} onChange={e => setInstallRequired(e.target.checked)}>Install Required </label>
+					<input type='checkbox'></input>
 				</>
 			}
 
 			{selectedCompound &&
-			<label>In Stock: {inventoryLevel}</label>
+				<>
+					<label>In Stock: {inventory}</label>
+					<label>Price: {price}</label>
+					<button type="submit">ADD</button>
+				</>
+
 			}
 
 		</form>
+
+
+		{userCart.length > 0 && <>
+			<h3>Your Cart</h3>
+			{userCart.map(item =>
+				<div key={item.uid}>{item.name} {item.size}-{item.compound} x{item.quantity} ${item.price}<button onClick={(e) => handleRemoveTire(item.uid)}>remove</button></div>
+			)}
+			<button onClick={(e) => handleCheckOut()}>check out</button>
+		</>}
 	</div>
 
 	const HTML_Deny = <div className={styles.rulesCard}>
@@ -195,13 +337,32 @@ const ShopTires = ({ APIServer }) => {
 
 
 	return (
-		<div className={styles.content}>
-			<Card heading={loggedInUser ? `Welcome ${loggedInUser?.firstName.charAt(0).toUpperCase() + loggedInUser?.firstName.slice(1)}!` : 'Welcome!'} body={HTML_Welcome} img={pirelli} inverted={false} />
-			<Card heading='Diablo Rosso IV Corsa' body={HTML_rosso4} img={rosso4} inverted={true} />
-			<Card heading='SuperCorsa TD SC3' body={HTML_TDSC3} img={sc3} inverted={false} />
-			<Card heading='Superbike Slicks' body={HTML_Slicks} img={slick} inverted={true} />
-			<Card heading='Submit your order' body={loggedInUser ? HTML_Order : HTML_Deny} />
-		</div>
+		<>
+			<div className={styles.content}>
+				<Card heading={loggedInUser ? `Welcome ${loggedInUser?.firstName.charAt(0).toUpperCase() + loggedInUser?.firstName.slice(1)}!` : 'Welcome!'} body={HTML_Welcome} img={pirelli} inverted={false} />
+				<Card heading='Diablo Rosso IV Corsa' body={HTML_rosso4} img={rosso4} inverted={true} />
+				<Card heading='SuperCorsa TD SC3' body={HTML_TDSC3} img={sc3} inverted={false} />
+				<Card heading='Superbike Slicks' body={HTML_Slicks} img={slick} inverted={true} />
+				<Card heading='Submit your order' body={loggedInUser ? HTML_Order : HTML_Deny} />
+			</div>
+
+			<Loading open={activeModal.type === 'loading'}>
+				{activeModal.msg}
+			</Loading>
+
+			<Modal open={activeModal.type === 'success'}>
+				<div className={modalStyles.modalNotif}></div>
+				<img id={modalStyles.modalCheckmarkIMG} src={checkmark} alt="checkmark icon" />
+				{activeModal.msg}
+			</Modal>
+
+			<Modal open={activeModal.type === 'failure'}>
+				<div className={modalStyles.modalNotif}></div>
+				<img id={modalStyles.modalCheckmarkIMG} src={errormark} alt="error icon" />
+				{activeModal.msg}
+				<button className='actionButton' onClick={() => setActiveModal('')}>Close</button>
+			</Modal>
+		</>
 	);
 };
 
