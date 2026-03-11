@@ -22,6 +22,8 @@ app.use(express.urlencoded({ extended: false }));
 const cookieParser = require('cookie-parser')
 app.use(cookieParser());
 
+const { Product } = require('../models/Products')
+const User = require("../models/User");
 
 
 // ROUTER
@@ -52,7 +54,7 @@ afterEach(async () => {
 
 const userInfo = {
     firstName: "Joe",
-    lastName: "Adams",
+    lastName: "Regular",
     email: "user1@gmail.com",
     phone: "2261451298",
     address: "123 Apple Ave.",
@@ -96,7 +98,7 @@ beforeEach(async () => {
     userCookie = loginResUser1.headers['set-cookie']
 })
 
-const User = require("../models/User");
+
 async function seedUser(userInfo) {
     const hashedPassword = await bcrypt.hash(userInfo.password, 10);
 
@@ -139,7 +141,21 @@ async function loginUser(userInfo) {
 
 
 describe('Testing product create', () => {
-    test("add product to DB", async () => {
+    test("add product to DB - missing fields", async () => {
+        await request(app)
+            .post("/products")
+            .send({
+                category: 'tire',
+                variants: [
+                    { size: "200/60", compound: "SC3", price: 500, stock: 1 },
+                    { size: "200/60", compound: "SC2", price: 500, stock: 1 },
+                ]
+            })
+            .set('Content-Type', 'application/json')  // explicitly tell Express this is JSON
+            .set('Cookie', adminCookie)
+            .expect(400);
+    });
+    test("add product to DB - No JWT", async () => {
         await request(app)
             .post("/products")
             .send({
@@ -151,7 +167,417 @@ describe('Testing product create', () => {
                 ]
             })
             .set('Content-Type', 'application/json')  // explicitly tell Express this is JSON
+
+            .expect(401);
+    });
+    test("add product to DB - Unauthorized", async () => {
+        await request(app)
+            .post("/products")
+            .send({
+                name: 'Pirelli Supercorsa',
+                category: 'tire',
+                variants: [
+                    { size: "200/60", compound: "SC3", price: 500, stock: 1 },
+                    { size: "200/60", compound: "SC2", price: 500, stock: 1 },
+                ]
+            })
+            .set('Content-Type', 'application/json')  // explicitly tell Express this is JSON
+            .set('Cookie', userCookie)
+            .expect(403);
+    });
+    test("add product to DB - invalid category", async () => {
+        await request(app)
+            .post("/products")
+            .send({
+                name: 'Pirelli Supercorsa',
+                category: 'soap',
+                variants: [
+                    { size: "200/60", compound: "SC3", price: 500, stock: 1 },
+                    { size: "200/60", compound: "SC2", price: 500, stock: 1 },
+                ]
+            })
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(400);
+    });
+    test("add product to DB - Invalid property", async () => {
+        await request(app)
+            .post("/products")
+            .send({
+                name: 'Pirelli Supercorsa',
+                category: 'tire',
+                variants: [
+                    { size: "200/60", compound: "soap", price: 500, stock: 1 },
+                    { size: "200/60", compound: "SC2", price: 500, stock: 1 },
+                ]
+            })
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(400);
+    });
+    test("add product to DB", async () => {
+        await request(app)
+            .post("/products")
+            .send({
+                name: 'Pirelli Supercorsa',
+                category: 'tire',
+                variants: [
+                    { size: "200/60", compound: "SC3", price: 500, stock: 1 },
+                    { size: "200/60", compound: "SC2", price: 500, stock: 1 },
+                ]
+            })
+            .set('Content-Type', 'application/json')
             .set('Cookie', adminCookie)
             .expect(201);
+    });
+
+})
+
+describe('Testing product read', () => {
+
+    // Seed sammple products
+    let product1_seed, product2_seed;
+    beforeEach(async () => {
+        const product1 = new Product({
+            name: 'Product1',
+            category: 'tire',
+            variants: [
+                { size: "200/60", compound: "SC3", price: 500, stock: 1 },
+                { size: "200/60", compound: "SC2", price: 500, stock: 1 },
+            ],
+        })
+        const product2 = new Product({
+            name: 'Product2',
+            category: 'tire',
+            variants: [
+                { size: "200/60", compound: "SC3", price: 200, stock: 4 },
+            ],
+
+        })
+
+        product1_seed = await product1.save();
+        product2_seed = await product2.save();
+
+        return;
+    })
+
+    test("Read all product from DB - No JWT", async () => {
+        const res = await request(app)
+            .get("/products")
+            .set('Content-Type', 'application/json')
+            .expect(401);
+    });
+
+    test("Read all product from DB", async () => {
+        const res = await request(app)
+            .get("/products?getAll=true")
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(200);
+
+        expect(res.body).toEqual([
+            {
+                _id: product1_seed._id.toString(),
+                name: 'Product1',
+                category: 'tire',
+                variants: [
+                    expect.objectContaining({
+                        size: "200/60",
+                        compound: "SC3",
+                        price: 500,
+                        stock: 1
+                    }),
+                    expect.objectContaining({
+                        size: "200/60",
+                        compound: "SC2",
+                        price: 500,
+                        stock: 1
+                    })
+                ],
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
+                __v: 0
+            },
+            {
+                _id: product2_seed._id.toString(),
+                name: 'Product2',
+                category: 'tire',
+                variants: [
+                    expect.objectContaining({
+                        size: "200/60",
+                        compound: "SC3",
+                        price: 200,
+                        stock: 4
+                    })
+                ],
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
+                __v: 0
+            }
+        ]);
+    });
+
+    test("Read single product from DB", async () => {
+        const res = await request(app)
+            .get(`/products/${product1_seed._id.toString()}`)
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(200);
+
+        expect(res.body).toEqual(
+            {
+                _id: product1_seed._id.toString(),
+                name: 'Product1',
+                category: 'tire',
+                variants: [
+                    expect.objectContaining({
+                        size: "200/60",
+                        compound: "SC3",
+                        price: 500,
+                        stock: 1
+                    }),
+                    expect.objectContaining({
+                        size: "200/60",
+                        compound: "SC2",
+                        price: 500,
+                        stock: 1
+                    })
+                ],
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
+                __v: 0
+            }
+        );
+    });
+
+    test("Read single product from DB - invalid ProductID", async () => {
+        const res = await request(app)
+            .get(`/products/4${product1_seed._id.toString().slice(1)}`)
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(404, { msg: ['Product does not exist'] });
+    });
+
+    test("Read single product from DB - invalid ObjectID", async () => {
+        const res = await request(app)
+            .get(`/products/soap`)
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(400, { msg: ['productID is not a valid ObjectID'] });
+    });
+})
+
+describe('Testing product Edit', () => {
+
+    // Seed sammple products
+    let product1_seed;
+    beforeEach(async () => {
+        const product1 = new Product({
+            name: 'Product1',
+            category: 'tire',
+            variants: [
+                { size: "200/60", compound: "SC3", price: 500, stock: 1 },
+                { size: "200/60", compound: "SC2", price: 500, stock: 1 },
+            ],
+        })
+        product1_seed = await product1.save();
+        return;
+    })
+
+    test("Edit product - No JWT", async () => {
+        const res = await request(app)
+            .put(`/products/${product1_seed._id.toString()}`)
+            .send({
+                name: 'Pirelli Supercorsa',
+                category: 'tire',
+                variants: [
+                    { size: "200/60", compound: "SC3", price: 5000, stock: 12 }
+                ]
+            })
+            .set('Content-Type', 'application/json')
+            .expect(401);
+    });
+
+    test("Edit product - Unauthorized", async () => {
+        const res = await request(app)
+            .put(`/products/${product1_seed._id.toString()}`)
+            .send({
+                name: 'Pirelli Supercorsa',
+                category: 'tire',
+                variants: [
+                    { size: "200/60", compound: "SC3", price: 5000, stock: 12 }
+                ]
+            })
+            .set('Content-Type', 'application/json')
+            .set('Cookie', userCookie)
+            .expect(403);
+    });
+
+    test("Edit product - invalid category", async () => {
+        const res = await request(app)
+            .put(`/products/${product1_seed._id.toString()}`)
+            .send({
+                name: 'Pirelli Supercorsa',
+                category: 'soap',
+                variants: [
+                    { size: "200/60", compound: "SC3", price: 5000, stock: 12 }
+                ]
+            })
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(400);
+    });
+
+    test("Edit product - missing fields", async () => {
+        const res = await request(app)
+            .put(`/products/${product1_seed._id.toString()}`)
+            .send({
+                name: 'Pirelli Supercorsa',
+                variants: [
+                    { size: "200/60", compound: "SC3", price: 5000, stock: 12 }
+                ]
+            })
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(400);
+    });
+
+    test("Edit product - invalid property", async () => {
+        const res = await request(app)
+            .put(`/products/${product1_seed._id.toString()}`)
+            .send({
+                name: 'Pirelli Supercorsa',
+                category: 'soap',
+                variants: [
+                    { size: "200/60", compound: "SOAP", price: 5000, stock: 12 }
+                ]
+            })
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(400);
+    });
+
+
+    test("Edit product - invalid objectID", async () => {
+        const res = await request(app)
+            .put(`/products/soap`)
+            .send({
+                name: 'Pirelli Supercorsa',
+                category: 'tire',
+                variants: [
+                    { size: "200/60", compound: "SC2", price: 5000, stock: 12 }
+                ]
+            })
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(400, { msg: ['productID is not a valid ObjectID'] });
+    });
+
+    test("Edit product - invalid productID", async () => {
+        const res = await request(app)
+            .put(`/products/4${product1_seed._id.toString().slice(1)}`)
+            .send({
+                name: 'Pirelli Supercorsa',
+                category: 'tire',
+                variants: [
+                    { size: "200/60", compound: "SC2", price: 5000, stock: 12 }
+                ]
+            })
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(404, { msg: ['Product does not exist'] });
+    });
+
+    test("Edit product", async () => {
+        const res = await request(app)
+            .put(`/products/${product1_seed._id.toString()}`)
+            .send({
+                name: 'Pirelli Supercorsa',
+                category: 'tire',
+                variants: [
+                    { size: "200/60", compound: "SC3", price: 5000, stock: 12 }
+                ]
+            })
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(200);
+
+        expect(res.body).toEqual(
+            {
+                _id: product1_seed._id.toString(),
+                name: 'Pirelli Supercorsa',
+                category: 'tire',
+                variants: [
+                    expect.objectContaining({
+                        size: "200/60",
+                        compound: "SC3",
+                        price: 5000,
+                        stock: 12
+                    })
+
+                ],
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
+                __v: 0
+            }
+        );
+    });
+
+})
+
+describe('Testing product Delete', () => {
+
+    // Seed sammple products
+    let product1_seed;
+    beforeEach(async () => {
+        const product1 = new Product({
+            name: 'Product1',
+            category: 'tire',
+            variants: [
+                { size: "200/60", compound: "SC3", price: 500, stock: 1 },
+                { size: "200/60", compound: "SC2", price: 500, stock: 1 },
+            ],
+        })
+        product1_seed = await product1.save();
+        return;
+    })
+
+    test("Delete product from DB - invalid ProductID", async () => {
+        const res = await request(app)
+            .delete(`/products/4${product1_seed._id.toString().slice(1)}`)
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(404, { msg: ['Product does not exist'] });
+    });
+
+    test("Delete product from DB - invalid ObjectID", async () => {
+        const res = await request(app)
+            .delete(`/products/soap`)
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(400, { msg: ['productID is not a valid ObjectID'] });
+    });
+
+    test("Delete product from DB - No JWT", async () => {
+        const res = await request(app)
+            .delete(`/products/${product1_seed._id.toString()}`)
+            .set('Content-Type', 'application/json')
+            .expect(401);
+    });
+
+    test("Delete product from DB - Unauthorized", async () => {
+        const res = await request(app)
+            .delete(`/products/${product1_seed._id.toString()}`)
+            .set('Content-Type', 'application/json')
+            .set('Cookie', userCookie)
+            .expect(403);
+    });
+
+    test("Delete product from DB", async () => {
+        const res = await request(app)
+            .delete(`/products/${product1_seed._id.toString()}`)
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(200);
     });
 })
