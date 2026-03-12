@@ -168,7 +168,7 @@ const ManageOrders = ({ APIServer }) => {
 
 
                     {allOrders
-                        .filter((order) => order.items[0].product.category === 'tire')
+                        .filter((order) => order.items[0].category === 'tire')
                         .filter((order) => !showCompleted ? order.orderStatus !== 'complete' : true)
                         .map((order, idx) => (
                             <Fragment key={idx}>
@@ -177,7 +177,7 @@ const ManageOrders = ({ APIServer }) => {
                                     <div className={styles.orderItems}>
                                         {order.items.map((item, index) => (
                                             <div key={index}>
-                                                {item.quantity}x {item.product.name} {item.size}-{item.compound}{item.installRequired && '(*)'}
+                                                {item.quantity}x {item.name} {item.size}-{item.compound}{item.installRequired && '(*)'}
                                             </div>
                                         ))}
                                     </div>
