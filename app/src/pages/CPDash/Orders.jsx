@@ -103,7 +103,7 @@ const Orders = ({ APIServer }) => {
                             <div><b>Delivery Date</b></div>
 
 
-                            {allOrders.filter((order) => order.items[0].product.category === 'tire').filter((order) => hideCompleted ? order.orderStatus !== 'complete' : true).map((order, idx) => (
+                            {allOrders.filter((order) => order.items[0].product?.category === 'tire').filter((order) => hideCompleted ? order.orderStatus !== 'complete' : true).map((order, idx) => (
                                 <Fragment key={idx}>
                                     <div>
                                         <div className={styles.orderItems}>
@@ -127,7 +127,7 @@ const Orders = ({ APIServer }) => {
                         </div>
 
                         <div className={styles.orderGrid_Mobile}>
-                            {allOrders.filter((order) => order.items[0].product.category === 'tire').filter((order) => hideCompleted ? order.orderStatus !== 'complete' : true).map((order, idx) => (
+                            {allOrders.filter((order) => order.items[0].product?.category === 'tire').filter((order) => hideCompleted ? order.orderStatus !== 'complete' : true).map((order, idx) => (
                                 <div className={styles.orderEntry} key={idx}>
 
 
