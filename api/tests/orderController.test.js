@@ -331,6 +331,8 @@ describe('Testing order read', () => {
             items: [
                 {
                     product: sampleSupercorsa._id.toString(),
+                    name: sampleSupercorsaInfo.name,
+                    category: sampleSupercorsaInfo.category,
                     size: "200/60",
                     compound: "SC3",
                     price: 500,
@@ -348,6 +350,8 @@ describe('Testing order read', () => {
                 {
 
                     product: sampleSupercorsa._id.toString(),
+                    name: sampleSupercorsaInfo.name,
+                    category: sampleSupercorsaInfo.category,
                     size: "180/60",
                     compound: "SC1",
                     price: 400,
@@ -422,11 +426,10 @@ describe('Testing order read', () => {
                 items: [
                     {
                         _id: adminOrder_seed.items[0]._id.toString(),
-                        product: {
-                            _id: sampleSupercorsa._id.toString(),
-                            name: sampleSupercorsaInfo.name,
-                            category: sampleSupercorsaInfo.category
-                        },
+                        product: sampleSupercorsa._id.toString(),
+
+                        name: sampleSupercorsaInfo.name,
+                        category: sampleSupercorsaInfo.category,
                         size: "200/60",
                         compound: "SC3",
                         price: 500,
@@ -461,11 +464,9 @@ describe('Testing order read', () => {
                 items: [
                     {
                         _id: adminOrder_seed.items[0]._id.toString(),
-                        product: {
-                            _id: sampleSupercorsa._id.toString(),
-                            name: sampleSupercorsaInfo.name,
-                            category: sampleSupercorsaInfo.category
-                        },
+                        product: sampleSupercorsa._id.toString(),
+                        name: sampleSupercorsaInfo.name,
+                        category: sampleSupercorsaInfo.category,
                         size: "200/60",
                         compound: "SC3",
                         price: 500,
@@ -501,11 +502,9 @@ describe('Testing order read', () => {
                 items: [
                     {
                         _id: order_seed.items[0]._id.toString(),
-                        product: {
-                            _id: sampleSupercorsa._id.toString(),
-                            name: sampleSupercorsaInfo.name,
-                            category: sampleSupercorsaInfo.category
-                        },
+                        product: sampleSupercorsa._id.toString(),
+                        name: sampleSupercorsaInfo.name,
+                        category: sampleSupercorsaInfo.category,
                         size: "180/60",
                         compound: "SC1",
                         price: 400,
@@ -549,11 +548,9 @@ describe('Testing order read', () => {
                 items: [
                     {
                         _id: adminOrder_seed.items[0]._id.toString(),
-                        product: {
-                            _id: sampleSupercorsa._id.toString(),
-                            name: sampleSupercorsaInfo.name,
-                            category: sampleSupercorsaInfo.category
-                        },
+                        product: sampleSupercorsa._id.toString(),
+                        name: sampleSupercorsaInfo.name,
+                        category: sampleSupercorsaInfo.category,
                         size: "200/60",
                         compound: "SC3",
                         price: 500,
@@ -578,11 +575,9 @@ describe('Testing order read', () => {
                 items: [
                     {
                         _id: order_seed.items[0]._id.toString(),
-                        product: {
-                            _id: sampleSupercorsa._id.toString(),
-                            name: sampleSupercorsaInfo.name,
-                            category: sampleSupercorsaInfo.category
-                        },
+                        product: sampleSupercorsa._id.toString(),
+                        name: sampleSupercorsaInfo.name,
+                        category: sampleSupercorsaInfo.category,
                         size: "180/60",
                         compound: "SC1",
                         price: 400,
@@ -610,6 +605,8 @@ describe('Testing order update', () => {
             items: [
                 {
                     product: sampleSupercorsa._id.toString(),
+                    name: sampleSupercorsaInfo.name,
+                    category: sampleSupercorsaInfo.category,
                     size: "200/60",
                     compound: "SC3",
                     price: 500,
@@ -626,6 +623,8 @@ describe('Testing order update', () => {
             items: [
                 {
                     product: sampleSupercorsa._id.toString(),
+                    name: sampleSupercorsaInfo.name,
+                    category: sampleSupercorsaInfo.category,
                     size: "200/60",
                     compound: "SC3",
                     price: 500,
@@ -711,11 +710,9 @@ describe('Testing order update', () => {
                 items: [
                     {
                         _id: adminOrder_seed.items[0]._id.toString(),
-                        product: {
-                            _id: sampleSupercorsa._id.toString(),
-                            name: sampleSupercorsaInfo.name,
-                            category: sampleSupercorsaInfo.category
-                        },
+                        product: sampleSupercorsa._id.toString(),
+                        name: sampleSupercorsaInfo.name,
+                        category: sampleSupercorsaInfo.category,
                         size: "200/60",
                         compound: "SC3",
                         price: 500,
@@ -856,6 +853,8 @@ describe('Testing order delete', () => {
             items: [
                 {
                     product: sampleSupercorsa._id.toString(),
+                    name: sampleSupercorsaInfo.name,
+                    category: sampleSupercorsaInfo.category,
                     size: "200/60",
                     compound: "SC3",
                     price: 500,
@@ -873,6 +872,8 @@ describe('Testing order delete', () => {
                 {
 
                     product: sampleSupercorsa._id.toString(),
+                    name: sampleSupercorsaInfo.name,
+                    category: sampleSupercorsaInfo.category,
                     size: "180/60",
                     compound: "SC1",
                     price: 400,

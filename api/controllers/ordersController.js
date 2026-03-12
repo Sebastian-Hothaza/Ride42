@@ -59,14 +59,18 @@ exports.order_post = [
 
             return {
                 product: product._id,
+                name: product.name,
+                category: product.category,
                 size: item.variant.size,
-                //addOns: "TODO",
                 quantity: item.quantity,
                 price: variantSnapshot.price,
 
-                //color: "TODO",
+                // For Tire
                 compound: item.variant.compound,
                 installRequired: item.installRequired
+
+                // For Gear
+                // TODO
             };
         }));
 
@@ -92,8 +96,8 @@ exports.order_getALL = [
     controllerUtils.verifyJWT,
     asyncHandler(async (req, res) => {
         if (req.query.getAll === 'true' && req.user.memberType !== "admin") return res.sendStatus(403);
-        const orders = req.query.getAll === 'true' ? await Order.find().populate("items.product", "category name").populate("user", "firstName lastName") :
-            (await Order.find().populate("items.product", "name category").populate("user", "firstName lastName")).filter(order => order.user._id.toString() === req.user.id);
+        const orders = req.query.getAll === 'true' ? await Order.find().populate("user", "firstName lastName") :
+            (await Order.find().populate("user", "firstName lastName")).filter(order => order.user._id.toString() === req.user.id);
         res.json(orders);
     })
 ]
@@ -106,7 +110,6 @@ exports.order_get = [
     asyncHandler(async (req, res) => {
         const order = await Order.findById(req.params.orderID)
             .populate("user", "firstName lastName")
-            .populate("items.product", "name category");
         if (req.user.memberType !== "admin" && req.user.id !== order.user.id) return res.sendStatus(403);
         res.json(order);
     })
@@ -199,7 +202,7 @@ exports.order_delete = [
         }
         await Order.findByIdAndDelete(req.params.orderID);
         logger.info({ message: `Deleted order ${order._id} for ${order.user.firstName} ${order.user.lastName}` });
-        sendEmail(req.user.email, "Your Ride42 Order Has Been Deleted", mailTemplates.deleteTireOrder, { name: req.user.name.charAt(0).toUpperCase() + req.user.name.slice(1)})
+        sendEmail(req.user.email, "Your Ride42 Order Has Been Deleted", mailTemplates.deleteTireOrder, { name: req.user.name.charAt(0).toUpperCase() + req.user.name.slice(1) })
         return res.sendStatus(200);
     })
 ]
