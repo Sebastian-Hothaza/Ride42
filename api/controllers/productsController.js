@@ -64,7 +64,7 @@ exports.product_post = [
             product = new Gear({ name: req.body.name, basePrice: req.body.basePrice, sizes: req.body.sizes, colors: req.body.colors, addOnOptions: req.body.addOnOptions });
         }
         await product.save();
-        logger.info({ message: `Created ${req.body.category} product ${product.name}` });
+        logger.warn({ message: `Created ${req.body.category} product ${product.name}` });
         res.status(201).json({ id: product._id });
     })
 ];
@@ -126,7 +126,7 @@ exports.product_put = [
                 { new: true, runValidators: true }
             );
         }
-        logger.info({ message: `Updated product ${req.body.name}` });
+        logger.warn({ message: `Updated product ${req.body.name}` });
         res.json(updated);
     })
 ];
@@ -139,7 +139,7 @@ exports.product_delete = [
         if (req.user.memberType !== 'admin') return res.sendStatus(403);
 
         const product = await Product.findByIdAndDelete(req.params.productID);
-        logger.info({ message: `Deleted product ${product.name}` });
+        logger.warn({ message: `Deleted product ${product.name}` });
         return res.sendStatus(200);
     }),
 ]
