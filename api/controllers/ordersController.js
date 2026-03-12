@@ -2,6 +2,7 @@ const { Product, Tire, Gear } = require('../models/Products');
 const Order = require('../models/Orders');
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
+const ObjectId = require('mongoose').Types.ObjectId;
 const jwt = require('jsonwebtoken')
 const controllerUtils = require('./controllerUtils')
 const logger = require('../logger');
@@ -16,25 +17,25 @@ const logger = require('../logger');
 // Inventory is increased when an order is cancelled IF it was previously marked as paid.
 
 // Create a order. Requires JWT with matching userID OR admin
-// TODO: revise permission checks
 exports.order_post = [
     body("items", "Orders must have at least one item").isArray({ min: 1 }),
+    body("items.*.product", "productID is not a valid ObjectID").isMongoId(),
 
     controllerUtils.verifyJWT,
     controllerUtils.validateForm,
     controllerUtils.validateUserID,
 
-    asyncHandler(async (req, res) => {
+    asyncHandler(async (req, res, next) => {
+        // Attempt to create order for another user without being the admin
+        if (req.user.id !== req.params.userID && req.user.memberType !== 'admin') return res.sendStatus(403);
 
         // Snapshot each item/product
         const itemsSnapshot = await Promise.all(req.body.items.map(async (item) => {
+
             // Find product
+            if (!ObjectId.isValid(item.product)) return res.status(400).send({ msg: ['productID is not a valid ObjectID'] });
             const product = await Product.findById(item.product);
-            if (!product) {
-                const err = new Error(`Product with ID ${item.product} does not exist`);
-                err.status = 400;
-                throw err;
-            }
+            if (!product) return res.status(404).send({ msg: ['Product does not exist'] });
 
 
             // Find variant
@@ -44,18 +45,12 @@ exports.order_post = [
                     v.size === item.variant.size &&
                     v.compound === item.variant.compound
                 );
-                if (!variantSnapshot) {
-                    const err = new Error(`Variant not found for product ${product.name}`);
-                    err.status = 400;
-                    throw err;
-                }
+                if (!variantSnapshot) return res.status(404).send({ msg: ['Variant does not exist'] });
+
 
                 // Verify variant is in stock
-                // if (variantSnapshot.stock < item.quantity) {
-                //     const err = new Error(`Insufficient stock for product ${product.name}, variant ${JSON.stringify(item.variant)}`);
-                //     err.status = 400;
-                //     throw err;
-                // }
+                // if (variantSnapshot.stock < item.quantity) return res.status(400).send({ msg: ['Out of Stock'] })
+
             } else if (product.category === "gear") {
                 // TODO
             }
@@ -104,8 +99,9 @@ exports.order_get = [
 
     asyncHandler(async (req, res) => {
         const order = await Order.findById(req.params.orderID)
-            .populate("user", "name email")
+            .populate("user", "firstName lastName")
             .populate("items.product", "name category");
+        if (req.user.memberType !== "admin" && req.user.id !== order.user.id) return res.sendStatus(403);
         res.json(order);
     })
 ]
@@ -153,11 +149,9 @@ exports.order_put = [
 
             // Check inventory and decrement stock
             const order = await Order.findById(req.params.orderID);
-            if (order.paymentStatus === "paid") {
-                const err = new Error(`Order already paid`);
-                err.status = 400;
-                throw err;
-            }
+            if (order.paymentStatus === "paid") return res.status(400).send({ msg: ['Order already marked as paid'] });
+
+
             for (const item of order.items) {
                 const product = await Product.findById(item.product);
                 let variant;
@@ -166,19 +160,8 @@ exports.order_put = [
                         v.size === item.size &&
                         v.compound === item.compound
                     );
-
-
-                    if (!variant) {
-                        const err = new Error(`Variant not found for product ${product.name}`);
-                        err.status = 400;
-                        throw err;
-                    }
-
-                    if (variant.stock < item.quantity) {
-                        const err = new Error(`Insufficient stock for product ${product.name}: ${item.size}-${item.compound}`);
-                        err.status = 400;
-                        throw err;
-                    }
+                    if (!variant) return res.status(404).send({ msg: ['Variant does not exist'] });
+                    if (variant.stock < item.quantity) return res.status(400).send({ msg: ['Insufficient inventory'] });
                     variant.stock -= item.quantity;
                     await product.save();
                 }
@@ -198,6 +181,8 @@ exports.order_delete = [
         const order = await Order.findById(req.params.orderID).populate("user", "id");
 
         if (req.user.memberType !== "admin" && req.user.id !== order.user.id) return res.sendStatus(403);
+
+        if (order.paymentStatus === "paid" && req.user.memberType !== "admin") return res.status(400).send({ msg: ['Cannot delete paid order'] });
 
         if (order.paymentStatus === "paid") {
             // If order was paid, increase stock back
