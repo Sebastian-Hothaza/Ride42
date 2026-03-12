@@ -231,6 +231,34 @@ describe('Testing product create', () => {
             .expect(201);
     });
 
+    // new edge case: variant created without compound property at all
+    test("add product with a variant missing compound", async () => {
+        const createRes = await request(app)
+            .post("/products")
+            .send({
+                name: 'NoCompoundTire',
+                category: 'tire',
+                variants: [
+                    { size: "200/60", price: 300, stock: 10 }
+                ]
+            })
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(201);
+
+        // fetch the product back and make sure compound isn't stored as empty string
+        const listRes = await request(app)
+            .get("/products?getAll=true")
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(200);
+
+        const created = listRes.body.find(p => p.name === 'NoCompoundTire');
+        expect(created).toBeDefined();
+        expect(created.variants.length).toBe(1);
+        expect(created.variants[0]).not.toHaveProperty('compound');
+    });
+
 })
 
 describe('Testing product read', () => {
@@ -521,6 +549,25 @@ describe('Testing product Edit', () => {
                 __v: 0
             }
         );
+    });
+
+    test("Edit product removing compound from a variant", async () => {
+        // start with a compounded variant, then update without compound field
+        const res = await request(app)
+            .put(`/products/${product1_seed._id.toString()}`)
+            .send({
+                name: 'Pirelli Supercorsa',
+                category: 'tire',
+                variants: [
+                    { size: "200/60", price: 5500, stock: 5 }
+                ]
+            })
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(200);
+
+        expect(res.body.variants.length).toBe(1);
+        expect(res.body.variants[0]).not.toHaveProperty('compound');
     });
 
 })
