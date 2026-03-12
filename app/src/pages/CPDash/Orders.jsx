@@ -109,7 +109,7 @@ const Orders = ({ APIServer }) => {
                                         <div className={styles.orderItems}>
                                             {order.items.map((item, index) => (
                                                 <div key={index}>
-                                                    {item.quantity}x {item.name} ({item.size}-{item.compound})
+                                                    {item.quantity}x {item.name} ({item.size}{item.compound ? `-` + item.compound : ''})
                                                 </div>
                                             ))}
                                         </div>
@@ -133,7 +133,7 @@ const Orders = ({ APIServer }) => {
 
                                     {order.items.map((item, index) => (
                                         <div key={index}>
-                                            {item.quantity}x {item.name} ({item.size}-{item.compound})
+                                            {item.quantity}x {item.name} ({item.size}{item.compound ? `-` + item.compound : ''})
                                         </div>
                                     ))}
 
