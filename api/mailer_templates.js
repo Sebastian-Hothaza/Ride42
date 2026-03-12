@@ -301,8 +301,7 @@ const paidTireOrder =
 	${signature}
 </body>`
 
-
-export default {
+module.exports = {
 	welcomeUser,
 	updateUser,
 	passwordChange,

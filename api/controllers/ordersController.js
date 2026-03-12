@@ -5,6 +5,8 @@ const { body, validationResult } = require("express-validator");
 const ObjectId = require('mongoose').Types.ObjectId;
 const jwt = require('jsonwebtoken')
 const controllerUtils = require('./controllerUtils')
+const sendEmail = require('../mailer')
+const mailTemplates = require('../mailer_templates')
 const logger = require('../logger');
 
 
@@ -69,14 +71,18 @@ exports.order_post = [
         }));
 
 
-
+        const balanceDueSnapshot = itemsSnapshot.reduce((sum, i) => sum + (i.price * i.quantity), 0)
         const order = await Order.create({
             user: req.params.userID,
             items: itemsSnapshot,
-            balanceDue: itemsSnapshot.reduce((sum, i) => sum + (i.price * i.quantity), 0),
+            balanceDue: balanceDueSnapshot,
             deliveryDate: req.body.deliveryDate || null
         });
-
+        logger.info({ message: `Order created for ${req.user.name}` });
+        sendEmail(req.user.email, "Your Ride42 Order Has Been Created", mailTemplates.createTireOrder, {
+            name: req.user.name.charAt(0).toUpperCase() + req.user.name.slice(1),
+            balanceDue: balanceDueSnapshot,
+        })
         res.sendStatus(201);
     })
 ];
@@ -107,26 +113,7 @@ exports.order_get = [
 ]
 
 // Update an order. The following fields can be updated: orderStatus, paymentStatus, deliveryDate. Requires JWT with admin.
-
-/*
-TODO: Revise to match this formatting: 
-const userAllowed = ["deliveryDate"];
-const adminAllowed = ["deliveryDate", "paymentStatus", "orderStatus"];
-
-const allowedFields = req.user.memberType === "admin"
-  ? adminAllowed
-  : userAllowed;
-
-const updates = Object.fromEntries(
-  Object.entries(req.body).filter(([k]) => allowedFields.includes(k))
-);
-
-await Order.findByIdAndUpdate(req.params.id, { $set: updates });
-
-*/
-
 exports.order_put = [
-
     body("orderStatus", "Order status must be one of: pending, complete, pending design, pending measurements, pending approval").optional()
         .isIn(["pending", "complete", "pending design", "pending measurements", "pending approval"]),
     body("paymentStatus", "Payment status must be one of: partial, paid").optional()
@@ -146,12 +133,9 @@ exports.order_put = [
         if (req.body.deliveryDate) updateData.deliveryDate = req.body.deliveryDate;
 
         if (req.body.paymentStatus === "paid") {
-
             // Check inventory and decrement stock
             const order = await Order.findById(req.params.orderID);
             if (order.paymentStatus === "paid") return res.status(400).send({ msg: ['Order already marked as paid'] });
-
-
             for (const item of order.items) {
                 const product = await Product.findById(item.product);
                 let variant;
@@ -168,7 +152,19 @@ exports.order_put = [
             }
         }
 
+
         await Order.findByIdAndUpdate(req.params.orderID, updateData, { new: true, runValidators: true });
+        const order = await Order.findById(req.params.orderID);
+        logger.info({ message: `Updated order ${req.params.orderID}` });
+        if (req.body.paymentStatus === "paid") {
+            const prettyDeliveryDate = order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString('default', { month: 'long', day: 'numeric' }) : null;
+            const prettyOrderDate = new Date(order.orderDate).toLocaleDateString('default', { month: 'long', day: 'numeric' });
+            sendEmail(req.user.email, "Your Ride42 Order Has Been Paid", mailTemplates.paidTireOrder, {
+                name: req.user.name.charAt(0).toUpperCase() + req.user.name.slice(1),
+                orderDate: prettyOrderDate,
+                deliveryDate: prettyDeliveryDate ? `at the ${prettyDeliveryDate} trackday` : 'for local pick-up in Kitchener. Please reply to this email to schedule a time.'
+            })
+        }
         res.sendStatus(200);
     })
 ];
@@ -178,7 +174,7 @@ exports.order_delete = [
     controllerUtils.validateOrderID,
     controllerUtils.verifyJWT,
     asyncHandler(async (req, res) => {
-        const order = await Order.findById(req.params.orderID).populate("user", "id");
+        const order = await Order.findById(req.params.orderID).populate("user", "id firstName lastName");
 
         if (req.user.memberType !== "admin" && req.user.id !== order.user.id) return res.sendStatus(403);
 
@@ -202,6 +198,8 @@ exports.order_delete = [
             }
         }
         await Order.findByIdAndDelete(req.params.orderID);
-        res.json({ msg: "Order deleted successfully" });
+        logger.info({ message: `Deleted order ${order._id} for ${order.user.firstName} ${order.user.lastName}` });
+        sendEmail(req.user.email, "Your Ride42 Order Has Been Deleted", mailTemplates.deleteTireOrder, { name: req.user.name.charAt(0).toUpperCase() + req.user.name.slice(1)})
+        return res.sendStatus(200);
     })
 ]
