@@ -235,8 +235,7 @@ describe('Testing order create', () => {
             .send({
                 items: [{
                     product: `4${sampleSupercorsa._id.toString().slice(1)}`, variant: { size: "200/60", compound: "SC3", price: 500, stock: 1 }, quantity: 1
-                }],
-                deliveryDate: "2026-03-10T00:00:00.000Z"
+                }]
             })
             .set('Content-Type', 'application/json')
             .set('Cookie', userCookie)
@@ -270,8 +269,7 @@ describe('Testing order create', () => {
                         variant: { size: "soap", compound: "SC3", price: 500, stock: 1 },
                         quantity: 1
                     }
-                ],
-                deliveryDate: "2026-03-10T00:00:00.000Z"
+                ]
             })
             .set('Content-Type', 'application/json')
             .set('Cookie', userCookie)
@@ -293,14 +291,30 @@ describe('Testing order create', () => {
                         variant: { size: "200/60", compound: "SC2", price: 500, stock: 1 },
                         quantity: 1
                     }
-                ],
-                deliveryDate: "2026-03-10T00:00:00.000Z"
+                ]
             })
             .set('Content-Type', 'application/json')
             .set('Cookie', adminCookie)
             .expect(201);
     });
 
+    test("create order - invalid date", async () => {
+        await request(app)
+            .post(`/orders/${user._id.toString()}`)
+            .send({
+                items: [
+                    {
+                        product: sampleSupercorsa._id.toString(),
+                        variant: { size: "200/60", compound: "SC3" },
+                        quantity: 1,
+                    }
+                ],
+                deliveryDate: "2005-03-10T00:00:00.000Z"
+            })
+            .set('Content-Type', 'application/json')
+            .set('Cookie', userCookie)
+            .expect(400, { msg: [ 'Delivery date is not a valid upcoming trackday' ] });
+    });
 
     test("create valid order", async () => {
         await request(app)
@@ -312,8 +326,7 @@ describe('Testing order create', () => {
                         variant: { size: "200/60", compound: "SC3" },
                         quantity: 1
                     }
-                ],
-                deliveryDate: "2026-03-10T00:00:00.000Z"
+                ]
             })
             .set('Content-Type', 'application/json')
             .set('Cookie', userCookie)
