@@ -18,7 +18,7 @@ const Product = mongoose.model("Product", ProductSchema);
 const TireSchema = new mongoose.Schema({
   variants: [{
     size: { type: String, required: true, enum: ["200/60", "180/60", "120/70"] },
-    compound: { type: String, required: true, enum: ["SC3", "SC2", "SC1"] },
+    compound: { type: String, enum: ["SC3", "SC2", "SC1"], required: false, default: undefined  },
     price: { type: Number, required: true, min: 0, },
     stock: { type: Number, required: true, min: 0, }
   }]
