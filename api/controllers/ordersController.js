@@ -1,4 +1,5 @@
 const { Product, Tire, Gear } = require('../models/Products');
+const Trackday = require('../models/Trackday');
 const Order = require('../models/Orders');
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
@@ -31,7 +32,17 @@ exports.order_post = [
         // Attempt to create order for another user without being the admin
         if (req.user.id !== req.params.userID && req.user.memberType !== 'admin') return res.sendStatus(403);
 
+        // If deliveryDate is provided, make sure it matches a future trackday date
+        if (req.body.deliveryDate) {
+            const upcomingTrackdays = await Trackday.find({ date: { $gt: new Date() } }).select('date -_id').exec();
+            const validDeliveryDate = upcomingTrackdays.some(item =>
+                new Date(item.date).getTime() === new Date(req.body.deliveryDate).getTime()
+            );
+            if (!validDeliveryDate) return res.status(400).send({ msg: ['Delivery date is not a valid upcoming trackday'] });
+        }
+
         // Snapshot each item/product
+        // TODO: We should NOT return res.status here. Instead we should be throwing an error for the handler...
         const itemsSnapshot = await Promise.all(req.body.items.map(async (item) => {
 
             // Find product
