@@ -44,21 +44,34 @@ const ManageProducts = ({ APIServer }) => {
 
 
 
+    // helper to strip out empty compound values so they don't end up as an empty string in the payload
+    const cleanVariants = (list) => {
+        return list.map(v => {
+            const { compound, ...rest } = v;
+            if (compound && compound !== "") {
+                return { ...rest, compound };
+            }
+            return rest;
+        });
+    };
+
     async function handleCreateProduct(e, category) {
         e.preventDefault();
         setActiveModal({ type: 'loading', msg: 'Creating product' });
         try {
+            const payload = {
+                name: e.target.name.value,
+                category: category,
+                variants: cleanVariants(variants),
+            };
+
             const response = await fetch(APIServer + 'products', {
                 method: 'POST',
                 credentials: "include",
                 headers: {
                     'Content-type': 'application/json; charset=UTF-8',
                 },
-                body: JSON.stringify({
-                    name: e.target.name.value,
-                    category: category,
-                    variants: variants,
-                })
+                body: JSON.stringify(payload)
             })
             await fetchProducts();
             if (response.ok) {
@@ -78,17 +91,19 @@ const ManageProducts = ({ APIServer }) => {
         e.preventDefault();
         setActiveModal({ type: 'loading', msg: 'Editing product' });
         try {
+            const payload = {
+                name: e.target.name.value,
+                category: activeModal.product.category,
+                variants: cleanVariants(variants),
+            };
+
             const response = await fetch(APIServer + 'products/' + productID, {
                 method: 'PUT',
                 credentials: "include",
                 headers: {
                     'Content-type': 'application/json; charset=UTF-8',
                 },
-                body: JSON.stringify({
-                    name: e.target.name.value,
-                    category: activeModal.product.category,
-                    variants: variants,
-                })
+                body: JSON.stringify(payload)
             })
             await fetchProducts();
             if (response.ok) {
@@ -155,7 +170,16 @@ const ManageProducts = ({ APIServer }) => {
                             <div className={styles.productHeading}>
                                 {product.name}
                                 <div className={styles.buttonContainer}>
-                                    <button className={styles.editBtn} style={{ color: '#0099ff' }} onClick={() => { setActiveModal({ type: 'editProduct_Tire', product: product }); setVariants(product.variants) }}><span className='material-symbols-outlined'>edit</span></button>
+                                    <button className={styles.editBtn} style={{ color: '#0099ff' }} onClick={() => {
+                                            setActiveModal({ type: 'editProduct_Tire', product: product });
+                                            // make sure controlled fields have string values
+                                            setVariants(product.variants.map(v => ({
+                                                size: v.size || "",
+                                                compound: v.compound || "",
+                                                price: v.price || "",
+                                                stock: v.stock || ""
+                                            })));
+                                        }}><span className='material-symbols-outlined'>edit</span></button>
                                     <button className={styles.editBtn} style={{ backgroundColor: '#bb0000' }} onClick={() => setActiveModal({ type: 'deleteProduct', product: product })}><span className='material-symbols-outlined'>delete</span></button>
                                 </div>
                             </div>
@@ -163,7 +187,7 @@ const ManageProducts = ({ APIServer }) => {
                             <div className={styles.variantsListing}>
                                 {product.variants.map((variant, index) => (
                                     <div key={index} className={styles.productEntryControls}>
-                                        <span>{variant.size}-{variant.compound}</span>
+                                        <span>{variant.size}{variant.compound ? `-` + variant.compound : ''}</span>
                                         <span>${variant.price}</span>
                                         <span>Stock: {variant.stock}</span>
                                     </div>
@@ -223,7 +247,7 @@ const ManageProducts = ({ APIServer }) => {
 
                                 <div>
                                     <label>Compound</label>
-                                    <select value={variant.compound} onChange={(e) => handleVariantChange(index, "compound", e.target.value)} required>
+                                    <select value={variant.compound} onChange={(e) => handleVariantChange(index, "compound", e.target.value)}>
                                         <option value=""></option>
                                         <option value="SC1">SC1</option>
                                         <option value="SC2">SC2</option>
@@ -280,7 +304,7 @@ const ManageProducts = ({ APIServer }) => {
 
                                 <div>
                                     <label>Compound</label>
-                                    <select value={variant.compound} onChange={(e) => handleVariantChange(index, "compound", e.target.value)} required>
+                                    <select value={variant.compound} onChange={(e) => handleVariantChange(index, "compound", e.target.value)}>
                                         <option value=""></option>
                                         <option value="SC1">SC1</option>
                                         <option value="SC2">SC2</option>
