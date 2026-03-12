@@ -177,7 +177,7 @@ const ManageOrders = ({ APIServer }) => {
                                     <div className={styles.orderItems}>
                                         {order.items.map((item, index) => (
                                             <div key={index}>
-                                                {item.quantity}x {item.name} {item.size}-{item.compound}{item.installRequired && '(*)'}
+                                                {item.quantity}x {item.name} {item.size}{item.compound ? `-` + item.compound : ''}{item.installRequired && '(*)'}
                                             </div>
                                         ))}
                                     </div>
