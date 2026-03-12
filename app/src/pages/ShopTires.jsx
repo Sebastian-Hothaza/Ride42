@@ -314,7 +314,6 @@ const ShopTires = ({ APIServer }) => {
 					<label>Price: {price}</label>
 					<button type="submit">ADD</button>
 				</>
-
 			}
 
 		</form>
@@ -323,7 +322,7 @@ const ShopTires = ({ APIServer }) => {
 		{userCart.length > 0 && <>
 			<h3>Your Cart</h3>
 			{userCart.map(item =>
-				<div key={item.uid}>{item.name} {item.size}-{item.compound} x{item.quantity} ${item.price}<button onClick={(e) => handleRemoveTire(item.uid)}>remove</button></div>
+				<div key={item.uid}>{item.name} {item.size}{item.compound ? `-` + item.compound : ''} x{item.quantity} ${item.price}<button onClick={(e) => handleRemoveTire(item.uid)}>remove</button></div>
 			)}
 			<button onClick={(e) => handleCheckOut()}>check out</button>
 		</>}
