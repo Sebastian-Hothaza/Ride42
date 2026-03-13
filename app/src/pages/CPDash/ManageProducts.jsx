@@ -171,15 +171,15 @@ const ManageProducts = ({ APIServer }) => {
                                 {product.name}
                                 <div className={styles.buttonContainer}>
                                     <button className={styles.editBtn} style={{ color: '#0099ff' }} onClick={() => {
-                                            setActiveModal({ type: 'editProduct_Tire', product: product });
-                                            // make sure controlled fields have string values
-                                            setVariants(product.variants.map(v => ({
-                                                size: v.size || "",
-                                                compound: v.compound || "",
-                                                price: v.price || "",
-                                                stock: v.stock || ""
-                                            })));
-                                        }}><span className='material-symbols-outlined'>edit</span></button>
+                                        setActiveModal({ type: 'editProduct_Tire', product: product });
+                                        // make sure controlled fields have string values
+                                        setVariants(product.variants.map(v => ({
+                                            size: v.size || "",
+                                            compound: v.compound || "",
+                                            price: v.price || "",
+                                            stock: v.stock || ""
+                                        })));
+                                    }}><span className='material-symbols-outlined'>edit</span></button>
                                     <button className={styles.editBtn} style={{ backgroundColor: '#bb0000' }} onClick={() => setActiveModal({ type: 'deleteProduct', product: product })}><span className='material-symbols-outlined'>delete</span></button>
                                 </div>
                             </div>
@@ -241,6 +241,7 @@ const ManageProducts = ({ APIServer }) => {
                                         <option value=""></option>
                                         <option value="200/60">200/60</option>
                                         <option value="180/60">180/60</option>
+                                        <option value="120/70">120/70</option>
                                     </select>
                                 </div>
 
@@ -298,6 +299,7 @@ const ManageProducts = ({ APIServer }) => {
                                         <option value=""></option>
                                         <option value="200/60">200/60</option>
                                         <option value="180/60">180/60</option>
+                                        <option value="120/70">120/70</option>
                                     </select>
                                 </div>
 
