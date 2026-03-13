@@ -25,6 +25,8 @@ const ShopTires = ({ APIServer }) => {
 	const [selectedTire, setSelectedTire] = useState('');
 	const [selectedSize, setSelectedSize] = useState('');
 	const [selectedCompound, setSelectedCompound] = useState('');
+	const [deliveryDates, setDeliveryDates] = useState('');
+	const [deliveryDate, setDeliveryDate] = useState('');
 	const [qtyOrder, setQtyOrder] = useState(1);
 	const [installRequired, setInstallRequired] = useState(false);
 
@@ -57,8 +59,31 @@ const ShopTires = ({ APIServer }) => {
 		}
 	}
 
+	async function fetchDates() {
+		try {
+			const response = await fetch(APIServer + 'presenttrackdays', {
+				method: 'GET',
+				headers: {
+					'Content-type': 'application/json; charset=UTF-8',
+				},
+			})
+			if (response.ok) {
+				const data = await response.json();
+				const now = new Date();
+				const upcomingDates = data.filter(td => new Date(td.date) > now).map(td => td.date);
+				setDeliveryDates(upcomingDates);
+			} else {
+				const data = await response.json();
+				console.error('failed to fetch trackday dates')
+			}
+		} catch (err) {
+			console.log(err.message)
+		}
+	}
+
 	useEffect(() => {
 		fetchProducts();
+		fetchDates();
 	}, [])
 
 	// Once a tire is selected, load in the available sizes
@@ -74,7 +99,7 @@ const ShopTires = ({ APIServer }) => {
 
 	}, [selectedTire]); // run only when selectedTire changes
 
-	// Once a size is selected, load in the available compounds
+	// Once a size is selected, load in the available compounds if they exist
 	useEffect(() => {
 		if (!selectedSize) return;
 
@@ -83,21 +108,18 @@ const ShopTires = ({ APIServer }) => {
 
 		const compounds = [...new Set(tire.variants.filter(v => v.size == selectedSize).map(v => v.compound))];
 
-		setCompoundsAvailable(compounds);
+		compounds.includes(undefined) ? setCompoundsAvailable([]) : setCompoundsAvailable(compounds);
+
 	}, [selectedSize]); // run only when selectedSize changes
 
 	// Reset dependent selects when parent changes
 	useEffect(() => {
 		setSelectedSize('');
 		setSelectedCompound('');
-		setQtyOrder(1);
-		setInstallRequired(false);
 	}, [selectedTire]);
 
 	useEffect(() => {
 		setSelectedCompound('');
-		setQtyOrder(1);
-		setInstallRequired(false);
 	}, [selectedSize]);
 
 
@@ -147,13 +169,13 @@ const ShopTires = ({ APIServer }) => {
 		for (let item of userCart) {
 			orderItems.push({
 				product: item.product,
-				variant: { size: item.size, compound: item.compound },
+				variant: { size: item.size, compound: item.compound? item.compound : null },
 				quantity: item.quantity,
 				installRequired: installRequired
 			})
 		}
 
-		
+
 		try {
 			const response = await fetch(APIServer + 'orders/' + loggedInUser.id, {
 				method: 'POST',
@@ -161,12 +183,10 @@ const ShopTires = ({ APIServer }) => {
 				headers: {
 					'Content-type': 'application/json; charset=UTF-8',
 				},
-				body: JSON.stringify({
-					items: orderItems
-				})
+				body: JSON.stringify({ items: orderItems, deliveryDate: deliveryDate ? deliveryDate : null, })
 			})
 			if (response.ok) {
-				setActiveModal({ type: 'success', msg: 'Order created, check it out in your dashboard!' });
+				setActiveModal({ type: 'success', msg: 'Order created, check its status in your dashboard!' });
 				setTimeout(() => setActiveModal(''), 3000)
 				setUserCart([]);
 				setSelectedTire('');
@@ -300,16 +320,18 @@ const ShopTires = ({ APIServer }) => {
 						))}
 					</select>
 
-					<label htmlFor="tireQty">Quantity: </label>
-					<input type='number' value={qtyOrder} onChange={e => setQtyOrder(e.target.value)}></input>
 
-					<label htmlFor="installReq" value={installRequired} onChange={e => setInstallRequired(e.target.checked)}>Install Required </label>
-					<input type='checkbox'></input>
 				</>
 			}
 
-			{selectedCompound &&
+			{(selectedCompound || (selectedSize && compoundsAvailable.length === 0)) &&
 				<>
+
+					<label htmlFor="tireQty">Quantity: </label>
+					<input min={1} type='number' value={qtyOrder} onChange={e => setQtyOrder(e.target.value)}></input>
+
+					<label htmlFor="installReq" value={installRequired} onChange={e => setInstallRequired(e.target.checked)}>Install Required </label>
+					<input type='checkbox'></input>
 					<label>In Stock: {inventory}</label>
 					<label>Price: {price}</label>
 					<button type="submit">ADD</button>
@@ -324,6 +346,13 @@ const ShopTires = ({ APIServer }) => {
 			{userCart.map(item =>
 				<div key={item.uid}>{item.name} {item.size}{item.compound ? `-` + item.compound : ''} x{item.quantity} ${item.price}<button onClick={(e) => handleRemoveTire(item.uid)}>remove</button></div>
 			)}
+			<label>Delivery</label>
+			<select value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)}>
+				<option key="deliverDateNone" value=''>Kitchener Pickup</option>
+				{deliveryDates.map(date => (
+					<option key={date} value={date}>{new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })} Trackday</option>
+				))}
+			</select>
 			<button onClick={(e) => handleCheckOut()}>check out</button>
 		</>}
 	</div>
@@ -333,7 +362,6 @@ const ShopTires = ({ APIServer }) => {
 		<br></br><br></br>
 		<NavLink className={styles.bookBtn} to="/dashboard">Get me access!</NavLink>
 	</div>
-
 
 	return (
 		<>
