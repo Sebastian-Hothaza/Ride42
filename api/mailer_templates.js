@@ -269,7 +269,7 @@ const createTireOrder =
 	`<body>
 	<div class="default-style">
 		Hello {name}, <br /> <br />
-		We have created your tire order. You can view its status in your <a href="https://Ride42.ca/dashboard">rider dashboard</a>✅<br />
+		We have created your tire order. You can view its status in your <a href="https://Ride42.ca/dashboard?tab=orders">rider dashboard</a>✅<br />
 		Please note that your order is not reserved in inventory until your payment of \${balanceDue} is received. Payments can be sent via E-Transfer to sales@ride42.ca<br />
 		<br />
 		Thank you for your order,
