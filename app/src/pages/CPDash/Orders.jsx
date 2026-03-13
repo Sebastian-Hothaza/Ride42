@@ -117,7 +117,7 @@ const Orders = ({ APIServer }) => {
                                     <div>{new Date(order.orderDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
                                     <div>{order.orderStatus}</div>
                                     <div>${order.balanceDue}<em>({order.paymentStatus})</em></div>
-                                    <div className={styles.dateControl}>{order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : 'Local Pickup'}
+                                    <div className={styles.dateControl}>{order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : 'Kitchener Pickup'}
                                         {order.paymentStatus !== 'paid' &&
                                             <div className={styles.productActions}>
                                                 <button className={styles.editBtn} style={{ backgroundColor: '#bb0000' }} onClick={() => setActiveModal({ type: 'deleteOrder', order })}><span className='material-symbols-outlined'>delete</span></button>
@@ -156,7 +156,7 @@ const Orders = ({ APIServer }) => {
 
                                     <div className={styles.pairing}>
                                         <div>Delivery Date:</div>
-                                        {order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : 'Local Pickup'}
+                                        {order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : 'Kitchener Pickup'}
                                     </div>
 
 
