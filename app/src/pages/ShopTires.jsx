@@ -1,6 +1,6 @@
 import styles from './stylesheets/ShopTires.module.css'
 import Card from "../components/Card"
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from "react"
 import pirelli from '../assets/pirelli.png'
 import rosso4 from '../assets/rosso4.png'
@@ -36,6 +36,8 @@ const ShopTires = ({ APIServer }) => {
 
 
 	const [userCart, setUserCart] = useState([]);
+
+	const navigate = useNavigate();
 
 	async function fetchProducts() {
 		try {
@@ -169,7 +171,7 @@ const ShopTires = ({ APIServer }) => {
 		for (let item of userCart) {
 			orderItems.push({
 				product: item.product,
-				variant: { size: item.size, compound: item.compound? item.compound : null },
+				variant: { size: item.size, compound: item.compound ? item.compound : null },
 				quantity: item.quantity,
 				installRequired: installRequired
 			})
@@ -186,10 +188,11 @@ const ShopTires = ({ APIServer }) => {
 				body: JSON.stringify({ items: orderItems, deliveryDate: deliveryDate ? deliveryDate : null, })
 			})
 			if (response.ok) {
-				setActiveModal({ type: 'success', msg: 'Order created, check its status in your dashboard!' });
-				setTimeout(() => setActiveModal(''), 3000)
-				setUserCart([]);
-				setSelectedTire('');
+				setActiveModal({ type: 'success', msg: 'Order created, taking you to your dashboard...' });
+				setTimeout(() => navigate("/dashboard?tab=orders"), 3000)
+				// setUserCart([]);
+				// setSelectedTire('');
+
 			} else {
 				const data = await response.json();
 				setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
