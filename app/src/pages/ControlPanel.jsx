@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import styles from './stylesheets/ControlPanel.module.css'
 import modalStyles from '../components/stylesheets/Modal.module.css'
 
-import { useOutletContext } from "react-router-dom";
+import { useOutletContext, useLocation } from "react-router-dom";
 import Modal from "../components/Modal";
 import Loading from "../components/Loading";
 import Trackdays from './CPDash/Trackdays'
@@ -39,7 +39,16 @@ const ControlPanel = ({ APIServer }) => {
     const [userTrackdays, setUserTrackdays] = useState('');
     const [allTrackdays, setAllTrackdays] = useState('');
 
-    const [activeTab, setActiveTab] = (loggedInUser.memberType == 'staff' || loggedInUser.memberType == 'admin') ? useState('staffTools') : useState('trackdays')
+    const location = useLocation();
+    const query = new URLSearchParams(location.search);
+    const urlTab = query.get("tab"); // e.g. "orders"
+
+    // Compute initial tab
+    const initialTab = urlTab
+        || ((loggedInUser.memberType === 'staff' || loggedInUser.memberType === 'admin') ? 'staffTools' : 'trackdays');
+
+    // UseState with initial value
+    const [activeTab, setActiveTab] = useState(initialTab);
 
 
 
