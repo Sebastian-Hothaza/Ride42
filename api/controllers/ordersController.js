@@ -23,6 +23,7 @@ const logger = require('../logger');
 exports.order_post = [
     body("items", "Orders must have at least one item").isArray({ min: 1 }),
     body("items.*.product", "productID is not a valid ObjectID").isMongoId(),
+    body("deliveryDate", "Delivery date must be a valid date").optional({ values: "falsy" }).isISO8601().toDate(),
 
     controllerUtils.verifyJWT,
     controllerUtils.validateForm,
@@ -56,7 +57,7 @@ exports.order_post = [
             if (product.category === "tire") {
                 variantSnapshot = product.variants.find(v =>
                     v.size === item.variant.size &&
-                    v.compound === item.variant.compound
+                    (item.variant.compound === null || v.compound === item.variant.compound)
                 );
                 if (!variantSnapshot) return res.status(404).send({ msg: ['Variant does not exist'] });
 
@@ -132,7 +133,7 @@ exports.order_put = [
         .isIn(["pending", "complete", "pending design", "pending measurements", "pending approval"]),
     body("paymentStatus", "Payment status must be one of: partial, paid").optional()
         .isIn(["partial", "paid"]),
-    body("deliveryDate", "Delivery date must be a valid date").optional().isISO8601().toDate(),
+    body("deliveryDate", "Delivery date must be a valid date").optional({ values: "falsy" }).isISO8601().toDate(),
     controllerUtils.validateForm,
     controllerUtils.validateOrderID,
 
@@ -144,7 +145,16 @@ exports.order_put = [
         const updateData = {};
         if (req.body.orderStatus) updateData.orderStatus = req.body.orderStatus;
         if (req.body.paymentStatus) updateData.paymentStatus = req.body.paymentStatus;
-        if (req.body.deliveryDate) updateData.deliveryDate = req.body.deliveryDate;
+        updateData.deliveryDate = req.body.deliveryDate;
+
+        // If delivery date is provided, make sure its valid, else its null
+        if (req.body.deliveryDate) {
+            const upcomingTrackdays = await Trackday.find({ date: { $gt: new Date() } }).select('date -_id').exec();
+            const validDeliveryDate = upcomingTrackdays.some(item =>
+                new Date(item.date).getTime() === new Date(req.body.deliveryDate).getTime()
+            );
+            if (!validDeliveryDate) return res.status(400).send({ msg: ['Delivery date is not a valid upcoming trackday'] });
+        } 
 
         if (req.body.paymentStatus === "paid") {
             // Check inventory and decrement stock
