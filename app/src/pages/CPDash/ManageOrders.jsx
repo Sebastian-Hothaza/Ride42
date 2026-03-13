@@ -15,6 +15,8 @@ const ManageOrders = ({ APIServer }) => {
     const [allOrders, setallOrders] = useState([]);
     const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
     const [showCompleted, setShowCompleted] = useState(false); // Track if completed orders should be hidden
+    const [deliveryDates, setDeliveryDates] = useState('');
+
 
 
     async function fetchOrders() {
@@ -45,8 +47,32 @@ const ManageOrders = ({ APIServer }) => {
         }
     }
 
+
+    async function fetchDates() {
+        try {
+            const response = await fetch(APIServer + 'presenttrackdays', {
+                method: 'GET',
+                headers: {
+                    'Content-type': 'application/json; charset=UTF-8',
+                },
+            })
+            if (response.ok) {
+                const data = await response.json();
+                const now = new Date();
+                const upcomingDates = data.filter(td => new Date(td.date) > now).map(td => td.date);
+                setDeliveryDates(upcomingDates);
+            } else {
+                const data = await response.json();
+                console.error('failed to fetch trackday dates')
+            }
+        } catch (err) {
+            console.log(err.message)
+        }
+    }
+
     useEffect(() => {
         fetchOrders();
+        fetchDates();
     }, [])
 
 
@@ -92,8 +118,7 @@ const ManageOrders = ({ APIServer }) => {
         // Attached paymentStatus only if its changed
         if (e.target.paymentStatus.value) body.paymentStatus = e.target.paymentStatus.value;
 
-        // Attach deliveryDate only if it exists (for orders that are local pickup, we don't want to set a delivery date)
-        if (e.target.deliveryDate) body.deliveryDate = e.target.deliveryDate.value;
+        body.deliveryDate = e.target.deliveryDate.value;          
 
 
         try {
@@ -259,9 +284,14 @@ const ManageOrders = ({ APIServer }) => {
                             </select>
                         </div>
 
-                        {activeModal.order?.deliveryDate && <div>
+                        {activeModal.order && <div>
                             <label htmlFor="deliveryDate">Delivery Date</label>
-                            <input type="date" id="deliveryDate" name="deliveryDate" defaultValue={activeModal.order?.deliveryDate.slice(0, 10)} />
+                            <select id="deliveryDate" name="deliveryDate" defaultValue={activeModal.order?.deliveryDate ||''}>
+                                <option key="deliverDateNone" value=''>Kitchener Pickup</option>
+                                {deliveryDates.map(date => (
+                                    <option key={date} value={date}>{new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })} Trackday</option>
+                                ))}
+                            </select>
                         </div>}
 
 
