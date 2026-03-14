@@ -77,7 +77,7 @@ const Orders = ({ APIServer }) => {
             <div className={styles.content}>
                 <h1>My Orders</h1>
                 <p>Orders you place in the shop will show up here. All payments should be sent via E-Transfer to sales@ride42.ca</p>
-                <p>For delivery date changes, please email us at <a href="mailto:info@ride42.ca" style={{ color: "blue", textDecoration: "underline" }}>info@ride42.ca</a></p>
+                <p>For delivery date or other changes, please email us at <a href="mailto:info@ride42.ca" style={{ color: "blue", textDecoration: "underline" }}>info@ride42.ca</a></p>
                 <h2>Tire Orders</h2>
 
 
