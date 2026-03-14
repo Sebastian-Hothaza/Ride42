@@ -9,7 +9,7 @@ async function validateProductParams(req, res, next) {
 
     const tireValidation = [
         body("variants", "Variants must be an array with at least one item").isArray({ min: 1 }),
-        body("variants.*.size", "Each variant must have a valid size").isIn(["200/60", "180/60", "120/70"]),
+        body("variants.*.size", "Each variant must have a valid size").isIn(["110/70", "120/70", "125/70", "140/70", "150/60", "160/60", "180/55", "180/60", "190/60", "200/55", "200/60", "200/65"]),
         body("variants.*.compound", "Invalid compound").optional().isIn(["SC1", "SC2", "SC3"]),
         body("variants.*.price", "Price must be a number >= 0").isFloat({ min: 0 }),
         body("variants.*.stock", "Stock must be an integer >= 0").isInt({ min: 0 }),

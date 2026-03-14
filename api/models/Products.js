@@ -17,8 +17,8 @@ const Product = mongoose.model("Product", ProductSchema);
 // Each tire variant is manually defined unlike gear which is build to order.
 const TireSchema = new mongoose.Schema({
   variants: [{
-    size: { type: String, required: true, enum: ["200/60", "180/60", "120/70"] },
-    compound: { type: String, enum: ["SC3", "SC2", "SC1"], required: false, default: undefined  },
+    size: { type: String, required: true, enum: ["110/70", "120/70", "125/70", "140/70", "150/60", "160/60", "180/55", "180/60", "190/60", "200/55", "200/60", "200/65"] },
+    compound: { type: String, enum: ["SC1", "SC2", "SC3"], required: false, default: undefined  },
     price: { type: Number, required: true, min: 0, },
     stock: { type: Number, required: true, min: 0, }
   }]

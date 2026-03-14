@@ -16,6 +16,9 @@ const ManageProducts = ({ APIServer }) => {
     const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
     const [variants, setVariants] = useState([{ size: "", compound: "", price: "", stock: "" }]); // Used for both create and edit modals to track variant inputs
 
+    const TIRE_SIZES = ["110/70", "120/70", "125/70", "140/70", "150/60", "160/60", "180/55", "180/60", "190/60", "200/55", "200/60", "200/65"];
+    const TIRE_COMPOUNDS = ["SC1", "SC2", "SC3"];
+
     async function fetchProducts() {
         try {
             const response = await fetch(APIServer + 'products', {
@@ -239,9 +242,7 @@ const ManageProducts = ({ APIServer }) => {
                                     <label>Size</label>
                                     <select value={variant.size} onChange={(e) => handleVariantChange(index, "size", e.target.value)} required>
                                         <option value=""></option>
-                                        <option value="200/60">200/60</option>
-                                        <option value="180/60">180/60</option>
-                                        <option value="120/70">120/70</option>
+                                        {TIRE_SIZES.map(tire => <option key={tire} value={tire}>{tire}</option>)}
                                     </select>
                                 </div>
 
@@ -250,9 +251,7 @@ const ManageProducts = ({ APIServer }) => {
                                     <label>Compound</label>
                                     <select value={variant.compound} onChange={(e) => handleVariantChange(index, "compound", e.target.value)}>
                                         <option value=""></option>
-                                        <option value="SC1">SC1</option>
-                                        <option value="SC2">SC2</option>
-                                        <option value="SC3">SC3</option>
+                                        {TIRE_COMPOUNDS.map(tire => <option key={tire} value={tire}>{tire}</option>)}
                                     </select>
                                 </div>
                                 <div>
@@ -297,9 +296,7 @@ const ManageProducts = ({ APIServer }) => {
                                     <label>Size</label>
                                     <select value={variant.size} onChange={(e) => handleVariantChange(index, "size", e.target.value)} required>
                                         <option value=""></option>
-                                        <option value="200/60">200/60</option>
-                                        <option value="180/60">180/60</option>
-                                        <option value="120/70">120/70</option>
+                                        {TIRE_SIZES.map(tire => <option key={tire} value={tire}>{tire}</option>)}
                                     </select>
                                 </div>
 
@@ -308,9 +305,7 @@ const ManageProducts = ({ APIServer }) => {
                                     <label>Compound</label>
                                     <select value={variant.compound} onChange={(e) => handleVariantChange(index, "compound", e.target.value)}>
                                         <option value=""></option>
-                                        <option value="SC1">SC1</option>
-                                        <option value="SC2">SC2</option>
-                                        <option value="SC3">SC3</option>
+                                        {TIRE_COMPOUNDS.map(tire => <option key={tire} value={tire}>{tire}</option>)}
                                     </select>
                                 </div>
                                 <div>
