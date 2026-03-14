@@ -45,7 +45,7 @@ async function main(recipient, subject, htmlBody, args, attachments = []) {
             logger.error({ message: err })
         }
     } else {
-        logger.debug({ message: `Email sent: \n${htmlBody}` });
+        logger.debug({ message: `Email [${subject}]sent to ${recipient}: \n${htmlBody}` });
     }
 
 }
