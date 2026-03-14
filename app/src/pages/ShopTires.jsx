@@ -128,7 +128,8 @@ const ShopTires = ({ APIServer }) => {
 
 	const variant = tireProducts
 		.find(t => t._id === selectedTire)
-		?.variants.find(v => v.size === selectedSize && v.compound === selectedCompound);
+		?.variants.find(v => v.compound ? (v.size === selectedSize && v.compound === selectedCompound) : (v.size === selectedSize));
+
 
 	const inventory = variant?.stock || 0;
 	const price = variant?.price || 999;
