@@ -36,6 +36,7 @@ const ShopTires = ({ APIServer }) => {
 
 
 	const [userCart, setUserCart] = useState([]);
+	const balanceDue = userCart.reduce((sum, item) => { return sum + item.price * item.quantity; }, 0);
 
 	const navigate = useNavigate();
 
@@ -173,7 +174,7 @@ const ShopTires = ({ APIServer }) => {
 				product: item.product,
 				variant: { size: item.size, compound: item.compound ? item.compound : null },
 				quantity: item.quantity,
-				installRequired: installRequired
+				installRequired: item.installRequired
 			})
 		}
 
@@ -291,81 +292,122 @@ const ShopTires = ({ APIServer }) => {
 
 		<br></br>
 		<form id={styles.addTireForm} onSubmit={(e) => handleAddTire(e)} >
-			<label htmlFor="tireName">Select Tire: </label>
-			<select value={selectedTire} onChange={(e) => setSelectedTire(e.target.value)}>
-				<option key="tireNone" value=''>---Choose Tire---</option>
-				{tireProducts.map(tire => (
-					<option key={tire._id} value={tire._id}>
-						{tire.name}
-					</option>
-				))}
-			</select>
+			<div className={styles.inputPairing}>
+				<label htmlFor="tireName">Select Tire: </label>
+				<select value={selectedTire} onChange={(e) => setSelectedTire(e.target.value)}>
+					<option key="tireNone" value=''></option>
+					{tireProducts.map(tire => (
+						<option key={tire._id} value={tire._id}>
+							{tire.name}
+						</option>
+					))}
+				</select>
+			</div>
+
 
 			{selectedTire &&
-				<>
-					<label htmlFor="tireSize">Tire Size: </label>
+				<div className={styles.inputPairing}>
+					<label htmlFor="tireSize">Size: </label>
 					<select value={selectedSize} onChange={(e) => setSelectedSize(e.target.value)}>
-						<option key="sizeNone" value=''>---Choose Size---</option>
+						<option key="sizeNone" value=''></option>
 						{sizesAvailable.map(size => (
 							<option key={size} value={size}>{size}</option>
 						))}
 					</select>
-				</>
+				</div>
 			}
 
 			{selectedSize && compoundsAvailable.length > 0 &&
-				<>
-					<label htmlFor="tireCompound">Tire Compound: </label>
+				<div className={styles.inputPairing}>
+					<label htmlFor="tireCompound">Compound: </label>
 					<select value={selectedCompound} onChange={(e) => setSelectedCompound(e.target.value)}>
-						<option key="compoundNone" value=''>---Choose Compound---</option>
+						<option key="compoundNone" value=''></option>
 						{compoundsAvailable.map(compound => (
 							<option key={compound} value={compound}>{compound}</option>
 						))}
 					</select>
 
 
-				</>
+				</div>
 			}
 
 			{(selectedCompound || (selectedSize && compoundsAvailable.length === 0)) &&
 				<>
+					<div className={styles.inputPairing}>
+						<label>Price: ${price}</label>
+					</div>
+					<div className={styles.inputPairing}>
+						<label>In Stock: {inventory}</label>
+					</div>
+					<div className={styles.inputPairing}>
+						<label htmlFor="tireQty">Quantity: </label>
+						<button type="button" id={styles.qtyButton} onClick={() => setQtyOrder(q => Math.max(1, q - 1))}><span className='material-symbols-outlined'>remove</span></button>
 
-					<label htmlFor="tireQty">Quantity: </label>
-					<input min={1} type='number' value={qtyOrder} onChange={e => setQtyOrder(e.target.value)}></input>
 
-					<label htmlFor="installReq" value={installRequired} onChange={e => setInstallRequired(e.target.checked)}>Install Required </label>
-					<input type='checkbox'></input>
-					<label>In Stock: {inventory}</label>
-					<label>Price: {price}</label>
-					<button type="submit">ADD</button>
+						<input
+							type="number"
+							min={1}
+							max={25}
+							step={1}
+							value={qtyOrder}
+							onChange={(e) => {
+								const val = Number(e.target.value);
+								if (!Number.isNaN(val)) setQtyOrder(Math.max(1, val));
+							}}
+						/>
+
+						<button id={styles.qtyButton} type="button" onClick={() => setQtyOrder(q => q + 1)}><span className='material-symbols-outlined'>add</span></button>
+					</div>
+
+					<div className={styles.inputPairing}>
+						<label htmlFor="installReq" >Install Required </label>
+						<input checked={installRequired} onChange={e => setInstallRequired(e.target.checked)} type='checkbox'></input>
+					</div>
+
+
+					<button type="submit">Add To Cart</button>
+
 				</>
+
 			}
 
-		</form>
+		</form >
 
 
-		{userCart.length > 0 && <>
-			<h3>Your Cart</h3>
-			{userCart.map(item =>
-				<div key={item.uid}>{item.name} {item.size}{item.compound ? `-` + item.compound : ''} x{item.quantity} ${item.price}<button onClick={(e) => handleRemoveTire(item.uid)}>remove</button></div>
-			)}
-			<label>Delivery</label>
-			<select value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)}>
-				<option key="deliverDateNone" value=''>Kitchener Pickup</option>
-				{deliveryDates.map(date => (
-					<option key={date} value={date}>{new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })} Trackday</option>
-				))}
-			</select>
-			<button onClick={(e) => handleCheckOut()}>check out</button>
-		</>}
-	</div>
+		{
+			userCart.length > 0 &&
+			<div id={styles.cart}>
+				<h3>Your Cart</h3>
+
+				{userCart.map(item =>
+					<div id={styles.cartEntry} key={item.uid}>
+						<div>{item.quantity}x {item.name} {item.size}{item.compound ? `-` + item.compound : ''}{item.installRequired && ' (Install Required)'}</div>
+						<button onClick={(e) => handleRemoveTire(item.uid)}>Remove Item</button>
+					</div>
+				)}
+
+				<div className={styles.inputPairing}>
+					<label>Delivery</label>
+					<select value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)}>
+						<option key="deliverDateNone" value=''>Kitchener Pickup</option>
+						{deliveryDates.map(date => (
+							<option key={date} value={date}>{new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })} Trackday</option>
+						))}
+					</select>
+				</div>
+				<div className={styles.inputPairing}>
+					<label>Balance Due: ${balanceDue}</label>
+				</div>
+				<button id={styles.checkoutButton} onClick={(e) => handleCheckOut()}>Submit Order</button>
+			</div>
+		}
+	</div >
 
 	const HTML_Deny = <div className={styles.rulesCard}>
 		<h2>Our shop is exclusive to our members. You must have an account and be signed in to submit an order.</h2>
 		<br></br><br></br>
 		<NavLink className={styles.bookBtn} to="/dashboard">Get me access!</NavLink>
 	</div>
-
 	return (
 		<>
 			<div className={styles.content}>
