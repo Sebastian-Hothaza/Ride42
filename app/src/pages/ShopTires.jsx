@@ -212,7 +212,7 @@ const ShopTires = ({ APIServer }) => {
 		<p>Below, you will find more information on the 3 tire options. Here is a quick summary:</p>
 		<br></br>
 		<ol>
-			<li><b>Diablo Rosso IV Corsa: </b>Perfect for riders who take their bikes out on public roads. Dual compound for increased longevity. </li>
+			<li><b>Rosso IV Corsa: </b>Perfect for riders who take their bikes out on public roads. Dual compound for increased longevity. </li>
 			<li><b>SuperCorsa TD SC3: </b>Dedicated trackday tire for intermediate riders. Very quick warmup, does not require tire warmers.  </li>
 			<li><b>Superbike Slicks: </b>For riders demanding WSBK-level grip & feedback. </li>
 		</ol>
@@ -224,7 +224,7 @@ const ShopTires = ({ APIServer }) => {
 	</div>
 
 	const HTML_rosso4 = <div className={styles.rulesCard}>
-		<p>DIABLO ROSSO™ IV Corsa is intended for thrill seekers and bike-tuning enthusiasts looking for the most out of their supersport tires.
+		<p>The Pirelli Diablo Rosso IV Corsa is intended for thrill seekers and bike-tuning enthusiasts looking for the most out of their supersport tires.
 			Factory optioned tire on many modern superbikes offering unparalled grip.</p>
 		<br></br>
 		<ul>
@@ -240,7 +240,7 @@ const ShopTires = ({ APIServer }) => {
 
 	const HTML_TDSC3 = <div className={styles.rulesCard}>
 		<p>
-			The Pirelli Diablo Supercorsa SC3 is a semi-slick tire built for track days where durability and consistent performance are essential.
+			The Pirelli Diablo Supercorsa TD SC3 is a semi-slick tire built for track days where durability and consistent performance are essential.
 			Derived from Pirelli’s WorldSBK racing technology, the SC3 compound delivers predictable grip, precise feedback, and excellent stability throughout long track sessions, making it a
 			popular choice for riders who want race-level performance without sacrificing longevity.
 		</p>
@@ -260,7 +260,7 @@ const ShopTires = ({ APIServer }) => {
 
 	const HTML_Slicks = <div className={styles.rulesCard}>
 		<p>
-			The Pirelli Diablo Superbike Slick is a pure racing tire developed directly from Pirelli’s WorldSBK championship-winning technology. Designed exclusively for track use,
+			The Pirelli Diablo Superbike Slick is a pure racing tire developed directly from Pirelli’s WorldSBK championship winning technology. Designed exclusively for track use,
 			these slick tires deliver maximum grip, precise feedback, and exceptional cornering stability at the highest levels of performance. With multiple compound options available,
 			riders can select the ideal balance of grip and durability to match track conditions and riding style.
 		</p>
@@ -413,7 +413,7 @@ const ShopTires = ({ APIServer }) => {
 		<>
 			<div className={styles.content}>
 				<Card heading={loggedInUser ? `Welcome ${loggedInUser?.firstName.charAt(0).toUpperCase() + loggedInUser?.firstName.slice(1)}!` : 'Welcome!'} body={HTML_Welcome} img={pirelli} inverted={false} />
-				<Card heading='Diablo Rosso IV Corsa' body={HTML_rosso4} img={rosso4} inverted={true} />
+				<Card heading='Rosso IV Corsa' body={HTML_rosso4} img={rosso4} inverted={true} />
 				<Card heading='SuperCorsa TD SC3' body={HTML_TDSC3} img={sc3} inverted={false} />
 				<Card heading='Superbike Slicks' body={HTML_Slicks} img={slick} inverted={true} />
 				<Card heading='Submit your order' body={loggedInUser ? HTML_Order : HTML_Deny} />
