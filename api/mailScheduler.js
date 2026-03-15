@@ -15,13 +15,11 @@ async function checkOutgoingMail() {
             { processing: true },
             { new: true }
         );
-
         if (!mail) break;
-
         try {
+            const targets = mail.params.target;
             // Verify required params for email blast
             if (mail.to.length > 1) {
-                const targets = mail.params.target;
                 if (!targets) throw new Error('Email blast has undefined targets');
                 logger.info(`Begin email blast to ${targets} attendees. Email ID: ${mail._id}`);
             }
@@ -34,14 +32,11 @@ async function checkOutgoingMail() {
                     mailTemplates[mail.message],
                     mail.params || {}
                 );
-                await sleep(5); // wait 5 seconds before next email
+                await sleep(10); // wait 10 seconds before next email
             }
-
-            if (mail.to.length > 1) logger.info(`Finish email blast`);
-
+            if (mail.to.length > 1) logger.info(`Finish email blast to ${targets} attendees. Email ID: ${mail._id}`);
             // Successfully sent emails, remove from DB
             await ScheduledMail.deleteOne({ _id: mail._id });
-
         } catch (err) {
             logger.error({ message: `Failed to send email: ${err.message}. Removing from queue.` });
             await ScheduledMail.deleteOne({ _id: mail._id }); // DELETE the invalid mail so it doesn't get retried
