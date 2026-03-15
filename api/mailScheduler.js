@@ -2,6 +2,7 @@ const ScheduledMail = require('./models/ScheduledMail');
 const sendEmail = require('./mailer')
 const mailTemplates = require('./mailer_templates')
 const logger = require('./logger');
+const User = require('./models/User');
 
 function sleep(s) {
     return new Promise(resolve => setTimeout(resolve, 1000 * s));
@@ -17,24 +18,32 @@ async function checkOutgoingMail() {
         );
         if (!mail) break;
         try {
+            let allUsers;
             const targets = mail.params.target;
             // Verify required params for email blast
             if (mail.to.length > 1) {
                 if (!targets) throw new Error('Email blast has undefined targets');
-                logger.info(`Begin email blast to ${targets} attendees. Email ID: ${mail._id}`);
+
+                // Get all users name and email so we can populate the name in the sendEmail param
+                allUsers = await User.find().select('firstName contact.email').exec();
+
+                logger.info({message: `Begin email blast to ${targets} members. ${mail._id}`});
             }
 
             // Send email to all recepients
             for (const recipient of mail.to) {
+                let user = allUsers.find(u => u.contact.email === recipient);
+                user = user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1);
+
                 await sendEmail(
                     recipient,
                     mail.subject,
-                    mail.params.target? mail.message : mailTemplates[mail.message],
-                    mail.params || {}
+                    (mail.to.length === 1) ? mailTemplates[mail.message] : mail.message,
+                    (mail.to.length === 1) ? mail.params || {} : { name: user }
                 );
                 await sleep(10); // wait 10 seconds before next email
             }
-            if (mail.to.length > 1) logger.info(`Finish email blast to ${targets} attendees. Email ID: ${mail._id}`);
+            if (mail.to.length > 1) logger.info({message: `Finish email blast to ${targets} members. ${mail._id}`});
             // Successfully sent emails, remove from DB
             await ScheduledMail.deleteOne({ _id: mail._id });
         } catch (err) {
