@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // Attempt to send the email
-async function main(recipient, subject, htmlBody, args, attachments = []) {
+async function main(recipient, subject, htmlBody, args, attachments = [], includeSignature = true) {
     // Check if args were received, and if so, inject them into the HTML body
     if (args && Object.keys(args).length) {
         Object.keys(args).forEach((arg) => {
@@ -24,14 +24,41 @@ async function main(recipient, subject, htmlBody, args, attachments = []) {
     }
     if (process.env.NODE_ENV === 'production' && process.env.CORS_ORIGIN !== 'https://demo.ride42.ca') {
         try {
-            const emailAttachments = recipient !== 'waiver@ride42.ca' ? [
-                {
-                    filename: 'ride42.png',
-                    path: 'ride42.png',
-                    cid: 'sigImg'
-                },
-                ...attachments,
-            ] : attachments;
+            // Add attachments
+            const emailAttachments = includeSignature ? [{
+                filename: 'ride42.png',
+                path: 'ride42.png',
+                cid: 'sigImg'
+            }, ...attachments,] : attachments;
+
+            // Append the signature
+            if (includeSignature) {
+                const signature = `
+                    <div class="io-ox-signature">
+                            <div class="default-style">
+                                <div class="default-style">
+                                    &nbsp;
+                                </div>
+                                <div>
+                                    <span style="color: #808080;">Sebastian Hothaza</span>
+                                </div> <span style="color: #808080;"><em>Founder</em></span>
+                            </div>
+                            <div class="default-style">
+                                <img class="aspect-ratio" style="max-width: 100%;" src="cid:sigImg" alt="" width="130" height="30">
+                            </div>
+                            <div class="default-style">
+                                <a href="http://ride42.ca/"><strong>Visit us online</strong></a>
+                            </div>
+                            <div class="default-style">
+                                <a href="https://www.facebook.com/groups/ride42/"><strong>Join us on Facebook</strong></a>
+                            </div>
+                    </div>`
+                if (htmlBody.match(/<\/body>/i)) {
+                    htmlBody = htmlBody.replace(/<\/body>/i, `${signature}</body>`);
+                } else {
+                    htmlBody += signature;
+                }
+            }
 
             await transporter.sendMail({
                 from: '"Ride42" <info@ride42.ca>',
