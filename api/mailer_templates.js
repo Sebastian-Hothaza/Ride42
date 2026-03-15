@@ -1,26 +1,3 @@
-const signature =
-	`
-<div class="io-ox-signature">
-		<div class="default-style">
-			<div class="default-style">
-				&nbsp;
-			</div>
-			<div>
-				<span style="color: #808080;">Sebastian Hothaza</span>
-			</div> <span style="color: #808080;"><em>Founder</em></span>
-		</div>
-		<div class="default-style">
-			<img class="aspect-ratio" style="max-width: 100%;" src="cid:sigImg" alt="" width="130" height="30">
-		</div>
-		<div class="default-style">
-			<a href="http://ride42.ca/"><strong>Visit us online</strong></a>
-		</div>
-		<div class="default-style">
-			<a href="https://www.facebook.com/groups/ride42/"><strong>Join us on Facebook</strong></a>
-		</div>
-</div>
-`
-
 const welcomeUser =
 	`<body>
 	<div class="default-style">
@@ -53,7 +30,6 @@ const welcomeUser =
 	Welcome to the best trackday experience, Welcome to Ride42! 🔥
 	
 	</div>
-	${signature}
 </body>`
 
 const updateUser =
@@ -65,7 +41,6 @@ const updateUser =
 		<br />
 		If you did not make any recent changes, please contact us immediately.
 	</div>
-	${signature}
 </body>`
 
 const passwordChange =
@@ -77,7 +52,6 @@ const passwordChange =
 		<br />
 		If you did not request this password change, please contact us immediately.
 	</div>
-	${signature}
 </body>`
 
 const passwordResetLink =
@@ -91,7 +65,6 @@ const passwordResetLink =
 
 		⚠️If you did not request a password reset, please contact us immediately.⚠️
 	</div>
-	${signature}
 </body>`
 
 const registerTrackday_credit =
@@ -111,7 +84,6 @@ const registerTrackday_credit =
 
 		We look forward to seeing you on track soon! 🚀
 	</div>
-	${signature}
 </body>`
 
 const registerTrackday_etransfer =
@@ -134,7 +106,6 @@ const registerTrackday_etransfer =
 
 		We look forward to seeing you on track soon! 🚀
 	</div>
-	${signature}
 </body>`
 
 const registerTrackday_creditcard =
@@ -157,7 +128,6 @@ const registerTrackday_creditcard =
 
 		We look forward to seeing you on track soon! 🚀
 	</div>
-	${signature}
 </body>`
 
 const registerTrackday_gate =
@@ -180,7 +150,6 @@ const registerTrackday_gate =
 
 		We look forward to seeing you on track soon! 🚀
 	</div>
-	${signature}
 </body>`
 
 const unregisterTrackday =
@@ -197,7 +166,6 @@ const unregisterTrackday =
 
 		We are sorry to hear you couldn't make it out this time and hope to see you again soon! 😊
 	</div>
-	${signature}
 </body>`
 
 const unregisterTrackday_admin =
@@ -222,7 +190,6 @@ const rescheduleTrackday =
 		<br />
 		We look forward to seeing you on track soon! 🚀
 	</div>
-	${signature}
 </body>`
 
 
@@ -236,7 +203,6 @@ const paymentReminder_etransfer =
 		<br />
 		We look forward to seeing you on track soon! 🚀
 	</div>
-	${signature}
 </body>`
 
 const paymentReminder_creditcard =
@@ -249,7 +215,6 @@ const paymentReminder_creditcard =
 		<br />
 		We look forward to seeing you on track soon! 🚀
 	</div>
-	${signature}
 </body>`
 
 
@@ -261,7 +226,6 @@ const notifyPaid =
 		<br />
 		We look forward to seeing you on track soon! 🚀
 	</div>
-	${signature}
 </body>`
 
 
