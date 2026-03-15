@@ -450,7 +450,8 @@ exports.waiverSubmit = asyncHandler(async (req, res, next) => {
                     content: pdfBuffer, // File content as a Buffer
                     contentType: 'application/pdf', // MIME type
                 },
-            ]
+            ],
+            false
         );
 
 
