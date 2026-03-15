@@ -29,7 +29,7 @@ async function checkOutgoingMail() {
                 await sendEmail(
                     recipient,
                     mail.subject,
-                    mailTemplates[mail.message],
+                    mail.params.target? mail.message : mailTemplates[mail.message],
                     mail.params || {}
                 );
                 await sleep(10); // wait 10 seconds before next email
