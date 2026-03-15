@@ -211,7 +211,7 @@ exports.register = [
             if (req.body.paymentMethod === 'etransfer' || req.body.paymentMethod === 'creditCard') {
                 const scheduledMail = new ScheduledMail({
                     sendOn: new Date(trackday.date.getTime() - (process.env.DAYS_LOCKOUT * 24 * 60 * 60 * 1000)), // Schedule for 7 days before trackday, thus have until end of day
-                    to: user.contact.email,
+                    to: [user.contact.email],
                     params: { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: prettyDate, price: trackday.ticketPrice.preReg },
                     subject: `Payment Reminder for ${prettyDate}`,
                     // This is used to identify the email template when sendMail is called
@@ -291,7 +291,7 @@ exports.unregister = [
             // Remove scheduled mail if it exists
             // TODO: Possible issue if sendOn varies by a few ms, we may not delete the reminder email. Likely non-issue.
             await ScheduledMail.deleteOne({
-                to: memberEntry.user.contact.email,
+                to: memberEntry.user.contact.email, // Note: MongoDB special behaviour: If you query an array field with a scalar value, MongoDB checks whether the array contains that value.
                 sendOn: new Date(trackday.date.getTime() - (process.env.DAYS_LOCKOUT * 24 * 60 * 60 * 1000)),
                 message: memberEntry.paymentMethod === 'etransfer' ? 'paymentReminder_etransfer' : 'paymentReminder_creditcard'
             })
@@ -376,7 +376,7 @@ exports.reschedule = [
             // TODO: Possible issue if sendOn varies by a few ms, we may not update the reminder email. Likely non-issue.
             await ScheduledMail.updateOne(
                 {
-                    to: user.contact.email,
+                    to: user.contact.email, // Note: MongoDB special behaviour: If you query an array field with a scalar value, MongoDB checks whether the array contains that value.
                     sendOn: new Date(trackdayOLD.date.getTime() - (process.env.DAYS_LOCKOUT * 24 * 60 * 60 * 1000)),
                     message: memberEntryOLD.paymentMethod === 'etransfer' ? 'paymentReminder_etransfer' : 'paymentReminder_creditcard'
                 },
@@ -612,7 +612,7 @@ exports.updatePaid = [
                 // Remove scheduled mail if it exists
                 // TODO: Possible issue if sendOn varies by a few ms, we may not delete the reminder email. Likely non-issue.
                 await ScheduledMail.deleteOne({
-                    to: memberEntry.user.contact.email,
+                    to: memberEntry.user.contact.email, // Note: MongoDB special behaviour: If you query an array field with a scalar value, MongoDB checks whether the array contains that value.
                     sendOn: new Date(trackday.date.getTime() - (process.env.DAYS_LOCKOUT * 24 * 60 * 60 * 1000)),
                     message: memberEntry.paymentMethod === 'etransfer' ? 'paymentReminder_etransfer' : 'paymentReminder_creditcard'
                 })
