@@ -2,7 +2,7 @@ const express = require('express');
 const logger = require('./logger');
 const router = require('./routes/index');
 const cookieParser = require('cookie-parser')
-const { startMailListener, stopMailListener } = require('./mailListener'); // Import the mailListener setup function
+const { startPaymentsListener, stopPaymentsListener, startForwardingListener, stopForwardingListener } = require('./mailListener'); // Import the mailListener setup function
 const checkOutgoingMail = require('./mailScheduler'); // Import the mailListener setup function
 const os = require('os'); // required to get machine name
 
@@ -12,16 +12,19 @@ const app = express();
 // Only activate the mail Listener on correspondingfly machine.
 // Otherwise risk of 2 listeners running which causes issues.
 // If wanting to test mailListener, need to shut it down on API
-// Mail listener listens for incoming e-transfer notification emails in INBOX/Payments.
-// It attempts to process them to auto-mark e-transfer users as paid
+// Payments listener listens for incoming e-transfer notification emails in INBOX/Payments. It attempts to process them to auto-mark e-transfer users as paid
+// Forwarding listener listens for emails in INBOX/API Mailer Records that are destined for autoforward@ride42.ca. It then schedules the corresponding email to send.
 // Auto-restarts every 24 Hours to ensure reliability
 const machineName = os.hostname();
 if (machineName === process.env.MAIL_LISTENER_MACHINE) {
 	logger.debug({ message: `Machine ${machineName} is listening for mail.` });
-	startMailListener();
+	startPaymentsListener();
+	startForwardingListener();
 	setInterval(() => {
-		stopMailListener();
-		setTimeout(() => startMailListener(), 5000);
+		stopPaymentsListener();
+		stopForwardingListener();
+		setTimeout(() => startPaymentsListener(), 10000);
+		setTimeout(() => startForwardingListener(), 10000);
 	}, 24 * 60 * 60 * 1000);
 }
 

@@ -1,5 +1,5 @@
 const { MailListener } = require("mail-listener5");
-let mailListener; // Global mail listener instance which can be stopped and started
+let paymentsListener, forwardingListener; // Global mail listener instance which can be stopped and started
 const logger = require('./logger');
 const sendEmail = require('./mailer')
 const mailTemplates = require('./mailer_templates')
@@ -8,8 +8,12 @@ const User = require('./models/User');
 const Trackday = require('./models/Trackday');
 const ScheduledMail = require('./models/ScheduledMail');
 
-const MAX_RESTART = 10; // Max number of tries to restart listener when encounter an error
-let numRestarts = 0;
+// Max number of tries to restart listener when encounter an error
+const MAX_RESTART_PAYMENTS = 10
+const MAX_RESTART_FORWARDING = 10;
+
+let numRestarts_payments = 0
+let numRestarts_forwarding = 0;
 
 async function getUser(mail) {
 	userEmail = mail.headers.get('reply-to').value[0].address;
@@ -42,18 +46,9 @@ function getAmount(emailText) {
 	return receivedAmount;
 }
 
-// Stops the mail listener instance
-function stopMailListener() {
-	if (mailListener) {
-		mailListener.stop();
-		numRestarts = 0; // Reset restart counter
-		mailListener = null; // Clear the global instance
-	}
-}
-
-// Starts new mail listener instance
-function startMailListener() {
-	mailListener = new MailListener({
+// Starts new mail listener instance for payments
+function startPaymentsListener() {
+	paymentsListener = new MailListener({
 		username: process.env.ADMIN_EMAIL,
 		password: process.env.ADMIN_EMAIL_PASSWORD,
 		host: process.env.ADMIN_EMAIL_HOST,
@@ -72,15 +67,15 @@ function startMailListener() {
 		attachmentOptions: { directory: "attachments/" } // specify a download directory for attachments
 	});
 
-	mailListener.start();
+	paymentsListener.start();
 
-	mailListener.on("mail", async function (mail, seqno, attributes) {
+	paymentsListener.on("mail", async function (mail, seqno, attributes) {
 		try {
 			// Determine the user from the email
 			const user = await getUser(mail);
 			if (!user) {
 				// Move the email to the TODO folder
-				mailListener.imap.move(attributes.uid, "INBOX/Payments/TODO", (err) => {
+				paymentsListener.imap.move(attributes.uid, "INBOX/Payments/TODO", (err) => {
 					if (err) logger.error({ message: 'Failed to move email to processed folder' });
 				});
 				return;
@@ -108,7 +103,7 @@ function startMailListener() {
 				const memberEntry = trackday.members.find((member) => member.user.equals(user.id));
 				workingTrackdays.push({
 					id: trackday.id,
-					ticketPrice: memberEntry.paymentMethod === 'etransfer'? trackday.ticketPrice.preReg : trackday.ticketPrice.gate,
+					ticketPrice: memberEntry.paymentMethod === 'etransfer' ? trackday.ticketPrice.preReg : trackday.ticketPrice.gate,
 					paid: memberEntry.paid,
 				})
 			})
@@ -154,17 +149,17 @@ function startMailListener() {
 				})
 
 				// Mark the email as read 
-				mailListener.imap.addFlags(attributes.uid, '\\Seen', (err) => {
+				paymentsListener.imap.addFlags(attributes.uid, '\\Seen', (err) => {
 					if (err) logger.error({ message: 'Failed to mark email as unread' });
 				});
 
 				// Move the email to the processed folder
-				mailListener.imap.move(attributes.uid, "INBOX/Payments/Processed", (err) => {
+				paymentsListener.imap.move(attributes.uid, "INBOX/Payments/Processed", (err) => {
 					if (err) logger.error({ message: 'Failed to move email to processed folder' });
 				});
 			} else {
 				// Move the email to the TODO folder
-				mailListener.imap.move(attributes.uid, "INBOX/Payments/TODO", (err) => {
+				paymentsListener.imap.move(attributes.uid, "INBOX/Payments/TODO", (err) => {
 					if (err) logger.error({ message: 'Failed to move email to processed folder' });
 				});
 
@@ -173,27 +168,109 @@ function startMailListener() {
 		} catch (err) {
 			logger.error({ message: `Error processing email: ${err.message}` });
 			// Move the email to the TODO folder
-			mailListener.imap.move(attributes.uid, "INBOX/Payments/TODO", (err) => {
+			paymentsListener.imap.move(attributes.uid, "INBOX/Payments/TODO", (err) => {
 				if (err) logger.error({ message: 'Failed to move email to processed folder' });
 			});
 		}
 	});
 
-	mailListener.on("error", function (err) {
-		if (numRestarts < MAX_RESTART) {
+	paymentsListener.on("error", function (err) {
+		if (numRestarts_payments < MAX_RESTART_PAYMENTS) {
 			setTimeout(() => {
-				mailListener.start();
-				numRestarts++;
+				paymentsListener.start();
+				numRestarts_payments++;
 			}, 5000); // 5 second delay
 		} else {
-			logger.error({ message: `mailListener error: ${err.message}. Failed to restart service` });
+			logger.error({ message: `paymentsListener error: ${err.message}. Failed to restart service` });
 		}
 	});
 
-	mailListener.on("disconnected", function () {
+	paymentsListener.on("disconnected", function () {
 		logger.error({ message: 'imapDisconnected. Attempting to reconnect...' });
-		mailListener.start(); // attempt to reconnect
+		paymentsListener.start(); // attempt to reconnect
 	});
 }
 
-module.exports = { startMailListener, stopMailListener };
+// Stops the mail listener instance for payments
+function stopPaymentsListener() {
+	if (paymentsListener) {
+		paymentsListener.stop();
+		numRestarts_payments = 0; // Reset restart counter
+		paymentsListener = null; // Clear the global instance
+	}
+}
+
+// Starts new mail listener instance for forwarding
+function startForwardingListener() {
+	forwardingListener = new MailListener({
+		username: process.env.ADMIN_EMAIL,
+		password: process.env.ADMIN_EMAIL_PASSWORD,
+		host: process.env.ADMIN_EMAIL_HOST,
+		port: 993, // imap port
+		tls: true,
+		connTimeout: 10000, // Default by node-imap
+		authTimeout: 5000, // Default by node-imap,
+		//debug: console.log, // Or your custom function with only one incoming argument. Default: null
+		autotls: 'never', // default by node-imap
+		tlsOptions: { rejectUnauthorized: false },
+		mailbox: "INBOX/API Mailer Records", // mailbox to monitor
+		searchFilter: ["UNSEEN"], // the search filter being used after an IDLE notification has been retrieved
+		markSeen: false, // we manually will mark mail as read since we only do so if processing was successful
+		fetchUnreadOnStart: true, // fetch unread emails that are already in the mailbox when the listener starts
+		attachments: false, // disable attachment handling
+		attachmentOptions: { directory: "attachments/" } // specify a download directory for attachments
+	});
+
+	forwardingListener.start();
+
+	forwardingListener.on("mail", async function (mail, seqno, attributes) {
+		try {
+			console.log('email received');
+
+			console.log('TODO: Verify header');
+
+			console.log('TODO: Verify token');
+
+			console.log('TODO: Verify target');
+
+			console.log('TODO: create DB entry');
+
+			throw new Error('sample error')
+
+		} catch (err) {
+			logger.error({ message: `Error processing email: ${err.message}` });
+		}
+		// Mark the email as read 
+		forwardingListener.imap.addFlags(attributes.uid, '\\Seen', (err) => {
+			if (err) logger.error({ message: 'Failed to mark email as unread' });
+		});
+	});
+
+	forwardingListener.on("error", function (err) {
+		if (numRestarts_forwarding < MAX_RESTART_FORWARDING) {
+			setTimeout(() => {
+				forwardingListener.start();
+				numRestarts_forwarding++;
+			}, 5000); // 5 second delay
+		} else {
+			logger.error({ message: `forwardingListener error: ${err.message}. Failed to restart service` });
+		}
+	});
+
+	forwardingListener.on("disconnected", function () {
+		logger.error({ message: 'imapDisconnected. Attempting to reconnect...' });
+		forwardingListener.start(); // attempt to reconnect
+	});
+}
+
+// Stops the mail listener instance for forwarding
+function stopForwardingListener() {
+	if (forwardingListener) {
+		forwardingListener.stop();
+		numRestarts_forwarding = 0; // Reset restart counter
+		forwardingListener = null; // Clear the global instance
+	}
+}
+
+
+module.exports = { startPaymentsListener, stopPaymentsListener, startForwardingListener, stopForwardingListener };
