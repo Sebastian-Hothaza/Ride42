@@ -230,4 +230,12 @@ const notifyPaid =
 
 
 
-module.exports = { welcomeUser, updateUser, passwordChange, passwordResetLink, registerTrackday_credit, registerTrackday_etransfer, registerTrackday_creditcard, registerTrackday_gate, unregisterTrackday, unregisterTrackday_admin, rescheduleTrackday, paymentReminder_etransfer, paymentReminder_creditcard, notifyPaid };
+const notifyMassEmail =
+	`<body>
+	<div class="default-style">
+		<h1> MASS EMAIL HAS BEEN SCHEDULED </h1>
+	</div>
+</body>`
+
+
+module.exports = { welcomeUser, updateUser, passwordChange, passwordResetLink, registerTrackday_credit, registerTrackday_etransfer, registerTrackday_creditcard, registerTrackday_gate, unregisterTrackday, unregisterTrackday_admin, rescheduleTrackday, paymentReminder_etransfer, paymentReminder_creditcard, notifyPaid, notifyMassEmail };
