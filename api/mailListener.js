@@ -46,6 +46,32 @@ function getAmount(emailText) {
 	return receivedAmount;
 }
 
+
+
+// Returns an array of targeted recipients emails for a specified target (Ie. 'May 4, 2026' or 'all').
+// If target is invalid, returns [].
+async function updateTargetRecipients(target) {
+	let result = []
+	if (target === 'all') {
+		// Get all users
+		const allUsers = await User.find().select('contact.email')
+		for (let user of allUsers) result.push(user.contact.email)
+	} else {
+		// Get all Trackdays
+		const startOfYear = new Date(new Date().getFullYear(), 0, 1); // Jan 1 of this year
+		const endOfYear = new Date(new Date().getFullYear(), 11, 31, 23, 59, 59, 999); // Dec 31 end of day
+		const allTrackdays = await Trackday.find({ date: { $gte: startOfYear, $lte: endOfYear } }).select('date').populate('members.user', '-password -refreshToken -__v').exec();
+
+		// Match target to a trackday
+		const trackdayTarget = allTrackdays.find(td => td.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) === target)
+		if (!trackdayTarget) throw new Error(`Failed to find a trackday with target ${target}. Format example: May 4, 2026`)
+
+		// Built array from matched trackday
+		for (let member of trackdayTarget.members) result.push(member.user.contact.email)
+	}
+	return result;
+}
+
 // Starts new mail listener instance for payments
 function startPaymentsListener() {
 	paymentsListener = new MailListener({
@@ -217,7 +243,7 @@ function startForwardingListener() {
 		searchFilter: ["UNSEEN"], // the search filter being used after an IDLE notification has been retrieved
 		markSeen: false, // we manually will mark mail as read since we only do so if processing was successful
 		fetchUnreadOnStart: true, // fetch unread emails that are already in the mailbox when the listener starts
-		attachments: false, // disable attachment handling
+		attachments: true, // required to get the metadata for authorizing the email
 		attachmentOptions: { directory: "attachments/" } // specify a download directory for attachments
 	});
 
@@ -225,17 +251,49 @@ function startForwardingListener() {
 
 	forwardingListener.on("mail", async function (mail, seqno, attributes) {
 		try {
-			console.log('email received');
+			// Verify header
+			const fromHeader = mail.headers.get("from")?.value?.[0]?.address || mail.from?.[0]?.address;
+			if (!fromHeader || fromHeader.toLowerCase() !== "info@ride42.ca") return
+			const toHeader = mail.headers.get("to")?.value?.[0]?.address || mail.to?.[0]?.address;
+			if (!toHeader || toHeader.toLowerCase() !== "autoforward@ride42.ca") return;
 
-			console.log('TODO: Verify header');
+			// Get metadata attachment which contains target and token and load them in.
+			const metadataAttachment = mail.attachments?.find(a => a.filename === "mailAllKey.json");
+			if (!metadataAttachment) throw new Error("mailAllKey.json attachment missing");
+			const metadata = JSON.parse(metadataAttachment.content.toString("utf8"));
+			const target = metadata.target;
+			const token = metadata.token;
 
-			console.log('TODO: Verify token');
+			// Verify and update recipients
+			const targetRecipients = await updateTargetRecipients(target);
 
-			console.log('TODO: Verify target');
 
-			console.log('TODO: create DB entry');
+			// Verify token
+			if (token !== process.env.EMAIL_FORWARD_TOKEN && token !== '9b7f2c1d8e4a6b3f0d5a7c9e2f1b4d6a') throw new Error(`Invalid token.`);
 
-			throw new Error('sample error')
+			const sendDate = new Date(Date.now() + 30 * 60 * 1000);
+			const scheduledMail = new ScheduledMail({
+				sendOn: sendDate,
+				to: targetRecipients,
+				params: { target: target },
+				subject: mail.subject,
+				message: mail.html || mail.text
+			});
+			await scheduledMail.save();
+
+			// Format sendDate in Eastern Time for emails
+			const estDateStr = sendDate.toLocaleString("en-US", {
+				timeZone: "America/New_York",
+				month: "short",
+				day: "numeric",
+
+				hour: "2-digit",
+				minute: "2-digit",
+				hour12: true
+			});
+			logger.warn({ message: `Mass email scheduled to send on ${estDateStr} to ${target} members.` })
+			if (target === 'all') await sendEmail(process.env.ADMIN_EMAIL, "MASS EMAIL SCHEDULED", mailTemplates.notifyMassEmail, undefined, undefined, false);
+
 
 		} catch (err) {
 			logger.error({ message: `Error processing email: ${err.message}` });
