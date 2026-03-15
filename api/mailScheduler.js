@@ -7,7 +7,7 @@ function sleep(s) {
     return new Promise(resolve => setTimeout(resolve, 1000 * s));
 }
 
-// Checks DB for pending emails and sends them, concurrency-safe. Gets callled periodcally from app.js
+// Checks DB for pending emails and sends them, concurrency-safe
 async function checkOutgoingMail() {
     while (true) {
         const mail = await ScheduledMail.findOneAndUpdate(
@@ -19,12 +19,14 @@ async function checkOutgoingMail() {
         if (!mail) break;
 
         try {
-            // Verify correct params are present to process the email blast. This is a duplicate check; if they exist in the DB, should already be present
-            if (mail.to.length > 1){
+            // Verify required params for email blast
+            if (mail.to.length > 1) {
                 const targets = mail.params.target;
-                if (!targets) throw new Error('Email blast has undefined targets')
-                logger.info(`Begin email blast to ${targets} atendees. Email ID: ${mail._id}`);
+                if (!targets) throw new Error('Email blast has undefined targets');
+                logger.info(`Begin email blast to ${targets} attendees. Email ID: ${mail._id}`);
             }
+
+            // Send email to all recepients
             for (const recipient of mail.to) {
                 await sendEmail(
                     recipient,
@@ -34,12 +36,15 @@ async function checkOutgoingMail() {
                 );
                 await sleep(5); // wait 5 seconds before next email
             }
+
             if (mail.to.length > 1) logger.info(`Finish email blast`);
-           
+
+            // Successfully sent emails, remove from DB
             await ScheduledMail.deleteOne({ _id: mail._id });
+
         } catch (err) {
-            await ScheduledMail.findByIdAndUpdate(mail._id, { processing: false });
-            logger.error({ message: `Failed to send email: ${err.message}` });
+            logger.error({ message: `Failed to send email: ${err.message}. Removing from queue.` });
+            await ScheduledMail.deleteOne({ _id: mail._id }); // DELETE the invalid mail so it doesn't get retried
         }
     }
 }
