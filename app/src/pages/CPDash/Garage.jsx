@@ -66,7 +66,7 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab, allTrackdays 
 			console.log(err.message)
 		}
 	}
-	console.log(userInfo)
+
 
 	return (
 		<>

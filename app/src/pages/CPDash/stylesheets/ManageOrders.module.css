@@ -1,0 +1,270 @@
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+h2{
+    display: flex;
+    gap: 1em;
+}
+
+.filterControls {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.filterControls label {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    cursor: pointer;
+}
+
+.filterControls input[type="checkbox"] {
+    cursor: pointer;
+}
+
+.orderGrid{
+    display: grid;
+    grid-template-columns: repeat(6, auto);
+
+    border: solid 3px black; 
+    
+}
+
+.orderGrid > * {
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.orderGrid .orderItems{
+    display: block;
+}
+
+.orderGrid > :nth-child(-n + 6) {
+    font-weight: bold;
+    border-bottom: solid 3px black;
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.orderGrid > :nth-child(12n + 7),
+.orderGrid > :nth-child(12n + 8),
+.orderGrid > :nth-child(12n + 9),
+.orderGrid > :nth-child(12n + 10),
+.orderGrid > :nth-child(12n + 11),
+.orderGrid > :nth-child(12n + 12) {
+  background: lightgray;
+}
+
+.productActions {
+    display: flex;
+    gap: 1em;
+    justify-content: center;
+    align-items: center;
+
+}
+
+
+
+.editBtn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+
+    border: none;
+    background-color: black;
+    border-radius: 25%;
+    padding: 4px;
+    color: white;
+}
+
+.createButton {
+    composes: actionButton from global;
+    margin: auto;
+    background-color: var(--accent-color);
+}
+
+/* MODAL STYLING */
+.createVariant{
+    display: flex;
+    align-items: center;
+    gap: 2em;
+
+}
+
+.createVariant>div {
+    display: flex;
+    align-items: center;
+    gap: .25em;
+}
+
+
+.createVariant input{
+    max-width: 50px;
+}
+
+
+.createVariant>button{
+   width: fit-content;
+}
+
+
+#createProductForm {
+    display: flex;
+
+    font-size: 1rem;
+}
+
+#editTrackdayForm button,
+#editCostsForm button {
+    font-size: 1rem;
+}
+
+/* Label/inout pairings */
+#editTrackdayForm>div {
+    display: flex;
+}
+
+/* Form labels */
+#editTrackdayForm label {
+    min-width: 150px;
+    text-align: left;
+}
+
+/* Add COSTS FORM */
+#editCostsForm {
+    font-size: 1rem;
+    flex-direction: row;
+    align-items: center;
+    border-bottom: dashed 2px black;
+    padding-bottom: 1rem;
+}
+
+/* Label/inout pairings */
+#editCostsForm>div {
+    display: flex;
+    align-items: center;
+    gap: .25rem;
+}
+
+#editCostsForm input {
+    min-width: auto;
+    width: 120px;
+}
+
+#editCostsForm select {
+    width: auto;
+}
+
+#editCostsForm button {
+    min-width: auto;
+    padding: 3px 10px;
+    white-space: nowrap;
+}
+
+/* Additional costs lists */
+#additionalCostsList {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    width: 100%;
+}
+
+#additionalCostsList>div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#additionalCostsList button {
+    display: flex;
+    width: auto;
+    padding: 8px;
+    border-radius: 50%;
+    border: none;
+}
+
+
+.orderGrid_Mobile{
+    display: none;
+}
+
+
+
+
+@media (max-width: 750px) {
+    .content h1 {
+        text-align: center;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .content h1 select {
+        text-align: center;
+    }
+
+    .orderGrid{
+        display: none;
+    }
+
+    .orderGrid_Mobile{
+        display: flex;
+        flex-direction: column; 
+    }
+
+    .orderGrid_Mobile>div{
+        padding: .5rem 0;
+        border-bottom: dashed 1px black;
+    }
+
+    .orderGrid_Mobile .orderEntry{
+        display: flex;
+        flex-direction: column;
+        gap: .25rem;
+    }
+
+
+
+    .orderGrid_Mobile .pairing{
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .orderGrid_Mobile .pairing>:nth-child(1){
+        font-weight: bold;
+    }
+
+    .productEntry {
+        flex-direction: column;
+    }
+
+    #editTrackdayForm {
+        grid-template-columns: 1fr;
+    }
+
+    #editCostsForm {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    /* Label/inout pairings */
+    #editCostsForm>div {
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    #editCostsForm input {
+        width: 130px;
+    }
+
+    #editCostsForm select {
+        width: 138px;
+    }
+
+}

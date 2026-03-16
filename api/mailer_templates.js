@@ -76,7 +76,7 @@ const registerTrackday_credit =
 		You are now registered for the trackday on {date} using your trackday credit. ✅<br />
 		<br />
 
-		⚠️<i>Please note: If you do not attend on {date} without first cancelling your trackday through your dashboard, your credit will still be considered redeemed. With trackday credits, you can cancel up to the night before the trackday.</i><br />
+		⚠️<i>Please note: If you do not attend on {date} without first cancelling your trackday through your <a href="https://Ride42.ca/dashboard">rider dashboard</a>, your credit will still be considered redeemed. With trackday credits, you can cancel up to the night before the trackday.</i><br />
 		<br />
 
 		If you already have a QR sticker on your bike and have signed a waiver this year, you can skip morning check in and go directly to bike tech 😊<br />
@@ -117,7 +117,7 @@ const registerTrackday_creditcard =
 		You are now registered for the trackday on {date}. ✅<br />
 		<br />
 
-		You can submit your credit card payment directly in your dashboard.<br />
+		You can submit your credit card payment directly in your <a href="https://Ride42.ca/dashboard">rider dashboard</a>.<br />
 		<br />
 
 		If your payment is not received by {dueDate}, your pre-registration will be automatically cancelled. <br />
@@ -211,7 +211,7 @@ const paymentReminder_creditcard =
 		Hello {name}, <br /> <br />
 		Your payment of \${price} for the trackday on {date} is due today.⏰<br />
 		<br />
-		You can submit your credit card payment directly in your dashboard.<br />
+		You can submit your credit card payment directly in your <a href="https://Ride42.ca/dashboard">rider dashboard</a>.<br />
 		<br />
 		We look forward to seeing you on track soon! 🚀
 	</div>
@@ -229,6 +229,38 @@ const notifyPaid =
 </body>`
 
 
+const createTireOrder =
+	`<body>
+	<div class="default-style">
+		Hello {name}, <br /> <br />
+		We have created your tire order. You can view its status in your <a href="https://Ride42.ca/dashboard?tab=orders">rider dashboard</a>✅<br />
+		Please note that your order is not reserved in inventory until your payment of \${balanceDue} is received. Payments can be sent via E-Transfer to sales@ride42.ca<br />
+		<br />
+		Thank you for your order,
+	</div>
+</body>`
+
+const deleteTireOrder =
+	`<body>
+	<div class="default-style">
+		Hello {name}, <br /> <br />
+		We have cancelled your tire order. Need to place a new order? You can do so <a href="https://Ride42.ca/shoptires">in our tire shop.</a>🏪<br />
+		<br />
+		If you have any questions, please reach out anytime 😊
+	</div>
+</body>`
+
+const paidTireOrder =
+	`<body>
+	<div class="default-style">
+		Hello {name}, <br /> <br />
+		Your payment has been received for the order placed on {orderDate}. ✅<br />
+		<br />
+		Your tires will be available {deliveryDate}.
+		<br />
+		Thank you for your order and welcome to the Pirelli family! 😎 
+	</div>
+</body>`
 
 const notifyMassEmail =
 	`<body>
@@ -237,5 +269,23 @@ const notifyMassEmail =
 	</div>
 </body>`
 
-
-module.exports = { welcomeUser, updateUser, passwordChange, passwordResetLink, registerTrackday_credit, registerTrackday_etransfer, registerTrackday_creditcard, registerTrackday_gate, unregisterTrackday, unregisterTrackday_admin, rescheduleTrackday, paymentReminder_etransfer, paymentReminder_creditcard, notifyPaid, notifyMassEmail };
+module.exports = {
+	welcomeUser,
+	updateUser,
+	passwordChange,
+	passwordResetLink,
+	registerTrackday_credit,
+	registerTrackday_etransfer,
+	registerTrackday_creditcard,
+	registerTrackday_gate,
+	unregisterTrackday,
+	unregisterTrackday_admin,
+	rescheduleTrackday,
+	paymentReminder_etransfer,
+	paymentReminder_creditcard,
+	notifyPaid,
+	createTireOrder,
+	deleteTireOrder,
+	paidTireOrder,
+	notifyMassEmail
+};

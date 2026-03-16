@@ -2,6 +2,8 @@ const User = require('../models/User');
 const Trackday = require('../models/Trackday');
 const Bike = require('../models/Bike');
 const QR = require('../models/QR');
+const { Product } = require('../models/Products');
+const Order = require('../models/Orders');
 const { body, validationResult } = require("express-validator");
 const ObjectId = require('mongoose').Types.ObjectId;
 const jwt = require('jsonwebtoken')
@@ -70,11 +72,29 @@ async function validateQRID(req, res, next) {
     next();
 }
 
+// Called by middleware functions
+// Verify that the req.params.productID is a valid objectID and that it exists in our DB
+async function validateProductID(req, res, next) {
+    if (!ObjectId.isValid(req.params.productID)) return res.status(400).send({ msg: ['productID is not a valid ObjectID'] });
+    const productExists = await Product.exists({ _id: req.params.productID });
+    if (!productExists) return res.status(404).send({ msg: ['Product does not exist'] });
+    next();
+}
+
+// Called by middleware functions
+// Verify that the req.params.orderID is a valid objectID and that it exists in our DB
+async function validateOrderID(req, res, next) {
+    if (!ObjectId.isValid(req.params.orderID)) return res.status(400).send({ msg: ['orderID is not a valid ObjectID'] });
+    const orderExists = await Order.exists({ _id: req.params.orderID });
+    if (!orderExists) return res.status(404).send({ msg: ['Order does not exist'] });
+    next();
+}
+
 // Returns true if a given trackdayID is within lockout period. Returns false for days in the past
 async function isInLockoutPeriod(trackdayID) {
     const trackday = await Trackday.findById(trackdayID);
     const timeLockout = process.env.DAYS_LOCKOUT * (1000 * 60 * 60 * 24); // Lockout period in milliseconds
-    const allowance = (14*60 + 1) * 60 * 1000; // 14 hours and 1 min milliseconds
+    const allowance = (14 * 60 + 1) * 60 * 1000; // 14 hours and 1 min milliseconds
     const adjustedLockout = timeLockout - allowance; // Subtract allowance from the lockout period
 
     const timeDifference = trackday.date.getTime() - Date.now();
@@ -117,7 +137,7 @@ async function verifyJWT(req, res, next) {
 
             // Attach newly created accessToken to httpOnly cookie
             res.cookie('JWT_ACCESS_TOKEN', accessToken, {
-                secure: process.env.NODE_ENV === 'production',  
+                secure: process.env.NODE_ENV === 'production',
                 httpOnly: true,
                 sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
                 maxAge: process.env.JWT_ACCESS_TOKEN_EXPIRATION
@@ -186,7 +206,29 @@ async function verifyJWT_LS(req, res, next) {
     }
 }
 
+// Called by middleware functions
+function verifyPermission(levelRequired) {
+    return async (req, res, next) => {
+        const hierarchy = ["regular", "racer", "coach", "staff", "admin"];
+        const userPermissionLevel = hierarchy.indexOf(req.user.memberType);
+        const requiredPermissionLevel = hierarchy.indexOf(levelRequired);
+        if (userPermissionLevel < requiredPermissionLevel) return res.sendStatus(403);
+        next();
+    }
+}
 
 
 
-module.exports = { validateForm, validateUserID, validateTrackdayID, validateBikeID, validateQRID, isInLockoutPeriod, hasTrackdayWithinLockout, verifyJWT }
+module.exports = {
+    validateForm,
+    validateUserID,
+    validateTrackdayID,
+    validateBikeID,
+    validateQRID,
+    validateProductID,
+    validateOrderID,
+    isInLockoutPeriod,
+    hasTrackdayWithinLockout,
+    verifyJWT,
+    verifyPermission,
+}

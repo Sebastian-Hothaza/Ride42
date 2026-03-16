@@ -19,7 +19,8 @@ const Navbar = () => {
 					<NavLink to="/info">Trackday Info</NavLink>
 					<NavLink to="/rules">Rules</NavLink>
 					<NavLink to="/faq">FAQ</NavLink>
-					<NavLink to="/shop">Shop</NavLink>
+					<NavLink to="/shoptires">Shop Tires</NavLink>
+					<NavLink to="https://docs.google.com/forms/d/e/1FAIpQLScGL_Dlr5OdkSkfqasaE85daJwk4oNZ_lyWVmWqHjWWEElHiQ/viewform?usp=sf_link" target="*">Shop Gear</NavLink>
 				</ul>
 				<div className={styles.navbarDashboard}>
 					<NavLink to="/dashboard"><img src={helmet} id={styles.helmetImg}></img></NavLink>
@@ -31,16 +32,17 @@ const Navbar = () => {
 						<span className={styles.bar}></span>
 						<span className={styles.bar}></span>
 					</li>
-					<Link onClick={()=>{setExpandedMenu(false)}} to="/"><img src={r42_small} id={styles.headerImg}></img></Link>
-					<Link onClick={()=>{setExpandedMenu(false)}} to="/dashboard" className={styles.navbarDashboardMobile}><img src={helmet} id={styles.helmetImg}></img></Link>
+					<Link onClick={() => { setExpandedMenu(false) }} to="/"><img src={r42_small} id={styles.headerImg}></img></Link>
+					<Link onClick={() => { setExpandedMenu(false) }} to="/dashboard" className={styles.navbarDashboardMobile}><img src={helmet} id={styles.helmetImg}></img></Link>
 				</ul>
 				{expandedMenu &&
 					<ul className={styles.menuButtonLinks} >
-						<NavLink onClick={()=>{setExpandedMenu(false)}} to="/">Home</NavLink>
-						<NavLink onClick={()=>{setExpandedMenu(false)}} to="/info">Trackday Info</NavLink>
-						<NavLink onClick={()=>{setExpandedMenu(false)}} to="/rules">Rules</NavLink>
-						<NavLink onClick={()=>{setExpandedMenu(false)}} to="/faq">FAQ</NavLink>
-						<NavLink onClick={()=>{setExpandedMenu(false)}} to="/shop">Shop</NavLink>
+						<NavLink onClick={() => { setExpandedMenu(false) }} to="/">Home</NavLink>
+						<NavLink onClick={() => { setExpandedMenu(false) }} to="/info">Trackday Info</NavLink>
+						<NavLink onClick={() => { setExpandedMenu(false) }} to="/rules">Rules</NavLink>
+						<NavLink onClick={() => { setExpandedMenu(false) }} to="/faq">FAQ</NavLink>
+						<NavLink onClick={() => { setExpandedMenu(false) }} to="/shoptires">Shop Tires</NavLink>
+						<NavLink onClick={() => { setExpandedMenu(false) }} to="https://docs.google.com/forms/d/e/1FAIpQLScGL_Dlr5OdkSkfqasaE85daJwk4oNZ_lyWVmWqHjWWEElHiQ/viewform?usp=sf_link">Shop Gear</NavLink>
 					</ul>
 				}
 			</nav>
