@@ -75,38 +75,6 @@ const ManageOrders = ({ APIServer }) => {
         fetchDates();
     }, [])
 
-
-
-    async function handleCreateOrder(e, category) {
-        e.preventDefault();
-        setActiveModal({ type: 'loading', msg: 'Creating order' });
-        try {
-            const response = await fetch(APIServer + 'orders', {
-                method: 'POST',
-                credentials: "include",
-                headers: {
-                    'Content-type': 'application/json; charset=UTF-8',
-                },
-                body: JSON.stringify({
-                    user: e.target.uID.value,
-                    items: [],
-                    deliveryDate: e.target.deliveryDate.value,
-                })
-            })
-            await fetchOrders();
-            if (response.ok) {
-                setActiveModal({ type: 'success', msg: 'Order created' });
-                setTimeout(() => setActiveModal(''), 1500)
-            } else {
-                const data = await response.json();
-                setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
-            }
-        } catch (err) {
-            setActiveModal({ type: 'failure', msg: 'API Failure' })
-            console.log(err.message)
-        }
-    }
-
     async function handleEditOrder(e, orderID) {
         e.preventDefault();
         setActiveModal({ type: 'loading', msg: 'Editing order' });
@@ -118,7 +86,7 @@ const ManageOrders = ({ APIServer }) => {
         // Attached paymentStatus only if its changed
         if (e.target.paymentStatus.value) body.paymentStatus = e.target.paymentStatus.value;
 
-        body.deliveryDate = e.target.deliveryDate.value;          
+        body.deliveryDate = e.target.deliveryDate.value;
 
 
         try {
@@ -170,7 +138,7 @@ const ManageOrders = ({ APIServer }) => {
             <ScrollToTop />
             <div className={styles.content}>
                 <h1>Manage Orders</h1>
-                <h2>Tire Orders <button className={styles.editBtn} style={{ color: '#00ff00' }} onClick={() => alert('NOT IMPLEMENTED')}><span className='material-symbols-outlined'>add_circle</span></button> </h2>
+                <h2>Tire Orders</h2>
                 <div className={styles.filterControls}>
                     <label>
                         <input
@@ -182,8 +150,6 @@ const ManageOrders = ({ APIServer }) => {
                     </label>
                 </div>
                 <div className={styles.orderGrid}>
-
-
                     <div><b>Name</b></div>
                     <div><b>Products (* requires install)</b></div>
                     <div><b>Order Date</b></div>
@@ -214,7 +180,8 @@ const ManageOrders = ({ APIServer }) => {
                                     <div className={styles.productActions}>
                                         <button className={styles.editBtn} style={{ color: '#0099ff' }} onClick={() => setActiveModal({ type: 'editOrder', order })}><span className="material-symbols-outlined">edit</span></button>
                                         <button className={styles.editBtn} style={{ backgroundColor: '#bb0000' }} onClick={() => setActiveModal({ type: 'deleteOrder', order })}><span className='material-symbols-outlined'>delete</span></button>
-                                    </div>}</div>
+                                    </div>
+                                }</div>
 
 
 
@@ -222,6 +189,56 @@ const ManageOrders = ({ APIServer }) => {
                             </Fragment>
                         ))}
                 </div>
+
+                <div className={styles.orderGrid_Mobile}>
+                    {allOrders
+                        .filter((order) => order.items[0].category === 'tire')
+                        .filter((order) => !showCompleted ? order.orderStatus !== 'complete' : true)
+                        .map((order, idx) => (
+                            <div className={styles.orderEntry} key={idx}>
+                                <div className={styles.pairing}>
+                                    <div>User:</div>
+                                    <div>{order.user.firstName} {order.user.lastName}</div>
+                                </div>
+                                <br></br>
+                                {order.items.map((item, index) => (
+                                    <div key={index}>
+                                        {item.quantity}x {item.name} ({item.size}{item.compound ? `-` + item.compound : ''}){item.installRequired && '(*)'}
+                                    </div>
+                                ))}
+                                <br></br>
+                                <div className={styles.pairing}>
+                                    <div>Order Date:</div>
+                                    <div>{new Date(order.orderDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
+                                </div>
+
+                                <div className={styles.pairing}>
+                                    <div>Order Status:</div>
+                                    <div>{order.orderStatus}</div>
+                                </div>
+
+                                <div className={styles.pairing}>
+                                    <div>Order Balace:</div>
+                                    <div>${order.balanceDue} <em>({order.paymentStatus})</em></div>
+                                </div>
+
+                                <div className={styles.pairing}>
+                                    <div>Delivery Date:</div>
+                                    {order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : 'Kitchener Pickup'}
+                                </div>
+
+
+
+                                <div>{order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : 'Local Pickup'}{order.orderStatus !== 'complete' &&
+                                    <div className={styles.productActions}>
+                                        <button className={styles.editBtn} style={{ color: '#0099ff' }} onClick={() => setActiveModal({ type: 'editOrder', order })}><span className="material-symbols-outlined">edit</span></button>
+                                        <button className={styles.editBtn} style={{ backgroundColor: '#bb0000' }} onClick={() => setActiveModal({ type: 'deleteOrder', order })}><span className='material-symbols-outlined'>delete</span></button>
+                                    </div>
+                                }</div>
+                            </div>
+                        ))}
+                </div>
+
                 <h2>Gear</h2>
                 <div>
                     Under development...
@@ -244,20 +261,6 @@ const ManageOrders = ({ APIServer }) => {
                 <img id={modalStyles.modalCheckmarkIMG} src={errormark} alt="error icon" />
                 {activeModal.msg}
                 <button className='actionButton' onClick={() => setActiveModal('')}>Close</button>
-            </Modal>
-
-            <Modal open={activeModal.type === 'createOrder_Tire'}>
-                <>
-                    <h2>Create New Order</h2>
-                    <form id={styles.createProductForm} onSubmit={(e) => handleCreateOrder(e, 'tire')}>
-                        <div>
-                            <label htmlFor="uID">User ID</label>
-                            <input type='text' id="uID" name="uID" required></input>
-                        </div>
-                        <button className={`actionButton confirmBtn`} type="submit">Confirm</button>
-                        <button type="button" className='actionButton' onClick={() => setActiveModal('')}>Cancel</button>
-                    </form>
-                </>
             </Modal>
 
             <Modal open={activeModal.type === 'editOrder'}>
@@ -286,7 +289,7 @@ const ManageOrders = ({ APIServer }) => {
 
                         {activeModal.order && <div>
                             <label htmlFor="deliveryDate">Delivery Date</label>
-                            <select id="deliveryDate" name="deliveryDate" defaultValue={activeModal.order?.deliveryDate ||''}>
+                            <select id="deliveryDate" name="deliveryDate" defaultValue={activeModal.order?.deliveryDate || ''}>
                                 <option key="deliverDateNone" value=''>Kitchener Pickup</option>
                                 {deliveryDates.map(date => (
                                     <option key={date} value={date}>{new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })} Trackday</option>
@@ -308,8 +311,6 @@ const ManageOrders = ({ APIServer }) => {
                     </form>
                 </>
             </Modal>
-
-
 
             <Modal open={activeModal.type === 'deleteOrder'}>
                 <h3>Are you sure you want to delete this order?</h3>
