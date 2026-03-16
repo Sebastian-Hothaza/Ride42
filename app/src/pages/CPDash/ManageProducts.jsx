@@ -226,7 +226,7 @@ const ManageProducts = ({ APIServer }) => {
             <Modal open={activeModal.type === 'createProduct_Tire'}>
                 <>
                     <h2>Create New Tire Product</h2>
-                    <form id={styles.createProductForm} onSubmit={(e) => handleCreateProduct(e, 'tire')}>
+                    <form className={styles.createProductForm} onSubmit={(e) => handleCreateProduct(e, 'tire')}>
                         <div>
                             <label htmlFor="name">Name</label>
                             <input type='text' id="name" name="name" required></input>
@@ -238,7 +238,7 @@ const ManageProducts = ({ APIServer }) => {
 
                         {variants.map((variant, index) => (
                             <div key={index} className={styles.createVariant}>
-                                <div>
+                                <div className={styles.inputPairing}>
                                     <label>Size</label>
                                     <select value={variant.size} onChange={(e) => handleVariantChange(index, "size", e.target.value)} required>
                                         <option value=""></option>
@@ -247,22 +247,22 @@ const ManageProducts = ({ APIServer }) => {
                                 </div>
 
 
-                                <div>
+                                <div className={styles.inputPairing}>
                                     <label>Compound</label>
                                     <select value={variant.compound} onChange={(e) => handleVariantChange(index, "compound", e.target.value)}>
                                         <option value=""></option>
                                         {TIRE_COMPOUNDS.map(tire => <option key={tire} value={tire}>{tire}</option>)}
                                     </select>
                                 </div>
-                                <div>
+                                <div className={styles.inputPairing}>
                                     <label>Price</label>
                                     <input type="number" value={variant.price} onChange={(e) => handleVariantChange(index, "price", e.target.value)} required />
                                 </div>
-                                <div>
+                                <div className={styles.inputPairing}>
                                     <label>Stock</label>
                                     <input type="number" value={variant.stock} onChange={(e) => handleVariantChange(index, "stock", e.target.value)} required />
                                 </div>
-                                {variants.length > 1 && (<button className={styles.editBtn} style={{ backgroundColor: '#bb0000' }} onClick={() => removeVariant(index)}><span className='material-symbols-outlined'>delete</span></button>)}
+                                {variants.length > 1 && (<button type="button" className={styles.editBtn} style={{ backgroundColor: '#bb0000' }} onClick={() => removeVariant(index)}><span className='material-symbols-outlined'>delete</span></button>)}
                             </div>
                         ))}
 
@@ -280,7 +280,7 @@ const ManageProducts = ({ APIServer }) => {
             <Modal open={activeModal.type === 'editProduct_Tire'}>
                 <>
                     <h2>Edit Tire Product</h2>
-                    <form id={styles.createProductForm} onSubmit={(e) => handleEditProduct(e, activeModal.product._id)}>
+                    <form className={styles.createProductForm} onSubmit={(e) => handleEditProduct(e, activeModal.product._id)}>
                         <div>
                             <label htmlFor="name">Name</label>
                             <input type='text' id="name" name="name" defaultValue={activeModal.product?.name} required></input>
@@ -292,7 +292,8 @@ const ManageProducts = ({ APIServer }) => {
 
                         {variants.map((variant, index) => (
                             <div key={index} className={styles.createVariant}>
-                                <div>
+
+                                <div className={styles.inputPairing}>
                                     <label>Size</label>
                                     <select value={variant.size} onChange={(e) => handleVariantChange(index, "size", e.target.value)} required>
                                         <option value=""></option>
@@ -300,23 +301,25 @@ const ManageProducts = ({ APIServer }) => {
                                     </select>
                                 </div>
 
-
-                                <div>
+                                <div className={styles.inputPairing}>
                                     <label>Compound</label>
                                     <select value={variant.compound} onChange={(e) => handleVariantChange(index, "compound", e.target.value)}>
                                         <option value=""></option>
                                         {TIRE_COMPOUNDS.map(tire => <option key={tire} value={tire}>{tire}</option>)}
                                     </select>
                                 </div>
-                                <div>
+
+                                <div className={styles.inputPairing}>
                                     <label>Price</label>
                                     <input type="number" value={variant.price} onChange={(e) => handleVariantChange(index, "price", e.target.value)} required />
                                 </div>
-                                <div>
+
+                                <div className={styles.inputPairing}>
                                     <label>Stock</label>
                                     <input type="number" value={variant.stock} onChange={(e) => handleVariantChange(index, "stock", e.target.value)} required />
                                 </div>
-                                {variants.length > 1 && (<button className={styles.editBtn} style={{ backgroundColor: '#bb0000' }} onClick={() => removeVariant(index)}><span className='material-symbols-outlined'>delete</span></button>)}
+
+                                {variants.length > 1 && (<button type="button" className={styles.editBtn} style={{ backgroundColor: '#bb0000' }} onClick={() => removeVariant(index)}><span className='material-symbols-outlined'>delete</span></button>)}
                             </div>
                         ))}
 
