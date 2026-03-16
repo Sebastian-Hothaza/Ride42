@@ -269,7 +269,7 @@ function startForwardingListener() {
 
 
 			// Verify token
-			if (token !== process.env.EMAIL_FORWARD_TOKEN && token !== '9b7f2c1d8e4a6b3f0d5a7c9e2f1b4d6a') throw new Error(`Invalid token.`);
+			if (token !== process.env.EMAIL_FORWARD_TOKEN) throw new Error(`Invalid token.`);
 
 			const sendDate = new Date(Date.now() + 30 * 60 * 1000);
 			const scheduledMail = new ScheduledMail({
