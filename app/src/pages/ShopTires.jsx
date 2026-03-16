@@ -19,6 +19,8 @@ import errormark from './../assets/error.png'
 
 const ShopTires = ({ APIServer }) => {
 	const loggedInUser = JSON.parse(localStorage.getItem("user"))
+	const [allUsers, setAllUsers] = useState([]);
+	const [selectedUser, setSelectedUser] = useState(loggedInUser.id);
 	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
 	const [tireProducts, setTireProducts] = useState([]);
 
@@ -84,9 +86,37 @@ const ShopTires = ({ APIServer }) => {
 		}
 	}
 
+	async function fetchUsers() {
+		try {
+			const response = await fetch(APIServer + 'users', {
+				method: 'GET',
+				credentials: "include",
+				headers: {
+					'Content-type': 'application/json; charset=UTF-8',
+				},
+			})
+			if (response.ok) {
+				const data = await response.json();
+				data.sort((a, b) => {
+					const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
+					const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
+					return nameA.localeCompare(nameB);
+				});
+				setAllUsers(data);
+			} else {
+				const data = await response.json();
+				console.error('failed to fetch users')
+			}
+		} catch (err) {
+			console.log(err.message)
+		}
+	}
+
+
 	useEffect(() => {
 		fetchProducts();
 		fetchDates();
+		if (loggedInUser.memberType === 'admin') fetchUsers();
 	}, [])
 
 	// Once a tire is selected, load in the available sizes
@@ -181,7 +211,7 @@ const ShopTires = ({ APIServer }) => {
 
 
 		try {
-			const response = await fetch(APIServer + 'orders/' + loggedInUser.id, {
+			const response = await fetch(APIServer + 'orders/' + selectedUser, {
 				method: 'POST',
 				credentials: "include",
 				headers: {
@@ -290,6 +320,17 @@ const ShopTires = ({ APIServer }) => {
 			<li>We will send you an email once your order is processed. You can also track it in your rider dashboard.</li>
 			<li>Tire service is available at all Ride42 trackdays for $30/wheel; paid in cash at time of service. You are responsible for dismounting your wheels.</li>
 		</ul>
+
+		{loggedInUser.memberType === 'admin' &&
+			<>
+				<br></br>
+				<div className={styles.inputPairing}>
+					<label htmlFor="tireName">Select User: </label>
+					<select value={selectedUser} onChange={(e) => setSelectedUser(e.target.value)}>
+						{allUsers.map(u => <option key={u._id} value={u._id}>{u.firstName}, {u.lastName}</option>)}
+					</select>
+				</div>
+			</>}
 
 		<br></br>
 		<form id={styles.addTireForm} onSubmit={(e) => handleAddTire(e)} >
