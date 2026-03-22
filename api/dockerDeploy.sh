@@ -32,7 +32,7 @@ docker compose -f ${COMPOSE_DIR}/docker-compose.yml up -d &>/dev/null
 
 # Health check
 echo "🔍 Checking API health at ${HEALTHCHECK_URL}..."
-sleep 3  # Give the container a moment to start
+sleep 5  # Give the container a moment to start
 
 if curl -s --head --request GET ${HEALTHCHECK_URL} | grep "200 OK" > /dev/null; then
   echo "✅ API is healthy and responding at ${HEALTHCHECK_URL}"
