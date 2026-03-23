@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "NODE_ENV=production node ./bin/www",
-    "devstart": "NODE_ENV=development CORS_ORIGIN=http://10.0.0.4:5173 nodemon ./bin/www",
+    "devstart": "NODE_ENV=development CORS_ORIGIN=http://10.0.0.2:5173 nodemon ./bin/www",
     "test": "GROUP_CAPACITY=3 jest --watchAll --maxWorkers=4",
     "deploy": "./deploy.sh",
     "logs": "fly logs -a ride42api",
