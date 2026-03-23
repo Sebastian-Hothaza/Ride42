@@ -565,7 +565,7 @@ exports.stripeWebhook = asyncHandler(async (req, res, next) => {
                 await ScheduledMail.deleteOne({
                     to: memberEntry.user.contact.email, // Note: MongoDB special behaviour: If you query an array field with a scalar value, MongoDB checks whether the array contains that value.
                     sendOn: new Date(trackday.date.getTime() - (process.env.DAYS_LOCKOUT * 24 * 60 * 60 * 1000)),
-                    message: 'paymentReminder_creditcard'
+                    message: mailTemplates.paymentReminder_creditcard
                 });
             }
         } else {

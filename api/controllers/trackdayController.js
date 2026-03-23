@@ -215,7 +215,7 @@ exports.register = [
                     params: { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1), date: prettyDate, price: trackday.ticketPrice.preReg },
                     subject: `Payment Reminder for ${prettyDate}`,
                     // This is used to identify the email template when sendMail is called
-                    message: req.body.paymentMethod === 'etransfer' ? 'paymentReminder_etransfer' : 'paymentReminder_creditcard',
+                    message: req.body.paymentMethod === 'etransfer' ? mailTemplates.paymentReminder_etransfer : mailTemplates.paymentReminder_creditcard,
                 });
                 await scheduledMail.save();
             }
@@ -293,7 +293,7 @@ exports.unregister = [
             await ScheduledMail.deleteOne({
                 to: memberEntry.user.contact.email, // Note: MongoDB special behaviour: If you query an array field with a scalar value, MongoDB checks whether the array contains that value.
                 sendOn: new Date(trackday.date.getTime() - (process.env.DAYS_LOCKOUT * 24 * 60 * 60 * 1000)),
-                message: memberEntry.paymentMethod === 'etransfer' ? 'paymentReminder_etransfer' : 'paymentReminder_creditcard'
+                message: memberEntry.paymentMethod === 'etransfer' ? mailTemplates.paymentReminder_etransfer : mailTemplates.paymentReminder_creditcard
             })
             logger.info({ message: "Cancelled trackday for " + user.firstName + ' ' + user.lastName + ' on ' + prettyDate });
 
@@ -378,7 +378,7 @@ exports.reschedule = [
                 {
                     to: user.contact.email, // Note: MongoDB special behaviour: If you query an array field with a scalar value, MongoDB checks whether the array contains that value.
                     sendOn: new Date(trackdayOLD.date.getTime() - (process.env.DAYS_LOCKOUT * 24 * 60 * 60 * 1000)),
-                    message: memberEntryOLD.paymentMethod === 'etransfer' ? 'paymentReminder_etransfer' : 'paymentReminder_creditcard'
+                    message: memberEntryOLD.paymentMethod === 'etransfer' ? mailTemplates.paymentReminder_etransfer : mailTemplates.paymentReminder_creditcard
                 },
                 {
                     $set: {
@@ -614,7 +614,7 @@ exports.updatePaid = [
                 await ScheduledMail.deleteOne({ // Note: MongoDB special behaviour: If you query an array field with a scalar value, MongoDB checks whether the array contains that value.
                     to: memberEntry.user.contact.email, // Note: MongoDB special behaviour: If you query an array field with a scalar value, MongoDB checks whether the array contains that value.
                     sendOn: new Date(trackday.date.getTime() - (process.env.DAYS_LOCKOUT * 24 * 60 * 60 * 1000)),
-                    message: memberEntry.paymentMethod === 'etransfer' ? 'paymentReminder_etransfer' : 'paymentReminder_creditcard'
+                    message: memberEntry.paymentMethod === 'etransfer' ? mailTemplates.paymentReminder_etransfer : mailTemplates.paymentReminder_creditcard
                 })
             }
 

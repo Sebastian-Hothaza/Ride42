@@ -168,7 +168,7 @@ function startPaymentsListener() {
 					await ScheduledMail.deleteOne({ // Note: MongoDB special behaviour: If you query an array field with a scalar value, MongoDB checks whether the array contains that value.
 						to: memberEntry.user.contact.email,
 						sendOn: new Date(trackdayDB.date.getTime() - (process.env.DAYS_LOCKOUT * 24 * 60 * 60 * 1000)),
-						message: memberEntry.paymentMethod === 'etransfer' ? 'paymentReminder_etransfer' : 'paymentReminder_creditcard'
+						message: memberEntry.paymentMethod === 'etransfer' ? mailTemplates.paymentReminder_etransfer : mailTemplates.paymentReminder_creditcard
 					})
 
 					await trackdayDB.save()
