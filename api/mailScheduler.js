@@ -51,7 +51,10 @@ async function checkOutgoingMail() {
                     recipient,
                     mail.subject,
                     isBlast ? mail.message : mailTemplates[mail.message],
-                    params
+                    params,
+                    [],
+                    true,
+                    !isBlast
                 );
                 await sleep(10); // rate limiting
             }
