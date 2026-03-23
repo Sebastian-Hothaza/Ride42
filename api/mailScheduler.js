@@ -1,6 +1,5 @@
 const ScheduledMail = require('./models/ScheduledMail');
 const sendEmail = require('./mailer')
-const mailTemplates = require('./mailer_templates')
 const logger = require('./logger');
 const User = require('./models/User');
 
@@ -23,10 +22,12 @@ async function checkOutgoingMail() {
             const isBlast = !!targets; // blast is defined by having targets
 
             let allUsers = [];
+            let userMap;
 
             if (isBlast) {
                 // Get all users so we can populate the name for the sendEmail param
                 allUsers = await User.find().select('firstName contact.email').exec();
+                userMap = new Map(allUsers.map(u => [u.contact.email.toLowerCase(), u]));
                 logger.info({ message: `Begin email blast to ${targets} members. ${mail._id}` });
             }
 
@@ -35,9 +36,13 @@ async function checkOutgoingMail() {
                 let params;
 
                 if (isBlast) {
-                    const user = allUsers.find(u => u.contact.email.toLowerCase() === recipient.toLowerCase());
+                    const user = userMap.get(recipient.toLowerCase());
                     if (!user) {
                         logger.warn({ message: `User not found for ${recipient}, skipping.` });
+                        continue;
+                    }
+                    if (user.promoOptOut) {
+                        logger.warn({ message: `User ${recipient} opted out of promo emails, skipping.` });
                         continue;
                     }
                     const firstName = user.firstName ? user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) : 'there';
@@ -47,15 +52,7 @@ async function checkOutgoingMail() {
                     params = mail.params || {};
                 }
 
-                await sendEmail(
-                    recipient,
-                    mail.subject,
-                    isBlast ? mail.message : mailTemplates[mail.message],
-                    params,
-                    [],
-                    true,
-                    !isBlast
-                );
+                await sendEmail(recipient, mail.subject, mail.message, params, [], true, !isBlast);
                 await sleep(10); // rate limiting
             }
             if (isBlast) {
