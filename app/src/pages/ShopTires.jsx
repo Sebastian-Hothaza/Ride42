@@ -21,7 +21,6 @@ const ShopTires = ({ APIServer }) => {
 	const loggedInUser = JSON.parse(localStorage.getItem("user"))
 	const [allUsers, setAllUsers] = useState([]);
 	const [selectedUser, setSelectedUser] = useState(loggedInUser?.id);
-	console.log(selectedUser)
 	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
 	const [tireProducts, setTireProducts] = useState([]);
 
