@@ -156,7 +156,7 @@ exports.order_put = [
                 new Date(item.date).getTime() === new Date(req.body.deliveryDate).getTime()
             );
             if (!validDeliveryDate) return res.status(400).send({ msg: ['Delivery date is not a valid upcoming trackday'] });
-        } 
+        }
 
         if (req.body.paymentStatus === "paid") {
             // Check inventory and decrement stock
@@ -168,7 +168,7 @@ exports.order_put = [
                 if (product.category === "tire") {
                     variant = product.variants.find(v =>
                         v.size === item.size &&
-                        v.compound === item.compound
+                        (item.compound === null || v.compound === item.compound)
                     );
                     if (!variant) return res.status(404).send({ msg: ['Variant does not exist'] });
                     if (variant.stock < item.quantity) return res.status(400).send({ msg: ['Insufficient inventory'] });
@@ -214,7 +214,7 @@ exports.order_delete = [
                 if (product.category === "tire") {
                     variant = product.variants.find(v =>
                         v.size === item.size &&
-                        v.compound === item.compound
+                        (item.compound === null || v.compound === item.compound)
                     );
                     if (variant) {
                         variant.stock += item.quantity;
