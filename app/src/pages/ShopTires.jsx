@@ -319,7 +319,7 @@ const ShopTires = ({ APIServer }) => {
 
 	const HTML_Order = <div className={styles.rulesCard}>
 		<ul>
-			<li>Your tires are <b>NOT</b> reserved in inventory until we receive your payment. Payments can be sent via E-Transfer to <b>sales@ride42.ca</b> Tire prices are all in.</li>
+			<li>Your tires are <b>NOT</b> reserved in inventory until we receive your payment. Tire prices are all in and payments should be sent via E-Transfer to <b>sales@ride42.ca</b></li>
 			<li>We will send you an email once your order is processed. You can also track it in your rider dashboard.</li>
 			<li>Tire service is available at all Ride42 trackdays for $30/wheel; paid in cash at time of service. You are responsible for dismounting your wheels.</li>
 		</ul>
