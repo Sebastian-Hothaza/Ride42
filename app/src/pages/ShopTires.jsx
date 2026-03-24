@@ -6,7 +6,6 @@ import pirelli from '../assets/pirelli.png'
 import rosso4 from '../assets/rosso4.png'
 import sc3 from '../assets/sc3.jpg'
 import slick from '../assets/slick.jpg'
-import React from 'react';
 
 
 import modalStyles from '../components/stylesheets/Modal.module.css'
@@ -18,9 +17,11 @@ import checkmark from './../assets/checkmark.png'
 import errormark from './../assets/error.png'
 
 const ShopTires = ({ APIServer }) => {
+
 	const loggedInUser = JSON.parse(localStorage.getItem("user"))
 	const [allUsers, setAllUsers] = useState([]);
-	const [selectedUser, setSelectedUser] = useState(loggedInUser.id);
+	const [selectedUser, setSelectedUser] = useState(loggedInUser?.id);
+	console.log(selectedUser)
 	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
 	const [tireProducts, setTireProducts] = useState([]);
 
@@ -114,9 +115,12 @@ const ShopTires = ({ APIServer }) => {
 
 
 	useEffect(() => {
-		fetchProducts();
-		fetchDates();
-		if (loggedInUser.memberType === 'admin') fetchUsers();
+		if (selectedUser) {
+			fetchProducts();
+			fetchDates();
+		}
+
+		if (loggedInUser && loggedInUser.memberType === 'admin') fetchUsers();
 	}, [])
 
 	// Once a tire is selected, load in the available sizes
@@ -321,7 +325,7 @@ const ShopTires = ({ APIServer }) => {
 			<li>Tire service is available at all Ride42 trackdays for $30/wheel; paid in cash at time of service. You are responsible for dismounting your wheels.</li>
 		</ul>
 
-		{loggedInUser.memberType === 'admin' &&
+		{loggedInUser && loggedInUser.memberType === 'admin' &&
 			<>
 				<br></br>
 				<div className={styles.inputPairing}>
