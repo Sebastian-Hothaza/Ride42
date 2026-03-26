@@ -3,8 +3,8 @@
 # Automates deployment to Docker container upon API update
 # Uses Docker Compose instead of docker run
 
-COMPOSE_DIR="/srv/ride42api"
-REPO_DIR="/srv/rootMount/repos/Ride42/api"
+COMPOSE_DIR="/srv/docker/ride42api"
+REPO_DIR="/home/seb/repos/Ride42/api"
 SERVICE_NAME="api"
 ENV_FILE="${REPO_DIR}/.env_docker"
 HEALTHCHECK_URL="https://api2.ride42.ca"
