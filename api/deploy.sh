@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+if [ -f "/.dockerenv" ]; then
+  echo "❌ This script is running inside a Docker container. Aborting."
+  exit 1
+fi
+
 echo "🧪 Running Jest tests..."
 cd /srv/rootMount/repos/Ride42/api
 

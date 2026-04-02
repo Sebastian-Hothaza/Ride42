@@ -2,6 +2,11 @@
 
 # Automates deployment to Fly.io upon API update
 
+if [ -f "/.dockerenv" ]; then
+  echo "❌ This script is running inside a Docker container. Aborting."
+  exit 1
+fi
+
 REPO_DIR="/srv/rootMount/repos/Ride42/api"
 FLY_MACHINE_ID="1857501f1034d8"
 

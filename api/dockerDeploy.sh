@@ -3,6 +3,11 @@
 # Automates deployment to Docker container upon API update
 # Uses Docker Compose instead of docker run
 
+if [ -f "/.dockerenv" ]; then
+  echo "❌ This script is running inside a Docker container. Aborting."
+  exit 1
+fi
+
 COMPOSE_DIR="/srv/docker/ride42api"
 REPO_DIR="/home/seb/repos/Ride42/api"
 SERVICE_NAME="api"
