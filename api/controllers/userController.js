@@ -415,46 +415,63 @@ exports.waiverSubmit = asyncHandler(async (req, res, next) => {
     try {
         // Access the Base64-encoded PDF from the request body
         const { waiver, name, uid } = req.body;
+        const user = uid ? await User.findById(uid).exec() : null;
 
-        let emailBody = 'WAIVER REQUIRES MANUAL MARKING.'; // Dependent on if waiver needs manual marking or if was auto-marked
-
-        if (!waiver || !name) {
-            return res.status(400).send({ msg: 'Waiver or name is missing' });
-        }
-
-        // If user ID is provided, update the user's waiver status
-        if (uid) {
-            const user = await User.findById(uid).exec();
-            if (user) {
-                user.waiver = true;
-                await user.save();
-                logger.info({ message: `Marked waiver for ${user.firstName} ${user.lastName} as signed` })
-                emailBody = `Marked waiver for ${user.firstName} ${user.lastName} as signed`;
-            } else {
-                logger.error({ message: `Could not mark waiver signed for ${user.firstName} ${user.lastName} as invalid no user found with uid ${uid}` })
-            }
-        }
+        if (!waiver || !name) return res.status(400).send({ msg: 'Waiver or name is missing' });
 
         // Decode the Base64 string into a Buffer
         const pdfBuffer = Buffer.from(waiver, 'base64');
 
-        // Send the email with the PDF as an attachment
-        await sendEmail(
-            'waiver@ride42.ca', // Recipient
-            `${CURRENT_YEAR}_Waiver_${name.toUpperCase()}`, // Subject
-            emailBody, // HTML email body
-            {}, // Arguments for template (if needed)
-            [
-                {
-                    filename: `${CURRENT_YEAR}_Waiver_${name.toUpperCase()}.pdf`, // File name for the attachment
-                    content: pdfBuffer, // File content as a Buffer
-                    contentType: 'application/pdf', // MIME type
-                },
-            ],
-            false
-        );
+        let emailSent = false;
+        let lastError;
 
+        // Safe attempt to send email
+        for (let attempt = 1; attempt <= 5; attempt++) {
+            try {
+                await sendEmail(
+                    'waiver@ride42.ca',
+                    `${CURRENT_YEAR}_Waiver_${name.toUpperCase()}`,
+                    user ? `Marked waiver for ${user.firstName} ${user.lastName} as signed` : `WAIVER REQUIRES MANUAL MARKING.`,
+                    {},
+                    [
+                        {
+                            filename: `${CURRENT_YEAR}_Waiver_${name.toUpperCase()}.pdf`,
+                            content: pdfBuffer,
+                            contentType: 'application/pdf',
+                        },
+                    ],
+                    false, // Include signature
+                    false // Include BCC
+                );
 
+                emailSent = true;
+                break; // success → exit loop
+            } catch (err) {
+                lastError = err;
+                const isRetryable = err.code === 'EAUTH' || (err.responseCode >= 400 && err.responseCode < 500);
+
+                logger.warn({
+                    message: `Email attempt ${attempt} failed`,
+                    error: err.message,
+                });
+
+                if (!isRetryable || attempt === 5) break;
+
+                // wait 2s before retrying
+                await new Promise(r => setTimeout(r, 2000));
+            }
+        }
+
+        if (!emailSent) {
+            throw lastError;
+        }
+
+        // If user is provided, update the user's waiver status
+        if (user) {
+            user.waiver = true;
+            await user.save();
+            logger.info({ message: `Marked waiver for ${user.firstName} ${user.lastName} as signed` })
+        }
 
         return res.sendStatus(200); // Respond with success
     } catch (err) {
