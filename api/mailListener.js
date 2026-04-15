@@ -53,8 +53,8 @@ function getAmount(emailText) {
 async function updateTargetRecipients(target) {
 	let result = []
 	if (target === 'all') {
-		// Get all users
-		const allUsers = await User.find().select('contact.email')
+		// Get all users who do not have "promoOptOut" set to true
+		const allUsers = await User.find({ promoOptOut: { $ne: true } }).select('contact.email')
 		for (let user of allUsers) result.push(user.contact.email)
 	} else {
 		// Get all Trackdays
