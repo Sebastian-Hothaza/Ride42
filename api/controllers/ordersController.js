@@ -143,7 +143,7 @@ exports.order_put = [
 
     asyncHandler(async (req, res) => {
         if (req.user.memberType !== "admin") return res.sendStatus(403);
-
+        const order = await Order.findById(req.params.orderID).populate("user", "id firstName lastName contact.email");
         const updateData = {};
         if (req.body.orderStatus) updateData.orderStatus = req.body.orderStatus;
         if (req.body.paymentStatus) updateData.paymentStatus = req.body.paymentStatus;
@@ -158,10 +158,8 @@ exports.order_put = [
             if (!validDeliveryDate) return res.status(400).send({ msg: ['Delivery date is not a valid upcoming trackday'] });
         }
 
-        if (req.body.paymentStatus === "paid") {
+        if (req.body.paymentStatus === "paid" && order.paymentStatus !== "paid") {
             // Check inventory and decrement stock
-            const order = await Order.findById(req.params.orderID);
-            if (order.paymentStatus === "paid") return res.status(400).send({ msg: ['Order already marked as paid'] });
             for (const item of order.items) {
                 const product = await Product.findById(item.product);
                 let variant;
@@ -180,7 +178,7 @@ exports.order_put = [
 
 
         await Order.findByIdAndUpdate(req.params.orderID, updateData, { new: true, runValidators: true });
-        const order = await Order.findById(req.params.orderID).populate("user", "id firstName lastName contact.email");
+        
         logger.info({ message: `Updated order ${req.params.orderID}` });
         if (req.body.paymentStatus === "paid") {
             const prettyDeliveryDate = order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString('default', { month: 'long', day: 'numeric' }) : null;
