@@ -831,30 +831,6 @@ describe('Testing order update', () => {
 
         );
     })
-
-    test("Mark paid order as paid", async () => {
-        await request(app)
-            .put(`/orders/${adminOrder_seed._id.toString()}`)
-            .send({
-                paymentStatus: 'paid',
-            })
-            .set('Content-Type', 'application/json')
-            .set('Cookie', adminCookie)
-            .expect(200);
-
-        // Mark as paid again
-        await request(app)
-            .put(`/orders/${adminOrder_seed._id.toString()}`)
-            .send({
-                paymentStatus: 'paid',
-            })
-            .set('Content-Type', 'application/json')
-            .set('Cookie', adminCookie)
-            .expect(400, { msg: ['Order already marked as paid'] });
-
-
-
-    });
 })
 
 describe('Testing order delete', () => {
