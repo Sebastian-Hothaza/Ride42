@@ -46,6 +46,8 @@ const debug = require('debug')('api:server');
 const http = require('http');
 const logger = require('../logger');
 const mongoose = require('../mongoConfig');
+const { Server } = require('socket.io');
+const liveTrackdayUpdates = require('../trackdayLiveUpdates');
 
 // Set port
 const port = normalizePort(process.env.PORT);
@@ -56,6 +58,17 @@ app.set('port', port);
  */
 
 const server = http.createServer(app);
+
+// Set up Socket.IO for live trackday updates
+const io = new Server(server, {
+  cors: {
+    origin: process.env.CORS_ORIGIN,
+    methods: ['GET', 'POST'],
+    credentials: true,
+  }
+});
+
+liveTrackdayUpdates.init(io);
 
 /**
  * Listen on provided port, on all network interfaces.
