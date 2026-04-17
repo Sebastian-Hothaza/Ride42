@@ -190,9 +190,7 @@ const ManageProducts = ({ APIServer }) => {
                             <div className={styles.variantsListing}>
                                 {product.variants.map((variant, index) => (
                                     <div key={index} className={styles.productEntryControls}>
-                                        <span>{variant.size}{variant.compound ? `-` + variant.compound : ''}</span>
-                                        <span>${variant.price}</span>
-                                        <span>Stock: {variant.stock}</span>
+                                        {variant.size}{variant.compound ? `(${variant.compound})` : ''}---${variant.price}---Stock: {variant.stock}
                                     </div>
                                 ))}
                             </div>

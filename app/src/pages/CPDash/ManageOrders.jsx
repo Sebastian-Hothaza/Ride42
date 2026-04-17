@@ -154,7 +154,7 @@ const ManageOrders = ({ APIServer }) => {
                     <div><b>Products (* requires install)</b></div>
                     <div><b>Order Date</b></div>
                     <div><b>Order Status</b></div>
-                    <div><b>Due <em>(Status)</em></b></div>
+                    <div><b>Order Total</b></div>
                     <div><b>Delivery Date</b></div>
 
 
@@ -175,7 +175,7 @@ const ManageOrders = ({ APIServer }) => {
                                 </div>
                                 <div>{new Date(order.orderDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
                                 <div>{order.orderStatus}</div>
-                                <div>${order.balanceDue} <em>({order.paymentStatus})</em></div>
+                                <div>${order.balanceDue} {order.paymentStatus !== 'paid' && <em>({order.paymentStatus})</em>}</div>
                                 <div>{order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : 'Local Pickup'}{order.orderStatus !== 'complete' &&
                                     <div className={styles.productActions}>
                                         <button className={styles.editBtn} style={{ color: '#0099ff' }} onClick={() => setActiveModal({ type: 'editOrder', order })}><span className="material-symbols-outlined">edit</span></button>
@@ -218,8 +218,8 @@ const ManageOrders = ({ APIServer }) => {
                                 </div>
 
                                 <div className={styles.pairing}>
-                                    <div>Order Balace:</div>
-                                    <div>${order.balanceDue} <em>({order.paymentStatus})</em></div>
+                                    <div>Order Total:</div>
+                                    <div>${order.balanceDue} {order.paymentStatus !== 'paid' && <em>({order.paymentStatus})</em>}</div>
                                 </div>
 
                                 <div className={styles.pairing}>
