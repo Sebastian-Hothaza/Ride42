@@ -1,7 +1,6 @@
-import { useState, Fragment, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { io } from "socket.io-client";
 import ScrollToTop from "../../components/ScrollToTop";
-
-import Loading from '../../components/Loading';
 
 import styles from './stylesheets/TrackdayState.module.css'
 
@@ -13,13 +12,69 @@ import unpaid from './../../assets/unpaid.png'
 import checkedIn from './../../assets/checkedIn.png'
 import notCheckedIn from './../../assets/notCheckedIn.png'
 
-const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL }) => {
+const TrackdayState = ({ allUsers, allTrackdays, allTrackdaysFULL }) => {
 
-	const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown (in this case just spinner modal for refresh)
 	const currentYear = new Date().getFullYear();
 	const [selectedYear, setSelectedYear] = useState(currentYear);
 	const [selectedTrackdayId, setSelectedTrackdayId] = useState(''); // Tracks what the current working trackdayId is
-	const [showFinancials, setShowFinancials] = useState(false); // When set to true, shows financials instead of state 
+	const [showFinancials, setShowFinancials] = useState(false); // When set to true, shows financials instead of state
+	const [liveTrackday, setLiveTrackday] = useState(null); // When user selects a trackday, this state is set to the live version of that trackday which updates in real time via socket connection. If null, falls back to allTrackdaysFULL version of trackday which does not update in real time but ensures user can see something immediately without waiting for socket connection to load
+	const [socketStatus, setSocketStatus] = useState('connecting');
+	const selectedTrackdayIdRef = useRef(selectedTrackdayId);
+
+	useEffect(() => {
+		selectedTrackdayIdRef.current = selectedTrackdayId;
+		if (!selectedTrackdayId) setLiveTrackday(null);
+	}, [selectedTrackdayId]);
+
+	// Set up Socket.IO connection for live trackday updates
+	useEffect(() => {
+		const apiServer = import.meta.env.VITE_API_SERVER;
+		if (!apiServer) {
+			setSocketStatus('failed');
+			return;
+		}
+
+		const socket = io(apiServer, {
+			transports: ['websocket', 'polling'],
+			withCredentials: true,
+			path: '/socket.io',
+			reconnectionAttempts: 5,
+		});
+
+		socket.on('connect', () => {
+			setSocketStatus('connected');
+		});
+
+		socket.on('disconnect', () => {
+			setSocketStatus('disconnected');
+		});
+
+		socket.on('connect_error', () => {
+			setSocketStatus('failed');
+		});
+
+		socket.on('trackday:update', (updatedTrackday) => {
+			if (updatedTrackday?._id === selectedTrackdayIdRef.current) {
+				setLiveTrackday(updatedTrackday);
+			}
+		});
+
+		socket.on('trackday:deleted', (payload) => {
+			if (payload?._id === selectedTrackdayIdRef.current) {
+				setLiveTrackday(null);
+			}
+		});
+
+		return () => {
+			socket.off('connect');
+			socket.off('disconnect');
+			socket.off('connect_error');
+			socket.off('trackday:update');
+			socket.off('trackday:deleted');
+			socket.close();
+		};
+	}, []);
 
 
 	// Preload next trackday for convenience on initial render
@@ -44,6 +99,9 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 
 	let linesPrinted = { green: 0, yellow: 0, red: 0 };
 
+	const cloneTrackday = (trackday) => trackday ? JSON.parse(JSON.stringify(trackday)) : null;
+
+	
 
 	// Augment prettydate of allTrackdaysFULL to be a nice format
 	allTrackdaysFULL.forEach((trackday) => {
@@ -72,7 +130,7 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 
 	// Set the selected trackday and sort its members array. Augment object to include values for state display and financial display
 	if (selectedTrackdayId) {
-		selectedTrackday = allTrackdaysFULL.find((td) => td._id === selectedTrackdayId)
+		selectedTrackday = cloneTrackday(liveTrackday || allTrackdaysFULL.find((td) => td._id === selectedTrackdayId))
 		selectedTrackday.members.sort((a, b) => (a.user.firstName > b.user.firstName) ? 1 : ((b.user.firstName > a.user.firstName) ? -1 : 0))
 
 
@@ -206,13 +264,6 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 	}
 
 
-	async function handleRefresh() {
-		setActiveModal({ type: 'loading', msg: 'Refreshing data' });
-		await fetchAPIData();
-		setActiveModal('');
-	}
-
-
 	function printBlanks(num) {
 		return Array.from({ length: num }, (_, index) => <div className={`${styles.userEntry} ${styles.blankLine}`} key={index}></div>);
 	}
@@ -238,11 +289,11 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 						</div>
 					</form>
 					{selectedTrackday && <div className={styles.topButtons} >
+						<div className={styles.stateBtn} disabled><span style={{ color: socketStatus === 'connected' ? '#16a34a' : socketStatus === 'connecting' ? '#ca8a04' : '#dc2626' }} className={`${styles.mobileToolbarIcons} material-symbols-outlined `}>link</span></div>
 						{showFinancials ?
 							<button className={styles.stateBtn} onClick={() => setShowFinancials(false)}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined `}>event</span></button> :
 							<button className={styles.stateBtn} onClick={() => setShowFinancials(true)}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined `}>savings</span></button>}
 						<button className={styles.stateBtn} onClick={() => download(selectedTrackday)}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined `}>export_notes</span></button>
-						<button className={styles.stateBtn} onClick={() => handleRefresh()}><span className={`${styles.mobileToolbarIcons} material-symbols-outlined `}>refresh</span></button>
 					</div>}
 				</h1>
 
@@ -570,12 +621,6 @@ const TrackdayState = ({ fetchAPIData, allUsers, allTrackdays, allTrackdaysFULL 
 
 
 			</div >
-
-
-			<Loading open={activeModal.type === 'loading'}>
-				{activeModal.msg}
-			</Loading>
-
 		</>
 	);
 };
