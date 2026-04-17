@@ -174,21 +174,18 @@ exports.order_put = [
                     await product.save();
                 }
             }
-        }
 
-
-        await Order.findByIdAndUpdate(req.params.orderID, updateData, { new: true, runValidators: true });
-        
-        logger.info({ message: `Updated order ${req.params.orderID}` });
-        if (req.body.paymentStatus === "paid") {
+            // Send email
             const prettyDeliveryDate = order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString('default', { month: 'long', day: 'numeric' }) : null;
             const prettyOrderDate = new Date(order.orderDate).toLocaleDateString('default', { month: 'long', day: 'numeric' });
             sendEmail(order.user.contact.email, "Your Ride42 Order Has Been Paid", mailTemplates.paidTireOrder, {
                 name: order.user.firstName.charAt(0).toUpperCase() + order.user.firstName.slice(1),
                 orderDate: prettyOrderDate,
-                deliveryDate: prettyDeliveryDate ? `at the ${prettyDeliveryDate} trackday` : 'for local pick-up in Kitchener. Please reply to this email to schedule a time'
+                deliveryDate: prettyDeliveryDate ? `at the ${prettyDeliveryDate} trackday` : 'for local pick-up in Kitchener. Please reply to this email to schedule a pick-up time.'
             })
         }
+        await Order.findByIdAndUpdate(req.params.orderID, updateData, { new: true, runValidators: true });
+        logger.info({ message: `Updated order ${req.params.orderID}` });
         res.sendStatus(200);
     })
 ];
