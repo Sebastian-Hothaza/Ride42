@@ -17,15 +17,15 @@ async function validateProductParams(req, res, next) {
     const gearValidation = [
         body("basePrice", "Base price must be a number >= 0").isFloat({ min: 0 }),
 
-        body("sizes", "Sizes must be an array with at least one valid size").optional().isArray({ min: 1 }),
-        body("sizes.*", "Invalid size").isIn(["S", "M", "L", "XL", "XXL", "Custom", "S/M", "L/XL"]),
+        body("sizes", "Sizes must be an array").optional().isArray(),
+        body("sizes.*", "Invalid size").isIn(["xs", "s", "m", "l", "xl", "xxl", "custom", "s/m", "l/xl"]),
 
-        body("colors", "Colors must be an array with at least one valid color").optional().isArray({ min: 1 }),
-        body("colors.*", "Invalid color").isIn(["Black", "White", "Red", "Blue", "Green", "Lime", "Custom"]),
+        body("colors", "Colors must be an array").optional().isArray(),
+        body("colors.*", "Invalid color").isIn(["black", "white", "red", "blue", "green", "lime", "custom"]),
 
         body("addOnOptions").optional().isArray(),
-        body("addOnOptions.*.name", "Invalid add-on name").optional().isIn(["TPUCaps", "2-piece", "kangarooLeather", "airbagReady", "stingrayArmor", "gloveBundleDiscount"]),
-        body("addOnOptions.*.priceAdjustment", "Add-on price must be >= 0").isInt()
+        body("addOnOptions.*.name", "Invalid add-on name").optional().isIn(["TPUCaps", "2-piece", "kangarooLeather", "airbagReady", "stingrayArmor"]),
+        body("addOnOptions.*.priceAdjustment", "Add-on price must be integer").optional().isInt()
     ];
 
 
@@ -61,7 +61,13 @@ exports.product_post = [
         if (req.body.category === "tire") {
             product = new Tire({ name: req.body.name, variants: req.body.variants });
         } else if (req.body.category === "gear") {
-            product = new Gear({ name: req.body.name, basePrice: req.body.basePrice, sizes: req.body.sizes, colors: req.body.colors, addOnOptions: req.body.addOnOptions });
+            product = new Gear({
+                name: req.body.name,
+                basePrice: req.body.basePrice,
+                sizes: req.body.sizes,
+                colors: req.body.colors,
+                addOnOptions: req.body.addOnOptions
+            });
         }
         await product.save();
         logger.warn({ message: `Created ${req.body.category} product ${product.name}` });

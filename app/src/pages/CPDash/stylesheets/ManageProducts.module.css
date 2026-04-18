@@ -28,7 +28,10 @@ h2{
     gap: .5rem;
 }
 
-
+.checkboxGroup {
+    display: flex;
+    justify-content: space-between;
+}
 
 
 
