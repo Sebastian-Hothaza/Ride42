@@ -259,6 +259,83 @@ describe('Testing product create', () => {
         expect(created.variants[0]).not.toHaveProperty('compound');
     });
 
+    test("add gear product to DB", async () => {
+        await request(app)
+            .post("/products")
+            .send({
+                name: 'Racing Jacket',
+                category: 'gear',
+                basePrice: 299.99,
+                sizes: ['s', 'm', 'l'],
+                colors: ['black', 'red'],
+                addOnOptions: [
+                    { name: 'TPUCaps', priceAdjustment: 20 },
+                    { name: 'airbagReady', priceAdjustment: 100 }
+                ]
+            })
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(201);
+    });
+
+    test("add gear product to DB - no optional fields", async () => {
+        const createRes = await request(app)
+            .post("/products")
+            .send({
+                name: 'Basic Gloves',
+                category: 'gear',
+                basePrice: 79.99
+            })
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(201);
+
+        const listRes = await request(app)
+            .get("/products?getAll=true")
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(200);
+
+        const created = listRes.body.find(p => p.name === 'Basic Gloves');
+        expect(created).toBeDefined();
+        expect(created.basePrice).toBe(79.99);
+        expect(created.sizes).toEqual([]);
+        expect(created.colors).toEqual([]);
+        expect(created.addOnOptions).toEqual([]);
+    });
+
+    test("add gear product to DB - addOn option without priceAdjustment", async () => {
+        await request(app)
+            .post("/products")
+            .send({
+                name: 'Street Pants',
+                category: 'gear',
+                basePrice: 159.99,
+                addOnOptions: [
+                    { name: 'kangarooLeather' }
+                ]
+            })
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(201);
+    });
+
+    test("add gear product to DB - invalid add-on name", async () => {
+        await request(app)
+            .post("/products")
+            .send({
+                name: 'Track Shirt',
+                category: 'gear',
+                basePrice: 89.99,
+                addOnOptions: [
+                    { name: 'invalidOption', priceAdjustment: 10 }
+                ]
+            })
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(400);
+    });
+
 })
 
 describe('Testing product read', () => {
