@@ -95,7 +95,19 @@ const sampleSupercorsaInfo = {
     ]
 };
 
-let admin, user, sampleSupercorsa, adminCookie, userCookie;
+const sampleGearInfo = {
+    name: "Alpinestars Race Suit",
+    category: "gear",
+    basePrice: 1200,
+    sizes: ["XS", "S", "M", "L", "XL", "XXL"],
+    colors: ["Black", "White", "Red"],
+    addOnOptions: [
+        { name: "Hump Pad", priceAdjustment: 100 },
+        { name: "Custom Logo", priceAdjustment: 50 }
+    ]
+};
+
+let admin, user, sampleSupercorsa, sampleGear, adminCookie, userCookie;
 
 beforeEach(async () => {
     // Preload each test with user and admin logged in and store their cookies. Store sample products.
@@ -108,6 +120,7 @@ beforeEach(async () => {
     userCookie = loginResUser1.headers['set-cookie']
 
     sampleSupercorsa = await seedProduct(sampleSupercorsaInfo);
+    sampleGear = await seedGearProduct(sampleGearInfo);
 })
 
 const User = require("../models/User");
@@ -149,6 +162,21 @@ async function seedProduct(productInfo) {
         name: productInfo.name,
         category: productInfo.category,
         variants: productInfo.variants
+    });
+
+    await product.save();
+    return product;
+}
+
+async function seedGearProduct(productInfo) {
+    const { Product } = require("../models/Products");
+    const product = new Product({
+        name: productInfo.name,
+        category: productInfo.category,
+        basePrice: productInfo.basePrice,
+        sizes: productInfo.sizes,
+        colors: productInfo.colors,
+        addOnOptions: productInfo.addOnOptions
     });
 
     await product.save();
@@ -324,6 +352,190 @@ describe('Testing order create', () => {
                     {
                         product: sampleSupercorsa._id.toString(),
                         variant: { size: "200/60", compound: "SC3" },
+                        quantity: 1
+                    }
+                ]
+            })
+            .set('Content-Type', 'application/json')
+            .set('Cookie', userCookie)
+            .expect(201);
+    });
+
+    // GEAR ORDER TESTS
+    test("create gear order - invalid size", async () => {
+        await request(app)
+            .post(`/orders/${user._id.toString()}`)
+            .send({
+                items: [{
+                    product: sampleGear._id.toString(),
+                    size: "XXXL",
+                    color: "Black",
+                    quantity: 1
+                }]
+            })
+            .set('Content-Type', 'application/json')
+            .set('Cookie', userCookie)
+            .expect(400);
+    });
+
+    test("create gear order - invalid color", async () => {
+        await request(app)
+            .post(`/orders/${user._id.toString()}`)
+            .send({
+                items: [{
+                    product: sampleGear._id.toString(),
+                    size: "M",
+                    color: "Green",
+                    quantity: 1
+                }]
+            })
+            .set('Content-Type', 'application/json')
+            .set('Cookie', userCookie)
+            .expect(400);
+    });
+
+    test("create valid gear order - basic", async () => {
+        await request(app)
+            .post(`/orders/${user._id.toString()}`)
+            .send({
+                items: [{
+                    product: sampleGear._id.toString(),
+                    size: "M",
+                    color: "Black",
+                    quantity: 1
+                }]
+            })
+            .set('Content-Type', 'application/json')
+            .set('Cookie', userCookie)
+            .expect(201);
+    });
+
+    test("create valid gear order - with quantity", async () => {
+        await request(app)
+            .post(`/orders/${user._id.toString()}`)
+            .send({
+                items: [{
+                    product: sampleGear._id.toString(),
+                    size: "L",
+                    color: "White",
+                    quantity: 3
+                }]
+            })
+            .set('Content-Type', 'application/json')
+            .set('Cookie', userCookie)
+            .expect(201);
+    });
+
+    test("create valid gear order - with addOns", async () => {
+        await request(app)
+            .post(`/orders/${user._id.toString()}`)
+            .send({
+                items: [{
+                    product: sampleGear._id.toString(),
+                    size: "S",
+                    color: "Red",
+                    quantity: 1,
+                    addOns: ["Hump Pad", "Custom Logo"]
+                }]
+            })
+            .set('Content-Type', 'application/json')
+            .set('Cookie', userCookie)
+            .expect(201);
+    });
+
+    test("create valid gear order - with single addOn", async () => {
+        await request(app)
+            .post(`/orders/${user._id.toString()}`)
+            .send({
+                items: [{
+                    product: sampleGear._id.toString(),
+                    size: "XL",
+                    color: "Black",
+                    quantity: 1,
+                    addOns: ["Hump Pad"]
+                }]
+            })
+            .set('Content-Type', 'application/json')
+            .set('Cookie', userCookie)
+            .expect(201);
+    });
+
+    test("create valid gear order - admin for user", async () => {
+        await request(app)
+            .post(`/orders/${user._id.toString()}`)
+            .send({
+                items: [{
+                    product: sampleGear._id.toString(),
+                    size: "M",
+                    color: "White",
+                    quantity: 2
+                }]
+            })
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(201);
+    });
+
+    test("create gear order - mixed tire and gear items", async () => {
+        await request(app)
+            .post(`/orders/${user._id.toString()}`)
+            .send({
+                items: [
+                    {
+                        product: sampleSupercorsa._id.toString(),
+                        variant: { size: "200/60", compound: "SC3" },
+                        quantity: 1
+                    },
+                    {
+                        product: sampleGear._id.toString(),
+                        size: "M",
+                        color: "Black",
+                        quantity: 1
+                    }
+                ]
+            })
+            .set('Content-Type', 'application/json')
+            .set('Cookie', userCookie)
+            .expect(201);
+    });
+
+    test("create gear order - glove discount applies with race suit", async () => {
+        // Create a race suit product
+        const raceSuitInfo = {
+            name: "Alpinestars race suit premium",
+            category: "gear",
+            basePrice: 1500,
+            sizes: ["M", "L"],
+            colors: ["Black"],
+            addOnOptions: []
+        };
+        const raceSuit = await seedGearProduct(raceSuitInfo);
+
+        // Create a race gloves product
+        const glovesInfo = {
+            name: "Alpinestars race gloves",
+            category: "gear",
+            basePrice: 300,
+            sizes: ["S", "M", "L"],
+            colors: ["Black"],
+            addOnOptions: []
+        };
+        const gloves = await seedGearProduct(glovesInfo);
+
+        await request(app)
+            .post(`/orders/${user._id.toString()}`)
+            .send({
+                items: [
+                    {
+                        product: raceSuit._id.toString(),
+                        size: "M",
+                        color: "Black",
+                        quantity: 1
+                    },
+                    {
+                        product: gloves._id.toString(),
+                        size: "M",
+                        color: "Black",
                         quantity: 1
                     }
                 ]
