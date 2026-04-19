@@ -52,10 +52,9 @@ exports.order_post = [
             const product = await Product.findById(item.product);
             if (!product) return res.status(404).send({ msg: ['Product does not exist'] });
 
-
-            // Find variant
-            let variantSnapshot;
             if (product.category === "tire") {
+                // Find variant
+                let variantSnapshot;
                 variantSnapshot = product.variants.find(v =>
                     v.size === item.variant.size &&
                     (item.variant.compound === null || v.compound === item.variant.compound)
@@ -66,27 +65,51 @@ exports.order_post = [
                 // Verify variant is in stock
                 // if (variantSnapshot.stock < item.quantity) return res.status(400).send({ msg: ['Out of Stock'] })
 
+                return {
+                    product: product._id,
+                    name: product.name,
+                    category: product.category,
+                    size: item.variant.size,
+                    quantity: item.quantity,
+                    price: variantSnapshot.price,
+                    compound: item.variant.compound,
+                    installRequired: item.installRequired
+                };
+
             } else if (product.category === "gear") {
-                // TODO
+                // Validate size
+                if (!product.sizes.includes(item.size)) return res.status(400).send({ msg: ['Size is not available for this product'] });
+                
+                // Validate color
+                if (!product.colors.includes(item.color)) return res.status(400).send({ msg: ['Color is not available for this product'] });
+
+                return {
+                    product: product._id,
+                    name: product.name,
+                    category: product.category,
+                    size: item.size,
+                    quantity: item.quantity || 1,
+                    basePrice: product.basePrice,
+                    price: product.basePrice + (item.addOns ? item.addOns.reduce((sum, addOn) => {
+                        const option = product.addOnOptions.find(option => option.name === addOn);
+                        return sum + (option ? option.priceAdjustment : 0);
+                    }, 0) : 0),
+                    color: item.color,
+                    addOns: item.addOns ? item.addOns.map(addOn => ({
+                        name: addOn,
+                        price: product.addOnOptions.find(option => option.name === addOn)?.priceAdjustment || 0,
+                    })) : [],
+                };
             }
-
-            return {
-                product: product._id,
-                name: product.name,
-                category: product.category,
-                size: item.variant.size,
-                quantity: item.quantity,
-                price: variantSnapshot.price,
-
-                // For Tire
-                compound: item.variant.compound,
-                installRequired: item.installRequired
-
-                // For Gear
-                // TODO
-            };
         }));
 
+
+        // Apply $20 discount per glove if there is also a suit in the order
+        if (itemsSnapshot.some(item => item.category === "gear" && item.name.includes("race suit"))) {
+            itemsSnapshot.forEach(item => {
+                if (item.category === "gear" && item.name.includes("race gloves")) item.price -= 20;
+            })
+        }
 
         const balanceDueSnapshot = itemsSnapshot.reduce((sum, i) => sum + (i.price * i.quantity), 0)
         await Order.create({
