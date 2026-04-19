@@ -96,7 +96,7 @@ const sampleSupercorsaInfo = {
 };
 
 const sampleGearInfo = {
-    name: "Alpinestars Race Suit",
+    name: "Race Suit",
     category: "gear",
     basePrice: 1200,
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
