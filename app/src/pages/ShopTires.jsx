@@ -54,6 +54,7 @@ const ShopTires = ({ APIServer }) => {
 			})
 			if (response.ok) {
 				const data = await response.json();
+				data = data.filter(p => p.category === 'tire');
 				setTireProducts(data);
 			} else {
 				const data = await response.json();
