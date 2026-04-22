@@ -54,8 +54,7 @@ const ShopTires = ({ APIServer }) => {
 			})
 			if (response.ok) {
 				const data = await response.json();
-				data = data.filter(p => p.category === 'tire');
-				setTireProducts(data);
+				setTireProducts(data.filter(p => p.category === 'tire'));
 			} else {
 				const data = await response.json();
 				console.error('failed to fetch products')
