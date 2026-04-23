@@ -98,9 +98,6 @@ function init(io) {
             logger.error({ message: 'Trackday watch error: ' + err.message });
         });
 
-        changeStream.on('close', () => {
-            logger.warn({ message: 'Trackday watch stream closed' });
-        });
     } catch (err) {
         logger.error({ message: 'Failed to initialize trackday live updates: ' + err.message });
     }
