@@ -78,10 +78,10 @@ exports.order_post = [
 
             } else if (product.category === "gear") {
                 // Validate size
-                if (!product.sizes.includes(item.size)) return res.status(400).send({ msg: ['Size is not available for this product'] });
+                if (item.size && !product.sizes.includes(item.size)) return res.status(400).send({ msg: ['Size is not available for this product'] });
                 
                 // Validate color
-                if (!product.colors.includes(item.color)) return res.status(400).send({ msg: ['Color is not available for this product'] });
+                if (item.color && !product.colors.includes(item.color)) return res.status(400).send({ msg: ['Color is not available for this product'] });
 
                 return {
                     product: product._id,
@@ -98,7 +98,7 @@ exports.order_post = [
                     addOns: item.addOns ? item.addOns.map(addOn => ({
                         name: addOn,
                         price: product.addOnOptions.find(option => option.name === addOn)?.priceAdjustment || 0,
-                    })) : [],
+                    })) : undefined,
                 };
             }
         }));
@@ -154,8 +154,8 @@ exports.order_get = [
 
 // Update an order. The following fields can be updated: orderStatus, paymentStatus, deliveryDate. Requires JWT with admin.
 exports.order_put = [
-    body("orderStatus", "Order status must be one of: pending, complete, pending design, pending measurements, pending approval").optional()
-        .isIn(["pending", "complete", "pending design", "pending measurements", "pending approval"]),
+    body("orderStatus", "Order status must be one of: pending, complete, pending submission, pending production").optional()
+        .isIn(["pending", "complete", "pending submission", "pending production"]),
     body("paymentStatus", "Payment status must be one of: partial, paid").optional()
         .isIn(["partial", "paid"]),
     body("deliveryDate", "Delivery date must be a valid date").optional({ values: "falsy" }).isISO8601().toDate(),
