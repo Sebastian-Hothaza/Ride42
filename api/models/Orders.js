@@ -24,11 +24,13 @@ const OrderSchema = new mongoose.Schema({
     // For Gear
     color: String,
     addOns: { type: [{ name: String, price: Number, quantity: Number, }], required: false, default: undefined },
+    measurementsComplete: { type: Boolean, default: false },
+    designComplete: { type: Boolean, default: false },
 
   }],
   balanceDue: Number,
   paymentStatus: { type: String, enum: ["pending", "partial", "paid"], default: "pending" },
-  orderStatus: { type: String, enum: ["pending", "complete", "pending design", "pending measurements", "pending approval"], default: "pending" },
+  orderStatus: { type: String, enum: ["pending", "complete", "pending submission", "pending production"], default: "pending" },
   deliveryDate: Date
 });
 
