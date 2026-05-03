@@ -133,12 +133,13 @@ const ManageOrders = ({ APIServer }) => {
         }
     }
 
+
+
     return (
         <>
             <ScrollToTop />
             <div className={styles.content}>
                 <h1>Manage Orders</h1>
-                <h2>Tire Orders</h2>
                 <div className={styles.filterControls}>
                     <label>
                         <input
@@ -149,6 +150,8 @@ const ManageOrders = ({ APIServer }) => {
                         Show Completed
                     </label>
                 </div>
+                <h2>Tire Orders</h2>
+
                 <div className={styles.orderGrid}>
                     <div><b>Name</b></div>
                     <div><b>Products (* requires install)</b></div>
@@ -160,7 +163,7 @@ const ManageOrders = ({ APIServer }) => {
 
                     {allOrders
                         .filter((order) => order.items[0].category === 'tire')
-                        .filter((order) => !showCompleted ? order.orderStatus !== 'complete' : true)
+                        .filter((order) => !showCompleted ? order.orderStatus !== 'complete' : order.orderStatus === 'complete')
                         .map((order, idx) => (
                             <Fragment key={idx}>
                                 <div>{order.user.firstName} {order.user.lastName}</div>
@@ -193,7 +196,7 @@ const ManageOrders = ({ APIServer }) => {
                 <div className={styles.orderGrid_Mobile}>
                     {allOrders
                         .filter((order) => order.items[0].category === 'tire')
-                        .filter((order) => !showCompleted ? order.orderStatus !== 'complete' : true)
+                        .filter((order) => !showCompleted ? order.orderStatus !== 'complete' : order.orderStatus === 'complete')
                         .map((order, idx) => (
                             <div className={styles.orderEntry} key={idx}>
                                 <div className={styles.pairing}>
@@ -239,9 +242,107 @@ const ManageOrders = ({ APIServer }) => {
                         ))}
                 </div>
 
-                <h2>Gear</h2>
-                <div>
-                    Under development...
+                <h2>Gear Orders</h2>
+
+                <div className={styles.orderGrid}>
+                    <div><b>Name</b></div>
+                    <div><b>Products</b></div>
+                    <div><b>Order Date</b></div>
+                    <div><b>Order Status</b></div>
+                    <div><b>Order Total</b></div>
+                    <div><b>Progresss</b></div>
+
+
+                    {allOrders
+                        .filter((order) => order.items[0].category === 'gear')
+                        .filter((order) => !showCompleted ? order.orderStatus !== 'complete' : order.orderStatus === 'complete')
+                        .map((order, idx) => (
+                            <Fragment key={idx}>
+                                <div>{order.user.firstName} {order.user.lastName}</div>
+                                <div>
+                                    <div className={styles.orderItems}>
+                                        {order.items.map((item, index) => (
+                                            <div key={index}>
+                                                {item.quantity > 1 && `${item.quantity}x `}
+                                                {item.name}
+                                                {item.addOns && `(${item.addOns.map(addOn => addOn.name).join(', ')})`}
+                                                {item.size && `(${item.size})`}{item.color && `(${item.color})`}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div>{new Date(order.orderDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
+                                <div>{order.orderStatus}</div>
+                                <div>${order.balanceDue} {order.paymentStatus !== 'paid' && <em>({order.paymentStatus})</em>}</div>
+                                <div>{order.orderStatus !== 'complete' &&
+                                    <>
+                                        <div>
+                                            <div>Measurements: ✅</div>
+                                            <div>Design: ✅</div>
+                                        </div>
+
+                                        <div className={styles.productActions}>
+                                            <button className={styles.editBtn} style={{ color: '#0099ff' }} onClick={() => setActiveModal({ type: 'editOrder', order })}><span className="material-symbols-outlined">edit</span></button>
+                                            <button className={styles.editBtn} style={{ backgroundColor: '#bb0000' }} onClick={() => setActiveModal({ type: 'deleteOrder', order })}><span className='material-symbols-outlined'>delete</span></button>
+                                        </div>
+                                    </>
+
+                                }</div>
+
+
+
+
+                            </Fragment>
+                        ))}
+                </div>
+
+                <div className={styles.orderGrid_Mobile}>
+                    {allOrders
+                        .filter((order) => order.items[0].category === 'tire')
+                        .filter((order) => !showCompleted ? order.orderStatus !== 'complete' : order.orderStatus === 'complete')
+                        .map((order, idx) => (
+                            <div className={styles.orderEntry} key={idx}>
+                                <div className={styles.pairing}>
+                                    <div>User:</div>
+                                    <div>{order.user.firstName} {order.user.lastName}</div>
+                                </div>
+                                <br></br>
+                                {order.items.map((item, index) => (
+                                    <div key={index}>
+                                        {item.quantity}x {item.name} ({item.size}{item.compound ? `-` + item.compound : ''}){item.installRequired && '(*)'}
+                                    </div>
+                                ))}
+                                <br></br>
+                                <div className={styles.pairing}>
+                                    <div>Order Date:</div>
+                                    <div>{new Date(order.orderDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
+                                </div>
+
+                                <div className={styles.pairing}>
+                                    <div>Order Status:</div>
+                                    <div>{order.orderStatus}</div>
+                                </div>
+
+                                <div className={styles.pairing}>
+                                    <div>Order Total:</div>
+                                    <div>${order.balanceDue} {order.paymentStatus !== 'paid' && <em>({order.paymentStatus})</em>}</div>
+                                </div>
+
+                                <div className={styles.pairing}>
+                                    <div>Delivery Date:</div>
+                                    {order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : 'Kitchener Pickup'}
+                                </div>
+
+
+
+                                <div>{order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : 'Local Pickup'}{order.orderStatus !== 'complete' &&
+                                    <div className={styles.productActions}>
+                                        <button className={styles.editBtn} style={{ color: '#0099ff' }} onClick={() => setActiveModal({ type: 'editOrder', order })}><span className="material-symbols-outlined">edit</span></button>
+                                        <button className={styles.editBtn} style={{ backgroundColor: '#bb0000' }} onClick={() => setActiveModal({ type: 'deleteOrder', order })}><span className='material-symbols-outlined'>delete</span></button>
+                                    </div>
+                                }</div>
+                            </div>
+                        ))}
                 </div>
 
             </div>
@@ -272,9 +373,8 @@ const ManageOrders = ({ APIServer }) => {
                             <select id="orderStatus" name="orderStatus" defaultValue={activeModal.order?.orderStatus} required>
                                 <option value="pending">Pending</option>
                                 <option value="complete">Complete</option>
-                                <option value="pending design">Pending Design</option>
-                                <option value="pending measurements">Pending Measurements</option>
-                                <option value="pending approval">Pending Approval</option>
+                                <option value="pending submission">Pending Submission</option>
+                                <option value="pending production">Pending Production</option>
                             </select>
                         </div>
 
