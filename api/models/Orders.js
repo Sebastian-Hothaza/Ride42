@@ -24,8 +24,8 @@ const OrderSchema = new mongoose.Schema({
     // For Gear
     color: String,
     addOns: { type: [{ name: String, price: Number, quantity: Number, }], required: false, default: undefined },
-    measurementsComplete: { type: Boolean, default: false },
-    designComplete: { type: Boolean, default: false },
+    measurementsComplete: Boolean,
+    designComplete: Boolean, 
 
   }],
   balanceDue: Number,
