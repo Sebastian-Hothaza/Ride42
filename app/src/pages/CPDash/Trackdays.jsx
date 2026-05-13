@@ -348,7 +348,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 								{userInfo.credits && <option key="credit" value="credit">Use trackday credit ({userInfo.credits} left)</option>}
 								{selectedTrackday && !inLockout(selectedTrackday) && <option key="etransfer" value="etransfer">Interac E-Transfer (${selectedTrackday.ticketPrice.preReg})</option>}
 								{selectedTrackday && !inLockout(selectedTrackday) && <option key="creditCard" value="creditCard">Credit Card (${selectedTrackday.ticketPrice.preReg + CREDITCARD_FEE})</option>}
-								{selectedTrackday && inLockout(selectedTrackday) && <option key="gate" value="gate">Interac E-Transfer (${selectedTrackday.ticketPrice.gate})</option>}
+								{selectedTrackday && inLockout(selectedTrackday) && <option key="gate" value="gate">Cash at Gate (${selectedTrackday.ticketPrice.gate})</option>}
 							</select>
 						</div>
 					</div>
