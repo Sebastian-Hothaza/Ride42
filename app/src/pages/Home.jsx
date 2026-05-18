@@ -17,7 +17,7 @@ import styles from './stylesheets/Home.module.css'
 
 
 const Home = () => {
-	const CANCELLATION_NOTICE = false; // Set to true to display cancellation notice.
+	const CANCELLATION_NOTICE = true; // Set to true to display cancellation notice.
 
 	const [nextTrackday, setNextTrackday] = useState(() => JSON.parse(localStorage.getItem('nextTrackday')));
 	let daysAway, hoursAway; // Tracks how many days and hours away the next trackday is
@@ -59,7 +59,7 @@ const Home = () => {
 
 
 	const HTML_Cancellation = <div>
-		<h1>The trackday on June 18 has been cancelled.</h1>
+		<h1>The trackday on May 19 has been cancelled.</h1>
 		<br></br>
 		<p>If you paid via trackday credit, your credit has been added back to your account.</p>
 		<br></br>
