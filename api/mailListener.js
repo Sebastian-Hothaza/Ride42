@@ -258,8 +258,8 @@ function startForwardingListener() {
 			if (!toHeader || toHeader.toLowerCase() !== "autoforward@ride42.ca") return;
 
 			// Get metadata attachment which contains target and token and load them in.
-			const metadataAttachment = mail.attachments?.find(a => a.filename === "mailAllKey.json");
-			if (!metadataAttachment) throw new Error("mailAllKey.json attachment missing");
+			const metadataAttachment = mail.attachments?.find(a => a.filename === "mailKey.json");
+			if (!metadataAttachment) throw new Error("mailKey.json attachment missing");
 			const metadata = JSON.parse(metadataAttachment.content.toString("utf8"));
 			const target = metadata.target;
 			const token = metadata.token;
