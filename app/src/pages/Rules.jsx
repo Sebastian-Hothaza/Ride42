@@ -37,7 +37,7 @@ const Rules = () => {
 		</ul>
 		<br></br>
 		<h2>No gear? No problem!</h2><br></br>
-		<p>We have partnered with Racer5 to supply rental gear; just bring your bike and helmet! If this is something you'd like to take advantage of, simply send us an email and we'll get you more info & suited up! 😎</p>
+		<p>We have partnered with Racer5 to supply rental gear; just bring your bike and helmet! If this is something you'd like to take advantage of, <a href="https://racer5.ca/products/ride42-riding-gear-rental" style={{ color: "blue", textDecoration: "underline" }}>click here to book.</a></p>
 	</div>
 
 	const HTML_OurPolicies = <div className={styles.rulesCard}>
