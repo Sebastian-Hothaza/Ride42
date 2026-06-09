@@ -1,4 +1,4 @@
-import { NavLink, useOutletContext } from "react-router-dom";
+import { NavLink, useOutletContext, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import ScrollToTop from "../components/ScrollToTop";
 
@@ -12,6 +12,7 @@ import errormark from './../assets/error.png'
 
 const Login = ({ APIServer }) => {
     const [activeModal, setActiveModal] = useState(''); // Tracks what modal should be shown
+    const [searchParams] = useSearchParams();
     const { handleLogin, loginErrorMsg } = useOutletContext();
 
 
@@ -21,6 +22,7 @@ const Login = ({ APIServer }) => {
         setActiveModal({ type: 'loading', msg: 'Logging you in...' });
         const error_message = await handleLogin(e);
         setActiveModal({ type: 'failure', msg: error_message }); // Only executes if log in fails
+        if (searchParams.get('redirect')) window.location.href = searchParams.get('redirect');
     }
 
     async function handlePasswordResetRequest(e) {
