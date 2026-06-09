@@ -792,7 +792,11 @@ exports.user_put = [
             })
 
             await User.findByIdAndUpdate(req.params.userID, user, {});
-            sendEmail(user.contact.email, "Your account details have been updated", mailTemplates.updateUser, { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) })
+            if (oldUser.waiver && !user.waiver) {
+                sendEmail(user.contact.email, "Your waiver has been rejected", mailTemplates.waiverReject, { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) })
+            } else {
+                sendEmail(user.contact.email, "Your account details have been updated", mailTemplates.updateUser, { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) })
+            }
             return res.status(201).json({ id: user.id });
         }
         return res.sendStatus(403)
