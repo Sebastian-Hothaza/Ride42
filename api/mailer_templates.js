@@ -269,6 +269,18 @@ const notifyMassEmail =
 	</div>
 </body>`
 
+const waiverReject =
+	`<body>
+	<div class="default-style">
+		Hello {name}, <br /> <br />
+		Your waiver submission has been rejected. This is most likely due to an incomplete signature; please make sure to sign in the box provided.<br />
+		<br />
+		You can resubmit your waiver <a href="https://Ride42.ca/dashboard?redirect=waiver">here.</a><br />
+		<br />
+		Should you have any questions, please reach out anytime 😊
+	</div>
+</body>`
+
 module.exports = {
 	welcomeUser,
 	updateUser,
@@ -287,5 +299,6 @@ module.exports = {
 	createTireOrder,
 	deleteTireOrder,
 	paidTireOrder,
-	notifyMassEmail
+	notifyMassEmail,
+	waiverReject
 };
