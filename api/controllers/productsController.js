@@ -75,22 +75,17 @@ exports.product_post = [
     })
 ];
 
-// Get a single product. Requires JWT.
+// Get a single product.
 exports.product_get = [
-    controllerUtils.verifyJWT,
     controllerUtils.validateProductID,
-
     asyncHandler(async (req, res, next) => {
-
         let product = await Product.findById(req.params.productID);
         return res.status(200).json(product);
     })
 ]
 
-// Gets all products. Requires JWT.
+// Gets all products.
 exports.product_getALL = [
-    controllerUtils.verifyJWT,
-
     asyncHandler(async (req, res) => {
         let products = await Product.find();
         return res.status(200).json(products);
