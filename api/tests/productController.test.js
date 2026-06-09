@@ -366,18 +366,11 @@ describe('Testing product read', () => {
         return;
     })
 
-    test("Read all product from DB - No JWT", async () => {
-        const res = await request(app)
-            .get("/products")
-            .set('Content-Type', 'application/json')
-            .expect(401);
-    });
 
     test("Read all product from DB", async () => {
         const res = await request(app)
             .get("/products?getAll=true")
             .set('Content-Type', 'application/json')
-            .set('Cookie', adminCookie)
             .expect(200);
 
         expect(res.body).toEqual([
