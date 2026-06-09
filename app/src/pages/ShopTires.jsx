@@ -40,6 +40,13 @@ const ShopTires = ({ APIServer }) => {
 	const [userCart, setUserCart] = useState([]);
 	const balanceDue = userCart.reduce((sum, item) => { return sum + item.price * item.quantity; }, 0);
 
+	// used for formatting/nice display
+	const tireNameMap = {
+		'rosso iv corsa': 'Rosso IV Corsa',
+		'supercorsa td sc3': 'SuperCorsa TD SC3',
+		'superbike slicks': 'Superbike Slicks'
+	};
+
 	const navigate = useNavigate();
 
 	async function fetchProducts() {
@@ -114,11 +121,8 @@ const ShopTires = ({ APIServer }) => {
 
 
 	useEffect(() => {
-		if (selectedUser) {
-			fetchProducts();
-			fetchDates();
-		}
-
+		fetchProducts();
+		fetchDates();
 		if (loggedInUser && loggedInUser.memberType === 'admin') fetchUsers();
 	}, [])
 
@@ -343,7 +347,7 @@ const ShopTires = ({ APIServer }) => {
 					<option key="tireNone" value=''></option>
 					{tireProducts.map(tire => (
 						<option key={tire._id} value={tire._id}>
-							{tire.name}
+							{tireNameMap[tire.name] || tire.name}
 						</option>
 					))}
 				</select>
@@ -381,36 +385,39 @@ const ShopTires = ({ APIServer }) => {
 					<div className={styles.inputPairing}>
 						<label>Price: ${price}</label>
 					</div>
-					<div className={styles.inputPairing}>
+					{loggedInUser ? <><div className={styles.inputPairing}>
 						<label>In Stock: {inventory}</label>
 					</div>
-					<div className={styles.inputPairing}>
-						<label htmlFor="tireQty">Quantity: </label>
-						<button type="button" id={styles.qtyButton} onClick={() => setQtyOrder(q => Math.max(1, q - 1))}><span className='material-symbols-outlined'>remove</span></button>
+						<div className={styles.inputPairing}>
+							<label htmlFor="tireQty">Quantity: </label>
+							<button type="button" id={styles.qtyButton} onClick={() => setQtyOrder(q => Math.max(1, q - 1))}><span className='material-symbols-outlined'>remove</span></button>
 
 
-						<input
-							type="number"
-							min={1}
-							max={25}
-							step={1}
-							value={qtyOrder}
-							onChange={(e) => {
-								const val = Number(e.target.value);
-								if (!Number.isNaN(val)) setQtyOrder(Math.max(1, val));
-							}}
-						/>
+							<input
+								type="number"
+								min={1}
+								max={25}
+								step={1}
+								value={qtyOrder}
+								onChange={(e) => {
+									const val = Number(e.target.value);
+									if (!Number.isNaN(val)) setQtyOrder(Math.max(1, val));
+								}}
+							/>
 
-						<button id={styles.qtyButton} type="button" onClick={() => setQtyOrder(q => q + 1)}><span className='material-symbols-outlined'>add</span></button>
-					</div>
+							<button id={styles.qtyButton} type="button" onClick={() => setQtyOrder(q => q + 1)}><span className='material-symbols-outlined'>add</span></button>
+						</div>
 
-					<div className={styles.inputPairing}>
-						<label htmlFor="installReq" >Install Required </label>
-						<input checked={installRequired} onChange={e => setInstallRequired(e.target.checked)} type='checkbox'></input>
-					</div>
+						<div className={styles.inputPairing}>
+							<label htmlFor="installReq" >Install Required </label>
+							<input checked={installRequired} onChange={e => setInstallRequired(e.target.checked)} type='checkbox'></input>
+						</div>
 
 
-					<button type="submit">Add To Cart</button>
+						<button type="submit">Add To Cart</button></>
+						:
+						<div>Please <a href="/dashboard?redirect=shoptires" style={{ color: "blue", textDecoration: "underline" }}>log in</a> to create an order.</div>}
+
 
 				</>
 
@@ -448,11 +455,6 @@ const ShopTires = ({ APIServer }) => {
 		}
 	</div >
 
-	const HTML_Deny = <div className={styles.rulesCard}>
-		<h2>Our shop is exclusive to our members. You must have an account and be signed in to submit an order.</h2>
-		<br></br><br></br>
-		<NavLink className={styles.bookBtn} to="/dashboard">Get me access!</NavLink>
-	</div>
 	return (
 		<>
 			<div className={styles.content}>
@@ -460,7 +462,7 @@ const ShopTires = ({ APIServer }) => {
 				<Card heading='Rosso IV Corsa' body={HTML_rosso4} img={rosso4} inverted={true} />
 				<Card heading='SuperCorsa TD SC3' body={HTML_TDSC3} img={sc3} inverted={false} />
 				<Card heading='Superbike Slicks' body={HTML_Slicks} img={slick} inverted={true} />
-				<Card heading='Submit your order' body={loggedInUser ? HTML_Order : HTML_Deny} />
+				<Card heading='Submit your order' body={HTML_Order} />
 			</div>
 
 			<Loading open={activeModal.type === 'loading'}>
