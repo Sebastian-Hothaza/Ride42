@@ -80,7 +80,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 			}
 		} catch (err) {
 			setActiveModal({ type: 'failure', msg: 'API Failure' })
-			console.log(err.message)
+			logger.error({ message: err.message })
 		}
 
 	}
@@ -106,7 +106,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 			}
 		} catch (err) {
 			setActiveModal({ type: 'failure', msg: 'API Failure' })
-			console.log(err.message)
+			logger.error({ message: err.message })
 		}
 	}
 
@@ -141,7 +141,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 			}
 		} catch (err) {
 			setActiveModal({ type: 'failure', msg: 'API Failure' })
-			console.log(err.message)
+			logger.error({ message: err.message })
 		}
 	}
 
@@ -172,7 +172,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 			}
 		} catch (err) {
 			setActiveModal({ type: 'failure', msg: 'API Failure' })
-			console.log(err.message)
+			logger.error({ message: err.message })
 		}
 	}
 
@@ -197,7 +197,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 			}
 		} catch (err) {
 			setActiveModal({ type: 'failure', msg: 'API Failure' })
-			console.log(err.message)
+			logger.error({ message: err.message })
 		}
 	}
 
@@ -218,7 +218,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 			}
 		} catch (err) {
 			setActiveModal({ type: 'failure', msg: 'API Failure' })
-			console.log(err.message)
+			logger.error({ message: err.message })
 		}
 	}
 
@@ -250,7 +250,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 			}
 		} catch (err) {
 			setActiveModal({ type: 'failure', msg: 'API Failure' })
-			console.log(err.message)
+			logger.error({ message: err.message })
 		}
 	}
 

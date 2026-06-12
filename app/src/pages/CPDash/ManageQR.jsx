@@ -118,7 +118,7 @@ const ManageQR = ({ APIServer, allUsers, allTrackdaysFULL, fetchAPIData, }) => {
             }
         } catch (err) {
             setActiveModal({ type: 'failure', msg: 'API Failure' })
-            console.log(err.message)
+            logger.error({ message: err.message })
         }
         e.target.reset();
     }
@@ -174,7 +174,7 @@ const ManageQR = ({ APIServer, allUsers, allTrackdaysFULL, fetchAPIData, }) => {
 
         } catch (err) {
             setActiveModal({ type: 'failure', msg: 'API Failure' })
-            console.log(err.message)
+            logger.error({ message: err.message })
         }
     }
 
@@ -211,7 +211,7 @@ const ManageQR = ({ APIServer, allUsers, allTrackdaysFULL, fetchAPIData, }) => {
             }
         } catch (err) {
             setActiveModal({ type: 'failure', msg: 'API Failure' })
-            console.log(err.message)
+            logger.error({ message: err.message })
         }
     }
 

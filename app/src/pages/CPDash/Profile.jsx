@@ -86,7 +86,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 			}
 		} catch (err) {
 			setActiveModal({ type: 'failure', msg: 'API Failure' })
-			console.log(err.message)
+			logger.error({ message: err.message })
 		}
 	}
 
@@ -117,7 +117,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 			}
 		} catch (err) {
 			setActiveModal({ type: 'failure', msg: 'API Failure' })
-			console.log(err.message)
+			logger.error({ message: err.message })
 		}
 	}
 
@@ -143,7 +143,7 @@ const Profile = ({ APIServer, userInfo, fetchAPIData }) => {
 			}
 		} catch (err) {
 			setActiveModal({ type: 'failure', msg: 'API Failure' })
-			console.log(err.message)
+			logger.error({ message: err.message })
 		}
 	}
 

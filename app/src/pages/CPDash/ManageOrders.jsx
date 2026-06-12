@@ -43,7 +43,7 @@ const ManageOrders = ({ APIServer }) => {
                 console.error('failed to fetch products')
             }
         } catch (err) {
-            console.log(err.message)
+            logger.error({ message: err.message })
         }
     }
 
@@ -66,7 +66,7 @@ const ManageOrders = ({ APIServer }) => {
                 console.error('failed to fetch trackday dates')
             }
         } catch (err) {
-            console.log(err.message)
+            logger.error({ message: err.message })
         }
     }
 
@@ -108,7 +108,7 @@ const ManageOrders = ({ APIServer }) => {
             }
         } catch (err) {
             setActiveModal({ type: 'failure', msg: 'API Failure' })
-            console.log(err.message)
+            logger.error({ message: err.message })
         }
     }
 
@@ -129,7 +129,7 @@ const ManageOrders = ({ APIServer }) => {
             }
         } catch (err) {
             setActiveModal({ type: 'failure', msg: 'API Failure' })
-            console.log(err.message)
+            logger.error({ message: err.message })
         }
     }
 

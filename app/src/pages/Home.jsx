@@ -36,7 +36,7 @@ const Home = () => {
 				const upcoming = data.filter(day => new Date(day.date) >= new Date()).sort((a, b) => new Date(a.date) - new Date(b.date));
 				upcoming.length > 0? setNextTrackday(upcoming[0]) : setNextTrackday(null);
 			} catch (err) {
-				console.log(err.message)
+				logger.error({ message: err.message })
 			}
 		}
 		fetchAPIData();

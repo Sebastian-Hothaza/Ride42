@@ -72,7 +72,7 @@ const ControlPanel = ({ APIServer }) => {
             setUserTrackdays(userTrackdaysData);
 
         } catch (err) {
-            console.log(err.message)
+            logger.error({ message: err.message })
             handleLogout(); // If any of the above API calls failed, there is a serious issue and we do not permit user access
         }
 
@@ -98,7 +98,7 @@ const ControlPanel = ({ APIServer }) => {
 
 
             } catch (err) {
-                console.log(err.message)
+                logger.error({ message: err.message })
                 handleLogout(); // If any of the above API calls failed, there is a serious issue and we do not permit user access
             }
 

@@ -142,7 +142,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			}
 		} catch (err) {
 			setActiveModal({ type: 'failure', msg: 'API Failure' })
-			console.log(err.message)
+			logger.error({ message: err.message })
 		}
 	}
 
@@ -166,7 +166,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			}
 		} catch (err) {
 			setActiveModal({ type: 'failure', msg: 'API Failure' })
-			console.log(err.message)
+			logger.error({ message: err.message })
 		}
 	}
 
@@ -192,7 +192,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			}
 		} catch (err) {
 			setActiveModal({ type: 'failure', msg: 'API Failure' })
-			console.log(err.message)
+			logger.error({ message: err.message })
 		}
 	}
 
@@ -227,7 +227,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			}
 		} catch (err) {
 			setActiveModal({ type: 'failure', msg: 'API Failure' })
-			console.log(err.message)
+			logger.error({ message: err.message })
 		}
 	}
 
