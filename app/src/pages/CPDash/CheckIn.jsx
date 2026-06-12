@@ -84,7 +84,7 @@ const CheckIn = ({ APIServer, allTrackdays }) => {
             }
         } catch (err) {
             setActiveModal({ type: 'failure', msg: 'API Failure' })
-            console.log(err.message)
+            logger.error({ message: err.message })
         }
 
     }
