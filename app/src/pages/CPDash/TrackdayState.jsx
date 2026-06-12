@@ -82,7 +82,7 @@ const TrackdayState = ({ allUsers, allTrackdays, allTrackdaysFULL }) => {
 		if (!allTrackdaysFULL || allTrackdaysFULL.length === 0) return;
 
 		const upcoming = allTrackdaysFULL
-			.filter(day => new Date(day.date) >= new Date())
+			.filter(day => new Date(day.date) >= new Date() -12 * 60 * 60 * 1000) // Filter out trackdays that are more than 12H in the past	
 			.sort((a, b) => new Date(a.date) - new Date(b.date));
 
 		setSelectedTrackdayId(upcoming[0]?._id || '');
