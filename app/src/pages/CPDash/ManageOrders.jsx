@@ -298,7 +298,7 @@ const ManageOrders = ({ APIServer }) => {
 
                 <div className={styles.orderGrid_Mobile}>
                     {allOrders
-                        .filter((order) => order.items[0].category === 'tire')
+                        .filter((order) => order.items[0].category === 'gear')
                         .filter((order) => !showCompleted ? order.orderStatus !== 'complete' : order.orderStatus === 'complete')
                         .map((order, idx) => (
                             <div className={styles.orderEntry} key={idx}>
@@ -309,7 +309,7 @@ const ManageOrders = ({ APIServer }) => {
                                 <br></br>
                                 {order.items.map((item, index) => (
                                     <div key={index}>
-                                        {item.quantity}x {item.name} ({item.size}{item.compound ? `-` + item.compound : ''}){item.installRequired && '(*)'}
+                                        {item.quantity}x {item.name} {item.addOns && `(${item.addOns.map(addOn => addOn.name).join(', ')})`}
                                     </div>
                                 ))}
                                 <br></br>
