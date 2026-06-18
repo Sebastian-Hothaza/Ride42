@@ -28,7 +28,7 @@ function TrackdayInfo() {
 				const filteredData = data.filter(trackday => trackday.status !== "archived");// exclude archived trackdays
 				setAllTrackdays(filteredData.length? filteredData : null); 
 			} catch (err) {
-				logger.error({ message: err.message })
+				console.error(err)
 			}
 		}
 		fetchAPIData();

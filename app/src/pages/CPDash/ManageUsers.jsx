@@ -48,7 +48,7 @@ const ManageUsers = ({ APIServer, fetchAPIData, allUsers }) => {
             }
         } catch (err) {
             setActiveModal({ type: 'failure', msg: 'API Failure' })
-            logger.error({ message: err.message })
+            console.error(err)
         }
     }
 
@@ -75,7 +75,7 @@ const ManageUsers = ({ APIServer, fetchAPIData, allUsers }) => {
             }
         } catch (err) {
             setActiveModal({ type: 'failure', msg: 'API Failure' })
-            logger.error({ message: err.message })
+            console.error(err)
         }
         e.target.reset();
     }
@@ -97,7 +97,7 @@ const ManageUsers = ({ APIServer, fetchAPIData, allUsers }) => {
             }
         } catch (err) {
             setActiveModal({ type: 'failure', msg: 'API Failure' })
-            logger.error({ message: err.message })
+            console.error(err)
         }
     }
 

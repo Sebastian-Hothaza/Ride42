@@ -45,7 +45,7 @@ const Login = ({ APIServer }) => {
             }
         } catch (err) {
             setActiveModal({ type: 'failure', msg: 'API Failure' })
-            logger.error({ message: err.message })
+            console.error(err)
         }
 
     }

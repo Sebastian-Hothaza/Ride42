@@ -79,7 +79,7 @@ const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
             }
         } catch (err) {
             setActiveModal({ type: 'failure', msg: 'API Failure' })
-            logger.error({ message: err.message })
+            console.error(err)
         }
     }
 
@@ -106,7 +106,7 @@ const GateRegister = ({ APIServer, fetchAPIData, allUsers, allTrackdays }) => {
             }
         } catch (err) {
             setActiveModal({ type: 'failure', msg: 'API Failure' })
-            logger.error({ message: err.message })
+            console.error(err)
         }
         e.target.reset();
     }

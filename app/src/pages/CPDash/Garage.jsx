@@ -36,7 +36,7 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab, allTrackdays 
 			}
 		} catch (err) {
 			setActiveModal({ type: 'failure', msg: 'API Failure' })
-			logger.error({ message: err.message })
+			console.error(err)
 		}
 	}
 
@@ -63,7 +63,7 @@ const Garage = ({ APIServer, userInfo, fetchAPIData, setActiveTab, allTrackdays 
 			}
 		} catch (err) {
 			setActiveModal({ type: 'failure', msg: 'API Failure' })
-			logger.error({ message: err.message })
+			console.error(err)
 		}
 	}
 

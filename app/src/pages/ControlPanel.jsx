@@ -72,14 +72,15 @@ const ControlPanel = ({ APIServer }) => {
             setUserTrackdays(userTrackdaysData);
 
         } catch (err) {
-            logger.error({ message: err.message })
+            console.error(err);
             handleLogout(); // If any of the above API calls failed, there is a serious issue and we do not permit user access
+            return;
         }
 
 
 
         // Fetch staff API Data
-        if (userInfoData.memberType === 'staff' || userInfoData.memberType === 'admin' || userInfoData.memberType === 'coach') {
+        if (userInfoData?.memberType === 'staff' || userInfoData?.memberType === 'admin' || userInfoData?.memberType === 'coach') {
             let allUsersData, allTrackdaysFULLData = []
             try {
 
@@ -98,8 +99,9 @@ const ControlPanel = ({ APIServer }) => {
 
 
             } catch (err) {
-                logger.error({ message: err.message })
+                console.error(err);
                 handleLogout(); // If any of the above API calls failed, there is a serious issue and we do not permit user access
+                return;
             }
 
         }

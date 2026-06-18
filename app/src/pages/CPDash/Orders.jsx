@@ -42,7 +42,7 @@ const Orders = ({ APIServer }) => {
                 console.error('failed to fetch products')
             }
         } catch (err) {
-            logger.error({ message: err.message })
+            console.error(err)
         }
     }
 
@@ -67,7 +67,7 @@ const Orders = ({ APIServer }) => {
             }
         } catch (err) {
             setActiveModal({ type: 'failure', msg: 'API Failure' })
-            logger.error({ message: err.message })
+            console.error(err)
         }
     }
 
