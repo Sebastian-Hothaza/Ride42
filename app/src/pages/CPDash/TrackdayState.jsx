@@ -466,8 +466,8 @@ const TrackdayState = ({ allUsers, allTrackdays, allTrackdaysFULL }) => {
 									<div>{selectedTrackday.guests}</div>
 								</div>
 								<div className={styles.regSummaryEntry}>
-									<div>Staff: </div>
-									<div>{selectedTrackday.members.filter((member) => member.user.memberType != 'regular').length}</div>
+									<div>Coaches: </div>
+									<div>{selectedTrackday.members.filter((member) => member.user.memberType == 'coach').length}</div>
 								</div>
 							</div>
 
