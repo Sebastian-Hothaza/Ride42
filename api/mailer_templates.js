@@ -256,9 +256,9 @@ const paidTireOrder =
 		Hello {name}, <br /> <br />
 		Your payment has been received for the order placed on {orderDate}. ✅<br />
 		<br />
-		Your tires will be available {deliveryDate}.
+		Your tires will be available {deliveryDate}.<br />
 		<br />
-		Thank you for your order and welcome to the Pirelli family! 😎 
+		Thank you for your order and I hope you enjoy your Pirelli tires! 😎 
 	</div>
 </body>`
 
