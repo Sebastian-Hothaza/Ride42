@@ -139,7 +139,7 @@ const registerTrackday_gate =
 		You are now gate-registered for the trackday on {date}. ✅<br />
 		<br />
 
-		Your payment of \${price} can be sent via e-transfer to pay@ride42.ca.<br />
+		Please have \${price} cash available at the gate. Payments can also be sent via e-transfer to pay@ride42.ca.<br />
 		<br />
 
 		This registration is equivalent to a gate registration and as such is NON-REFUNDABLE. Once your payment is received, your spot is reserved. <br />
