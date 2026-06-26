@@ -175,9 +175,9 @@ const TrackdayState = ({ allUsers, allTrackdays, allTrackdaysFULL }) => {
 		selectedTrackday.bundlePrice = selectedTrackday.ticketPrice.bundle;
 
 		// Adding ticket quantities
-		selectedTrackday.preRegQty = selectedTrackday.members.filter((member) => member.paymentMethod == 'etransfer' || member.paymentMethod == 'creditCard').length;
-		selectedTrackday.gateQty = selectedTrackday.members.filter((member) => member.paymentMethod == 'gate').length + selectedTrackday.walkons.length;
-		selectedTrackday.bundleQty = selectedTrackday.members.filter((member) => member.paymentMethod == 'credit' && member.user.memberType == 'regular').length;
+		selectedTrackday.preRegQty = selectedTrackday.members.filter((member) => member.paymentMethod === 'etransfer' || member.paymentMethod === 'creditCard').length;
+		selectedTrackday.gateQty = selectedTrackday.members.filter((member) => member.paymentMethod === 'gate').length + selectedTrackday.walkons.length;
+		selectedTrackday.bundleQty = selectedTrackday.members.filter((member) => member.paymentMethod === 'credit' && (member.user.memberType === 'regular' || member.user.memberType === 'racer')).length;
 
 		// Totals
 		selectedTrackday.totalRevenue = (selectedTrackday.preRegPrice * selectedTrackday.preRegQty) + (selectedTrackday.gatePrice * selectedTrackday.gateQty) + (selectedTrackday.bundlePrice * selectedTrackday.bundleQty)
