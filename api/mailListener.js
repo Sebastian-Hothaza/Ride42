@@ -295,7 +295,7 @@ function startForwardingListener() {
 			if (target === 'all') {
 				await sendEmail(process.env.ADMIN_EMAIL, "MASS EMAIL SCHEDULED", mailTemplates.notifyMassEmail, undefined, false, false);
 			}else{
-				await sendEmail(process.env.ADMIN_EMAIL, `${mail.subject} - admin notification of scheduled email`,  mail.html || mail.text, undefined, false, false);
+				await sendEmail(process.env.ADMIN_EMAIL, `${mail.subject} - admin notification of scheduled email`,  mail.html || mail.text, undefined, true, false);
 			}
 
 

@@ -52,7 +52,7 @@ async function checkOutgoingMail() {
                     params = mail.params || {};
                 }
 
-                await sendEmail(recipient, mail.subject, mail.message, params, [], false, !isBlast);
+                await sendEmail(recipient, mail.subject, mail.message, params, [], true, !isBlast);
                 await sleep(10); // rate limiting
             }
             if (isBlast) {
