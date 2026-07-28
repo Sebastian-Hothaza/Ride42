@@ -292,7 +292,11 @@ function startForwardingListener() {
 				hour12: true
 			});
 			logger.warn({ message: `Mass email scheduled to send on ${estDateStr} to ${target} members.` })
-			if (target === 'all') await sendEmail(process.env.ADMIN_EMAIL, "MASS EMAIL SCHEDULED", mailTemplates.notifyMassEmail, undefined, undefined, false);
+			if (target === 'all') {
+				await sendEmail(process.env.ADMIN_EMAIL, "MASS EMAIL SCHEDULED", mailTemplates.notifyMassEmail, undefined, false, false);
+			}else{
+				await sendEmail(process.env.ADMIN_EMAIL, mail.subject + '- admin notification of scheduled email', { message: mail.html || mail.text }, undefined, false, false);
+			}
 
 
 		} catch (err) {
