@@ -41,7 +41,7 @@ async function checkOutgoingMail() {
                         logger.warn({ message: `User not found for ${recipient}, skipping.` });
                         continue;
                     }
-                    if (user.promoOptOut) {
+                    if (user.promoOptOut && mail.to.length > 100) {
                         logger.warn({ message: `User ${recipient} opted out of promo emails, skipping.` });
                         continue;
                     }
