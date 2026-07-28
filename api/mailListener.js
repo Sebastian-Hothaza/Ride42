@@ -64,7 +64,7 @@ async function updateTargetRecipients(target) {
 
 		// Match target to a trackday
 		const trackdayTarget = allTrackdays.find(td => td.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) === target)
-		if (!trackdayTarget) throw new Error(`Failed to find a trackday with target ${target}. Format example: May 4, 2026`)
+		if (!trackdayTarget) throw new Error(`Failed to find a trackday with target ${target}. Format example: Jul 4, 2026. Month is short; 3 letters`)
 
 		// Built array from matched trackday
 		for (let member of trackdayTarget.members) result.push(member.user.contact.email)
