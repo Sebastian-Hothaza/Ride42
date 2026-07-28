@@ -374,6 +374,8 @@ exports.reschedule = [
 
             // Update scheduled mail if it exists
             // TODO: Possible issue if sendOn varies by a few ms, we may not update the reminder email. Likely non-issue.
+            // TODO: If user reschedules AFTER payment reminder email has been sent, this will not update the reminder email.
+            // To fix, we need to delete old scheduled mail and create a new one. This is a rare edge case, so not a priority.
             await ScheduledMail.updateOne(
                 {
                     to: user.contact.email, // Note: MongoDB special behaviour: If you query an array field with a scalar value, MongoDB checks whether the array contains that value.
