@@ -81,9 +81,9 @@ app.use((err, req, res, next) => {
 	const isProduction = req.app.get('env') === 'production';
 	const status = err.status || 500;
 
-	console.error(err); // Always log internally
-
+	
 	if (!isProduction) {
+		console.error(err);
 		return res.status(status).json({
 			message: err.message,
 			stack: err.stack
