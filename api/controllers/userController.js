@@ -619,7 +619,7 @@ exports.updateSubscription = asyncHandler(async (req, res, next) => {
     }
     await user.save();
 
-    return req.query.sub === 'false' ? res.redirect(`${process.env.CORS_ORIGIN}/unsubscribed?token=${req.params.token}`) : res.redirect(`${process.env.CORS_ORIGIN}`)
+    return req.query.sub === 'false' ? res.redirect(`${process.env.CORS_ORIGIN}/unsubscribed?token=${req.params.token}`) : res.sendStatus(200);
 });
 
 
