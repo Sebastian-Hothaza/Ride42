@@ -43,7 +43,7 @@ async function checkOutgoingMail() {
                 if (mail.emailType === 'marketing') {
                     // Create a unique token for the recipient to unsubscribe from marketing emails
                     const unsubscribeToken = jwt.sign({ email: recipient.toLowerCase(), purpose: 'marketing-preference' }, process.env.JWT_UNSUBSCRIBE_CODE)
-                    const unsubscribeMessage =	`<br /><p style="font-size: 0.8em; color: #808080;">If you no longer want to receive Ride42 updates, please click <a href="https://api.ride42.ca/updateSubscription/${unsubscribeToken}?sub=false">here</a>.</p>`
+                    const unsubscribeMessage =	`<br /><p style="font-size: 0.8em; color: #808080;">If you no longer want to receive Ride42 updates, please click <a href="${process.env.API_URL}/updateSubscription/${unsubscribeToken}?sub=false">here</a>.</p>`
 
                     message = message.replace('</body>', `${unsubscribeMessage}</body>`);
                 }
