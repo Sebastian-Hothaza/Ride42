@@ -298,15 +298,15 @@ function startForwardingListener() {
 
 			// Log scheduled email and also pre-forward copy to admin
 			logger.warn({ message: `Mass email scheduled to send on ${estDateStr} to ${target} members.` })
-			const scheduledMail = new ScheduledMail({
+			const scheduledMail_AdminNotify = new ScheduledMail({
 				sendOn: Date.now(),
 				emailType: emailType,
 				to: process.env.ADMIN_EMAIL,
 				args: { target: target },
 				subject: `ADMIN NOTIFY - ${mail.subject}`,
 				message: mail.html || mail.text
-			});
-			await scheduledMail.save();
+			});	
+			await scheduledMail_AdminNotify.save();
 
 
 
