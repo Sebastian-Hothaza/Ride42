@@ -25,7 +25,7 @@ const Unsubscribed = () => {
 		} catch (err) {
 			alert('API Failure');
 			console.error(err);
-			window.location.href = '/';
+
 		}
 
 	}
