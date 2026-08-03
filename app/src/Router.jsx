@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Register from "./pages/Register";
 import PasswordReset from "./pages/PasswordReset";
 import Waiver from "./pages/Waiver";
+import Unsubscribed from "./pages/Unsubscribed";
 
 const API_SERVER = import.meta.env.VITE_API_SERVER;
 
@@ -38,6 +39,7 @@ const Router = () => {
 				{ path: "/register", element: <Register /> },
 				{ path: "/passwordreset/:userID/:token", element: <PasswordReset/> },
 				{ path: "/waiver", element: <Waiver/> },
+				{ path: "/unsubscribed", element: <Unsubscribed/>}
 			],
 		},
 	]);
