@@ -16,7 +16,7 @@ const Unsubscribed = () => {
 			});
 			if (response.ok) {
 				alert('You have been re-subscribed to the mailing list!');
-
+				window.location.href = '/';
 			} else {
 				const data = await response.json();
 				alert('Error: ' + data.msg.join('\n'));
@@ -25,7 +25,7 @@ const Unsubscribed = () => {
 		} catch (err) {
 			alert('API Failure');
 			console.error(err);
-
+			window.location.href = '/';
 		}
 
 	}
