@@ -2,6 +2,7 @@ const ScheduledMail = require('./models/ScheduledMail');
 const sendEmail = require('./mailer')
 const logger = require('./logger');
 const User = require('./models/User');
+const jwt = require('jsonwebtoken')
 
 function sleep(s) {
     return new Promise(resolve => setTimeout(resolve, 1000 * s));
