@@ -19,7 +19,8 @@ const UserSchema = new mongoose.Schema({
 	waiver:			{ type: Boolean, required: true},
 	memberType: 	{ type: String, required: true, enum: ["regular", "racer", "coach", "staff", "admin"] },
 	password: 		{ type: String, required: true },
-	refreshToken: 	{ type: String }
+	refreshToken: 	{ type: String },
+	promoOptOut: 	{ type: Boolean, required: true, default: false }
 });
 
 
