@@ -48,6 +48,7 @@ router.post('/waiver/:userID', userController.markWaiver)
 router.post('/waiverSubmit', userController.waiverSubmit)
 router.post('/paymentIntent/:userID/:trackdayID', userController.createPaymentIntent)
 router.post('/stripeWebhook', express.raw({ type: 'application/json' }), userController.stripeWebhook)
+router.post('/unsubscribe/:token', userController.unsubscribe)
 
 
 router.get('/users/:userID', userController.user_get)
