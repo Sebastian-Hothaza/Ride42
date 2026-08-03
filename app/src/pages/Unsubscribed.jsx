@@ -10,8 +10,9 @@ const Unsubscribed = () => {
 
 	async function handleReturnToMailingList() {
 		try {
+			console.log(APIServer + 'updateSubscription/' + token + '&sub=true');
 			const response = await fetch(APIServer + 'updateSubscription/' + token + '&sub=true', {
-				method: 'POST',
+				method: 'GET',
 				headers: {
 					'Content-type': 'application/json; charset=UTF-8',
 				},
