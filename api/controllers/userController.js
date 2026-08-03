@@ -603,12 +603,17 @@ exports.updateSubscription = asyncHandler(async (req, res, next) => {
     if (payload.purpose !== 'marketing-preference' || !payload.email) return res.status(400).send('Invalid subscription link.');
 
     const user = await User.findOne({ "contact.email": payload.email.toLowerCase() }).exec();
-    if (!user) return res.sendStatus(200); // If user doesn't exist, we still return 200 to avoid leaking information
+    if (!user) {
+        logger.error({ message: `No user found for email ${payload.email} when attempting to update subscription` })
+        return res.sendStatus(200); // If user doesn't exist, we still return 200 to avoid leaking information
+    }
 
     if (req.query.sub === 'true') {
+        logger.warn({ message: `User ${user.firstName} ${user.lastName} opted in to marketing emails` })    
         user.promoOptOut = false;
     } else if (req.query.sub === 'false') {
         user.promoOptOut = true;
+        logger.warn({ message: `User ${user.firstName} ${user.lastName} opted out of marketing emails` })
     } else {
         return res.status(400).send('Invalid subscription option.');
     }
