@@ -609,7 +609,7 @@ exports.updateSubscription = asyncHandler(async (req, res, next) => {
     }
 
     if (req.query.sub === 'true') {
-        logger.warn({ message: `User ${user.firstName} ${user.lastName} opted in to marketing emails` })    
+        logger.warn({ message: `User ${user.firstName} ${user.lastName} opted in to marketing emails` })
         user.promoOptOut = false;
     } else if (req.query.sub === 'false') {
         user.promoOptOut = true;
@@ -619,7 +619,7 @@ exports.updateSubscription = asyncHandler(async (req, res, next) => {
     }
     await user.save();
 
-    return res.redirect(`${process.env.CORS_ORIGIN}/unsubscribed?token=${req.params.token}`);
+    return req.query.sub === 'false' ? res.redirect(`${process.env.CORS_ORIGIN}/unsubscribed?token=${req.params.token}`) : res.redirect(`${process.env.CORS_ORIGIN}`)
 });
 
 
