@@ -26,7 +26,7 @@ async function checkOutgoingMail() {
                 // Get all users so we can populate the name for the sendEmail param
                 const allUsers = await User.find().select('firstName contact.email').exec();
                 usersByEmail = new Map(allUsers.map(u => [u.contact.email.toLowerCase(), u.firstName.toLowerCase()]));
-                logger.info({ message: `Begin email blast to ALL members. ${mail._id}` });
+                logger.info({ message: `Begin marketing email blast to ${mail.to.length} members. ${mail._id}` });
             }
 
             // Send emails to all recipients, with rate limiting
@@ -50,7 +50,7 @@ async function checkOutgoingMail() {
                 await sleep(10); // rate limiting
             }
             if (mail.emailType === 'marketing') {
-                logger.info({ message: `Finish email blast to ALL members. ${mail._id}` });
+                logger.info({ message: `Finish marketing email blast to ${mail.to.length} members. ${mail._id}` });
             }
             // Successfully sent emails, remove from DB
             await ScheduledMail.deleteOne({ _id: mail._id });
