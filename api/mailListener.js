@@ -52,7 +52,9 @@ function getAmount(emailText) {
 // If target is invalid, returns [].
 async function updateTargetRecipients(target) {
 	let result = []
-	if (target === 'all') {
+	if (target === 'test') {
+		result = [process.env.ADMIN_EMAIL, "sebastianhothaza@gmail.com"]
+	} else if (target === 'all') {
 		// Get all users who do not have "promoOptOut" set to true
 		const allUsers = await User.find({ promoOptOut: { $ne: true } }).select('contact.email')
 		for (let user of allUsers) result.push(user.contact.email)
@@ -164,11 +166,10 @@ function startPaymentsListener() {
 					})
 
 					// Remove scheduled mail if it exists
-					// TODO: Possible issue if sendOn varies by a few ms, we may not delete the reminder email. Likely non-issue.
 					await ScheduledMail.deleteOne({ // Note: MongoDB special behaviour: If you query an array field with a scalar value, MongoDB checks whether the array contains that value.
 						to: memberEntry.user.contact.email,
-						sendOn: new Date(trackdayDB.date.getTime() - (process.env.DAYS_LOCKOUT * 24 * 60 * 60 * 1000)),
-						message: memberEntry.paymentMethod === 'etransfer' ? mailTemplates.paymentReminder_etransfer : mailTemplates.paymentReminder_creditcard
+						emailType: "pmtReminder",
+						trackdayId: trackdayDB._id
 					})
 
 					await trackdayDB.save()
@@ -257,14 +258,16 @@ function startForwardingListener() {
 			const toHeader = mail.headers.get("to")?.value?.[0]?.address || mail.to?.[0]?.address;
 			if (!toHeader || toHeader.toLowerCase() !== "autoforward@ride42.ca") return;
 
-			// Get metadata attachment which contains target and token and load them in.
-			const metadataAttachment = mail.attachments?.find(a => a.filename === "mailKey.json");
-			if (!metadataAttachment) throw new Error("mailKey.json attachment missing");
-			const metadata = JSON.parse(metadataAttachment.content.toString("utf8"));
+			// Get metadata attachment which contains target, token, mailType and load them in.
+			const metadataAttachment = mail.attachments?.find(a => a.filename === "mailKey.jsonc");
+			if (!metadataAttachment) throw new Error("mailKey.jsonc attachment missing");
+			const metadataString = metadataAttachment.content.toString("utf8").split("\n").filter(line => !line.trim().startsWith("//")).join("\n"); // Strip comments from the JSON file
+			const metadata = JSON.parse(metadataString);
 			const target = metadata.target;
 			const token = metadata.token;
+			const emailType = metadata.emailType;
 
-			// Verify and update recipients
+			// Verify and update recipients (array of emails)
 			const targetRecipients = await updateTargetRecipients(target);
 
 
@@ -274,8 +277,9 @@ function startForwardingListener() {
 			const sendDate = new Date(Date.now() + 30 * 60 * 1000);
 			const scheduledMail = new ScheduledMail({
 				sendOn: sendDate,
+				emailType: emailType,
 				to: targetRecipients,
-				params: { target: target },
+				args: { target: target },
 				subject: mail.subject,
 				message: mail.html || mail.text
 			});
@@ -291,12 +295,19 @@ function startForwardingListener() {
 				minute: "2-digit",
 				hour12: true
 			});
+
+			// Log scheduled email and also pre-forward copy to admin
 			logger.warn({ message: `Mass email scheduled to send on ${estDateStr} to ${target} members.` })
-			if (target === 'all') {
-				await sendEmail(process.env.ADMIN_EMAIL, "MASS EMAIL SCHEDULED", mailTemplates.notifyMassEmail, undefined, false, false);
-			}else{
-				await sendEmail(process.env.ADMIN_EMAIL, `${mail.subject} - admin notification of scheduled email`,  mail.html || mail.text, undefined, true, false);
-			}
+			const scheduledMail = new ScheduledMail({
+				sendOn: Date.now(),
+				emailType: emailType,
+				to: process.env.ADMIN_EMAIL,
+				args: { target: target },
+				subject: `ADMIN NOTIFY - ${mail.subject}`,
+				message: mail.html || mail.text
+			});
+			await scheduledMail.save();
+
 
 
 		} catch (err) {
