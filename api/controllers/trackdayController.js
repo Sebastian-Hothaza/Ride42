@@ -376,7 +376,7 @@ exports.reschedule = [
 
             // Remove scheduled mail if it exists
             await ScheduledMail.deleteOne({
-                to: memberEntry.user.contact.email, // Note: MongoDB special behaviour: If you query an array field with a scalar value, MongoDB checks whether the array contains that value.
+                to: user.contact.email, // Note: MongoDB special behaviour: If you query an array field with a scalar value, MongoDB checks whether the array contains that value.
                 emailType: 'pmtReminder',
                 trackdayId: trackdayOLD._id
             })
