@@ -17,46 +17,39 @@ async function checkOutgoingMail() {
         );
         if (!mail) break;
         try {
+            let usersByEmail; // Maps user email to their first name
 
-            const targets = mail.params?.target;
-            const isBlast = !!targets; // blast is defined by having targets
 
-            let allUsers = [];
-            let userMap;
-
-            if (isBlast) {
+            // Build user map for O(1) lookup of first names for marketing emails
+            if (mail.emailType === 'marketing') {
                 // Get all users so we can populate the name for the sendEmail param
-                allUsers = await User.find().select('firstName contact.email').exec();
-                userMap = new Map(allUsers.map(u => [u.contact.email.toLowerCase(), u]));
-                logger.info({ message: `Begin email blast to ${targets} members. ${mail._id}` });
+                const allUsers = await User.find().select('firstName contact.email').exec();
+                usersByEmail = new Map(allUsers.map(u => [u.contact.email.toLowerCase(), u.firstName.toLowerCase()]));
+                logger.info({ message: `Begin email blast to ALL members. ${mail._id}` });
             }
 
-            // Send emails
+            // Send emails to all recipients, with rate limiting
             for (const recipient of mail.to) {
-                let params;
-
-                if (isBlast) {
-                    const user = userMap.get(recipient.toLowerCase());
-                    if (!user) {
-                        logger.warn({ message: `User not found for ${recipient}, skipping.` });
-                        continue;
-                    }
-                    if (user.promoOptOut && mail.to.length > 100) {
-                        logger.warn({ message: `User ${recipient} opted out of promo emails, skipping.` });
-                        continue;
-                    }
-                    const firstName = user.firstName ? user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) : 'there';
-                    params = { name: firstName };
-                } else {
-                    // transactional or non-blast email uses mailTemplates
-                    params = mail.params || {};
+                let message = mail.message;
+                let args = mail.args || {};
+                // If name is not provided in args, attempt to get it from the user map for marketing emails, or default to 'there'
+                if (!args.name) {
+                    const user = usersByEmail ? usersByEmail.get(recipient.toLowerCase()) : undefined;
+                    const firstName = user ? user.charAt(0).toUpperCase() + user.slice(1) : 'there';
+                    args = { ...args, name: firstName }; // Update firstName only if not provided from mail.args
                 }
 
-                await sendEmail(recipient, mail.subject, mail.message, params, [], true, !isBlast);
+                if (mail.emailType === 'marketing') {
+                    // Create a unique token for the recipient to unsubscribe from marketing emails
+                    const unsubscribeToken = jwt.sign({ email: recipient, purpose: 'unsubscribe', }, process.env.JWT_SECRET)
+                    message += `<p style="font-size: 0.8em; color: #808080;">If you wish to unsubscribe from marketing emails, please click <a href="${process.env.CORS_ORIGIN}/unsubscribe/${unsubscribeToken}">here</a>.</p>`;
+                }
+
+                await sendEmail(recipient, mail.subject, message, args, [], true, mail.emailType !== 'marketing'); // Include BCC for non-marketing emails
                 await sleep(10); // rate limiting
             }
-            if (isBlast) {
-                logger.info({ message: `Finish email blast to ${targets} members. ${mail._id}` });
+            if (mail.emailType === 'marketing') {
+                logger.info({ message: `Finish email blast to ALL members. ${mail._id}` });
             }
             // Successfully sent emails, remove from DB
             await ScheduledMail.deleteOne({ _id: mail._id });
