@@ -3,24 +3,20 @@ import { useOutletContext } from "react-router-dom";
 
 const Unsubscribed = () => {
 	const { APIServer } = useOutletContext();
-	
+
 	const params = new URLSearchParams(location.search);
 	const token = params.get('token');
-	
 
 	async function handleReturnToMailingList() {
 		try {
-			console.log(APIServer + 'updateSubscription/' + token + '&sub=true');
-			const response = await fetch(APIServer + 'updateSubscription/' + token + '&sub=true', {
+			const response = await fetch(APIServer + 'updateSubscription/' + token + '?sub=true', {
 				method: 'GET',
-				headers: {
-					'Content-type': 'application/json; charset=UTF-8',
-				},
-	
+				headers: { 'Content-type': 'application/json; charset=UTF-8', },
+
 			});
 			if (response.ok) {
 				alert('You have been re-subscribed to the mailing list!');
-				window.location.href = '/';
+
 			} else {
 				const data = await response.json();
 				alert('Error: ' + data.msg.join('\n'));
