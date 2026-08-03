@@ -578,11 +578,10 @@ exports.stripeWebhook = asyncHandler(async (req, res, next) => {
                 logger.info({ message: `Stripe payment ${paymentIntentSucceeded.status} for ${paymentIntentSucceeded.metadata.firstName} ${paymentIntentSucceeded.metadata.lastName} for trackday on ${paymentIntentSucceeded.metadata.date}` })
 
                 // Remove scheduled mail if it exists
-                // TODO: Possible issue if sendOn varies by a few ms, we may not delete the reminder email. Likely non-issue.
                 await ScheduledMail.deleteOne({
                     to: memberEntry.user.contact.email, // Note: MongoDB special behaviour: If you query an array field with a scalar value, MongoDB checks whether the array contains that value.
-                    sendOn: new Date(trackday.date.getTime() - (process.env.DAYS_LOCKOUT * 24 * 60 * 60 * 1000)),
-                    message: mailTemplates.paymentReminder_creditcard
+                    emailType: 'pmtReminder',
+                    trackdayId: trackday._id
                 });
             }
         } else {
@@ -593,6 +592,22 @@ exports.stripeWebhook = asyncHandler(async (req, res, next) => {
 
     return res.sendStatus(200);
 })
+
+exports.unsubscribe = asyncHandler(async (req, res, next) => {
+    const payload = jwt.verify(
+        req.params.token,
+        process.env.JWT_SECRET
+    );
+
+    if (payload.purpose !== 'unsubscribe') return res.status(400).send('Invalid unsubscribe link.');
+    const user = await User.findOne({ "contact.email": payload.email.toLowerCase() }).exec();
+    if (!user) return res.sendStatus(200); // If user doesn't exist, we still return 200 to avoid leaking information
+
+    user.promoOptOut = true;
+    await user.save();
+
+    return res.sendStatus(200);
+});
 
 //////////////////////////////////////
 //              CRUD
