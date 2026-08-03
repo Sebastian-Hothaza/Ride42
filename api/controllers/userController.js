@@ -596,7 +596,7 @@ exports.stripeWebhook = asyncHandler(async (req, res, next) => {
 exports.unsubscribe = asyncHandler(async (req, res, next) => {
     const payload = jwt.verify(
         req.params.token,
-        process.env.JWT_SECRET
+        process.env.JWT_UNSUBSCRIBE_CODE
     );
 
     if (payload.purpose !== 'unsubscribe') return res.status(400).send('Invalid unsubscribe link.');

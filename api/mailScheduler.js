@@ -42,7 +42,7 @@ async function checkOutgoingMail() {
 
                 if (mail.emailType === 'marketing') {
                     // Create a unique token for the recipient to unsubscribe from marketing emails
-                    const unsubscribeToken = jwt.sign({ email: recipient, purpose: 'unsubscribe', }, process.env.JWT_SECRET)
+                    const unsubscribeToken = jwt.sign({ email: recipient, purpose: 'unsubscribe', }, process.env.JWT_UNSUBSCRIBE_CODE)
                     message += `<p style="font-size: 0.8em; color: #808080;">If you wish to unsubscribe from marketing emails, please click <a href="${process.env.CORS_ORIGIN}/unsubscribe/${unsubscribeToken}">here</a>.</p>`;
                 }
 
