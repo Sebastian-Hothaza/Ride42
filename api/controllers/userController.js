@@ -593,21 +593,31 @@ exports.stripeWebhook = asyncHandler(async (req, res, next) => {
     return res.sendStatus(200);
 })
 
-exports.unsubscribe = asyncHandler(async (req, res, next) => {
+exports.updateSubscription = asyncHandler(async (req, res, next) => {
     const payload = jwt.verify(
         req.params.token,
         process.env.JWT_UNSUBSCRIBE_CODE
     );
 
-    if (payload.purpose !== 'unsubscribe') return res.status(400).send('Invalid unsubscribe link.');
+
+    if (payload.purpose !== 'marketing-preference' || !payload.email) return res.status(400).send('Invalid subscription link.');
+
     const user = await User.findOne({ "contact.email": payload.email.toLowerCase() }).exec();
     if (!user) return res.sendStatus(200); // If user doesn't exist, we still return 200 to avoid leaking information
 
-    user.promoOptOut = true;
+    if (req.query.sub === 'true') {
+        user.promoOptOut = false;
+    } else if (req.query.sub === 'false') {
+        user.promoOptOut = true;
+    } else {
+        return res.status(400).send('Invalid subscription option.');
+    }
     await user.save();
 
-    return res.sendStatus(200);
+    return res.redirect(`${process.env.CORS_ORIGIN}/unsubscribed?token=${req.params.token}`);
 });
+
+
 
 //////////////////////////////////////
 //              CRUD
