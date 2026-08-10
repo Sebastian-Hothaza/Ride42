@@ -16,7 +16,7 @@ let numRestarts_payments = 0
 let numRestarts_forwarding = 0;
 
 async function getUser(mail) {
-	userEmail = mail.headers.get('reply-to').value[0].address;
+	const userEmail = mail.headers.get('reply-to').value[0].address;
 	let user = await User.findOne({ 'contact.email': userEmail }).select('-password -refreshToken -__v').exec();
 	if (!user) {
 		// Try to find user by scraping subject line
@@ -256,9 +256,9 @@ function startForwardingListener() {
 			const fromHeader = mail.headers.get("from")?.value?.[0]?.address || mail.from?.[0]?.address;
 			if (!fromHeader || fromHeader.toLowerCase() !== "info@ride42.ca") return
 			const toHeader = mail.headers.get("to")?.value?.[0]?.address || mail.to?.[0]?.address;
-			if (!toHeader || toHeader.toLowerCase() !== "autoforward@ride42.ca") return;
+			if (!toHeader || toHeader.toLowerCase() !== process.env.ADMIN_EMAIL) return;
 
-			// Get metadata attachment which contains target, token, mailType and load them in.
+			// Get metadata attachment which contains target, token, emailType and load them in.
 			const metadataAttachment = mail.attachments?.find(a => a.filename === "mailKey.jsonc");
 			if (!metadataAttachment) throw new Error("mailKey.jsonc attachment missing");
 			const metadataString = metadataAttachment.content.toString("utf8").split("\n").filter(line => !line.trim().startsWith("//")).join("\n"); // Strip comments from the JSON file
@@ -297,7 +297,9 @@ function startForwardingListener() {
 			});
 
 			// Log scheduled email and also pre-forward copy to admin
-			logger.warn({ message: `Mass email scheduled to send on ${estDateStr} to ${target} members.` })
+			logger.warn({ message: `Mass email scheduled in DB. Sending on ${estDateStr} to ${target} members.` })
+
+			// Schedule admin safety email to notify of the scheduled email
 			const scheduledMail_AdminNotify = new ScheduledMail({
 				sendOn: Date.now(),
 				emailType: emailType,
@@ -305,18 +307,18 @@ function startForwardingListener() {
 				args: { target: target },
 				subject: `ADMIN NOTIFY - ${mail.subject}`,
 				message: mail.html || mail.text
-			});	
+			});
 			await scheduledMail_AdminNotify.save();
 
 
-
+			// Mark the email as read after successful processing
+			forwardingListener.imap.addFlags(attributes.uid, '\\Seen', (err) => {
+				if (err) logger.error({ message: 'Failed to mark email as unread' });
+			});
 		} catch (err) {
 			logger.error({ message: `Error processing email: ${err.message}` });
 		}
-		// Mark the email as read 
-		forwardingListener.imap.addFlags(attributes.uid, '\\Seen', (err) => {
-			if (err) logger.error({ message: 'Failed to mark email as unread' });
-		});
+
 	});
 
 	forwardingListener.on("error", function (err) {
