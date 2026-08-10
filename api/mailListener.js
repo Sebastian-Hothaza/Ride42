@@ -254,9 +254,9 @@ function startForwardingListener() {
 		try {
 			// Verify header
 			const fromHeader = mail.headers.get("from")?.value?.[0]?.address || mail.from?.[0]?.address;
-			if (!fromHeader || fromHeader.toLowerCase() !== "info@ride42.ca") return
 			const toHeader = mail.headers.get("to")?.value?.[0]?.address || mail.to?.[0]?.address;
-			if (!toHeader || toHeader.toLowerCase() !== process.env.ADMIN_EMAIL) return;
+			if (!fromHeader || fromHeader.toLowerCase() !== process.env.ADMIN_EMAIL) return 
+			if (!toHeader || toHeader.toLowerCase() !== "autoforward@ride42.ca") return;
 
 			// Get metadata attachment which contains target, token, emailType and load them in.
 			const metadataAttachment = mail.attachments?.find(a => a.filename === "mailKey.jsonc");
