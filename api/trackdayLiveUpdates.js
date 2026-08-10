@@ -72,10 +72,10 @@ function init(io) {
     io.use(authorizeSocket);
 
     io.on('connection', (socket) => {
-        logger.debug({ message: `Socket connected: ${socket.id} (${socket.user?.memberType})` });
+        //logger.debug({ message: `Socket connected: ${socket.id} (${socket.user?.memberType})` });
 
         socket.on('disconnect', () => {
-            logger.debug({ message: `Socket disconnected: ${socket.id}` });
+            //logger.debug({ message: `Socket disconnected: ${socket.id}` });
         });
     });
 
