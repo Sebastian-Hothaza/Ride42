@@ -902,7 +902,8 @@ describe('Testing registering', () => {
 					Ralien: 0,
 					modified: 0,
 					Rmodified: 0,
-					long: 0
+					long: 0,
+					velocity: 0
 				},
 				paid: false,
 				paymentMethod: 'gate'
@@ -949,7 +950,8 @@ describe('Testing registering', () => {
 					Ralien: 0,
 					modified: 0,
 					Rmodified: 0,
-					long: 0
+					long: 0,
+					velocity: 0
 				},
 				paid: true,
 				paymentMethod: 'gate'
@@ -1006,7 +1008,8 @@ describe('Testing registering', () => {
 					Ralien: 0,
 					modified: 0,
 					Rmodified: 0,
-					long: 0
+					long: 0,
+					velocity: 0
 				},
 				paid: true,
 				paymentMethod: 'credit'
@@ -1096,7 +1099,8 @@ describe('Testing registering', () => {
 					Ralien: 0,
 					modified: 0,
 					Rmodified: 0,
-					long: 0
+					long: 0,
+					velocity: 0
 				},
 				paid: false,
 				paymentMethod: 'etransfer'
@@ -1233,7 +1237,8 @@ describe('Testing registering', () => {
 					Ralien: 0,
 					modified: 0,
 					Rmodified: 0,
-					long: 0
+					long: 0,
+					velocity: 0
 				},
 				paid: false,
 				paymentMethod: 'etransfer'
@@ -1963,7 +1968,8 @@ describe('Testing rescheduling', () => {
 					Ralien: 0,
 					modified: 0,
 					Rmodified: 0,
-					long: 0
+					long: 0,
+					velocity: 0
 				},
 			},
 			{
@@ -1984,7 +1990,8 @@ describe('Testing rescheduling', () => {
 					Ralien: 0,
 					modified: 0,
 					Rmodified: 0,
-					long: 0
+					long: 0,
+					velocity: 0
 				},
 			}])
 	});
@@ -2085,7 +2092,8 @@ describe('Testing walkons', () => {
 					Ralien: 0,
 					modified: 0,
 					Rmodified: 0,
-					long: 0
+					long: 0,
+					velocity: 0
 				},
 			}])
 	});
@@ -2966,7 +2974,8 @@ describe('Testing presentTrackdays', () => {
 					Ralien: 0,
 					modified: 0,
 					Rmodified: 0,
-					long: 0
+					long: 0,
+					velocity: 0
 				},
 			},
 			{
@@ -2987,7 +2996,8 @@ describe('Testing presentTrackdays', () => {
 					Ralien: 0,
 					modified: 0,
 					Rmodified: 0,
-					long: 0
+					long: 0,
+					velocity: 0
 				},
 			}])
 	});
@@ -3035,7 +3045,8 @@ describe('Testing presentTrackdays', () => {
 					Ralien: 0,
 					modified: 0,
 					Rmodified: 0,
-					long: 0
+					long: 0,
+					velocity: 0
 				},
 			}])
 	});
@@ -3102,7 +3113,8 @@ describe('Testing presentTrackdaysForUser', () => {
 					Ralien: 0,
 					modified: 0,
 					Rmodified: 0,
-					long: 0
+					long: 0,
+					velocity: 0
 				},
 				paid: false,
 				paymentMethod: 'etransfer'
@@ -3157,7 +3169,8 @@ describe('Testing presentTrackdaysForUser', () => {
 					Ralien: 0,
 					modified: 0,
 					Rmodified: 0,
-					long: 0
+					long: 0,
+					velocity: 0
 				},
 				paid: false,
 				paymentMethod: 'etransfer'
@@ -3180,7 +3193,8 @@ describe('Testing presentTrackdaysForUser', () => {
 					Ralien: 0,
 					modified: 0,
 					Rmodified: 0,
-					long: 0
+					long: 0,
+					velocity: 0
 				},
 				paid: false,
 				paymentMethod: 'etransfer'
@@ -3415,7 +3429,8 @@ describe('Testing updatePaid', () => {
 					Ralien: 0,
 					modified: 0,
 					Rmodified: 0,
-					long: 1
+					long: 1,
+					velocity: 0
 				},
 				paid: true,
 				paymentMethod: 'etransfer'

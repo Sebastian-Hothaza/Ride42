@@ -368,6 +368,7 @@ const ManageTrackdays = ({ APIServer, fetchAPIData, allTrackdaysFULL, allUsers }
 								<option key="modified" value="modified">modified</option>
 								<option key="Rmodified" value="Rmodified">Rmodified</option>
 								<option key="long" value="long">long</option>
+								<option key="velocity" value="velocity">velocity</option>
 								<option key="tbd" value="tbd">tbd</option>
 							</select>
 						</div>

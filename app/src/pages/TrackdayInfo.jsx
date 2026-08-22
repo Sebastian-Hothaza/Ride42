@@ -80,6 +80,9 @@ function TrackdayInfo() {
 				case 'long':
 					formattedLayout = 'Long Track'
 					break;
+				case 'velocity':
+					formattedLayout = 'Velocity'
+					break;
 				default:
 					formattedLayout = '?'
 					break;

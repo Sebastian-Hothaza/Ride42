@@ -50,7 +50,8 @@ function getRegDetails(trackday) {
         Ralien: 0,
         modified: 0,
         Rmodified: 0,
-        long: 0
+        long: 0,
+        velocity: 0
     }
 
     // Check the members array
@@ -98,7 +99,7 @@ function getRegDetails(trackday) {
 // ! Logged operation !
 exports.register = [
     body("paymentMethod", "PaymentMethod must be one of: [etransfer, credit, creditCard, gate]").trim().isIn(["etransfer", "credit", "creditCard", "gate"]).escape(),
-    body("layoutVote", "Layout vote must be provided and each value must be one of: [none, technical, Rtechnical, alien, Ralien, modified, Rmodified, long]").trim().isIn(["none", "technical", "Rtechnical", "alien", "Ralien", "modified", "Rmodified", "long"]).escape(),
+    body("layoutVote", "Layout vote must be provided and each value must be one of: [none, technical, Rtechnical, alien, Ralien, modified, Rmodified, long, velocity]").trim().isIn(["none", "technical", "Rtechnical", "alien", "Ralien", "modified", "Rmodified", "long", "velocity"]).escape(),
     body("guests", "Guests must be numeric and greater than 0").trim().isNumeric({ min: 0 }).escape(),
 
     controllerUtils.verifyJWT,
@@ -782,7 +783,7 @@ exports.trackday_post = [
 exports.trackday_put = [
     body("date", "Date must be in YYYY-MM-DDThh:mm form where time is in UTC").isISO8601().bail().isLength({ min: 17, max: 17 }).escape(),
     body("status", "Status must be one of: [regOpen, regClosed, cancelled, archived]").trim().isIn(["regOpen", "regClosed", "cancelled", "archived"]).escape(),
-    body("layout", "Layout must be one of: [tbd, technical, Rtechnical, alien, Ralien, modified, Rmodified, long]").trim().isIn(["tbd", "technical", "Rtechnical", "alien", "Ralien", "modified", "Rmodified", "long"]).escape(),
+    body("layout", "Layout must be one of: [tbd, technical, Rtechnical, alien, Ralien, modified, Rmodified, long, velocity]").trim().isIn(["tbd", "technical", "Rtechnical", "alien", "Ralien", "modified", "Rmodified", "long", "velocity"]).escape(),
     body("rentalCost", "Must provide track rental cost between 0-100000").trim().isInt({ min: 0, max: 100000 }).escape(),
     body("preRegTicketPrice", "preRegTicketPrice must be between 1-1000").trim().isInt({ min: 1, max: 1000 }).escape(),
     body("gateTicketPrice", "gateTicketPrice must be between 1-1000").trim().isInt({ min: 1, max: 1000 }).escape(),
