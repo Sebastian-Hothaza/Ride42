@@ -14,6 +14,32 @@ const transporter = nodemailer.createTransport({
     },
 });
 
+
+// Convert base64 images in the HTML to attachments with CIDs
+function convertBase64ImagesToCid(html) {
+    const attachments = [];
+    let imageIndex = 0;
+
+    html = html.replace(
+        /src=["']data:image\/([a-zA-Z0-9.+-]+);base64,([^"']+)["']/gi,
+        (match, imageType, base64Data) => {
+            const cid = `newsletter-image-${imageIndex++}@ride42.ca`;
+
+            attachments.push({
+                filename: `newsletter-image-${imageIndex}.${imageType === 'jpeg' ? 'jpg' : imageType}`,
+                content: Buffer.from(base64Data, 'base64'),
+                contentType: `image/${imageType}`,
+                cid: cid,
+                contentDisposition: 'inline'
+            });
+
+            return `src="cid:${cid}"`;
+        }
+    );
+
+    return { html, attachments };
+}
+
 // Attempt to send the email
 async function main(recipient, subject, htmlBody, args, attachments = [], includeSignature = true, includeBCC = true) {
     // Check if args were received, and if so, inject them into the HTML body
@@ -60,13 +86,18 @@ async function main(recipient, subject, htmlBody, args, attachments = [], includ
                 }
             }
 
+            const { html, attachments: inlineAttachments } = convertBase64ImagesToCid(htmlBody);
+
             const mailOptions = {
                 from: '"Ride42" <info@ride42.ca>',
                 to: recipient,
                 subject: subject,
-                html: htmlBody,
-                attachments: emailAttachments,
-                ...(includeBCC ? { bcc: 'nodemailer@ride42.ca' } : {}) // only include BCC if true
+                html: html,
+                attachments: [
+                    ...emailAttachments,
+                    ...inlineAttachments
+                ],
+                ...(includeBCC ? { bcc: 'nodemailer@ride42.ca' } : {})
             };
 
             await transporter.sendMail(mailOptions);
