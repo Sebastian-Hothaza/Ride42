@@ -1,6 +1,5 @@
 const nodemailer = require("nodemailer");
 const logger = require('./logger');
-const fs = require('fs');
 
 // Usage example: if (process.env.NODE_ENV === 'production') sendEmail("JohnDoe@gmail.com", "Hello from NodeMailer", mailTemplates.helloWorld, {name: "Joe"})
 
@@ -15,8 +14,6 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-const signatureImageBase64 = fs.readFileSync('ride42.png').toString('base64');
-
 // Attempt to send the email
 async function main(recipient, subject, htmlBody, args, attachments = [], includeSignature = true, includeBCC = true) {
     // Check if args were received, and if so, inject them into the HTML body
@@ -27,35 +24,35 @@ async function main(recipient, subject, htmlBody, args, attachments = [], includ
     }
     if (process.env.NODE_ENV === 'production' && process.env.CORS_ORIGIN !== 'https://demo.ride42.ca') {
         try {
-
+            // Add attachments
+            const emailAttachments = includeSignature ? [{
+                filename: 'ride42.png',
+                path: 'ride42.png',
+                cid: 'sigImg'
+            }, ...attachments,] : attachments;
 
             // Append the signature
             if (includeSignature) {
-
                 const signature = `
                     <div class="io-ox-signature">
-                        <div>
-                            <span style="color: #808080;">Sebastian Hothaza</span>
-                        </div>
-                        <div>
-                            <span style="color: #808080;"><em>Founder</em></span>
-                        </div>
-                        <div>
-                            <img
-                                style="max-width: 100%;"
-                                src="data:image/png;base64,${signatureImageBase64}"
-                                alt=""
-                                width="130"
-                                height="30"
-                            >
-                        </div>
-                        <div>
-                            <a href="https://ride42.ca/"><strong>Visit us online</strong></a>
-                        </div>
-                        <div>
-                            <a href="https://www.facebook.com/groups/ride42/"><strong>Join us on Facebook</strong></a>
-                        </div>
-                    </div>`;
+                            <div class="default-style">
+                                <div class="default-style">
+                                    &nbsp;
+                                </div>
+                                <div>
+                                    <span style="color: #808080;">Sebastian Hothaza</span>
+                                </div> <span style="color: #808080;"><em>Founder</em></span>
+                            </div>
+                            <div class="default-style">
+                                <img class="aspect-ratio" style="max-width: 100%;" src="cid:sigImg" alt="" width="130" height="30">
+                            </div>
+                            <div class="default-style">
+                                <a href="http://ride42.ca/"><strong>Visit us online</strong></a>
+                            </div>
+                            <div class="default-style">
+                                <a href="https://www.facebook.com/groups/ride42/"><strong>Join us on Facebook</strong></a>
+                            </div>
+                    </div>`
                 if (htmlBody.match(/<\/body>/i)) {
                     htmlBody = htmlBody.replace(/<\/body>/i, `${signature}</body>`);
                 } else {
@@ -68,7 +65,7 @@ async function main(recipient, subject, htmlBody, args, attachments = [], includ
                 to: recipient,
                 subject: subject,
                 html: htmlBody,
-                attachments: attachments,
+                attachments: emailAttachments,
                 ...(includeBCC ? { bcc: 'nodemailer@ride42.ca' } : {}) // only include BCC if true
             };
 
