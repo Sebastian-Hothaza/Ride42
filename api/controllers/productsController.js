@@ -61,13 +61,16 @@ exports.product_post = [
         if (req.body.category === "tire") {
             product = new Tire({ name: req.body.name, variants: req.body.variants });
         } else if (req.body.category === "gear") {
-            product = new Gear({
+            const gearData = {
                 name: req.body.name,
                 basePrice: req.body.basePrice,
-                sizes: req.body.sizes,
-                colors: req.body.colors,
                 addOnOptions: req.body.addOnOptions
-            });
+            };
+
+            if (req.body.sizes !== undefined) gearData.sizes = req.body.sizes;
+            if (req.body.colors !== undefined) gearData.colors = req.body.colors;
+
+            product = new Gear(gearData);
         }
         await product.save();
         logger.warn({ message: `Created ${req.body.category} product ${product.name}` });

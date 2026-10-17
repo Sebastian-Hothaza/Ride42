@@ -20,6 +20,7 @@ const TireSchema = new mongoose.Schema({
     size: String,
     compound: String,
     price: Number,
+    discount: Number,
     stock: Number
   }]
 });
@@ -28,15 +29,25 @@ const Tire = Product.discriminator("tire", TireSchema);
 
 
 // GEAR
-// The params here refer to AVAILABLE OPTIONS which are selected upon order creation.Configuration system
+// The params here refer to AVAILABLE OPTIONS which are selected upon order creation. Configuration system
 const GearSchema = new mongoose.Schema({
   basePrice: Number,
-  sizes: [String],
-  colors: [String],
-  addOnOptions: [{
-    name: String,
-    priceAdjustment: Number
-  }]
+  discount: Number,
+  sizes: {
+    type: [String],
+    default: undefined
+  },
+  colors: {
+    type: [String],
+    default: undefined
+  },
+  addOnOptions: {
+    type: [{
+      name: String,
+      priceAdjustment: Number
+    }],
+    default: undefined
+  }
 });
 
 // Ie. const finalPrice = product.basePrice + variant.priceAdjustment;

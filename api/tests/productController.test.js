@@ -299,9 +299,6 @@ describe('Testing product create', () => {
         const created = listRes.body.find(p => p.name === 'Basic Gloves');
         expect(created).toBeDefined();
         expect(created.basePrice).toBe(79.99);
-        expect(created.sizes).toEqual([]);
-        expect(created.colors).toEqual([]);
-        expect(created.addOnOptions).toEqual([]);
     });
 
     test("add gear product to DB - addOn option without priceAdjustment", async () => {
