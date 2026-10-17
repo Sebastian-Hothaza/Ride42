@@ -7,7 +7,7 @@ import TrackdayInfo from "./pages/TrackdayInfo";
 import Rules from "./pages/Rules";
 import Faq from "./pages/Faq";
 import ShopTires from "./pages/ShopTires";
-// import ShopGear from "./pages/ShopGear";
+import ShopGear from "./pages/ShopGear";
 import Dashboard from "./pages/Dashboard";
 import Register from "./pages/Register";
 import PasswordReset from "./pages/PasswordReset";
@@ -32,8 +32,9 @@ const Router = () => {
 				{ path: "/info", element: <TrackdayInfo /> },
 				{ path: "/rules", element: <Rules /> },
 				{ path: "/faq", element: <Faq /> },
-				{ path: "/shoptires", element: <ShopTires APIServer={API_SERVER}/> },
-				// { path: "/shopgear", element: <ShopGear /> },
+				{ path: "/shop", element: <Home/> },
+				{ path: "/shop/tires", element: <ShopTires APIServer={API_SERVER}/> },
+				{ path: "/shop/gear", element: <ShopGear APIServer={API_SERVER}/> },
 				{ path: "/dashboard/*", element: <Dashboard /> },
 				{ path: "/QR/*", element: <Dashboard /> },
 				{ path: "/register", element: <Register /> },

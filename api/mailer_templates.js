@@ -244,7 +244,7 @@ const deleteTireOrder =
 	`<body>
 	<div class="default-style">
 		Hello {name}, <br /> <br />
-		We have cancelled your tire order. Need to place a new order? You can do so <a href="https://Ride42.ca/shoptires">in our tire shop.</a>🏪<br />
+		We have cancelled your tire order. Need to place a new order? You can do so <a href="https://Ride42.ca/shop/tires">in our tire shop.</a>🏪<br />
 		<br />
 		If you have any questions, please reach out anytime 😊
 	</div>

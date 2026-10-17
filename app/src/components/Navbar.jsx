@@ -19,7 +19,7 @@ const Navbar = () => {
 					<NavLink to="/info">Trackday Info</NavLink>
 					<NavLink to="/rules">Rules</NavLink>
 					<NavLink to="/faq">FAQ</NavLink>
-					<NavLink to="/shoptires">Shop Tires</NavLink>
+					<NavLink to="/shop/tires">Shop Tires</NavLink>
 					<NavLink to="https://docs.google.com/forms/d/e/1FAIpQLScGL_Dlr5OdkSkfqasaE85daJwk4oNZ_lyWVmWqHjWWEElHiQ/viewform?usp=sf_link" target="*">Shop Gear</NavLink>
 				</ul>
 				<div className={styles.navbarDashboard}>
@@ -41,7 +41,7 @@ const Navbar = () => {
 						<NavLink onClick={() => { setExpandedMenu(false) }} to="/info">Trackday Info</NavLink>
 						<NavLink onClick={() => { setExpandedMenu(false) }} to="/rules">Rules</NavLink>
 						<NavLink onClick={() => { setExpandedMenu(false) }} to="/faq">FAQ</NavLink>
-						<NavLink onClick={() => { setExpandedMenu(false) }} to="/shoptires">Shop Tires</NavLink>
+						<NavLink onClick={() => { setExpandedMenu(false) }} to="/shop/tires">Shop Tires</NavLink>
 						<NavLink onClick={() => { setExpandedMenu(false) }} to="https://docs.google.com/forms/d/e/1FAIpQLScGL_Dlr5OdkSkfqasaE85daJwk4oNZ_lyWVmWqHjWWEElHiQ/viewform?usp=sf_link">Shop Gear</NavLink>
 					</ul>
 				}
