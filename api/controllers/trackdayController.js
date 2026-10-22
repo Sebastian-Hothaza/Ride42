@@ -619,7 +619,7 @@ exports.updatePaid = [
                     })
                 })
                 // Remove scheduled mail if it exists
-                await ScheduledMail.deleteOne({ 
+                await ScheduledMail.deleteOne({
                     to: memberEntry.user.contact.email, // Note: MongoDB special behaviour: If you query an array field with a scalar value, MongoDB checks whether the array contains that value.
                     emailType: 'pmtReminder',
                     trackdayId: trackday._id
@@ -683,6 +683,42 @@ exports.removeCost = [
         return res.sendStatus(403)
     })
 ]
+
+exports.scheduleReminder = [
+    controllerUtils.verifyJWT,
+    controllerUtils.validateUserID,
+
+    asyncHandler(async (req, res, next) => {
+        if (req.user.memberType === 'admin' || (req.user.id === req.params.userID && 1)) {
+            if (!req.body.sendDate) return res.status(404).send({ msg: ['Missing sendDate'] }) 
+
+            const user = await User.findById(req.params.userID);
+
+            // Check that we haven't already scheduled a reminder for this user
+            const existingReminder = await ScheduledMail.findOne({
+                to: user.contact.email,
+                sendOn: req.body.sendDate,
+            });
+            if (existingReminder) {
+                return res.status(409).send({ msg: ['Reminder email already scheduled!'] });
+            }
+
+            const scheduledMail = new ScheduledMail({
+                sendOn: req.body.sendDate,
+                to: [user.contact.email],
+                args: { name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1) },
+                subject: `Ride42 Trackday Registrations are Now Open`,
+                // This is used to identify the email template when sendMail is called
+                message: mailTemplates.registrationsOpen,
+            });
+            await scheduledMail.save();
+            return res.sendStatus(200);
+        }
+        return res.sendStatus(403)
+    })
+]
+
+
 
 //////////////////////////////////////
 //              CRUD
