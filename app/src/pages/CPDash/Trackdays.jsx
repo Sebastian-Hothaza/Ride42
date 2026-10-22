@@ -199,8 +199,27 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 	// Create notify me entry in email sender database
 	async function handleNotifyMeSubmit(e) {
 		e.preventDefault();
-		// TODO: Implement in API as email objects created there
-		console.log('Notify me feature not implemented yet');
+		setActiveModal({ type: 'loading', msg: 'Creating registration reminder' });
+		try {
+			const response = await fetch(APIServer + 'schedulereminder/' + userInfo._id, {
+				method: 'POST',
+				credentials: "include",
+				headers: {
+					'Content-type': 'application/json; charset=UTF-8',
+				},
+				body: JSON.stringify({ sendDate: '2027-01-05T15:00:00Z' })
+			})
+			if (response.ok) {
+				setActiveModal({ type: 'success', msg: 'Registration reminder created' });
+				setTimeout(() => setActiveModal(''), 1500)
+			} else {
+				const data = await response.json();
+				setActiveModal({ type: 'failure', msg: data.msg.join('\n') })
+			}
+		} catch (err) {
+			setActiveModal({ type: 'failure', msg: 'API Failure' })
+			console.error(err)
+		}
 	}
 
 	// Creates paymentIntent and sets clientSecret. Uses trackdayID to set the intent price.
@@ -311,154 +330,153 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 		</>
 	}
 
-	// USED AT SEASON END
-	if (SEASON_END) return <>
-		<div className={styles.content}>
-			<h1>Book and Manage your Trackdays</h1>
-			
-			<h3>Available January 5</h3>
-			<br></br>
-		</div>
-		<button className="actionButton" onClick={(e) => handleNotifyMeSubmit(e)}>Notify me!</button>
-	</>
-
+	const showSeasonEndMessage = SEASON_END;
 
 	return (
 		<>
 			<ScrollToTop />
 			<div className={styles.content}>
-				<h1>Book a Trackday</h1>
-				<form id="Trackdays_bookTrackday" onSubmit={(e) => handleBookTrackdaySubmit(e)}>
+				{showSeasonEndMessage ? (
+					<>
+						<h1>Book and Manage your Trackdays - Coming Soon...</h1>
+						<h3>Want early booking access before we let everyone know? Click below! 😉</h3>
+						<br></br>
+					</>
+				) : (
+					<>
+						<h1>Book a Trackday</h1>
+						<form id="Trackdays_bookTrackday" onSubmit={(e) => handleBookTrackdaySubmit(e)}>
 
 
-					<div className={styles.dateAndPayment}>
-						<div className={styles.inputPairing}>
-							<label htmlFor="date">Date:</label>
-							<select name="date" id="date" form="Trackdays_bookTrackday" onChange={(e) => {
-								setSelectedTrackday(allTrackdays.find(td => td.id === e.target.value));
-							}} required>
-								<option key="dateNone" value="">- Choose date -</option>
-								{allTrackdays && allTrackdays.map((trackday) => <option key={trackday.id} value={trackday.id}>{trackday.prettyDate}</option>)}
-							</select>
-						</div>
-						<div className={styles.inputPairing}>
-							<label htmlFor="paymentMethod">Payment Method:</label>
-							<select name="paymentMethod" id="paymentMethod" form="Trackdays_bookTrackday" required>
-								<option key="paymentNone" value="">- Choose Payment Method -</option>
-								{userInfo.credits && <option key="credit" value="credit">Use trackday credit ({userInfo.credits} left)</option>}
-								{selectedTrackday && !inLockout(selectedTrackday) && <option key="etransfer" value="etransfer">Interac E-Transfer (${selectedTrackday.ticketPrice.preReg})</option>}
-								{selectedTrackday && !inLockout(selectedTrackday) && <option key="creditCard" value="creditCard">Credit Card (${selectedTrackday.ticketPrice.preReg + CREDITCARD_FEE})</option>}
-								{selectedTrackday && inLockout(selectedTrackday) && <option key="gate" value="gate">Cash at Gate (${selectedTrackday.ticketPrice.gate})</option>}
-							</select>
-						</div>
-					</div>
-
-
-					<div className={styles.guests}>
-						<div className={styles.inputPairing}>
-							<label style={{ textAlign: 'center' }} htmlFor="guests" >Guests for BBQ <span style={{ fontStyle: 'italic' }}>(including you)</span></label>
-							<div className={styles.guestControl}>
-								<button type="button" id={styles.guestsBtn} onClick={() => { if (guests.value > 0) guests.value-- }}><span className='material-symbols-outlined'>remove</span></button>
-								<input type="number" id="guests" name="guests" defaultValue={1} required readOnly></input>
-								<button type="button" id={styles.guestsBtn} onClick={() => guests.value++}><span className='material-symbols-outlined'>add</span></button>
-							</div>
-						</div>
-					</div>
-
-
-
-					<div className={styles.layoutVote}>
-						<h3>Which layouts would you like to vote for?</h3>
-						<div className={styles.checkboxes}>
-							<div className={styles.checkboxPairing}>
-								<input type="checkbox" id="technical" name="layoutVote" value="technical"></input>
-								<label htmlFor="technical">Technical</label>
+							<div className={styles.dateAndPayment}>
+								<div className={styles.inputPairing}>
+									<label htmlFor="date">Date:</label>
+									<select name="date" id="date" form="Trackdays_bookTrackday" onChange={(e) => {
+										setSelectedTrackday(allTrackdays.find(td => td.id === e.target.value));
+									}} required>
+										<option key="dateNone" value="">- Choose date -</option>
+										{allTrackdays && allTrackdays.map((trackday) => <option key={trackday.id} value={trackday.id}>{trackday.prettyDate}</option>)}
+									</select>
+								</div>
+								<div className={styles.inputPairing}>
+									<label htmlFor="paymentMethod">Payment Method:</label>
+									<select name="paymentMethod" id="paymentMethod" form="Trackdays_bookTrackday" required>
+										<option key="paymentNone" value="">- Choose Payment Method -</option>
+										{userInfo.credits && <option key="credit" value="credit">Use trackday credit ({userInfo.credits} left)</option>}
+										{selectedTrackday && !inLockout(selectedTrackday) && <option key="etransfer" value="etransfer">Interac E-Transfer (${selectedTrackday.ticketPrice.preReg})</option>}
+										{selectedTrackday && !inLockout(selectedTrackday) && <option key="creditCard" value="creditCard">Credit Card (${selectedTrackday.ticketPrice.preReg + CREDITCARD_FEE})</option>}
+										{selectedTrackday && inLockout(selectedTrackday) && <option key="gate" value="gate">Cash at Gate (${selectedTrackday.ticketPrice.gate})</option>}
+									</select>
+								</div>
 							</div>
 
-							<div className={styles.checkboxPairing}>
-								<input type="checkbox" id="Rtechnical" name="layoutVote" value="Rtechnical"></input>
-								<label htmlFor="Rtechnical">Reverse Technical</label>
-							</div>
-							<div className={styles.checkboxPairing}>
-								<input type="checkbox" id="alien" name="layoutVote" value="alien"></input>
-								<label htmlFor="alien">Alien</label>
-							</div>
-							<div className={styles.checkboxPairing}>
-								<input type="checkbox" id="Ralien" name="layoutVote" value="Ralien"></input>
-								<label htmlFor="Ralien">Reverse Alien</label>
-							</div>
-							<div className={styles.checkboxPairing}>
-								<input type="checkbox" id="modified" name="layoutVote" value="modified"></input>
-								<label htmlFor="modified">Modified</label>
-							</div>
-							<div className={styles.checkboxPairing}>
-								<input type="checkbox" id="long" name="layoutVote" value="long"></input>
-								<label htmlFor="long">Long Track</label>
-							</div>
-						</div>
-					</div>
 
-					<div className={styles.layoutVote}>
-						<h3>Do you understand our <a href="/rules" target="_blank" style={{ color: "blue", textDecoration: "underline" }}>rules and policies?</a></h3>
-						<div className={styles.checkboxes}>
-							<div className={styles.checkboxPairing}>
-								<input type="checkbox" id="ruleAgree" name="ruleAgree" required></input>
-								<label htmlFor="ruleAgree">Yes, I have read and agree to them</label>
-							</div>
-						</div>
-
-					</div>
-					<button className='confirmBtn' id={styles.registerBtn} type="submit">Register</button>
-				</form>
-
-
-
-				<h1>Manage Trackdays</h1>
-				{userTrackdays.length?
-					<div>
-						{userTrackdays.map((trackday) => {
-							return (
-								<div key={trackday.id} className={styles.tdEntry}>
-									{/* INFO */}
-									<div>{trackday.prettyDate}</div>
-									{/* Paid Status */}
-									<div>
-										{(() => {
-											switch (trackday.paymentMethod) {
-												case 'etransfer':
-													return trackday.paid ? <div>Payment received ✅</div> : <div style={{ color: `var(--accent-color)` }}>E-Transfer not received (${trackday.ticketPrice.preReg})</div>;
-												case 'creditCard':
-													return trackday.paid ? <div>Payment received ✅</div> : <div style={{ color: `var(--accent-color)` }}>Credit card payment not processed</div>;
-												case 'credit':
-													return <div>Used credit</div>;
-												case 'gate':
-													return trackday.paid ? <div>Gate registration payment received ✅</div> : <div style={{ color: `var(--accent-color)` }}>E-Transfer not received (${trackday.ticketPrice.gate})</div>;
-												default:
-													return <div>Payment Method Unknown</div>;
-											}
-										})()}
-									</div>
-									{/* Reschedule/Cancel controls */}
-									<div className={styles.tdControls}>
-										{/* These buttons should not be shown if trackday is in past OR for gate registrations */}
-										{!inPast(trackday) && (!inLockout(trackday) || trackday.paymentMethod === 'credit') && trackday.paymentMethod !== 'gate' && <>
-											{trackday.paymentMethod === 'creditCard' && !trackday.paid && <button onClick={() => handlePay(userInfo, trackday)}>Pay Now</button>}
-											<button onClick={() => setActiveModal({ type: 'reschedule', trackday: trackday })}>Reschedule</button>
-											<button onClick={() => setActiveModal({ type: 'cancel', trackday: trackday })}>Cancel</button>
-										</>}
-										{trackday.paymentMethod === 'gate' && !trackday.paid && <>
-											{trackday.paymentMethod === 'creditCard' && !trackday.paid && <button onClick={() => handlePay(userInfo, trackday)}>Pay Now</button>}
-											<button onClick={() => setActiveModal({ type: 'cancel', trackday: trackday })}>Cancel</button>
-										</>}
+							<div className={styles.guests}>
+								<div className={styles.inputPairing}>
+									<label style={{ textAlign: 'center' }} htmlFor="guests" >Guests for BBQ <span style={{ fontStyle: 'italic' }}>(including you)</span></label>
+									<div className={styles.guestControl}>
+										<button type="button" id={styles.guestsBtn} onClick={() => { if (guests.value > 0) guests.value-- }}><span className='material-symbols-outlined'>remove</span></button>
+										<input type="number" id="guests" name="guests" defaultValue={1} required readOnly></input>
+										<button type="button" id={styles.guestsBtn} onClick={() => guests.value++}><span className='material-symbols-outlined'>add</span></button>
 									</div>
 								</div>
-							)
-						})}
-					</div>:
-					<div><em>You have no trackdays booked this season. Trackdays you book will show up here for easy management.</em></div>}
+							</div>
 
 
+
+							<div className={styles.layoutVote}>
+								<h3>Which layouts would you like to vote for?</h3>
+								<div className={styles.checkboxes}>
+									<div className={styles.checkboxPairing}>
+										<input type="checkbox" id="technical" name="layoutVote" value="technical"></input>
+										<label htmlFor="technical">Technical</label>
+									</div>
+
+									<div className={styles.checkboxPairing}>
+										<input type="checkbox" id="Rtechnical" name="layoutVote" value="Rtechnical"></input>
+										<label htmlFor="Rtechnical">Reverse Technical</label>
+									</div>
+									<div className={styles.checkboxPairing}>
+										<input type="checkbox" id="alien" name="layoutVote" value="alien"></input>
+										<label htmlFor="alien">Alien</label>
+									</div>
+									<div className={styles.checkboxPairing}>
+										<input type="checkbox" id="Ralien" name="layoutVote" value="Ralien"></input>
+										<label htmlFor="Ralien">Reverse Alien</label>
+									</div>
+									<div className={styles.checkboxPairing}>
+										<input type="checkbox" id="modified" name="layoutVote" value="modified"></input>
+										<label htmlFor="modified">Modified</label>
+									</div>
+									<div className={styles.checkboxPairing}>
+										<input type="checkbox" id="long" name="layoutVote" value="long"></input>
+										<label htmlFor="long">Long Track</label>
+									</div>
+								</div>
+							</div>
+
+							<div className={styles.layoutVote}>
+								<h3>Do you understand our <a href="/rules" target="_blank" style={{ color: "blue", textDecoration: "underline" }}>rules and policies?</a></h3>
+								<div className={styles.checkboxes}>
+									<div className={styles.checkboxPairing}>
+										<input type="checkbox" id="ruleAgree" name="ruleAgree" required></input>
+										<label htmlFor="ruleAgree">Yes, I have read and agree to them</label>
+									</div>
+								</div>
+
+							</div>
+							<button className='confirmBtn' id={styles.registerBtn} type="submit">Register</button>
+						</form>
+
+
+
+						<h1>Manage Trackdays</h1>
+						{userTrackdays.length ?
+							<div>
+								{userTrackdays.map((trackday) => {
+									return (
+										<div key={trackday.id} className={styles.tdEntry}>
+											{/* INFO */}
+											<div>{trackday.prettyDate}</div>
+											{/* Paid Status */}
+											<div>
+												{(() => {
+													switch (trackday.paymentMethod) {
+														case 'etransfer':
+															return trackday.paid ? <div>Payment received ✅</div> : <div style={{ color: `var(--accent-color)` }}>E-Transfer not received (${trackday.ticketPrice.preReg})</div>;
+														case 'creditCard':
+															return trackday.paid ? <div>Payment received ✅</div> : <div style={{ color: `var(--accent-color)` }}>Credit card payment not processed</div>;
+														case 'credit':
+															return <div>Used credit</div>;
+														case 'gate':
+															return trackday.paid ? <div>Gate registration payment received ✅</div> : <div style={{ color: `var(--accent-color)` }}>E-Transfer not received (${trackday.ticketPrice.gate})</div>;
+														default:
+															return <div>Payment Method Unknown</div>;
+													}
+												})()}
+											</div>
+											{/* Reschedule/Cancel controls */}
+											<div className={styles.tdControls}>
+												{/* These buttons should not be shown if trackday is in past OR for gate registrations */}
+												{!inPast(trackday) && (!inLockout(trackday) || trackday.paymentMethod === 'credit') && trackday.paymentMethod !== 'gate' && <>
+													{trackday.paymentMethod === 'creditCard' && !trackday.paid && <button onClick={() => handlePay(userInfo, trackday)}>Pay Now</button>}
+													<button onClick={() => setActiveModal({ type: 'reschedule', trackday: trackday })}>Reschedule</button>
+													<button onClick={() => setActiveModal({ type: 'cancel', trackday: trackday })}>Cancel</button>
+												</>}
+												{trackday.paymentMethod === 'gate' && !trackday.paid && <>
+													{trackday.paymentMethod === 'creditCard' && !trackday.paid && <button onClick={() => handlePay(userInfo, trackday)}>Pay Now</button>}
+													<button onClick={() => setActiveModal({ type: 'cancel', trackday: trackday })}>Cancel</button>
+												</>}
+											</div>
+										</div>
+									)
+								})}
+							</div> :
+							<div><em>You have no trackdays booked this season. Trackdays you book will show up here for easy management.</em></div>}
+					</>
+				)}
 			</div>
+			{showSeasonEndMessage && <button className="actionButton" onClick={(e) => handleNotifyMeSubmit(e)}>Notify me early!</button>}
 			<Loading open={activeModal.type === 'loading'}>
 				{activeModal.msg}
 			</Loading>
