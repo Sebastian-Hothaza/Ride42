@@ -281,6 +281,18 @@ const waiverReject =
 	</div>
 </body>`
 
+const registrationsOpen =
+	`<body>
+	<div class="default-style">
+		Hello {name}, <br /> <br />
+		You've requested we let you know when trackday registrations are open; that time has come! 🎉<br />
+		<br />
+		You can register for our upcoming trackdays <a href="https://Ride42.ca/dashboard">here.</a><br />
+		<br />
+		We look forward to seeing you on track soon! 🚀
+	</div>
+</body>`
+
 module.exports = {
 	welcomeUser,
 	updateUser,
@@ -300,5 +312,6 @@ module.exports = {
 	deleteTireOrder,
 	paidTireOrder,
 	notifyMassEmail,
-	waiverReject
+	waiverReject,
+	registrationsOpen
 };
