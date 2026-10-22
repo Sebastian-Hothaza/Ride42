@@ -22,7 +22,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 	const [selectedTrackday, setSelectedTrackday] = useState(''); // Trackday selected for booking
 	const DAYS_LOCKOUT = 7;
 	const CREDITCARD_FEE = 5;
-	const SEASON_END = false;
+	const SEASON_END = true;
 
 	// Returns true if a user is registered for a specified trackday ID
 	function userRegistered(trackdayID) {
