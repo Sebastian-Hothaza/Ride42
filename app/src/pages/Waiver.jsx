@@ -19,7 +19,7 @@ import errormark from './../assets/error.png'
 const Waiver = () => {
 	// End of season block
 	// CURRENT_YEAR MUST be updayed before this block is removed	
-	// return <div className="content"><Card heading='Liability Waiver' body={<div>Coming soon</div>} inverted={false} /></div>
+	return <div className="content"><Card heading='Liability Waiver' body={<div>Coming soon</div>} inverted={false} /></div>
 
 	const loggedInUser = JSON.parse(localStorage.getItem("user"))
 	const { APIServer } = useOutletContext();
