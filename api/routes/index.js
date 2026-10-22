@@ -71,6 +71,7 @@ router.get('/presentTrackdays', trackdayController.presentTrackdays)
 router.get('/presentTrackdays/:userID', trackdayController.presentTrackdaysForUser)
 router.put('/paid/:userID/:trackdayID', trackdayController.updatePaid)
 router.post('/walkons/:trackdayID', trackdayController.walkons)
+router.post('/schedulereminder/:userID/', trackdayController.scheduleReminder)
 
 
 router.get('/trackdays/:trackdayID', trackdayController.trackday_get)
