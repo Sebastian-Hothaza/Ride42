@@ -168,7 +168,6 @@ exports.order_put = [
     asyncHandler(async (req, res) => {
         if (req.user.memberType !== "admin") return res.sendStatus(403);
         const order = await Order.findById(req.params.orderID).populate("user", "id firstName lastName contact.email");
-        console.log(order);
         const updateData = {};
         if (req.body.orderStatus) updateData.orderStatus = req.body.orderStatus;
         if (req.body.paymentStatus) updateData.paymentStatus = req.body.paymentStatus;
