@@ -666,6 +666,7 @@ describe('Testing order read', () => {
                 paymentStatus: 'pending',
                 orderStatus: 'pending',
                 deliveryDate: "2026-03-10T00:00:00.000Z",
+                discount: 0,
                 orderDate: expect.any(String),
                 __v: 0
             }
@@ -703,6 +704,7 @@ describe('Testing order read', () => {
                 paymentStatus: 'pending',
                 orderStatus: 'pending',
                 deliveryDate: "2026-03-10T00:00:00.000Z",
+                discount: 0,
                 orderDate: expect.any(String),
                 __v: 0
             }
@@ -741,6 +743,7 @@ describe('Testing order read', () => {
                 paymentStatus: 'pending',
                 orderStatus: 'pending',
                 deliveryDate: "2026-03-10T00:00:00.000Z",
+                discount: 0,
                 orderDate: expect.any(String),
                 __v: 0
             }
@@ -787,6 +790,7 @@ describe('Testing order read', () => {
                 paymentStatus: 'pending',
                 orderStatus: 'pending',
                 deliveryDate: "2026-03-10T00:00:00.000Z",
+                discount: 0,
                 orderDate: expect.any(String),
                 __v: 0
             },
@@ -814,6 +818,7 @@ describe('Testing order read', () => {
                 paymentStatus: 'pending',
                 orderStatus: 'pending',
                 deliveryDate: "2026-03-10T00:00:00.000Z",
+                discount: 0,
                 orderDate: expect.any(String),
                 __v: 0
             }
@@ -949,6 +954,96 @@ describe('Testing order update', () => {
                 paymentStatus: 'paid',
                 orderStatus: 'pending',
                 deliveryDate: "2026-03-10T00:00:00.000Z",
+                discount: 0,
+                orderDate: expect.any(String),
+                __v: 0
+            }
+        );
+
+        // Check product inventory got updated
+        const updatedProduct = await request(app)
+            .get(`/products/${sampleSupercorsa._id.toString()}`)
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(200);
+
+        expect(updatedProduct.body).toEqual(
+            {
+                _id: sampleSupercorsa._id.toString(),
+                name: sampleSupercorsaInfo.name,
+                category: sampleSupercorsaInfo.category,
+                variants: [
+                    expect.objectContaining({
+                        size: "200/60",
+                        compound: "SC3",
+                        price: 500,
+                        stock: 0
+                    }),
+                    expect.objectContaining({
+                        size: "200/60",
+                        compound: "SC2",
+                        price: 450,
+                        stock: 1
+                    }),
+                    expect.objectContaining({
+                        size: "180/60",
+                        compound: "SC1",
+                        price: 480,
+                        stock: 1
+                    })
+                ],
+                createdAt: expect.any(String),
+                updatedAt: expect.any(String),
+                __v: 0
+            },
+
+        );
+    });
+
+      test("Update order - discount", async () => {
+        const res = await request(app)
+            .put(`/orders/${adminOrder_seed._id.toString()}`)
+            .send({
+                paymentStatus: 'paid',
+                discount: 50
+            })
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(200);
+
+        // Check order got updated
+        const updatedOrder = await request(app)
+            .get(`/orders/${adminOrder_seed._id.toString()}`)
+            .set('Content-Type', 'application/json')
+            .set('Cookie', adminCookie)
+            .expect(200);
+
+        expect(updatedOrder.body).toEqual(
+            {
+                _id: adminOrder_seed._id.toString(),
+                user: {
+                    _id: admin._id.toString(),
+                    firstName: adminInfo.firstName,
+                    lastName: adminInfo.lastName
+                },
+                items: [
+                    {
+                        _id: adminOrder_seed.items[0]._id.toString(),
+                        product: sampleSupercorsa._id.toString(),
+                        name: sampleSupercorsaInfo.name,
+                        category: sampleSupercorsaInfo.category,
+                        size: "200/60",
+                        compound: "SC3",
+                        price: 500,
+                        quantity: 1,
+                        installRequired: true
+                    }
+                ],
+                balanceDue: 450,
+                paymentStatus: 'paid',
+                orderStatus: 'pending',
+                deliveryDate: "2026-03-10T00:00:00.000Z",
+                discount: 50,
                 orderDate: expect.any(String),
                 __v: 0
             }
