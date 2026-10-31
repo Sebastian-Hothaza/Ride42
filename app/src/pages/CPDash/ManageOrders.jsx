@@ -75,6 +75,26 @@ const ManageOrders = ({ APIServer }) => {
         fetchDates();
     }, [])
 
+    function renderOrderTotal(order) {
+        const discountedBalance = Number(order.balanceDue ?? 0);
+        const originalBalance = discountedBalance + Number(order.discount ?? 0);
+        const hasDiscount = Number(order.discount ?? 0) > 0;
+
+        return (
+            <div>
+                {hasDiscount ? (
+                    <>
+                        <span style={{ textDecoration: 'line-through' }}>${originalBalance}</span>
+                        <span> ${discountedBalance}</span>
+                    </>
+                ) : (
+                    <span>${discountedBalance}</span>
+                )}
+                {order.paymentStatus !== 'paid' && <em> ({order.paymentStatus})</em>}
+            </div>
+        );
+    }
+
     async function handleEditOrder(e, orderID) {
         e.preventDefault();
         setActiveModal({ type: 'loading', msg: 'Editing order' });
@@ -87,6 +107,8 @@ const ManageOrders = ({ APIServer }) => {
         if (e.target.paymentStatus.value) body.paymentStatus = e.target.paymentStatus.value;
 
         body.deliveryDate = e.target.deliveryDate.value;
+
+        body.discount = e.target.discount.value ? parseFloat(e.target.discount.value) : 0;
 
 
         try {
@@ -178,7 +200,7 @@ const ManageOrders = ({ APIServer }) => {
                                 </div>
                                 <div>{new Date(order.orderDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
                                 <div>{order.orderStatus}</div>
-                                <div>${order.balanceDue} {order.paymentStatus !== 'paid' && <em>({order.paymentStatus})</em>}</div>
+                                {renderOrderTotal(order)}
                                 <div>{order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : 'Local Pickup'}{order.orderStatus !== 'complete' &&
                                     <div className={styles.productActions}>
                                         <button className={styles.editBtn} style={{ color: '#0099ff' }} onClick={() => setActiveModal({ type: 'editOrder', order })}><span className="material-symbols-outlined">edit</span></button>
@@ -222,7 +244,7 @@ const ManageOrders = ({ APIServer }) => {
 
                                 <div className={styles.pairing}>
                                     <div>Order Total:</div>
-                                    <div>${order.balanceDue} {order.paymentStatus !== 'paid' && <em>({order.paymentStatus})</em>}</div>
+                                    <div>{renderOrderTotal(order)}</div>
                                 </div>
 
                                 <div className={styles.pairing}>
@@ -273,7 +295,7 @@ const ManageOrders = ({ APIServer }) => {
                                 </div>
                                 <div>{new Date(order.orderDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
                                 <div>{order.orderStatus}</div>
-                                <div>${order.balanceDue} {order.paymentStatus !== 'paid' && <em>({order.paymentStatus})</em>}</div>
+                                {renderOrderTotal(order)}
                                 <div>{order.orderStatus !== 'complete' &&
                                     <>
                                         <div>
@@ -325,7 +347,7 @@ const ManageOrders = ({ APIServer }) => {
 
                                 <div className={styles.pairing}>
                                     <div>Order Total:</div>
-                                    <div>${order.balanceDue} {order.paymentStatus !== 'paid' && <em>({order.paymentStatus})</em>}</div>
+                                    <div>{renderOrderTotal(order)}</div>
                                 </div>
 
                                 <div className={styles.pairing}>
@@ -397,7 +419,10 @@ const ManageOrders = ({ APIServer }) => {
                             </select>
                         </div>}
 
-
+                        <div>
+                            <label htmlFor="discount">Discount</label>
+                            <input type="number" id="discount" name="discount" defaultValue={activeModal.order?.discount || 0} />
+                        </div>
 
 
 

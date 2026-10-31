@@ -50,6 +50,26 @@ const Orders = ({ APIServer }) => {
         fetchOrders();
     }, [])
 
+    function renderOrderTotal(order) {
+        const discountedBalance = Number(order.balanceDue ?? 0);
+        const originalBalance = discountedBalance + Number(order.discount ?? 0);
+        const hasDiscount = Number(order.discount ?? 0) > 0;
+
+        return (
+            <div>
+                {hasDiscount ? (
+                    <>
+                        <span style={{ textDecoration: 'line-through' }}>${originalBalance}</span>
+                        <span> ${discountedBalance}</span>
+                    </>
+                ) : (
+                    <span>${discountedBalance}</span>
+                )}
+                <em>({order.paymentStatus})</em>
+            </div>
+        );
+    }
+
     async function handleDeleteOrder(orderID) {
         setActiveModal({ type: 'loading', msg: 'Cancelling order' });
         try {
@@ -76,7 +96,7 @@ const Orders = ({ APIServer }) => {
             <ScrollToTop />
             <div className={styles.content}>
                 <h1>My Orders</h1>
-                <p>Orders you place in the shop will show up here. All payments should be sent via E-Transfer to sales@ride42.ca</p>
+                <p>Orders you place in the shop will show up here. All order payments should be sent via E-Transfer to sales@ride42.ca</p>
                 <p>For delivery date or other changes, please email us at <a href="mailto:info@ride42.ca" style={{ color: "blue", textDecoration: "underline" }}>info@ride42.ca</a></p>
                 <h2>Tire Orders</h2>
 
@@ -116,7 +136,7 @@ const Orders = ({ APIServer }) => {
                                     </div>
                                     <div>{new Date(order.orderDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
                                     <div>{order.orderStatus}</div>
-                                    <div>${order.balanceDue}<em>({order.paymentStatus})</em></div>
+                                    <div>{renderOrderTotal(order)}</div>
                                     <div className={styles.dateControl}>{order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : 'Kitchener Pickup'}
                                         {order.paymentStatus !== 'paid' &&
                                             <div className={styles.productActions}>
@@ -151,7 +171,7 @@ const Orders = ({ APIServer }) => {
 
                                     <div className={styles.pairing}>
                                         <div>Order Balace:</div>
-                                        <div>${order.balanceDue} <em>({order.paymentStatus})</em></div>
+                                        <div>{renderOrderTotal(order)}</div>
                                     </div>
 
                                     <div className={styles.pairing}>

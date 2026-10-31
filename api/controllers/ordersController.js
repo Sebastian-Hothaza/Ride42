@@ -152,13 +152,14 @@ exports.order_get = [
     })
 ]
 
-// Update an order. The following fields can be updated: orderStatus, paymentStatus, deliveryDate. Requires JWT with admin.
+// Update an order. The following fields can be updated: orderStatus, paymentStatus, deliveryDate, discount. Requires JWT with admin.
 exports.order_put = [
     body("orderStatus", "Order status must be one of: pending, complete, pending submission, pending production").optional()
         .isIn(["pending", "complete", "pending submission", "pending production"]),
     body("paymentStatus", "Payment status must be one of: partial, paid").optional()
         .isIn(["partial", "paid"]),
     body("deliveryDate", "Delivery date must be a valid date").optional({ values: "falsy" }).isISO8601().toDate(),
+    body("discount", "Discount must be a number").optional({ values: "falsy" }).isNumeric(),
     controllerUtils.validateForm,
     controllerUtils.validateOrderID,
 
@@ -167,10 +168,13 @@ exports.order_put = [
     asyncHandler(async (req, res) => {
         if (req.user.memberType !== "admin") return res.sendStatus(403);
         const order = await Order.findById(req.params.orderID).populate("user", "id firstName lastName contact.email");
+        console.log(order);
         const updateData = {};
         if (req.body.orderStatus) updateData.orderStatus = req.body.orderStatus;
         if (req.body.paymentStatus) updateData.paymentStatus = req.body.paymentStatus;
         updateData.deliveryDate = req.body.deliveryDate;
+        updateData.discount = req.body.discount;
+        updateData.balanceDue = order.balanceDue - (req.body.discount || 0);
 
         // If delivery date is provided, make sure its valid, else its null
         if (req.body.deliveryDate) {
