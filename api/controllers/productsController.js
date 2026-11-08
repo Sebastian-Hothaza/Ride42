@@ -24,7 +24,7 @@ async function validateProductParams(req, res, next) {
         body("colors.*", "Invalid color").isIn(["black", "white", "red", "blue", "green", "lime", "custom"]),
 
         body("addOnOptions").optional().isArray(),
-        body("addOnOptions.*.name", "Invalid add-on name").optional().isIn(["TPUCaps", "2-piece", "kangarooLeather", "airbagReady", "stingrayArmor"]),
+        body("addOnOptions.*.name", "Invalid add-on name").optional().isIn(["TPUCaps", "2-piece", "kangarooLeather", "airbagReady", "stingrayArmor", "custom"]),
         body("addOnOptions.*.priceAdjustment", "Add-on price must be integer").optional().isInt()
     ];
 
