@@ -104,18 +104,20 @@ exports.order_post = [
         }));
 
 
-        // Apply $20 discount per glove if there is also a suit in the order
-        if (itemsSnapshot.some(item => item.category === "gear" && item.name.includes("race suit"))) {
-            itemsSnapshot.forEach(item => {
-                if (item.category === "gear" && item.name.includes("race gloves")) item.price -= 20;
-            })
-        }
+        const hasSuit = itemsSnapshot.some(item => {
+            if (item.category !== "gear") return false;
+            const name = String(item.name).trim().toLowerCase();
+            return name.includes("suit") && !name.includes("glove");
+        });
+        const hasGloves = itemsSnapshot.some(item => item.category === "gear" && String(item.name).trim().toLowerCase().includes("glove"));
+        const orderDiscount = hasSuit && hasGloves ? 20 : 0;
+        const balanceDueSnapshot = itemsSnapshot.reduce((sum, i) => sum + (i.price * i.quantity), 0) - orderDiscount;
 
-        const balanceDueSnapshot = itemsSnapshot.reduce((sum, i) => sum + (i.price * i.quantity), 0)
         await Order.create({
             user: req.params.userID,
             items: itemsSnapshot,
             balanceDue: balanceDueSnapshot,
+            discount: orderDiscount,
             deliveryDate: req.body.deliveryDate || null
         });
         const user = await User.findById(req.params.userID);
