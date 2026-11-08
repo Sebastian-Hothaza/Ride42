@@ -433,9 +433,13 @@ const ShopTires = ({ APIServer }) => {
 
 				{userCart.map(item =>
 					<div id={styles.cartEntry} key={item.uid}>
-						<div>{item.quantity}x {item.name} {item.size}{item.compound ? `-` + item.compound : ''}{item.installRequired && ' (Install Required)'}</div>
+						<div>{item.quantity}x {item.name} {item.size}{item.compound ? `-` + item.compound : ''}{item.installRequired && ' (Install Required)'}
+							<span> - ${Math.round(item.price * item.quantity)}</span>
+
+						</div>
 						<button onClick={(e) => handleRemoveTire(item.uid)}>Remove Item</button>
 					</div>
+
 				)}
 
 				<div className={styles.inputPairing}>
