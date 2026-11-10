@@ -117,11 +117,14 @@
 @media (max-width: 450px) {
     .modal {
         top: var(--toolbar-thickness);
-        left: 0%;
-        transform: none;
-        width: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 30px);
+        max-width: 500px;
         height: calc(100vh - 2*var(--toolbar-thickness));
         padding: 15px;
+        justify-content: center;
+        align-items: center;
     }
 }
 
