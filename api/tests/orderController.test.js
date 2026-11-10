@@ -522,7 +522,7 @@ describe('Testing order create', () => {
         };
         const gloves = await seedGearProduct(glovesInfo);
 
-        await request(app)
+        const response = await request(app)
             .post(`/orders/${user._id.toString()}`)
             .send({
                 items: [
@@ -543,6 +543,10 @@ describe('Testing order create', () => {
             .set('Content-Type', 'application/json')
             .set('Cookie', userCookie)
             .expect(201);
+
+        const createdOrder = await Orders.findOne({ user: user._id }).sort({ orderDate: -1 });
+        expect(createdOrder.balanceDue).toBe(1780);
+        expect(createdOrder.discount).toBe(20);
     });
 })
 
