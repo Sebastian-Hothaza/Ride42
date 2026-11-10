@@ -45,6 +45,89 @@
     min-width: 100px;
 }
 
+.suitBuilderModal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    width: min(500px, 80vw);
+    min-width: 280px;
+    text-align: center;
+}
+
+.suitBuilderImage {
+    width: min(100%, 260px);
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #1c1c1c;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    overflow: hidden;
+}
+
+.suitBuilderImage img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+}
+
+.suitBuilderContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+}
+
+.suitBuilderContent h3 {
+    margin: 0;
+    color: #111;
+    font-size: clamp(1.6rem, 2vw, 2.2rem);
+}
+
+.suitBuilderContent p {
+    margin: 0;
+    color: #333;
+    line-height: 1.5;
+}
+
+.suitBuilderActions {
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.suitSummaryList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: left;
+    color: #333;
+}
+
+.suitSummaryList li {
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.5rem;
+}
+
+.secondaryButton {
+    background-color: #666 !important;
+    color: white !important;
+}
+
 #cart{
     display: flex;
     flex-direction: column;
@@ -55,7 +138,7 @@
 #cartEntry{
     display: flex;
     justify-content: space-between;
-    max-width: 500px;
+    max-width: 700px;
     align-items: center;
 
 }
