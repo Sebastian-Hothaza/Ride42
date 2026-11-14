@@ -234,7 +234,7 @@ const Orders = ({ APIServer }) => {
 
                 {allOrders.length > 0 ? (
                     <>
-                        <div className={styles.orderGrid}>
+                        <div className={`${styles.orderGrid} ${styles.gearOrderGrid}`}>
                             <div><b>Products</b></div>
                             <div><b>Order Date</b></div>
                             <div><b>Order Status</b></div>
