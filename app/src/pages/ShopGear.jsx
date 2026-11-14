@@ -167,6 +167,7 @@ const ShopGear = ({ APIServer }) => {
 
   const navigate = useNavigate();
   const [userCart, setUserCart] = useState([]);
+  const [userAgreement, setUserAgreement] = useState(false);
 
   // Bundle pricing logic: a $20 order discount applies only when a suit and gloves are both in the cart.
   // The discount is calculated at the order-total level instead of mutating the glove item itself.
@@ -629,7 +630,18 @@ const ShopGear = ({ APIServer }) => {
               )}
             </div>
           </div>
-          <button id={styles.checkoutButton} onClick={() => handleCheckOut()}>Submit Order</button>
+          <div className={styles.inputPairing}>
+            <input
+              type="checkbox"
+              id="userAgreement"
+              checked={userAgreement}
+              onChange={(e) => setUserAgreement(e.target.checked)}
+            />
+            <label htmlFor="userAgreement">I understand that <strong>ALL gear purchases are non-refundable and non-exchangeable.</strong></label>
+          </div>
+          <button id={styles.checkoutButton} onClick={() => handleCheckOut()} disabled={!userAgreement} style={{ opacity: userAgreement ? 1 : 0.5, cursor: userAgreement ? 'pointer' : 'not-allowed' }}>
+            Submit Order
+          </button>
         </div>
       )}
     </div>
