@@ -20,7 +20,7 @@ const Navbar = () => {
 					<NavLink to="/rules">Rules</NavLink>
 					<NavLink to="/faq">FAQ</NavLink>
 					<NavLink to="/shop/tires">Shop Tires</NavLink>
-					<NavLink to="https://docs.google.com/forms/d/e/1FAIpQLScGL_Dlr5OdkSkfqasaE85daJwk4oNZ_lyWVmWqHjWWEElHiQ/viewform?usp=sf_link" target="*">Shop Gear</NavLink>
+					<NavLink to="/shop/gear">Shop Gear</NavLink>
 				</ul>
 				<div className={styles.navbarDashboard}>
 					<NavLink to="/dashboard"><img src={helmet} id={styles.helmetImg}></img></NavLink>
@@ -42,7 +42,7 @@ const Navbar = () => {
 						<NavLink onClick={() => { setExpandedMenu(false) }} to="/rules">Rules</NavLink>
 						<NavLink onClick={() => { setExpandedMenu(false) }} to="/faq">FAQ</NavLink>
 						<NavLink onClick={() => { setExpandedMenu(false) }} to="/shop/tires">Shop Tires</NavLink>
-						<NavLink onClick={() => { setExpandedMenu(false) }} to="https://docs.google.com/forms/d/e/1FAIpQLScGL_Dlr5OdkSkfqasaE85daJwk4oNZ_lyWVmWqHjWWEElHiQ/viewform?usp=sf_link">Shop Gear</NavLink>
+						<NavLink onClick={() => { setExpandedMenu(false) }} to="/shop/gear">Shop Gear</NavLink>
 					</ul>
 				}
 			</nav>
