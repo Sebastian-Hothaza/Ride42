@@ -239,7 +239,7 @@ const Orders = ({ APIServer }) => {
                             <div><b>Order Date</b></div>
                             <div><b>Order Status</b></div>
                             <div><b>Due <em>(Status)</em></b></div>
-                            <div><b>Action</b></div>
+                            <div></div>
 
                             {allOrders
                                 .filter((order) => order.items.some(item => item.category === 'gear'))
@@ -258,13 +258,14 @@ const Orders = ({ APIServer }) => {
                                         </div>
                                         <div>{new Date(order.orderDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
                                         <div>{order.orderStatus}</div>
-                                        <div>{renderOrderTotal(order)}</div>
                                         <div className={styles.dateControl}>
+                                            {renderOrderTotal(order)}
                                             {order.paymentStatus !== 'paid' &&
                                                 <div className={styles.productActions}>
                                                     <button className={styles.editBtn} style={{ backgroundColor: '#bb0000' }} onClick={() => setActiveModal({ type: 'deleteOrder', order })}><span className='material-symbols-outlined'>delete</span></button>
                                                 </div>}
                                         </div>
+                                        <div></div>
                                     </Fragment>
                                 ))}
                         </div>
