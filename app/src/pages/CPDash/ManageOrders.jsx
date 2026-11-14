@@ -10,6 +10,46 @@ import Loading from '../../components/Loading';
 import checkmark from './../../assets/checkmark.png'
 import errormark from './../../assets/error.png'
 
+const gearNameMap = {
+    'race suit': 'Suit',
+    'race gloves': 'Gloves',
+    'helite airbag': 'HELITE Airbag',
+    'helite cartridge': 'HELITE Cartridge',
+    'airbagready': 'Airbag',
+    'stingrayarmor': 'Stingray',
+
+    'tpucaps': 'TPU',
+    'kangarooleather': 'Kangaroo',
+    '2-piece': '2-Piece',
+};
+
+const normalizeGearLabel = (value = '') => String(value).trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
+const formatGearName = (value = '') => gearNameMap[normalizeGearLabel(value)] || value;
+const formatGearAddOn = (addOn = '') => {
+    const name = typeof addOn === 'string' ? addOn : addOn?.name || '';
+    return formatGearName(name);
+};
+const formatGearItemDisplay = (item = {}) => {
+    const name = formatGearName(item.name || '');
+    const size = item.size ? String(item.size).trim().toUpperCase() : '';
+    const color = item.color ? String(item.color).trim() : '';
+    const capitalizedColor = color ? color.charAt(0).toUpperCase() + color.slice(1).toLowerCase() : '';
+    const addOns = Array.isArray(item.addOns) ? item.addOns.map(formatGearAddOn) : [];
+
+    if ((item.name || '').trim().toLowerCase().includes('glove')) {
+        const details = [size, capitalizedColor].filter(Boolean).join(', ');
+        return `${name}${details ? ` (${details})` : ''}`;
+    }
+
+    const details = [
+        addOns.length ? `(${addOns.join(', ')})` : '',
+        size ? `(${size})` : '',
+        color ? `(${capitalizedColor})` : '',
+    ].filter(Boolean).join(' ');
+
+    return details ? `${name} ${details}` : name;
+};
+
 const ManageOrders = ({ APIServer }) => {
 
     const [allOrders, setallOrders] = useState([]);
@@ -95,6 +135,17 @@ const ManageOrders = ({ APIServer }) => {
         );
     }
 
+    function orderHasProgressTracking(order) {
+        return (order?.items ?? []).some(item =>
+            Object.prototype.hasOwnProperty.call(item, 'measurementsComplete')
+            || Object.prototype.hasOwnProperty.call(item, 'designComplete')
+        );
+    }
+
+    function orderHasDeliveryDate(order) {
+        return order?.items?.[0]?.category !== 'gear';
+    }
+
     async function handleEditOrder(e, orderID) {
         e.preventDefault();
         setActiveModal({ type: 'loading', msg: 'Editing order' });
@@ -106,7 +157,9 @@ const ManageOrders = ({ APIServer }) => {
         // Attached paymentStatus only if its changed
         if (e.target.paymentStatus.value) body.paymentStatus = e.target.paymentStatus.value;
 
-        body.deliveryDate = e.target.deliveryDate.value;
+        if (e.target.deliveryDate) body.deliveryDate = e.target.deliveryDate.value;
+        if (e.target.measurementsComplete) body.measurementsComplete = e.target.measurementsComplete.checked;
+        if (e.target.designComplete) body.designComplete = e.target.designComplete.checked;
 
         body.discount = e.target.discount.value ? parseFloat(e.target.discount.value) : 0;
 
@@ -286,9 +339,7 @@ const ManageOrders = ({ APIServer }) => {
                                         {order.items.map((item, index) => (
                                             <div key={index}>
                                                 {item.quantity > 1 && `${item.quantity}x `}
-                                                {item.name}
-                                                {item.addOns && `(${item.addOns.map(addOn => addOn.name).join(', ')})`}
-                                                {item.size && `(${item.size})`}{item.color && `(${item.color})`}
+                                                {formatGearItemDisplay(item)}
                                             </div>
                                         ))}
                                     </div>
@@ -298,10 +349,12 @@ const ManageOrders = ({ APIServer }) => {
                                 {renderOrderTotal(order)}
                                 <div>{order.orderStatus !== 'complete' &&
                                     <>
-                                        <div>
-                                            <div>Measurements: ✅</div>
-                                            <div>Design: ✅</div>
-                                        </div>
+                                        {orderHasProgressTracking(order) && (
+                                            <div>
+                                                <div>Measurements: {order.items.some(item => item.measurementsComplete === true) ? '✅' : '❌'}</div>
+                                                <div>Design: {order.items.some(item => item.designComplete === true) ? '✅' : '❌'}</div>
+                                            </div>
+                                        )}
 
                                         <div className={styles.productActions}>
                                             <button className={styles.editBtn} style={{ color: '#0099ff' }} onClick={() => setActiveModal({ type: 'editOrder', order })}><span className="material-symbols-outlined">edit</span></button>
@@ -331,7 +384,7 @@ const ManageOrders = ({ APIServer }) => {
                                 <br></br>
                                 {order.items.map((item, index) => (
                                     <div key={index}>
-                                        {item.quantity}x {item.name} {item.addOns && `(${item.addOns.map(addOn => addOn.name).join(', ')})`}
+                                        {item.quantity}x {formatGearItemDisplay(item)}
                                     </div>
                                 ))}
                                 <br></br>
@@ -349,6 +402,16 @@ const ManageOrders = ({ APIServer }) => {
                                     <div>Order Total:</div>
                                     <div>{renderOrderTotal(order)}</div>
                                 </div>
+
+                                {orderHasProgressTracking(order) && (
+                                    <div className={styles.pairing}>
+                                        <div>Progress:</div>
+                                        <div>
+                                            <div>Measurements: {order.items.some(item => item.measurementsComplete === true) ? '✅' : '❌'}</div>
+                                            <div>Design: {order.items.some(item => item.designComplete === true) ? '✅' : '❌'}</div>
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className={styles.pairing}>
                                     <div>Delivery Date:</div>
@@ -395,7 +458,6 @@ const ManageOrders = ({ APIServer }) => {
                             <select id="orderStatus" name="orderStatus" defaultValue={activeModal.order?.orderStatus} required>
                                 <option value="pending">Pending</option>
                                 <option value="complete">Complete</option>
-                                <option value="pending submission">Pending Submission</option>
                                 <option value="pending production">Pending Production</option>
                             </select>
                         </div>
@@ -409,7 +471,7 @@ const ManageOrders = ({ APIServer }) => {
                             </select>
                         </div>
 
-                        {activeModal.order && <div>
+                        {activeModal.order && orderHasDeliveryDate(activeModal.order) && <div>
                             <label htmlFor="deliveryDate">Delivery Date</label>
                             <select id="deliveryDate" name="deliveryDate" defaultValue={activeModal.order?.deliveryDate || ''}>
                                 <option key="deliverDateNone" value=''>Kitchener Pickup</option>
@@ -418,6 +480,33 @@ const ManageOrders = ({ APIServer }) => {
                                 ))}
                             </select>
                         </div>}
+
+                        {activeModal.order && orderHasProgressTracking(activeModal.order) && (
+                            <>
+                                <div>
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            id="measurementsComplete"
+                                            name="measurementsComplete"
+                                            defaultChecked={activeModal.order.items.some(item => item.measurementsComplete === true)}
+                                        />
+                                        Measurements complete
+                                    </label>
+                                </div>
+                                <div>
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            id="designComplete"
+                                            name="designComplete"
+                                            defaultChecked={activeModal.order.items.some(item => item.designComplete === true)}
+                                        />
+                                        Design complete
+                                    </label>
+                                </div>
+                            </>
+                        )}
 
                         <div>
                             <label htmlFor="discount">Discount</label>

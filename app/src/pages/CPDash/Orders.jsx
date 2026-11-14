@@ -10,7 +10,45 @@ import modalStyles from '../../components/stylesheets/Modal.module.css'
 import checkmark from './../../assets/checkmark.png'
 import errormark from './../../assets/error.png'
 
+const gearNameMap = {
+    'race suit': 'PLUS Custom Suit',
+    'race gloves': 'Predator Gloves',
+    'helite airbag': 'HELITE Airbag',
+    'helite cartridge': 'HELITE Cartridge',
+    'airbagready': 'Airbag Ready',
+    'stingrayarmor': 'Stingray Armor',
 
+    'tpucaps': 'TPU Caps',
+    'kangarooleather': 'Kangaroo Hide',
+    '2-piece': '2-Piece',
+};
+
+const normalizeGearLabel = (value = '') => String(value).trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
+const formatGearName = (value = '') => gearNameMap[normalizeGearLabel(value)] || value;
+const formatGearAddOn = (addOn = '') => {
+    const name = typeof addOn === 'string' ? addOn : addOn?.name || '';
+    return formatGearName(name);
+};
+const formatGearItemDisplay = (item = {}) => {
+    const name = formatGearName(item.name || '');
+    const size = item.size ? String(item.size).trim().toUpperCase() : '';
+    const color = item.color ? String(item.color).trim() : '';
+    const capitalizedColor = color ? color.charAt(0).toUpperCase() + color.slice(1).toLowerCase() : '';
+    const addOns = Array.isArray(item.addOns) ? item.addOns.map(formatGearAddOn) : [];
+
+    if ((item.name || '').trim().toLowerCase().includes('glove')) {
+        const details = [size, capitalizedColor].filter(Boolean).join(', ');
+        return `${name}${details ? ` (${details})` : ''}`;
+    }
+
+    const details = [
+        addOns.length ? `(${addOns.join(', ')})` : '',
+        size ? `(${size})` : '',
+        color ? `(${capitalizedColor})` : '',
+    ].filter(Boolean).join(' ');
+
+    return details ? `${name} ${details}` : name;
+};
 
 // Alow users to manage orders here including cancelling or changing delivery date.
 const Orders = ({ APIServer }) => {
@@ -193,9 +231,84 @@ const Orders = ({ APIServer }) => {
 
                 }
                 <h2>Gear Orders</h2>
-                <div>
-                    Coming soon...
-                </div>
+
+                {allOrders.length > 0 ? (
+                    <>
+                        <div className={styles.orderGrid}>
+                            <div><b>Products</b></div>
+                            <div><b>Order Date</b></div>
+                            <div><b>Order Status</b></div>
+                            <div><b>Due <em>(Status)</em></b></div>
+                            <div><b>Action</b></div>
+
+                            {allOrders
+                                .filter((order) => order.items.some(item => item.category === 'gear'))
+                                .filter((order) => hideCompleted ? order.orderStatus !== 'complete' : true)
+                                .map((order, idx) => (
+                                    <Fragment key={idx}>
+                                        <div>
+                                            <div className={styles.orderItems}>
+                                                {order.items.map((item, index) => (
+                                                    <div key={index}>
+                                                        {item.quantity > 1 && `${item.quantity}x `}
+                                                        {formatGearItemDisplay(item)}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div>{new Date(order.orderDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
+                                        <div>{order.orderStatus}</div>
+                                        <div>{renderOrderTotal(order)}</div>
+                                        <div className={styles.dateControl}>
+                                            {order.paymentStatus !== 'paid' &&
+                                                <div className={styles.productActions}>
+                                                    <button className={styles.editBtn} style={{ backgroundColor: '#bb0000' }} onClick={() => setActiveModal({ type: 'deleteOrder', order })}><span className='material-symbols-outlined'>delete</span></button>
+                                                </div>}
+                                        </div>
+                                    </Fragment>
+                                ))}
+                        </div>
+
+                        <div className={styles.orderGrid_Mobile}>
+                            {allOrders
+                                .filter((order) => order.items.some(item => item.category === 'gear'))
+                                .filter((order) => hideCompleted ? order.orderStatus !== 'complete' : true)
+                                .map((order, idx) => (
+                                    <div className={styles.orderEntry} key={idx}>
+                                        {order.items.map((item, index) => (
+                                            <div key={index}>
+                                                {item.quantity > 1 && `${item.quantity}x `}
+                                                {formatGearItemDisplay(item)}
+                                            </div>
+                                        ))}
+
+                                        <br></br>
+
+                                        <div className={styles.pairing}>
+                                            <div>Order Date:</div>
+                                            <div>{new Date(order.orderDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
+                                        </div>
+
+                                        <div className={styles.pairing}>
+                                            <div>Order Status:</div>
+                                            <div>{order.orderStatus}</div>
+                                        </div>
+
+                                        <div className={styles.pairing}>
+                                            <div>Order Balance:</div>
+                                            <div>{renderOrderTotal(order)}</div>
+                                        </div>
+
+                                        {order.paymentStatus !== 'paid' &&
+                                            <button className={styles.editBtn} style={{ backgroundColor: '#bb0000' }} onClick={() => setActiveModal({ type: 'deleteOrder', order })}><span className='material-symbols-outlined'>delete</span></button>
+                                        }
+                                    </div>
+                                ))}
+                        </div>
+                    </>
+                ) : (
+                    <div>No gear orders placed</div>
+                )}
             </div>
 
             <Loading open={activeModal.type === 'loading'}>
