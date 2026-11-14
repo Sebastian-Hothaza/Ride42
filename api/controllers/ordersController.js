@@ -79,7 +79,7 @@ exports.order_post = [
             } else if (product.category === "gear") {
                 // Validate size
                 if (item.size && !product.sizes.includes(item.size)) return res.status(400).send({ msg: ['Size is not available for this product'] });
-                
+
                 // Validate color
                 if (item.color && !product.colors.includes(item.color)) return res.status(400).send({ msg: ['Color is not available for this product'] });
 
@@ -99,6 +99,8 @@ exports.order_post = [
                         name: addOn,
                         price: product.addOnOptions.find(option => option.name === addOn)?.priceAdjustment || 0,
                     })) : undefined,
+                    measurementsComplete: (product.name=='race suit' || item.size==='custom') ? false : undefined,
+                    designComplete: (product.name=='race suit' || item.color==='custom') ? false : undefined,
                 };
             }
         }));
@@ -122,7 +124,19 @@ exports.order_post = [
         });
         const user = await User.findById(req.params.userID);
         logger.info({ message: `Order created for ${req.user.name}` });
-        sendEmail(user.contact.email, "Your Ride42 Order Has Been Created", mailTemplates.createTireOrder, {
+
+
+        let emailBody;
+        if (itemsSnapshot.some(item => item.category === "tire")) {
+            emailBody = mailTemplates.createTireOrder;
+        } else if (hasSuit) {
+            emailBody = mailTemplates.createGearOrder_suit;
+        } else if (itemsSnapshot.some(item => item.category === "gear")) {
+            emailBody = mailTemplates.createGearOrder;
+        } else {
+            return res.status(400).send({ msg: ['Order created but unknown order type; failed to send email.'] });
+        }
+        sendEmail(user.contact.email, "Your Ride42 Order Has Been Created", emailBody, {
             name: user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1),
             balanceDue: balanceDueSnapshot,
         })
@@ -154,14 +168,16 @@ exports.order_get = [
     })
 ]
 
-// Update an order. The following fields can be updated: orderStatus, paymentStatus, deliveryDate, discount. Requires JWT with admin.
+// Update an order. The following fields can be updated: orderStatus, paymentStatus, deliveryDate, discount, measurementsComplete, designComplete. Requires JWT with admin.
 exports.order_put = [
-    body("orderStatus", "Order status must be one of: pending, complete, pending submission, pending production").optional()
-        .isIn(["pending", "complete", "pending submission", "pending production"]),
+    body("orderStatus", "Order status must be one of: pending, complete, pending production").optional()
+        .isIn(["pending", "complete", "pending production"]),
     body("paymentStatus", "Payment status must be one of: partial, paid").optional()
         .isIn(["partial", "paid"]),
     body("deliveryDate", "Delivery date must be a valid date").optional({ values: "falsy" }).isISO8601().toDate(),
     body("discount", "Discount must be a number").optional({ values: "falsy" }).isNumeric(),
+    body("measurementsComplete", "Measurements complete must be a boolean").optional().isBoolean(),
+    body("designComplete", "Design complete must be a boolean").optional().isBoolean(),
     controllerUtils.validateForm,
     controllerUtils.validateOrderID,
 
@@ -173,8 +189,27 @@ exports.order_put = [
         const updateData = {};
         if (req.body.orderStatus) updateData.orderStatus = req.body.orderStatus;
         if (req.body.paymentStatus) updateData.paymentStatus = req.body.paymentStatus;
-        updateData.deliveryDate = req.body.deliveryDate;
-        updateData.discount = req.body.discount;
+        if (req.body.deliveryDate !== undefined) updateData.deliveryDate = req.body.deliveryDate;
+        if (req.body.discount !== undefined) updateData.discount = req.body.discount;
+        if (req.body.measurementsComplete !== undefined) {
+            order.items = order.items.map(item => {
+                const plainItem = item.toObject ? item.toObject() : item;
+                if (Object.prototype.hasOwnProperty.call(plainItem, 'measurementsComplete')) {
+                    return { ...plainItem, measurementsComplete: Boolean(req.body.measurementsComplete) };
+                }
+                return plainItem;
+            });
+        }
+        if (req.body.designComplete !== undefined) {
+            order.items = order.items.map(item => {
+                const plainItem = item.toObject ? item.toObject() : item;
+                if (Object.prototype.hasOwnProperty.call(plainItem, 'designComplete')) {
+                    return { ...plainItem, designComplete: Boolean(req.body.designComplete) };
+                }
+                return plainItem;
+            });
+        }
+        updateData.items = order.items;
         updateData.balanceDue = order.balanceDue - (req.body.discount || 0);
 
         // If delivery date is provided, make sure its valid, else its null
@@ -186,31 +221,45 @@ exports.order_put = [
             if (!validDeliveryDate) return res.status(400).send({ msg: ['Delivery date is not a valid upcoming trackday'] });
         }
 
+        // If unpaid order is being marked as paid, check inventory and decrement stock
         if (req.body.paymentStatus === "paid" && order.paymentStatus !== "paid") {
-            // Check inventory and decrement stock
-            for (const item of order.items) {
-                const product = await Product.findById(item.product);
-                let variant;
-                if (product.category === "tire") {
-                    variant = product.variants.find(v =>
-                        v.size === item.size &&
-                        (item.compound === null || v.compound === item.compound)
-                    );
-                    if (!variant) return res.status(404).send({ msg: ['Variant does not exist'] });
-                    if (variant.stock < item.quantity) return res.status(400).send({ msg: ['Insufficient inventory'] });
-                    variant.stock -= item.quantity;
-                    await product.save();
+
+            // Check inventory and decrement stock if tire order
+            if (controllerUtils.getOrderType(order) === "tire") {
+                for (const item of order.items) {
+                    const product = await Product.findById(item.product);
+                    let variant;
+                    if (product.category === "tire") {
+                        variant = product.variants.find(v =>
+                            v.size === item.size &&
+                            (item.compound === null || v.compound === item.compound)
+                        );
+                        if (!variant) return res.status(404).send({ msg: ['Variant does not exist'] });
+                        if (variant.stock < item.quantity) return res.status(400).send({ msg: ['Insufficient inventory'] });
+                        variant.stock -= item.quantity;
+                        await product.save();
+                    }
                 }
+
+                // Send email
+                const prettyDeliveryDate = order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString('default', { month: 'long', day: 'numeric' }) : null;
+                const prettyOrderDate = new Date(order.orderDate).toLocaleDateString('default', { month: 'long', day: 'numeric' });
+                sendEmail(order.user.contact.email, "Your Ride42 Order Has Been Paid", mailTemplates.paidTireOrder, {
+                    name: order.user.firstName.charAt(0).toUpperCase() + order.user.firstName.slice(1),
+                    orderDate: prettyOrderDate,
+                    deliveryDate: prettyDeliveryDate ? `at the ${prettyDeliveryDate} trackday` : 'for local pick-up in Kitchener. Please reply to this email to schedule a pick-up time.'
+                })
+            } else if (controllerUtils.getOrderType(order) === "gear") { // Gear order, just send email
+                sendEmail(order.user.contact.email, "Your Ride42 Order Has Been Paid", mailTemplates.paidGearOrder, {
+                    name: order.user.firstName.charAt(0).toUpperCase() + order.user.firstName.slice(1),
+                    orderDate: prettyOrderDate,
+                })
+            } else {
+                return res.status(400).send({ msg: ['Unknown order type'] });
             }
 
-            // Send email
-            const prettyDeliveryDate = order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString('default', { month: 'long', day: 'numeric' }) : null;
-            const prettyOrderDate = new Date(order.orderDate).toLocaleDateString('default', { month: 'long', day: 'numeric' });
-            sendEmail(order.user.contact.email, "Your Ride42 Order Has Been Paid", mailTemplates.paidTireOrder, {
-                name: order.user.firstName.charAt(0).toUpperCase() + order.user.firstName.slice(1),
-                orderDate: prettyOrderDate,
-                deliveryDate: prettyDeliveryDate ? `at the ${prettyDeliveryDate} trackday` : 'for local pick-up in Kitchener. Please reply to this email to schedule a pick-up time.'
-            })
+
+
         }
         await Order.findByIdAndUpdate(req.params.orderID, updateData, { new: true, runValidators: true });
         logger.info({ message: `Updated order ${req.params.orderID}` });
@@ -229,26 +278,34 @@ exports.order_delete = [
 
         if (order.paymentStatus === "paid" && req.user.memberType !== "admin") return res.status(400).send({ msg: ['Cannot delete paid order'] });
 
-        if (order.paymentStatus === "paid") {
-            // If order was paid, increase stock back
-            for (const item of order.items) {
-                const product = await Product.findById(item.product);
-                let variant;
-                if (product.category === "tire") {
-                    variant = product.variants.find(v =>
-                        v.size === item.size &&
-                        (item.compound === null || v.compound === item.compound)
-                    );
-                    if (variant) {
-                        variant.stock += item.quantity;
-                        await product.save();
+        if (controllerUtils.getOrderType(order) === "tire") {
+            if (order.paymentStatus === "paid") {
+                // If order was paid, increase stock back
+                for (const item of order.items) {
+                    const product = await Product.findById(item.product);
+                    let variant;
+                    if (product.category === "tire") {
+                        variant = product.variants.find(v =>
+                            v.size === item.size &&
+                            (item.compound === null || v.compound === item.compound)
+                        );
+                        if (variant) {
+                            variant.stock += item.quantity;
+                            await product.save();
+                        }
                     }
                 }
             }
+
+
+            sendEmail(order.user.contact.email, "Your Ride42 Order Has Been Deleted", mailTemplates.deleteTireOrder, { name: order.user.firstName.charAt(0).toUpperCase() + order.user.firstName.slice(1) })
+        } else if (controllerUtils.getOrderType(order) === "gear") {
+            sendEmail(order.user.contact.email, "Your Ride42 Order Has Been Deleted", mailTemplates.deleteGearOrder, { name: order.user.firstName.charAt(0).toUpperCase() + order.user.firstName.slice(1) })
+        } else {
+            return res.status(400).send({ msg: ['Unknown order type'] });
         }
         await Order.findByIdAndDelete(req.params.orderID);
         logger.info({ message: `Deleted order ${order._id} for ${order.user.firstName} ${order.user.lastName}` });
-        sendEmail(order.user.contact.email, "Your Ride42 Order Has Been Deleted", mailTemplates.deleteTireOrder, { name: order.user.firstName.charAt(0).toUpperCase() + order.user.firstName.slice(1) })
         return res.sendStatus(200);
     })
 ]
