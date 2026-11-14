@@ -26,6 +26,16 @@ function validateForm(req, res, next) {
     next();
 }
 
+// Returns 'tire', 'gear' or 'other' based on what is in the order.
+// Order items store their category directly on the item snapshot, and some legacy
+// items may also include a populated product object, so handle both shapes.
+function getOrderType(order = {}) {
+    const items = Array.isArray(order.items) ? order.items : [];
+    if (items.some(item => String(item?.category || item?.product?.category || '').toLowerCase() === 'tire')) return 'tire'
+    if (items.some(item => String(item?.category || item?.product?.category || '').toLowerCase() === 'gear')) return 'gear'
+    return 'other';
+}
+
 // Called by middleware functions
 // Verify that the req.params.userID is a valid objectID and that it exists in our DB
 async function validateUserID(req, res, next) {
@@ -221,6 +231,7 @@ function verifyPermission(levelRequired) {
 
 module.exports = {
     validateForm,
+    getOrderType,
     validateUserID,
     validateTrackdayID,
     validateBikeID,
