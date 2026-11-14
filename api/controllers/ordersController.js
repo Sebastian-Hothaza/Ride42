@@ -99,8 +99,8 @@ exports.order_post = [
                         name: addOn,
                         price: product.addOnOptions.find(option => option.name === addOn)?.priceAdjustment || 0,
                     })) : undefined,
-                    measurementsComplete: (product.name=='race suit' || item.size==='custom') ? false : undefined,
-                    designComplete: (product.name=='race suit' || item.color==='custom') ? false : undefined,
+                    measurementsComplete: (product.name == 'race suit' || item.size === 'custom') ? false : undefined,
+                    designComplete: (product.name == 'race suit' || item.color === 'custom') ? false : undefined,
                 };
             }
         }));
@@ -223,7 +223,8 @@ exports.order_put = [
 
         // If unpaid order is being marked as paid, check inventory and decrement stock
         if (req.body.paymentStatus === "paid" && order.paymentStatus !== "paid") {
-
+            const prettyOrderDate = new Date(order.orderDate).toLocaleDateString('default', { month: 'long', day: 'numeric' });
+            const prettyDeliveryDate = order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString('default', { month: 'long', day: 'numeric' }) : null;
             // Check inventory and decrement stock if tire order
             if (controllerUtils.getOrderType(order) === "tire") {
                 for (const item of order.items) {
@@ -240,10 +241,6 @@ exports.order_put = [
                         await product.save();
                     }
                 }
-
-                // Send email
-                const prettyDeliveryDate = order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString('default', { month: 'long', day: 'numeric' }) : null;
-                const prettyOrderDate = new Date(order.orderDate).toLocaleDateString('default', { month: 'long', day: 'numeric' });
                 sendEmail(order.user.contact.email, "Your Ride42 Order Has Been Paid", mailTemplates.paidTireOrder, {
                     name: order.user.firstName.charAt(0).toUpperCase() + order.user.firstName.slice(1),
                     orderDate: prettyOrderDate,
