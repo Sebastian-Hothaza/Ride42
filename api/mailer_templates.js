@@ -240,6 +240,33 @@ const createTireOrder =
 	</div>
 </body>`
 
+const createGearOrder =
+	`<body>
+	<div class="default-style">
+		Hello {name}, <br /> <br />
+		We have created your gear order. You can view its status in your <a href="https://Ride42.ca/dashboard?tab=orders">rider dashboard</a>✅<br />
+		Your outstanding balance of \${balanceDue} can be sent via E-Transfer to sales@ride42.ca<br />
+		<br />
+		Thank you for your order,
+	</div>
+</body>`
+
+const createGearOrder_suit =
+	`<body>
+	<div class="default-style">
+		Hello {name}, <br /> <br />
+		We have created your PLUS Suit order. You can view its status in your <a href="https://Ride42.ca/dashboard?tab=orders">rider dashboard</a>✅<br />
+		Your outstanding balance of \${balanceDue} can be sent via E-Transfer to sales@ride42.ca<br />
+		<br />
+		We are now ready to get started on your suit. There are 2 components:
+		<ol>
+			<li>Sizing: You can either come by my place in Kitchener and I can take your measurements OR you can do your own measurements at home. <a href="https://files.ride42.ca/api/public/dl/dQA0W6rL?inline=true">Measurement Guide</a></li>
+			<li>Design: You can either build your own suit design, pick something similar to previous designs or I can help you design your suit when you come by for measurements. The links for design are available <a href="https://ride42.ca/shop/gear">here</a></li>
+		</ol>
+		Please let me know how you would like to proceed and if you have any questions,
+	</div>
+</body>`
+
 const deleteTireOrder =
 	`<body>
 	<div class="default-style">
@@ -250,15 +277,35 @@ const deleteTireOrder =
 	</div>
 </body>`
 
+const deleteGearOrder =
+	`<body>
+	<div class="default-style">
+		Hello {name}, <br /> <br />
+		We have cancelled your gear order. Need to place a new order? You can do so <a href="https://Ride42.ca/shop/gear">in our gear shop.</a>🏪<br />
+		<br />
+		If you have any questions, please reach out anytime 😊
+	</div>
+</body>`
+
 const paidTireOrder =
 	`<body>
 	<div class="default-style">
 		Hello {name}, <br /> <br />
-		Your payment has been received for the order placed on {orderDate}. ✅<br />
+		Your payment has been received for the tire order placed on {orderDate}. ✅<br />
 		<br />
 		Your tires will be available {deliveryDate}.<br />
 		<br />
-		Thank you for your order and I hope you enjoy your Pirelli tires! 😎 
+		Thank you for your business and I hope you enjoy your Pirelli tires! 😎 
+	</div>
+</body>`
+
+const paidGearOrder =
+	`<body>
+	<div class="default-style">
+		Hello {name}, <br /> <br />
+		Your payment has been received for the gear order placed on {orderDate}. ✅<br />
+		<br />
+		Thank you for your business and I hope you enjoy your new gear! 😎 
 	</div>
 </body>`
 
@@ -309,8 +356,12 @@ module.exports = {
 	paymentReminder_creditcard,
 	notifyPaid,
 	createTireOrder,
+	createGearOrder,
+	createGearOrder_suit,
 	deleteTireOrder,
+	deleteGearOrder,
 	paidTireOrder,
+	paidGearOrder,
 	notifyMassEmail,
 	waiverReject,
 	registrationsOpen
