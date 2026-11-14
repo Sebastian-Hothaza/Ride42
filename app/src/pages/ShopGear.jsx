@@ -70,7 +70,7 @@ const SUIT_ADDON_OPTIONS = [
     label: 'TPU Caps',
     description: (
       <>
-        Mostly a cosmetic add-on, TPU caps are a lightweight and flexible alternative to the standard
+        Mostly a cosmetic add-on, TPU caps are a lightweight and flexible alternative to the standard metal caps.
       </>
     ),
     imagePath: tpu
@@ -90,7 +90,7 @@ const SUIT_ADDON_OPTIONS = [
     label: '2-Piece',
     description: (
       <>
-        Pants and jacket zip together. Ideal for suits being used on the street. Not recommended for track use.
+        Pants and jacket zip together, ideal for street riders. Not recommended for track use.
       </>
     ),
     imagePath: twoPiece
@@ -100,7 +100,7 @@ const SUIT_ADDON_OPTIONS = [
 // Normalizes option names before comparing them to product metadata.
 const normalizeAddOnName = (name = '') => String(name).replace(/\s+/g, '').replace(/-/g, '').toLowerCase();
 
-// ShopGear handles both standard gear selection and the custom Superman suit flow.
+// ShopGear handles both standard gear selection and the custom race suit build flow.
 // The component is responsible for product selection, size/color logic, pricing, checkout payload formation,
 // and the suit-bundle wizard that can add gloves as part of the build process.
 const ShopGear = ({ APIServer }) => {
@@ -117,6 +117,13 @@ const ShopGear = ({ APIServer }) => {
     const standardSizes = sizes.filter((size) => !isCustomSizeValue(size));
     const customSizes = sizes.filter((size) => isCustomSizeValue(size));
     return [...standardSizes, ...customSizes];
+  };
+  const getSuitAddOnLabel = (optionName = '') => {
+    const match = SUIT_ADDON_OPTIONS.find((option) =>
+      normalizeAddOnName(option.key) === normalizeAddOnName(optionName)
+      || normalizeAddOnName(option.label) === normalizeAddOnName(optionName)
+    );
+    return match?.label || optionName;
   };
   const getSuitAddOnPrice = (optionKey = '') => {
     const suitProduct = getGearProductById(selectedGear)
@@ -181,14 +188,13 @@ const ShopGear = ({ APIServer }) => {
   };
   const gearDropdownOrder = {
     'race suit': 0,
-    'superman suit': 0,
     'race gloves': 1,
     'helite airbag': 2,
     'helite cartridge': 3,
   };
 
   const selectedGearDetails = getGearProductById(selectedGear);
-  const isSupermanSuit = selectedGearDetails && ['race suit', 'superman suit'].includes((selectedGearDetails.name || '').toLowerCase());
+  const isCustomRaceSuit = selectedGearDetails && (selectedGearDetails.name || '').trim().toLowerCase() === 'race suit';
   const isCustomSizeSelected = !!selectedSize && isCustomSizeValue(selectedSize);
 
   const formatSizeLabel = (size) => {
@@ -374,10 +380,10 @@ const ShopGear = ({ APIServer }) => {
     });
   }
 
-  // Entry point for the add-to-cart form. Superman suit selection opens the custom builder flow instead of adding immediately.
+  // Entry point for the add-to-cart form. Race-suit selection opens the custom builder flow instead of adding immediately.
   function handleAddGear(e) {
     e.preventDefault();
-    if (isSupermanSuit) {
+    if (isCustomRaceSuit) {
       setPendingSuitAddOns([]);
       setSuitGlovesSelected(false);
       setSuitBuilderStep(0);
@@ -466,8 +472,8 @@ const ShopGear = ({ APIServer }) => {
       });
 
       if (response.ok) {
-        setActiveModal({ type: 'success', msg: 'Order created, taking you to your dashboard...' });
-        setTimeout(() => navigate('/dashboard?tab=orders'), 3000);
+        setActiveModal({ type: 'success', msg: 'Order created; expect a confirmation email shortly. Taking you to your dashboard...' });
+        setTimeout(() => navigate('/dashboard?tab=orders'), 5000);
       } else {
         const data = await response.json();
         setActiveModal({ type: 'failure', msg: data.msg.join('\n') });
@@ -579,7 +585,7 @@ const ShopGear = ({ APIServer }) => {
                   </button>
                 </div>
 
-                <button type="submit">{isSupermanSuit ? 'Build my suit' : 'Add To Cart'}</button>
+                <button type="submit">{isCustomRaceSuit ? 'Build my suit' : 'Add To Cart'}</button>
               </>
             ) : (
               <div>
@@ -605,7 +611,7 @@ const ShopGear = ({ APIServer }) => {
                   {item.quantity}x {gearNameMap[cartProduct?.name] || cartProduct?.name}
                   {item.size ? ` (${formatSizeLabel(item.size)})` : ''}
                   {item.color ? ` (${formatColorLabel(item.color)})` : ''}
-                  {item.addOns && item.addOns.length > 0 ? ` (${item.addOns.join(', ')})` : ''}
+                  {item.addOns && item.addOns.length > 0 ? ` (${item.addOns.map(getSuitAddOnLabel).join(', ')})` : ''}
                   <span> - ${formatMoney(item.price * item.quantity)}</span>
                 </div>
                 <button onClick={() => handleRemoveGear(item)}>Remove Item</button>
@@ -633,7 +639,7 @@ const ShopGear = ({ APIServer }) => {
     <p>Your safety on track is something that is important to us. We have been working with PLUS Racing Gear since 2018 and are committed to providing you with the highest quality gear for
       your riding needs. We offer a wide range of products to suit your specific requirements; from airbag-ready race suits, to street jackets and gloves, we got you covered. 😎</p>
     <br></br>
-    <p>Below, you will find more information about PLUS Racing Gear and the products we offer.</p>
+    <p>Below, you will find more information about PLUS Racing Gear and the products we offer. As always, our pricing is all in.</p>
   </div>
 
 
