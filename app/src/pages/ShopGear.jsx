@@ -687,8 +687,8 @@ const ShopGear = ({ APIServer }) => {
   </div>
 
   const HTML_Gloves = <div className={styles.rulesCard}>
-    <p>An amazing value, our kangaroo leather gloves fit... like a glove! Balanced combination of kangaroo and cowhide creates the right blend of comfort and durability.
-      Available in a wide range of sizes and colors, they are perfect for track or street use. Also available as a custom size/design for those with additional or missing fingers.
+    <p>A great value, our kangaroo leather gloves fit... like a glove! Balanced combination of kangaroo and cowhide creates the right blend of comfort and durability.
+      Available in a wide range of sizes and colors, they are perfect for track or street use. Also available as a custom size/design for those with missing or additional fingers.
     </p>
     <br></br>
 

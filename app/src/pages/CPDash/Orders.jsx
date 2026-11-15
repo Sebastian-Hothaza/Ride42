@@ -208,7 +208,7 @@ const Orders = ({ APIServer }) => {
                                     </div>
 
                                     <div className={styles.pairing}>
-                                        <div>Order Balace:</div>
+                                        <div>Order Balance:</div>
                                         <div>{renderOrderTotal(order)}</div>
                                     </div>
 

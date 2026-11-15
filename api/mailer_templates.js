@@ -245,7 +245,8 @@ const createGearOrder =
 	<div class="default-style">
 		Hello {name}, <br /> <br />
 		We have created your gear order. You can view its status in your <a href="https://Ride42.ca/dashboard?tab=orders">rider dashboard</a>✅<br />
-		Your outstanding balance of \${balanceDue} can be sent via E-Transfer to sales@ride42.ca<br />
+		<br />
+		Your balance of \${balanceDue} can be sent via E-Transfer to sales@ride42.ca<br />
 		<br />
 		Thank you for your order,
 	</div>
@@ -256,7 +257,8 @@ const createGearOrder_suit =
 	<div class="default-style">
 		Hello {name}, <br /> <br />
 		We have created your PLUS Suit order. You can view its status in your <a href="https://Ride42.ca/dashboard?tab=orders">rider dashboard</a>✅<br />
-		Your outstanding balance of \${balanceDue} can be sent via E-Transfer to sales@ride42.ca<br />
+		<br />
+		Your balance of \${balanceDue} can be sent via E-Transfer to sales@ride42.ca<br />
 		<br />
 		We are now ready to get started on your suit. There are 2 components:
 		<ol>
