@@ -727,10 +727,10 @@ const ShopGear = ({ APIServer }) => {
       <li>Norbert Joo — Kawasaki</li>
     </ul>
     <br></br>
-    <h2>2027 Rider Support Program</h2>
-    <br></br>
+    
+    <h2><a href='https://files.ride42.ca/api/public/dl/8ykHhF1W?inline=true' target="_blank" rel="noreferrer" style={{ color: 'blue', textDecoration: 'underline' }}>2027 Rider Support Program</a></h2>
 
-    <p><em>The program is currently under development. Please check back soon for updates.</em></p>
+
 
   </div>
 
