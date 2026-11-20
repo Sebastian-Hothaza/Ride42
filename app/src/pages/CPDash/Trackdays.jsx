@@ -207,7 +207,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 				headers: {
 					'Content-type': 'application/json; charset=UTF-8',
 				},
-				body: JSON.stringify({ sendDate: '2027-01-05T15:00:00Z' })
+				body: JSON.stringify({ sendDate: '2027-01-04T15:00:00Z' })
 			})
 			if (response.ok) {
 				setActiveModal({ type: 'success', msg: 'Registration reminder created' });
@@ -338,7 +338,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 			<div className={styles.content}>
 				{showSeasonEndMessage ? (
 					<>
-						<h1>Book and Manage your Trackdays - Coming Soon...</h1>
+						<h1>Book and Manage your Trackdays - Coming January 4...</h1>
 						<h3>Want early booking access before we let everyone know? Click below! 😉</h3>
 						<br></br>
 					</>
