@@ -82,25 +82,7 @@ const Home = () => {
 			<li>3-day bundle is <b>$480</b> all in</li>
 		</ul>
 		<br></br>
-		<button className={styles.bookBtn} onClick={() => window.open('https://docs.google.com/forms/d/e/1FAIpQLSejasVI4s6MWH8hh71CVRadTStdUHmJWPZfTewWUrJWMBnwPA/viewform', '_blank')}>Get your bundle now!</button>
-	</div>
-
-	const HTML_Helite = <div>
-		<h2>⚠️Order is now live⚠️</h2>
-		<h3>Place your order soon to get your HELITE Airbag in time for the 2026 season</h3>
-		<br></br>
-		<ul>
-			<li>French company with a history of making quality airbag systems for motorcyclists. Airbags are made in France.</li>
-			<li>Internal system; no chance of crash rash/tear that you have with any external systems</li>
-			<li>Electronic; no tether to connect. System uses IMU to detect crash/deploy</li>
-			<li>Cartridge based. Have a crash? Pop in a new cartridge and you are good to go. No need to ship out.</li>
-			<li>Competitive price offering excellent value. NOT subscription based.</li>
-		</ul>
-		<br></br>
-		<em>Compatible exclusively with PLUS airbag-ready suits designed for the HELITE system</em>
-		<br></br>
-		<br></br>
-		<button className={styles.bookBtn} onClick={() => window.open('https://forms.gle/KrAhu3yAobndZwnVA', '_blank')}>Order your Airbag</button>
+		<button className={styles.bookBtn} onClick={() => window.open('https://docs.google.com/forms/d/e/1FAIpQLScezSZs1QljIVsxa0M0Kbxdu2LNLFAqCKBOwN1hbl5HMZaLOQ/viewform', '_blank')}>Get your bundle now!</button>
 	</div>
 
 	const HTML_Pirelli = <div>
@@ -178,15 +160,14 @@ const Home = () => {
 	return (
 		<>
 			<div id={styles.hero}>
-				{!CANCELLATION_NOTICE && nextTrackday && <div id={styles.heroText}>
+				{!CANCELLATION_NOTICE && nextTrackday && daysAway <= 100 && <div id={styles.heroText}>
 					{HTML_Countdown}
 					<NavLink className={styles.bookBtn} style={{ backgroundColor: 'var(--accent-color)' }} to="/dashboard">Book Now!</NavLink>
 				</div>}
 			</div>
 			<div className="content" id={styles.firstCard}>
 				{CANCELLATION_NOTICE && <Card heading='Cancellation Notice' body={HTML_Cancellation} img={cancelled} inverted={false} />}
-				{/* <Card heading='2026 Season Bundle' body={HTML_Bundle} img={bundle} inverted={false} />	 */}
-				{/* <Card heading='HELITE Airbags' body={HTML_Helite} img={helite} inverted={false} /> */}
+				<Card heading='2027 Season Bundle' body={HTML_Bundle} img={bundle} inverted={false} />	
 				{/* <Card heading='Pirelli Spring Order' body={HTML_Pirelli} img={pirelli} inverted={false} /> */}
 				{/* <Card heading='June 18 Notice' body={HTML_NewsItem}  inverted={false} /> */}
 				<Card heading='About Us' body={HTML_AboutUs} img={about} inverted={true} />
