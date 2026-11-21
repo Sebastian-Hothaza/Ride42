@@ -8,6 +8,8 @@ const User = require('./models/User');
 const Trackday = require('./models/Trackday');
 const ScheduledMail = require('./models/ScheduledMail');
 
+const checkOutgoingMail = require('./mailScheduler'); // Import the mailListener setup function
+
 // Max number of tries to restart listener when encounter an error
 const MAX_RESTART_PAYMENTS = 10
 const MAX_RESTART_FORWARDING = 10;
@@ -309,12 +311,19 @@ function startForwardingListener() {
 				message: mail.html || mail.text
 			});
 			await scheduledMail_AdminNotify.save();
-
+			
+			// Send admin notify email right away
+			checkOutgoingMail();
 
 			// Mark the email as read after successful processing
 			forwardingListener.imap.addFlags(attributes.uid, '\\Seen', (err) => {
 				if (err) logger.error({ message: 'Failed to mark email as unread' });
 			});
+
+
+			
+	
+
 		} catch (err) {
 			logger.error({ message: `Error processing email: ${err.message}` });
 		}
