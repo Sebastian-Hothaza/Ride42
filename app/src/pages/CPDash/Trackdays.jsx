@@ -320,7 +320,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 	}
 
 	// If user has not signed waiver, don't allow any trackday management
-	if (userInfo && !userInfo.waiver) {
+	if (userInfo && !SEASON_END && !userInfo.waiver) {
 		return <>
 			<h1>Missing Waiver</h1>
 			<br></br><br></br>
@@ -330,13 +330,13 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 		</>
 	}
 
-	const showSeasonEndMessage = SEASON_END;
+	
 
 	return (
 		<>
 			<ScrollToTop />
 			<div className={styles.content}>
-				{showSeasonEndMessage ? (
+				{SEASON_END ? (
 					<>
 						<h1>Book and Manage your Trackdays - Coming January 4...</h1>
 						<h3>Want early booking access before we let everyone know? Click below! 😉</h3>
@@ -476,7 +476,7 @@ const Trackdays = ({ APIServer, userInfo, allTrackdays, userTrackdays, fetchAPID
 					</>
 				)}
 			</div>
-			{showSeasonEndMessage && <button className="actionButton" onClick={(e) => handleNotifyMeSubmit(e)}>Notify me early!</button>}
+			{SEASON_END && <button className="actionButton" onClick={(e) => handleNotifyMeSubmit(e)}>Notify me early!</button>}
 			<Loading open={activeModal.type === 'loading'}>
 				{activeModal.msg}
 			</Loading>
