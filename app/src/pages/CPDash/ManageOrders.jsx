@@ -302,12 +302,12 @@ const ManageOrders = ({ APIServer }) => {
 
                                 <div className={styles.pairing}>
                                     <div>Delivery Date:</div>
-                                    {order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : 'Kitchener Pickup'}
+                                    {order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : 'Local Pickup'}
                                 </div>
 
 
 
-                                <div>{order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : 'Local Pickup'}{order.orderStatus !== 'complete' &&
+                                <div>{order.orderStatus !== 'complete' &&
                                     <div className={styles.productActions}>
                                         <button className={styles.editBtn} style={{ color: '#0099ff' }} onClick={() => setActiveModal({ type: 'editOrder', order })}><span className="material-symbols-outlined">edit</span></button>
                                         <button className={styles.editBtn} style={{ backgroundColor: '#bb0000' }} onClick={() => setActiveModal({ type: 'deleteOrder', order })}><span className='material-symbols-outlined'>delete</span></button>
@@ -413,14 +413,7 @@ const ManageOrders = ({ APIServer }) => {
                                     </div>
                                 )}
 
-                                <div className={styles.pairing}>
-                                    <div>Delivery Date:</div>
-                                    {order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : 'Kitchener Pickup'}
-                                </div>
-
-
-
-                                <div>{order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : 'Local Pickup'}{order.orderStatus !== 'complete' &&
+                                <div>{order.orderStatus !== 'complete' &&
                                     <div className={styles.productActions}>
                                         <button className={styles.editBtn} style={{ color: '#0099ff' }} onClick={() => setActiveModal({ type: 'editOrder', order })}><span className="material-symbols-outlined">edit</span></button>
                                         <button className={styles.editBtn} style={{ backgroundColor: '#bb0000' }} onClick={() => setActiveModal({ type: 'deleteOrder', order })}><span className='material-symbols-outlined'>delete</span></button>
