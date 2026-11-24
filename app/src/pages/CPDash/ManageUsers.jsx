@@ -22,6 +22,7 @@ const ManageUsers = ({ APIServer, fetchAPIData, allUsers }) => {
     const [user, setUser] = useState(''); // Tracks current user we are managing
 
 
+    console.log(user)
     async function handleUserInfoSubmit(e) {
         e.preventDefault();
         e.target.phone.value = e.target.phone.value.replace(/[^0-9]/g, '');
@@ -213,6 +214,15 @@ const ManageUsers = ({ APIServer, fetchAPIData, allUsers }) => {
                         <div className={styles.inputPairing}>
                             <label htmlFor="phone">Credits:</label>
                             <input type="number" id="credits" name="credits" disabled={lockedUserInfo} value={user.credits} min={0} onChange={(e) => setUser({ ...user, credits: e.target.value })} required ></input>
+                        </div>
+
+                        <div className={styles.inputPairing}>
+                            <label>Attendance:</label>
+                            <span>
+                                {`${(user.attendanceRecord || [])
+                                    .map(({ year, daysAttended }) => `${year}: ${daysAttended}`)
+                                    .join(', ')}`}
+                            </span>
                         </div>
 
 

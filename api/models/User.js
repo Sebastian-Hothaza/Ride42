@@ -20,7 +20,13 @@ const UserSchema = new mongoose.Schema({
 	memberType: 	{ type: String, required: true, enum: ["regular", "racer", "coach", "staff", "admin"] },
 	password: 		{ type: String, required: true },
 	refreshToken: 	{ type: String },
-	promoOptOut: 	{ type: Boolean, required: true, default: false }
+	promoOptOut: 	{ type: Boolean, required: true, default: false },
+	attendanceRecord: [
+		{
+			year: { type: Number, required: true },
+			daysAttended: { type: Number, required: true, default: 0 }
+		}
+	],
 });
 
 

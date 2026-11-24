@@ -433,6 +433,7 @@ exports.walkons = [
 ]
 
 // Marks a user as checked in. Requires JWT with staff/admin/coach.
+// Depracated; old style stickers
 // ! Logged operation !
 exports.checkin = [
     controllerUtils.verifyJWT,
@@ -520,6 +521,20 @@ exports.checkinQR = [
             memberEntry.checkedIn.push(qr.bike.id);
             await trackday.save();
             logger.info({ message: `Checked in ${qr.user.firstName} ${qr.user.lastName} with a ${qr.bike.year} ${qr.bike.make} ${qr.bike.model} for trackday on ${trackday.date.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric' })}` })
+            
+            // Increase members daysAttended count
+            if (memberEntry.checkedIn.length === 1) { 
+                const year = trackday.date.getUTCFullYear();
+                const attendance = qr.user.attendanceRecord.find((record) => record.year === year);
+
+                if (attendance) {
+                    attendance.daysAttended++;
+                } else {
+                    qr.user.attendanceRecord.push({ year, daysAttended: 1 });
+                }
+                await qr.user.save();
+            }
+
             return res.sendStatus(200);
         }
         return res.sendStatus(403)
