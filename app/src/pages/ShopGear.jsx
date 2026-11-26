@@ -677,7 +677,7 @@ const ShopGear = ({ APIServer }) => {
     <br></br>
     <ul>
       <li><a href='https://youtu.be/P5jJX3lxRq4' target="_blank" rel="noreferrer" style={{ color: 'blue', textDecoration: 'underline' }}>How to design your suit</a></li>
-      <li><a href='https://files.ride42.ca/api/public/dl/fYeWTL9O?inline=true' download="PLUS Templates.zip" target="_blank" rel="noreferrer" style={{ color: 'blue', textDecoration: 'underline' }}>Download Design Template</a></li>
+      <li><a href='https://files.ride42.ca/PLUS_Templates_2027.zip' download="PLUS Templates.zip" target="_blank" rel="noreferrer" style={{ color: 'blue', textDecoration: 'underline' }}>Download Design Template</a></li>
       <li><a href='https://youtu.be/0HLv8ZIwWdg' target="_blank" rel="noreferrer" style={{ color: 'blue', textDecoration: 'underline' }}>HELITE Airbag Usage</a></li>
       <li><a href='https://youtu.be/EmLXZcRJD1U' target="_blank" rel="noreferrer" style={{ color: 'blue', textDecoration: 'underline' }}>HELITE Airbag Install</a></li>
 
@@ -728,7 +728,7 @@ const ShopGear = ({ APIServer }) => {
     </ul>
     <br></br>
     
-    <h2><a href='https://files.ride42.ca/api/public/dl/8ykHhF1W?inline=true' target="_blank" rel="noreferrer" style={{ color: 'blue', textDecoration: 'underline' }}>2027 Rider Support Program</a></h2>
+    <h2><a href='https://files.ride42.ca/2027_PLUS_Contingency.pdf' target="_blank" rel="noreferrer" style={{ color: 'blue', textDecoration: 'underline' }}>2027 Rider Support Program</a></h2>
 
 
 

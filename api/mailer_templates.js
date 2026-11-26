@@ -262,7 +262,7 @@ const createGearOrder_suit =
 		<br />
 		We are now ready to get started on your suit. There are 2 components:
 		<ol>
-			<li>Sizing: You can either come by my place in Kitchener and I can take your measurements OR you can do your own measurements at home. <a href="https://files.ride42.ca/api/public/dl/dQA0W6rL?inline=true">Measurement Guide</a></li>
+			<li>Sizing: You can either come by my place in Kitchener and I can take your measurements OR you can do your own measurements at home. <a href="https://files.ride42.ca/_Measurements.pdf">Measurement Guide</a></li>
 			<li>Design: You can either build your own suit design, pick something similar to previous designs or I can help you design your suit when you come by for measurements. The links for design are available <a href="https://ride42.ca/shop/gear">here</a></li>
 		</ol>
 		Please let me know how you would like to proceed and if you have any questions,
