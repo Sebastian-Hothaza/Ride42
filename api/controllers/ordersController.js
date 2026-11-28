@@ -210,8 +210,10 @@ exports.order_put = [
             });
         }
         updateData.items = order.items;
-        updateData.balanceDue = order.balanceDue - (req.body.discount || 0);
 
+        // If discount is being updated, recalculate balanceDue
+        if (req.body.discount !== undefined) updateData.balanceDue = order.balanceDue + order.discount - Number(req.body.discount);
+ 
         // If delivery date is provided, make sure its valid, else its null
         if (req.body.deliveryDate) {
             const upcomingTrackdays = await Trackday.find({ date: { $gt: new Date() } }).select('date -_id').exec();
